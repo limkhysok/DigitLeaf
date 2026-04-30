@@ -1,0 +1,12 @@
+fastapi==0.136.1
+uvicorn[standard]
+sqlalchemy
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+python-dotenv
+sqlmodel
+pymysql
+cryptography
+loguru

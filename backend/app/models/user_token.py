@@ -1,0 +1,13 @@
+from typing import Optional
+from sqlmodel import Field, SQLModel
+from datetime import datetime
+from app.core.config import CAMBODIA_TZ
+
+class UserToken(SQLModel, table=True):
+    __tablename__ = "user_token"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_name: str = Field(max_length=255, index=True)
+    refresh_token: str = Field(max_length=512, index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    expires_at: datetime
