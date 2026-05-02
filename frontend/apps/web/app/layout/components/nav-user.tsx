@@ -18,6 +18,7 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 
 export function NavUser({
   user,
@@ -30,6 +31,7 @@ export function NavUser({
 }>) {
   const { mounted } = useSidebar()
   const router = useRouter()
+  const { logout } = useAuth()
 
   if (!mounted) {
     return <div className="h-8 w-8 animate-pulse bg-emerald-500/10 rounded-full" />
@@ -56,7 +58,10 @@ export function NavUser({
         align="end"
         sideOffset={10}
       >
-        <DropdownMenuItem className="gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-colors focus:bg-emerald-500/10 focus:text-emerald-600 group">
+        <DropdownMenuItem 
+          className="gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-colors focus:bg-emerald-500/10 focus:text-emerald-600 group"
+          onClick={() => router.push("/profile")}
+        >
           <IconUser className="size-4 text-muted-foreground group-focus:text-emerald-600" />
           <span className="text-sm font-medium">Profile</span>
         </DropdownMenuItem>
@@ -65,7 +70,7 @@ export function NavUser({
 
         <DropdownMenuItem
           className="gap-3 px-3 py-2.5 cursor-pointer rounded-md text-destructive focus:text-destructive focus:bg-destructive/10 group"
-          onClick={() => router.push("/login")}
+          onClick={() => logout()}
         >
           <IconLogout className="size-4 opacity-70 group-focus:opacity-100" />
           <span className="text-sm font-medium">Log out</span>

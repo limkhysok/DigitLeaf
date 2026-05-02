@@ -17,7 +17,7 @@ Authenticates a user using standard OAuth2 Password flow. Returns a short-lived 
 **Request Body (Form Data):**
 - `username`: `string` (Required)
 - `password`: `string` (Required)
-- `scopes`: `string` (Optional, space-separated e.g., "user admin")
+- `scope`: `string` (Optional, space-separated e.g., "user admin")
 
 **Example Request (curl):**
 ```bash

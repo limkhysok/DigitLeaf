@@ -40,4 +40,4 @@ class UserPublic(SQLModel):
     user_name: str
     access_type: str
     login_type: str
-    do_date: datetime
+    do_date: datetime | str | None = None

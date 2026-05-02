@@ -62,4 +62,4 @@ def get_current_user(
             
     return user
 
-CurrentUser = Annotated[User, Security(get_current_user, scopes=["login_system"])]
+CurrentUser = Annotated[User, Security(get_current_user, scopes=["user"])]

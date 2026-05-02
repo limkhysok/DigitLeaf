@@ -12,10 +12,11 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { NavUser } from "@/app/layout/components/nav-user"
-import { data } from "@/app/layout/app-sidebar"
+import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@workspace/ui/lib/utils"
 
 export function TopNav() {
+  const { user } = useAuth()
   const pathname = usePathname()
   const [mounted, setMounted] = React.useState(false)
 
@@ -71,7 +72,11 @@ export function TopNav() {
       </div>
 
       <div className="ml-auto flex items-center gap-4">
-        <NavUser user={data.user} />
+        <NavUser user={{
+          name: user?.user_name || "Guest",
+          email: `${user?.user_name || "guest"}@example.com`,
+          avatar: ""
+        }} />
       </div>
     </header>
   )

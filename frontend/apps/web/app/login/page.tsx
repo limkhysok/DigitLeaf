@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+
 import { Button } from "@workspace/ui/components/button"
 
 import { Input } from "@workspace/ui/components/input"
@@ -9,14 +9,17 @@ import { Label } from "@workspace/ui/components/label"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import Image from "next/image"
 import { IconEye, IconEyeOff, IconLeaf, IconLoader2 } from "@tabler/icons-react"
+import { useAuth } from "@/hooks/use-auth"
 
 
 export default function LoginPage() {
-  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [leaves, setLeaves] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
+
+  const { login } = useAuth()
+  const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
     setMounted(true)
@@ -31,14 +34,21 @@ export default function LoginPage() {
     })))
   }, [])
 
-  const handleLogin = (e: any) => {
+  const handleLogin = async (e: any) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrorMsg("")
     
-    // Simulate API call
-    setTimeout(() => {
-      router.push("/dashboard")
-    }, 1000)
+    const username = e.target.username.value
+    const password = e.target.password.value
+
+    try {
+      await login(username, password)
+      // router.push("/dashboard") is already handled in login function
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to login. Please try again.")
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -160,6 +170,10 @@ export default function LoginPage() {
                 Remember me
               </label>
             </div>
+
+            {errorMsg && (
+              <p className="text-sm font-medium text-red-500">{errorMsg}</p>
+            )}
 
             <Button 
               type="submit"
