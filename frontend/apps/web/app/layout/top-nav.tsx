@@ -35,7 +35,7 @@ export function TopNav() {
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/dashboard" className="text-xs hover:text-[#009640] transition-colors">
+                <BreadcrumbLink href="/dashboard" className="text-sm hover:text-[#009640] transition-colors">
                   Workspace
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -47,7 +47,7 @@ export function TopNav() {
                     <BreadcrumbSeparator className="opacity-50" />
                     <BreadcrumbItem>
                       {index === pathSegments.length - 1 ? (
-                        <BreadcrumbPage className="capitalize truncate max-w-[140px] text-xs font-bold text-[#009640]">
+                        <BreadcrumbPage className="capitalize truncate max-w-[140px] text-sm font-bold text-[#009640]">
                           {segment.replaceAll('-', ' ')}
                         </BreadcrumbPage>
                       ) : (
