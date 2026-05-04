@@ -5,9 +5,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import {
   IconLayoutSidebarLeftCollapse,
-  IconLayoutSidebarLeftExpand,
-  IconMenu2,
-  IconX
+  IconLayoutSidebarLeftExpand
 } from "@tabler/icons-react"
 
 import { useIsMobile } from "../hooks/use-mobile"
@@ -69,7 +67,8 @@ export const SidebarProvider = React.forwardRef<
     const [mounted, setMounted] = React.useState(false)
 
     React.useEffect(() => {
-      setMounted(true)
+      const frame = requestAnimationFrame(() => setMounted(true))
+      return () => cancelAnimationFrame(frame)
     }, [])
 
     // This is the internal state of the sidebar.
@@ -195,10 +194,13 @@ export const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <div className={cn("fixed inset-0 z-50 flex", openMobile ? "visible" : "invisible")}>
+        <div className={cn(
+          "fixed inset-0 z-50 flex transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]", 
+          openMobile ? "pointer-events-auto" : "pointer-events-none"
+        )}>
           <button
             className={cn(
-              "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500 ease-in-out border-none",
+              "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] border-none outline-none",
               openMobile ? "opacity-100" : "opacity-0"
             )}
             onClick={() => setOpenMobile(false)}
@@ -206,14 +208,14 @@ export const Sidebar = React.forwardRef<
           />
           <div
             className={cn(
-              "group relative flex h-full w-[var(--sidebar-width-mobile)] flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-500 ease-in-out",
+              "group relative flex h-full w-[var(--sidebar-width-mobile)] flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
               side === "left"
                 ? "-translate-x-full border-r border-sidebar-border/50"
                 : "translate-x-full border-l border-sidebar-border/50",
               openMobile && "translate-x-0",
               className
             )}
-            data-state="expanded"
+            data-state={openMobile ? "expanded" : "collapsed"}
             data-mobile="true"
             {...props}
           >
@@ -281,10 +283,8 @@ export const SidebarTrigger = React.forwardRef<
 >(({ className, onClick, ...props }, ref) => {
   const { toggleSidebar, state, isMobile, openMobile } = useSidebar()
 
-  let Icon = state === "expanded" ? IconLayoutSidebarLeftCollapse : IconLayoutSidebarLeftExpand
-  if (isMobile) {
-    Icon = openMobile ? IconX : IconMenu2
-  }
+  const isOpen = isMobile ? openMobile : state === "expanded"
+  const Icon = isOpen ? IconLayoutSidebarLeftCollapse : IconLayoutSidebarLeftExpand
 
   return (
     <Button
@@ -559,7 +559,7 @@ export const SidebarMenuButton = React.forwardRef<
   React.ComponentProps<"button"> & {
     asChild?: boolean
     isActive?: boolean
-    tooltip?: string | React.ComponentProps<any> // Tooltip placeholder
+    tooltip?: string | React.ComponentType<React.ComponentProps<"div">> // Tooltip placeholder
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(
   (

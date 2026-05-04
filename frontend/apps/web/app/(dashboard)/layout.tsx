@@ -13,9 +13,9 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="h-svh overflow-y-auto overflow-x-hidden">
         <TopNav />
-        <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl w-full">
             {children}
           </div>
