@@ -12,7 +12,10 @@ from alembic import context
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from app.core.config import settings
-from app.models.user import User  # noqa: F401
+from app.models.user import User, UserMFA  # noqa: F401
+from app.models.user_token import UserToken  # noqa: F401
+from app.models.audit_log import AuditLog  # noqa: F401
+from app.models.rbac import Role, Permission, UserRoleLink, RolePermissionLink  # noqa: F401
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config

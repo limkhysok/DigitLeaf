@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils";
 import { AuthProvider } from "@/hooks/use-auth";
 
+import { Toaster } from "@workspace/ui/components/sonner"
+
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'})
 
 const fontMono = Geist_Mono({
@@ -25,7 +27,10 @@ export default function RootLayout({
     >
       <body className="bg-[#009640]">
         <AuthProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

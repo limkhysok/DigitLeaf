@@ -18,6 +18,18 @@ class UserBase(SQLModel):
     edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     edit_ip_address: str = Field(default="127.0.0.1")
 
+class UserMFA(SQLModel, table=True):
+    __tablename__ = "dl_user_mfa"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", unique=True, index=True)
+    otp_code: Optional[str] = Field(default=None, max_length=6)
+    otp_expiry: Optional[datetime] = Field(default=None)
+    totp_secret: Optional[str] = Field(default=None, max_length=32)
+    totp_enabled: bool = Field(default=False)
+    
+    user: "User" = Relationship(back_populates="mfa")
+
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     password: str = Field(max_length=255)
@@ -28,6 +40,11 @@ class User(UserBase, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     
+    mfa: Optional[UserMFA] = Relationship(
+        back_populates="user", 
+        sa_relationship_kwargs={"uselist": False, "lazy": "selectin"}
+    )
+    
     # Profile & Status Fields (Sync with migration f35424d651c3)
     avatar_url: Optional[str] = Field(default=None, max_length=255)
     bio: Optional[str] = Field(default=None)
@@ -35,12 +52,6 @@ class User(UserBase, table=True):
     refresh_token: Optional[str] = Field(default=None, max_length=255)
     created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
-
-    # Authentication Fields (New)
-    otp_code: Optional[str] = Field(default=None, max_length=6)
-    otp_expiry: Optional[datetime] = Field(default=None)
-    totp_secret: Optional[str] = Field(default=None, max_length=32)
-    totp_enabled: bool = Field(default=False)
 
     def __str__(self):
         return self.user_name

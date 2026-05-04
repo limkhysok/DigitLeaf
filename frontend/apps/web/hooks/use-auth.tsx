@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { apiClient, UserProfile, TokenResponse } from "@/lib/api-client"
 import { useRouter, usePathname } from "next/navigation"
+import { toast } from "sonner"
 
 interface AuthContextType {
   user: UserProfile | null
@@ -88,29 +89,43 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   }, [saveTokensToStorage])
 
   useEffect(() => {
+    let isMounted = true
+
     const initAuth = async () => {
       const storedTokens = loadTokensFromStorage()
+      
       if (storedTokens) {
-        setTokens(storedTokens)
+        // Set tokens if not already set
+        setTokens(prev => {
+          if (prev?.access_token !== storedTokens.access_token) {
+            return storedTokens
+          }
+          return prev
+        })
+
         const success = await fetchCurrentUser(storedTokens)
+        if (!isMounted) return
+
         if (success) {
-          // If authenticated and on landing or login page, redirect to dashboard
           if (pathname === "/" || pathname?.includes("/login")) {
             router.push("/dashboard")
           }
         } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
-          // If token invalid and on protected route, redirect to login
           router.push("/login")
         }
       } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
-        // Not authenticated, redirect to login if on protected route
         router.push("/login")
       }
+      
       setIsLoading(false)
     }
 
     initAuth()
-  }, [fetchCurrentUser, loadTokensFromStorage, pathname, router, tokens])
+
+    return () => {
+      isMounted = false
+    }
+  }, [fetchCurrentUser, loadTokensFromStorage, pathname, router])
 
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true)
@@ -121,14 +136,18 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
         setIsLoading(false)
         const verifyUrl = `/2fa-verify?username=${encodeURIComponent(username)}`
         router.push(verifyUrl)
+        toast.info("Two-factor authentication required")
         return
       }
       saveTokensToStorage(response)
       await fetchCurrentUser(response)
       setIsLoading(false)
       router.push("/dashboard")
+      toast.success("Login successful!")
     } catch (error) {
       setIsLoading(false)
+      const err = error as Error
+      toast.error(err.message || "Login failed")
       throw error
     }
   }, [fetchCurrentUser, router, saveTokensToStorage])
@@ -141,8 +160,12 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       await fetchCurrentUser(newTokens)
       setIsLoading(false)
       router.push("/dashboard")
+      toast.success("Verification successful!")
+
     } catch (error) {
       setIsLoading(false)
+      const err = error as Error
+      toast.error(err.message || "Verification failed")
       throw error
     }
   }, [fetchCurrentUser, router, saveTokensToStorage])
@@ -155,8 +178,12 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       await fetchCurrentUser(newTokens)
       setIsLoading(false)
       router.push("/dashboard")
+      toast.success("Verification successful!")
+
     } catch (error) {
       setIsLoading(false)
+      const err = error as Error
+      toast.error(err.message || "Verification failed")
       throw error
     }
   }, [fetchCurrentUser, router, saveTokensToStorage])
@@ -177,6 +204,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       saveTokensToStorage(null)
       setUser(null)
       router.push("/login")
+      toast.success("Successfully logged out")
       setIsLoading(false)
     }
   }, [router, saveTokensToStorage, tokens?.access_token])

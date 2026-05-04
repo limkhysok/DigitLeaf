@@ -20,6 +20,18 @@ import { Label } from "@workspace/ui/components/label"
 import { useAuth } from "@/hooks/use-auth"
 import { apiClient } from "@/lib/api-client"
 import { QRCodeSVG } from "qrcode.react"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@workspace/ui/components/alert-dialog"
 
 const LEAF_PATTERN = [
   { id: 'l1', size: 24, top: '10%', left: '10%', rotate: 45 },
@@ -43,6 +55,7 @@ export default function ProfilePage() {
   const [verificationCode, setVerificationCode] = useState("")
   const [setupError, setSetupError] = useState("")
   const [setupSuccess, setSetupSuccess] = useState(false)
+  const [disableCode, setDisableCode] = useState("")
 
   const handleStartSetup = async () => {
     if (!tokens?.access_token) return
@@ -68,9 +81,31 @@ export default function ProfilePage() {
       setSetupSuccess(true)
       setTotpData(null)
       await refreshUserProfile()
+      toast.success("Two-Factor Authentication enabled successfully!")
     } catch (err) {
       const error = err as Error
       setSetupError(error.message || "Failed to verify TOTP code")
+      toast.error(error.message || "Verification failed")
+    } finally {
+      setIsSettingUp(false)
+    }
+  }
+
+  const handleDisableTOTP = async () => {
+    if (!tokens?.access_token || !user) return
+    
+    setIsSettingUp(true)
+    setSetupError("")
+    try {
+      await apiClient.disableTOTP(tokens.access_token, user.user_name, disableCode)
+      setSetupSuccess(false)
+      setDisableCode("")
+      await refreshUserProfile()
+      toast.success("Two-Factor Authentication disabled.")
+    } catch (err) {
+      const error = err as Error
+      setSetupError(error.message || "Failed to disable TOTP")
+      toast.error(error.message || "Failed to disable 2FA")
     } finally {
       setIsSettingUp(false)
     }
@@ -91,17 +126,66 @@ export default function ProfilePage() {
   const renderTOTPSection = () => {
     if (user.totp_enabled || setupSuccess) {
       return (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-none flex items-center justify-between gap-3 text-emerald-700 font-medium">
-          <div className="flex items-center gap-3">
-            <IconCheck size={24} stroke={3} className="bg-emerald-600 text-white rounded-full p-1" />
-            <div className="space-y-0.5">
-              <p className="font-bold text-lg">2FA is Active</p>
-              <p className="text-xs text-emerald-600/80 font-semibold uppercase tracking-wider">Securely linked to your authenticator app</p>
+        <div className="space-y-4">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-none flex items-center justify-between gap-3 text-emerald-700 font-medium">
+            <div className="flex items-center gap-3">
+              <IconCheck size={20} stroke={3} className="bg-emerald-600 text-white rounded-full p-1" />
+              <div className="space-y-0.5">
+                <p className="font-bold text-base">2FA is Active</p>
+                <p className="text-[11px] text-emerald-600/80 font-semibold uppercase tracking-wider">Securely linked to your authenticator app</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="text-[10px] bg-emerald-600 text-white px-2 py-1 font-black uppercase tracking-tighter rounded-sm">
+                PROTECTED
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto p-0 text-destructive hover:text-destructive hover:bg-transparent font-bold text-[10px] uppercase tracking-tighter underline underline-offset-4"
+                    disabled={isSettingUp}
+                  >
+                    {isSettingUp ? <IconLoader2 className="animate-spin size-3" /> : "Disable 2FA"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-none border-border/40">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-xl font-bold tracking-tight text-destructive">Disable 2FA?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm font-medium">
+                      Enter the 6-digit code from your authenticator app to confirm you want to disable 2FA.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <div className="py-4 space-y-2">
+                    <Label htmlFor="disable-code" className="text-xs font-bold uppercase tracking-wider">Verification Code</Label>
+                    <Input 
+                      id="disable-code"
+                      type="text"
+                      maxLength={6}
+                      placeholder="000 000"
+                      value={disableCode}
+                      onChange={(e) => setDisableCode(e.target.value)}
+                      className="h-12 text-center text-xl font-bold tracking-[0.5em] rounded-none border-border/60"
+                    />
+                  </div>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-none font-semibold" onClick={() => setDisableCode("")}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDisableTOTP}
+                      disabled={disableCode.length !== 6 || isSettingUp}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-none font-bold min-w-[140px]"
+                    >
+                      {isSettingUp ? <IconLoader2 className="animate-spin size-4 mr-2" /> : "Confirm Disable"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
-          <div className="text-[10px] bg-emerald-600 text-white px-2 py-1 font-black uppercase tracking-tighter rounded-sm">
-            PROTECTED
-          </div>
+          {setupError && <p className="text-sm text-red-500 flex items-center gap-2 px-1"><IconAlertCircle size={16} /> {setupError}</p>}
         </div>
       )
     }
@@ -205,12 +289,12 @@ export default function ProfilePage() {
         <Card className="shadow-lg border-border/40 bg-card/80 backdrop-blur-md rounded-none">
           <CardContent className="p-8 space-y-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-600">
-                <IconShieldCheck size={24} />
+              <div className="p-2.5 rounded-full bg-emerald-500/10 text-emerald-600">
+                <IconShieldCheck size={20} />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold">Two-Factor Authentication</h3>
-                <p className="text-sm text-muted-foreground">Add an extra layer of security to your account.</p>
+              <div className="space-y-0.5">
+                <h3 className="text-base font-bold">Two-Factor Authentication</h3>
+                <p className="text-[13px] text-muted-foreground">Add an extra layer of security to your account.</p>
               </div>
             </div>
 

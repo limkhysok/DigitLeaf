@@ -11,10 +11,11 @@ from app.crud import user as crud_user
 from app.crud import user_token as crud_token
 from app.schemas.token import Token, RefreshTokenRequest
 from app.schemas.user import OTPRequest, OTPVerify, TOTPVerify
-from app.models.user import UserPublic
+from app.models.user import UserPublic, UserMFA
 from app.api.deps import CurrentUser
 
 router = APIRouter()
+INVALID_TOTP_MSG = "Invalid TOTP code"
 
 
 @router.post("/login/access-token")
@@ -32,7 +33,7 @@ def login_access_token(
             detail="Incorrect username or password",
         )
 
-    if user.totp_enabled:
+    if user.mfa and user.mfa.totp_enabled:
         return Token(
             access_token="",
             token_type="mfa",
@@ -95,9 +96,12 @@ def request_otp(
             detail="User not found",
         )
     
+    if not user.mfa:
+        user.mfa = UserMFA(user_id=user.id)
+    
     otp = security.generate_otp()
-    user.otp_code = otp
-    user.otp_expiry = datetime.now(CAMBODIA_TZ) + timedelta(minutes=5)
+    user.mfa.otp_code = otp
+    user.mfa.otp_expiry = datetime.now(CAMBODIA_TZ) + timedelta(minutes=5)
     
     session.add(user)
     session.commit()
@@ -114,21 +118,21 @@ def verify_otp(
     Verify 6-digit OTP and return access tokens
     """
     user = crud_user.get_user_by_username(session, request.user_name)
-    if not user or user.otp_code != request.otp_code:
+    if not user or not user.mfa or user.mfa.otp_code != request.otp_code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid username or OTP",
         )
     
-    if user.otp_expiry and user.otp_expiry < datetime.now(CAMBODIA_TZ):
+    if user.mfa.otp_expiry and user.mfa.otp_expiry < datetime.now(CAMBODIA_TZ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="OTP has expired",
         )
     
     # Clear OTP after successful verification
-    user.otp_code = None
-    user.otp_expiry = None
+    user.mfa.otp_code = None
+    user.mfa.otp_expiry = None
     session.add(user)
     
     # Generate tokens
@@ -170,14 +174,17 @@ def setup_totp(
     """
     Generate TOTP secret and provisioning URI for Google Authenticator
     """
-    if current_user.totp_enabled:
+    if current_user.mfa and current_user.mfa.totp_enabled:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="TOTP is already enabled",
         )
     
+    if not current_user.mfa:
+        current_user.mfa = UserMFA(user_id=current_user.id)
+    
     secret = security.generate_totp_secret()
-    current_user.totp_secret = secret
+    current_user.mfa.totp_secret = secret
     session.add(current_user)
     session.commit()
     
@@ -193,28 +200,61 @@ def enable_totp(
     """
     Verify and enable TOTP for the current user
     """
-    if current_user.totp_enabled:
+    if current_user.mfa and current_user.mfa.totp_enabled:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="TOTP is already enabled",
         )
     
-    if not current_user.totp_secret:
+    if not current_user.mfa or not current_user.mfa.totp_secret:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="TOTP secret not generated. Call /totp/setup first.",
         )
     
-    if not security.verify_totp(current_user.totp_secret, request.totp_code):
+    if not security.verify_totp(current_user.mfa.totp_secret, request.totp_code):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid TOTP code",
+            detail=INVALID_TOTP_MSG,
         )
     
-    current_user.totp_enabled = True
+    current_user.mfa.totp_enabled = True
     session.add(current_user)
     session.commit()
     return {"message": "TOTP enabled successfully"}
+
+@router.post("/totp/disable")
+def disable_totp(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: CurrentUser,
+    request: TOTPVerify,
+):
+    """
+    Disable TOTP for the current user
+    """
+    if not current_user.mfa or not current_user.mfa.totp_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOTP is already disabled",
+        )
+    
+    if not current_user.mfa.totp_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No TOTP secret found",
+        )
+    
+    if not security.verify_totp(current_user.mfa.totp_secret, request.totp_code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=INVALID_TOTP_MSG,
+        )
+    
+    current_user.mfa.totp_enabled = False
+    current_user.mfa.totp_secret = None
+    session.add(current_user)
+    session.commit()
+    return {"message": "TOTP disabled successfully"}
 
 @router.post("/login/totp-verify")
 def verify_totp_login(
@@ -225,16 +265,16 @@ def verify_totp_login(
     Verify TOTP code during login and return access tokens
     """
     user = crud_user.get_user_by_username(session, request.user_name)
-    if not user or not user.totp_enabled or not user.totp_secret:
+    if not user or not user.mfa or not user.mfa.totp_enabled or not user.mfa.totp_secret:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="TOTP is not enabled for this user",
         )
     
-    if not security.verify_totp(user.totp_secret, request.totp_code):
+    if not security.verify_totp(user.mfa.totp_secret, request.totp_code):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid TOTP code",
+            detail=INVALID_TOTP_MSG,
         )
     
     # Generate tokens
@@ -274,7 +314,10 @@ def read_users_me(current_user: CurrentUser) -> UserPublic:
     """
     Get current user.
     """
-    return current_user
+    # Map User to UserPublic and manually set totp_enabled from the MFA relationship
+    user_public = UserPublic.model_validate(current_user)
+    user_public.totp_enabled = current_user.mfa.totp_enabled if current_user.mfa else False
+    return user_public
 
 @router.post("/login/refresh")
 def refresh_token(
