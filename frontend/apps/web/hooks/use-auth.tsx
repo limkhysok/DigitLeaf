@@ -10,6 +10,9 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  verifyOTP: (username: string, otp: string) => Promise<void>
+  verifyTOTP: (username: string, totp: string) => Promise<void>
+  refreshUserProfile: () => Promise<void>
   tokens: TokenResponse | null
 }
 
@@ -37,7 +40,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     return null
   }, [])
 
-  const saveTokensToStorage = (newTokens: TokenResponse | null) => {
+  const saveTokensToStorage = useCallback((newTokens: TokenResponse | null) => {
     if (globalThis.window !== undefined) {
       if (newTokens) {
         localStorage.setItem("auth_tokens", JSON.stringify(newTokens))
@@ -46,14 +49,15 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       }
       setTokens(newTokens)
     }
-  }
+  }, [])
 
   const fetchCurrentUser = useCallback(async (currentTokens: TokenResponse) => {
     try {
       const profile = await apiClient.getMe(currentTokens.access_token)
       setUser(profile)
       return true
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error
       // If unauthorized, attempt to refresh token
       // "Could not validate credentials" is the backend's standard 401 message
       if (
@@ -81,7 +85,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
         return false
       }
     }
-  }, [])
+  }, [saveTokensToStorage])
 
   useEffect(() => {
     const initAuth = async () => {
@@ -89,10 +93,16 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       if (storedTokens) {
         setTokens(storedTokens)
         const success = await fetchCurrentUser(storedTokens)
-        if (!success && pathname && !pathname.includes("/login") && pathname !== "/") {
+        if (success) {
+          // If authenticated and on landing or login page, redirect to dashboard
+          if (pathname === "/" || pathname?.includes("/login")) {
+            router.push("/dashboard")
+          }
+        } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
+          // If token invalid and on protected route, redirect to login
           router.push("/login")
         }
-      } else if (pathname && !pathname.includes("/login") && pathname !== "/") {
+      } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
         // Not authenticated, redirect to login if on protected route
         router.push("/login")
       }
@@ -100,22 +110,64 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     }
 
     initAuth()
-  }, [fetchCurrentUser, loadTokensFromStorage, pathname, router])
+  }, [fetchCurrentUser, loadTokensFromStorage, pathname, router, tokens])
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true)
     try {
-      const newTokens = await apiClient.login(username, password)
-      saveTokensToStorage(newTokens)
-      await fetchCurrentUser(newTokens)
+      const response = await apiClient.login(username, password)
+      
+      if (response.mfa_required) {
+        setIsLoading(false)
+        const verifyUrl = `/2fa-verify?username=${encodeURIComponent(username)}`
+        router.push(verifyUrl)
+        return
+      }
+      saveTokensToStorage(response)
+      await fetchCurrentUser(response)
+      setIsLoading(false)
       router.push("/dashboard")
     } catch (error) {
       setIsLoading(false)
       throw error
     }
-  }
+  }, [fetchCurrentUser, router, saveTokensToStorage])
 
-  const logout = async () => {
+  const verifyOTP = useCallback(async (username: string, otp: string) => {
+    setIsLoading(true)
+    try {
+      const newTokens = await apiClient.verifyOTP(username, otp)
+      saveTokensToStorage(newTokens)
+      await fetchCurrentUser(newTokens)
+      setIsLoading(false)
+      router.push("/dashboard")
+    } catch (error) {
+      setIsLoading(false)
+      throw error
+    }
+  }, [fetchCurrentUser, router, saveTokensToStorage])
+
+  const verifyTOTP = useCallback(async (username: string, totp: string) => {
+    setIsLoading(true)
+    try {
+      const newTokens = await apiClient.verifyTOTP(username, totp)
+      saveTokensToStorage(newTokens)
+      await fetchCurrentUser(newTokens)
+      setIsLoading(false)
+      router.push("/dashboard")
+    } catch (error) {
+      setIsLoading(false)
+      throw error
+    }
+  }, [fetchCurrentUser, router, saveTokensToStorage])
+
+  const refreshUserProfile = useCallback(async () => {
+    if (tokens) {
+      await fetchCurrentUser(tokens)
+    }
+  }, [fetchCurrentUser, tokens])
+
+  const logout = useCallback(async () => {
     setIsLoading(true)
     try {
       if (tokens?.access_token) {
@@ -127,11 +179,21 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       router.push("/login")
       setIsLoading(false)
     }
-  }
+  }, [router, saveTokensToStorage, tokens?.access_token])
 
   const contextValue = React.useMemo(
-    () => ({ user, isLoading, isAuthenticated: !!user, login, logout, tokens }),
-    [user, isLoading, tokens]
+    () => ({ 
+      user, 
+      isLoading, 
+      isAuthenticated: !!user, 
+      login, 
+      logout, 
+      verifyOTP, 
+      verifyTOTP,
+      refreshUserProfile,
+      tokens 
+    }),
+    [user, isLoading, tokens, login, logout, verifyOTP, verifyTOTP, refreshUserProfile]
   )
 
   return (

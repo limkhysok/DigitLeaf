@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { IconLeaf } from "@tabler/icons-react"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function LandingPage() {
   const router = useRouter()
@@ -12,8 +13,17 @@ export default function LandingPage() {
   const [leaves, setLeaves] = useState<any[]>([])
   const [isExiting, setIsExiting] = useState(false)
 
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+
   useEffect(() => {
     setMounted(true)
+    
+    // If we're already authenticated, redirect to dashboard immediately
+    if (isAuthenticated && !authLoading) {
+      router.push("/dashboard")
+      return
+    }
+
     router.prefetch("/login")
 
     const leafCount = window.innerWidth < 768 ? 12 : 25;
@@ -31,6 +41,9 @@ export default function LandingPage() {
     }, 3200)
 
     const redirectTimer = setTimeout(() => {
+      // After animation, if still not authenticated, go to login
+      // If we ARE authenticated by now (e.g. background check finished), 
+      // the useAuth logic or the check above will have handled it.
       router.push("/login")
     }, 4500)
 
@@ -38,7 +51,7 @@ export default function LandingPage() {
       clearTimeout(exitTimer)
       clearTimeout(redirectTimer)
     }
-  }, [router])
+  }, [router, isAuthenticated, authLoading])
 
   return (
     <div className={`min-h-screen w-full flex flex-col md:flex-row overflow-hidden relative transition-colors duration-1000 ease-in-out

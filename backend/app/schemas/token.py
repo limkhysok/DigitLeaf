@@ -6,6 +6,8 @@ class Token(BaseModel):
     expires_in: int | None = None
     scope: str | None = None
     refresh_token: str | None = None
+    mfa_required: bool = False
+    username: str | None = None
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str

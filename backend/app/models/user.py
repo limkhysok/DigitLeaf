@@ -27,6 +27,20 @@ class User(UserBase, table=True):
         link_model=UserRoleLink,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+    
+    # Profile & Status Fields (Sync with migration f35424d651c3)
+    avatar_url: Optional[str] = Field(default=None, max_length=255)
+    bio: Optional[str] = Field(default=None)
+    is_active: bool = Field(default=True)
+    refresh_token: Optional[str] = Field(default=None, max_length=255)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+
+    # Authentication Fields (New)
+    otp_code: Optional[str] = Field(default=None, max_length=6)
+    otp_expiry: Optional[datetime] = Field(default=None)
+    totp_secret: Optional[str] = Field(default=None, max_length=32)
+    totp_enabled: bool = Field(default=False)
 
     def __str__(self):
         return self.user_name
@@ -40,4 +54,5 @@ class UserPublic(SQLModel):
     user_name: str
     access_type: str
     login_type: str
+    totp_enabled: bool = False
     do_date: datetime | str | None = None

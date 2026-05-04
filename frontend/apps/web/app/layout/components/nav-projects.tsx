@@ -33,15 +33,10 @@ export function NavProjects({
   }[]
 }>) {
   const { isMobile } = useSidebar()
-  const [side, setSide] = React.useState<"bottom" | "right">("right")
-  const [align, setAlign] = React.useState<"start" | "end">("start")
+  const side = isMobile ? "bottom" : "right"
+  const align = isMobile ? "end" : "start"
 
   const pathname = usePathname()
-
-  React.useEffect(() => {
-    setSide(isMobile ? "bottom" : "right")
-    setAlign(isMobile ? "end" : "start")
-  }, [isMobile])
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]/sidebar:hidden">

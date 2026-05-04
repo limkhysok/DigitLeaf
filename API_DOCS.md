@@ -128,6 +128,86 @@ curl -X 'POST' \
 
 ---
 
+### 5. Request Login OTP
+Generates a 6-digit OTP for the specified user and returns it (for development/testing).
+
+**Endpoint:** `POST /auth/login/otp-request`
+
+**Request Body (JSON):**
+```json
+{
+  "user_name": "string"
+}
+```
+
+---
+
+### 6. Verify Login OTP
+Verifies the 6-digit OTP and returns access tokens.
+
+**Endpoint:** `POST /auth/login/otp-verify`
+
+**Request Body (JSON):**
+```json
+{
+  "user_name": "string",
+  "otp_code": "string"
+}
+```
+
+---
+
+### 7. Setup Google Authenticator (TOTP)
+Generates a TOTP secret and provisioning URI for the current user.
+
+**Endpoint:** `POST /auth/totp/setup`
+
+**Request Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Example Response (200 OK):**
+```json
+{
+  "secret": "JBSWY3DPEHPK3PXP",
+  "uri": "otpauth://totp/DigitLeaf:johndoe?secret=JBSWY3DPEHPK3PXP&issuer=DigitLeaf"
+}
+```
+
+---
+
+### 8. Enable Google Authenticator (TOTP)
+Verifies the first TOTP code and permanently enables TOTP for the user.
+
+**Endpoint:** `POST /auth/totp/enable`
+
+**Request Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+```json
+{
+  "user_name": "string",
+  "totp_code": "string"
+}
+```
+
+---
+
+### 9. Verify Google Authenticator Login
+Verifies the TOTP code during login and returns access tokens.
+
+**Endpoint:** `POST /auth/login/totp-verify`
+
+**Request Body (JSON):**
+```json
+{
+  "user_name": "string",
+  "totp_code": "string"
+}
+```
+
+---
+
 ## 📋 System Audit Endpoints
 
 ### 5. View Audit Logs

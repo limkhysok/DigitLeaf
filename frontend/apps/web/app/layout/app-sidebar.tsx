@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSyncExternalStore } from "react"
 import {
   IconLeaf,
   IconLayoutDashboard,
@@ -50,11 +51,11 @@ export const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
 
   if (!mounted) {
     return (

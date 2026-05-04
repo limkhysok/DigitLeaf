@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useSyncExternalStore } from "react"
 import { usePathname } from "next/navigation"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 import {
@@ -18,11 +18,11 @@ import { cn } from "@workspace/ui/lib/utils"
 export function TopNav() {
   const { user } = useAuth()
   const pathname = usePathname()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
 
   const pathSegments = pathname.split('/').filter(Boolean)
 

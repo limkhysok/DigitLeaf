@@ -10,6 +10,7 @@ from app.db.session import get_session
 from app.crud import user as crud_user
 from app.crud import user_token as crud_token
 from app.schemas.token import Token, RefreshTokenRequest
+from app.schemas.user import OTPRequest, OTPVerify, TOTPVerify
 from app.models.user import UserPublic
 from app.api.deps import CurrentUser
 
@@ -29,6 +30,14 @@ def login_access_token(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect username or password",
+        )
+
+    if user.totp_enabled:
+        return Token(
+            access_token="",
+            token_type="mfa",
+            mfa_required=True,
+            username=user.user_name
         )
 
     # Define allowed scopes dynamically from DB Roles and Permissions
@@ -68,6 +77,194 @@ def login_access_token(
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         scope=" ".join(scopes),
+        refresh_token=refresh_token
+    )
+
+@router.post("/login/otp-request")
+def request_otp(
+    session: Annotated[Session, Depends(get_session)],
+    request: OTPRequest,
+):
+    """
+    Request a 6-digit OTP for login
+    """
+    user = crud_user.get_user_by_username(session, request.user_name)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    
+    otp = security.generate_otp()
+    user.otp_code = otp
+    user.otp_expiry = datetime.now(CAMBODIA_TZ) + timedelta(minutes=5)
+    
+    session.add(user)
+    session.commit()
+    
+    # For now, we return the OTP in the response for testing
+    return {"message": "OTP generated successfully", "otp": otp}
+
+@router.post("/login/otp-verify")
+def verify_otp(
+    session: Annotated[Session, Depends(get_session)],
+    request: OTPVerify,
+) -> Token:
+    """
+    Verify 6-digit OTP and return access tokens
+    """
+    user = crud_user.get_user_by_username(session, request.user_name)
+    if not user or user.otp_code != request.otp_code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid username or OTP",
+        )
+    
+    if user.otp_expiry and user.otp_expiry < datetime.now(CAMBODIA_TZ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP has expired",
+        )
+    
+    # Clear OTP after successful verification
+    user.otp_code = None
+    user.otp_expiry = None
+    session.add(user)
+    
+    # Generate tokens
+    allowed_scopes_set = {"user"}
+    for role in user.roles:
+        allowed_scopes_set.add(role.name.lower())
+        for perm in role.permissions:
+            allowed_scopes_set.add(perm.name)
+            
+    allowed_scopes = list(allowed_scopes_set)
+    
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    
+    refresh_token = security.create_refresh_token(
+        user.user_name, expires_delta=refresh_token_expires
+    )
+    
+    expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
+    crud_token.create_user_token(session, user.user_name, refresh_token, expires_at)
+    
+    session.commit()
+
+    return Token(
+        access_token=security.create_access_token(
+            user.user_name, scopes=allowed_scopes, expires_delta=access_token_expires
+        ),
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        scope=" ".join(allowed_scopes),
+        refresh_token=refresh_token
+    )
+
+@router.post("/totp/setup")
+def setup_totp(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: CurrentUser,
+):
+    """
+    Generate TOTP secret and provisioning URI for Google Authenticator
+    """
+    if current_user.totp_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOTP is already enabled",
+        )
+    
+    secret = security.generate_totp_secret()
+    current_user.totp_secret = secret
+    session.add(current_user)
+    session.commit()
+    
+    uri = security.get_totp_uri(secret, current_user.user_name)
+    return {"secret": secret, "uri": uri}
+
+@router.post("/totp/enable")
+def enable_totp(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: CurrentUser,
+    request: TOTPVerify,
+):
+    """
+    Verify and enable TOTP for the current user
+    """
+    if current_user.totp_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOTP is already enabled",
+        )
+    
+    if not current_user.totp_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOTP secret not generated. Call /totp/setup first.",
+        )
+    
+    if not security.verify_totp(current_user.totp_secret, request.totp_code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid TOTP code",
+        )
+    
+    current_user.totp_enabled = True
+    session.add(current_user)
+    session.commit()
+    return {"message": "TOTP enabled successfully"}
+
+@router.post("/login/totp-verify")
+def verify_totp_login(
+    session: Annotated[Session, Depends(get_session)],
+    request: TOTPVerify,
+) -> Token:
+    """
+    Verify TOTP code during login and return access tokens
+    """
+    user = crud_user.get_user_by_username(session, request.user_name)
+    if not user or not user.totp_enabled or not user.totp_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOTP is not enabled for this user",
+        )
+    
+    if not security.verify_totp(user.totp_secret, request.totp_code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid TOTP code",
+        )
+    
+    # Generate tokens
+    allowed_scopes_set = {"user"}
+    for role in user.roles:
+        allowed_scopes_set.add(role.name.lower())
+        for perm in role.permissions:
+            allowed_scopes_set.add(perm.name)
+            
+    allowed_scopes = list(allowed_scopes_set)
+    
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    
+    refresh_token = security.create_refresh_token(
+        user.user_name, expires_delta=refresh_token_expires
+    )
+    
+    expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
+    crud_token.create_user_token(session, user.user_name, refresh_token, expires_at)
+    
+    session.commit()
+
+    return Token(
+        access_token=security.create_access_token(
+            user.user_name, scopes=allowed_scopes, expires_delta=access_token_expires
+        ),
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        scope=" ".join(allowed_scopes),
         refresh_token=refresh_token
     )
 

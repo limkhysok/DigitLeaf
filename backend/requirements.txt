@@ -10,3 +10,5 @@ sqlmodel
 pymysql
 cryptography
 loguru
+pyotp==2.9.0
+qrcode==8.2

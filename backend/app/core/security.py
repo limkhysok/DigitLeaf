@@ -1,3 +1,6 @@
+import secrets
+import string
+import pyotp
 from datetime import datetime, timedelta
 from typing import Any
 from jose import jwt
@@ -30,3 +33,15 @@ def decode_token(token: str) -> dict | None:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except jwt.JWTError:
         return None
+def generate_totp_secret() -> str:
+    return pyotp.random_base32()
+
+def get_totp_uri(secret: str, user_name: str, issuer_name: str = "DigitLeaf") -> str:
+    return pyotp.totp.TOTP(secret).provisioning_uri(name=user_name, issuer_name=issuer_name)
+
+def verify_totp(secret: str, token: str) -> bool:
+    totp = pyotp.totp.TOTP(secret)
+    return totp.verify(token)
+
+def generate_otp() -> str:
+    return "".join(secrets.choice(string.digits) for _ in range(6))
