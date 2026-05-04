@@ -30,11 +30,7 @@ export function TeamSwitcher({
 }>) {
   const { isMobile } = useSidebar()
   const [activeTeam, setActiveTeam] = React.useState(teams[0])
-  const [side, setSide] = React.useState<"bottom" | "right">("right")
-
-  React.useEffect(() => {
-    setSide(isMobile ? "bottom" : "right")
-  }, [isMobile])
+  const side = isMobile ? "bottom" : "right"
 
   return (
     <SidebarMenu>

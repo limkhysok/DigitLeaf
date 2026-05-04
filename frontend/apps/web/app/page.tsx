@@ -6,18 +6,33 @@ import Image from "next/image"
 import { IconLeaf } from "@tabler/icons-react"
 import { useAuth } from "@/hooks/use-auth"
 
+interface Leaf {
+  id: number
+  left: string
+  delay: string
+  duration: string
+  size: number
+  opacity: number
+  rotation: number
+}
+
 export default function LandingPage() {
   const router = useRouter()
 
   const [mounted, setMounted] = useState(false)
-  const [leaves, setLeaves] = useState<any[]>([])
+  const [leaves, setLeaves] = useState<Leaf[]>([])
   const [isExiting, setIsExiting] = useState(false)
 
   const { isAuthenticated, isLoading: authLoading } = useAuth()
 
   useEffect(() => {
-    setMounted(true)
-    
+    const frame = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     // If we're already authenticated, redirect to dashboard immediately
     if (isAuthenticated && !authLoading) {
       router.push("/dashboard")
@@ -26,15 +41,18 @@ export default function LandingPage() {
 
     router.prefetch("/login")
 
-    const leafCount = window.innerWidth < 768 ? 12 : 25;
-    setLeaves(Array.from({ length: leafCount }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 8}s`,
-      duration: `${8 + Math.random() * 12}s`,
-      size: window.innerWidth < 768 ? 12 + Math.random() * 15 : 15 + Math.random() * 25,
-      opacity: 0.05 + Math.random() * 0.2,
-    })))
+    requestAnimationFrame(() => {
+      const leafCount = window.innerWidth < 768 ? 20 : 45;
+      setLeaves(Array.from({ length: leafCount }).map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        delay: `${Math.random() * 10}s`,
+        duration: `${10 + Math.random() * 15}s`,
+        size: window.innerWidth < 768 ? 10 + Math.random() * 15 : 15 + Math.random() * 30,
+        opacity: 0.1 + Math.random() * 0.3,
+        rotation: Math.random() * 360,
+      })))
+    })
 
     const exitTimer = setTimeout(() => {
       setIsExiting(true)
@@ -51,15 +69,11 @@ export default function LandingPage() {
       clearTimeout(exitTimer)
       clearTimeout(redirectTimer)
     }
-  }, [router, isAuthenticated, authLoading])
+  }, [router, isAuthenticated, authLoading, mounted])
 
   return (
     <div className={`min-h-screen w-full flex flex-col md:flex-row overflow-hidden relative transition-colors duration-1000 ease-in-out
       ${isExiting ? 'bg-white md:bg-[#009640]' : 'bg-[#009640]'}`}>
-
-
-
-      {/* Background Pattern */}
       <div className={`absolute inset-0 z-0 transition-opacity duration-1000 ${isExiting ? 'opacity-0 md:opacity-10' : 'opacity-10'}`}
         style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
 
@@ -76,6 +90,7 @@ export default function LandingPage() {
               width: leaf.size,
               height: leaf.size,
               opacity: leaf.opacity,
+              transform: `rotate(${leaf.rotation}deg)`,
             }}
           >
             <IconLeaf size={leaf.size} stroke={1} />
@@ -116,26 +131,25 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-1 lg:space-y-2">
-            <h1 className={`text-xl lg:text-2xl font-black tracking-[0.1em] uppercase leading-tight transition-colors duration-1000
+            <h1 className={`text-xl lg:text-2xl font-regular tracking-[0.1em] leading-tight transition-colors duration-1000
               ${isExiting ? 'text-[#009640] md:text-white' : 'text-white'}`}>
               K.A.I.C
             </h1>
-            <p className={`text-[10px] lg:text-sm tracking-widest uppercase font-medium transition-colors duration-1000
+            <p className={`text-[10px] lg:text-sm tracking-widest capitalize font-medium transition-colors duration-1000
               ${isExiting ? 'text-[#009640]/70 md:text-green-50/70' : 'text-green-50/70'}`}>
-              INTERNAL MANAGEMENT SYSTEM
+              Internal Management System
             </p>
           </div>
         </div>
 
         {/* Loading text: Fades out early */}
-        <div className={`absolute bottom-24 md:bottom-20 flex flex-col items-center space-y-4 transition-all duration-500 
+        <div className={`absolute bottom-24 md:bottom-20 flex flex-col items-center space-y-6 transition-all duration-500 
           ${isExiting ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}>
-          <div className="flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <span className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <span className="w-1.5 h-1.5 bg-white/80 rounded-full animate-bounce" />
+          <div className="w-48 h-[1px] bg-white/10 rounded-full overflow-hidden relative">
+            <div className="absolute inset-0 bg-white/40 animate-loading-bar rounded-full blur-[1px]" />
+            <div className="absolute inset-0 bg-white animate-loading-bar rounded-full" />
           </div>
-          <p className="text-white/80 text-sm font-medium tracking-wide">
+          <p className="text-white/60 text-[10px] font-bold tracking-[0.4em] uppercase animate-shimmer">
             Loading, please wait a moment
           </p>
         </div>

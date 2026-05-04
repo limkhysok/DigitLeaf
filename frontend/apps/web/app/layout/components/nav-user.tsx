@@ -3,7 +3,6 @@
 import * as React from "react"
 
 import {
-  IconChevronDown,
   IconLogout,
   IconUser,
 } from "@tabler/icons-react"
@@ -34,46 +33,55 @@ export function NavUser({
   const { logout } = useAuth()
 
   if (!mounted) {
-    return <div className="h-8 w-8 animate-pulse bg-muted rounded-none" />
+    return <div className="h-8 w-8 animate-pulse bg-muted rounded-full" />
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="group flex items-center gap-2 outline-none hover:bg-muted/50 rounded-none pl-1 pr-3 py-1 transition-all duration-300 border border-transparent hover:border-border/40 active:scale-95"
+          className="group relative flex h-8 w-8 items-center justify-center rounded-full outline-none transition-all duration-300 active:scale-90"
         >
-          <div className="flex h-6 w-6 items-center justify-center rounded-none bg-muted-foreground/20 text-foreground text-xs font-semibold shadow-sm group-hover:bg-muted-foreground/30 transition-colors duration-300">
+          {/* Shimmering Ring */}
+          <div className="absolute inset-0 rounded-full border-2 border-[#009640]/0 group-hover:border-[#009640]/20 group-hover:scale-110 transition-all duration-500 group-hover:shadow-[0_0_15px_rgba(0,150,64,0.2)]" />
+          
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-green-600/10 text-[#009640] text-[10px] font-bold shadow-sm group-hover:bg-green-600/20 transition-colors duration-300 overflow-hidden relative border border-green-600/10">
             {user.name.substring(0, 2).toUpperCase()}
           </div>
-          <span className="text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors hidden sm:block">
-            {user.name}
-          </span>
-          <IconChevronDown className="size-3.5 text-muted-foreground group-hover:text-foreground transition-all duration-300 group-data-[state=open]:rotate-180" />
+          
+          {/* Animated Online Status Dot */}
+          <div className="absolute bottom-0 right-0 h-2.5 w-2.5">
+            <span className="absolute inset-0 animate-ping rounded-full bg-green-400 opacity-75" />
+            <span className="relative block h-2.5 w-2.5 rounded-full bg-[#009640] ring-2 ring-background" />
+          </div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-44 rounded-none p-1 shadow-xl border-border/40 bg-background/95 backdrop-blur-xl z-50"
+        className="w-52 rounded-xl p-2 shadow-2xl border-border/40 bg-background/95 backdrop-blur-xl z-50 mt-1"
         side="bottom"
         align="end"
-        alignOffset={-4}
         sideOffset={8}
       >
+        <div className="px-2 py-1.5 mb-1">
+          <p className="text-xs font-bold text-[#009640] uppercase tracking-wider">User Account</p>
+          <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+        </div>
+        
         <DropdownMenuItem 
-          className="gap-3 px-3 py-2 cursor-pointer rounded-none transition-colors focus:bg-muted focus:text-foreground group"
+          className="gap-3 px-3 py-2 cursor-pointer rounded-lg transition-all duration-200 focus:bg-[#009640]/10 focus:text-[#009640] group"
           onClick={() => router.push("/profile")}
         >
-          <IconUser className="size-4 text-muted-foreground group-focus:text-foreground" />
+          <IconUser className="size-4 text-muted-foreground group-focus:text-[#009640] transition-colors" />
           <span className="text-sm font-medium">Profile Settings</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="mx-1" />
+        <DropdownMenuSeparator className="my-1 mx-1 opacity-50" />
 
         <DropdownMenuItem
-          className="gap-3 px-3 py-2 cursor-pointer rounded-none text-muted-foreground hover:text-foreground focus:text-foreground focus:bg-muted group"
+          className="gap-3 px-3 py-2 cursor-pointer rounded-lg text-muted-foreground hover:text-destructive focus:text-destructive focus:bg-destructive/10 group transition-all duration-200"
           onClick={() => logout()}
         >
-          <IconLogout className="size-4 opacity-70 group-focus:opacity-100" />
+          <IconLogout className="size-4 opacity-70 group-focus:opacity-100 transition-opacity" />
           <span className="text-sm font-medium">Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

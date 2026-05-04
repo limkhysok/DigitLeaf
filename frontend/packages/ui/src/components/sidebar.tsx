@@ -15,9 +15,9 @@ import { Input } from "./input"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "10rem"
-const SIDEBAR_WIDTH_MOBILE = "13rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
+const SIDEBAR_WIDTH = "14rem"
+const SIDEBAR_WIDTH_MOBILE = "18rem"
+const SIDEBAR_WIDTH_ICON = "3.5rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {
@@ -156,6 +156,50 @@ export const SidebarProvider = React.forwardRef<
 )
 SidebarProvider.displayName = "SidebarProvider"
 
+const SidebarMobile = ({
+  side,
+  openMobile,
+  setOpenMobile,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div"> & {
+  side: "left" | "right"
+  openMobile: boolean
+  setOpenMobile: (open: boolean) => void
+}) => {
+  return (
+    <div className={cn(
+      "fixed inset-0 z-50 flex transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+      openMobile ? "pointer-events-auto" : "pointer-events-none"
+    )}>
+      <button
+        className={cn(
+          "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] border-none outline-none",
+          openMobile ? "opacity-100" : "opacity-0"
+        )}
+        onClick={() => setOpenMobile(false)}
+        aria-label="Close sidebar"
+      />
+      <div
+        className={cn(
+          "group relative flex h-full w-[var(--sidebar-width-mobile)] flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          side === "left"
+            ? "-translate-x-full border-r border-sidebar-border/50"
+            : "translate-x-full border-l border-sidebar-border/50",
+          openMobile && "translate-x-0",
+          className
+        )}
+        data-state={openMobile ? "expanded" : "collapsed"}
+        data-mobile="true"
+        {...props}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -194,34 +238,15 @@ export const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <div className={cn(
-          "fixed inset-0 z-50 flex transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]", 
-          openMobile ? "pointer-events-auto" : "pointer-events-none"
-        )}>
-          <button
-            className={cn(
-              "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] border-none outline-none",
-              openMobile ? "opacity-100" : "opacity-0"
-            )}
-            onClick={() => setOpenMobile(false)}
-            aria-label="Close sidebar"
-          />
-          <div
-            className={cn(
-              "group relative flex h-full w-[var(--sidebar-width-mobile)] flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-              side === "left"
-                ? "-translate-x-full border-r border-sidebar-border/50"
-                : "translate-x-full border-l border-sidebar-border/50",
-              openMobile && "translate-x-0",
-              className
-            )}
-            data-state={openMobile ? "expanded" : "collapsed"}
-            data-mobile="true"
-            {...props}
-          >
-            {children}
-          </div>
-        </div>
+        <SidebarMobile
+          side={side}
+          openMobile={openMobile}
+          setOpenMobile={setOpenMobile}
+          className={className}
+          {...props}
+        >
+          {children}
+        </SidebarMobile>
       )
     }
 
@@ -245,7 +270,7 @@ export const Sidebar = React.forwardRef<
           className={cn(
             "duration-300 relative h-svh w-[var(--sidebar-width)] bg-transparent transition-[width] ease-[cubic-bezier(0.4,0,0.2,1)]",
             "group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)]",
-            "group-data-[side=left]/sidebar:border-r group-data-[side=right]/sidebar:border-l",
+            "group-data-[side=left]/sidebar:border-r group-data-[side=right]/sidebar:border-l group-data-[variant=floating]/sidebar:border-none",
             variant === "floating" || variant === "inset"
               ? "group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
               : "group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)]"
@@ -253,12 +278,12 @@ export const Sidebar = React.forwardRef<
         />
         <div
           className={cn(
-            "duration-300 fixed inset-y-0 z-40 hidden h-svh w-[var(--sidebar-width)] flex-col bg-sidebar transition-[left,right,width] ease-[cubic-bezier(0.4,0,0.2,1)] md:flex",
+            "duration-300 fixed inset-y-0 z-40 hidden h-svh w-[var(--sidebar-width)] flex-col transition-[left,right,width] ease-[cubic-bezier(0.4,0,0.2,1)] md:flex",
             side === "left"
               ? "left-0 group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)] group-data-[side=left]/sidebar:border-r"
               : "right-0 group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)] group-data-[side=right]/sidebar:border-l",
             variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))] group-data-[variant=floating]/sidebar:border group-data-[variant=floating]/sidebar:shadow"
+              ? "p-0 group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
               : "group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)]",
             className
           )}
@@ -266,7 +291,7 @@ export const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]/sidebar:rounded-lg"
+            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]/sidebar:rounded-none"
           >
             {children}
           </div>
@@ -344,7 +369,7 @@ export const SidebarInset = React.forwardRef<
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow md:peer-data-[variant=inset]:border",
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-0 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none md:peer-data-[variant=inset]:border-l",
         className
       )}
       {...props}
@@ -394,7 +419,7 @@ export const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 p-0", className)}
       {...props}
     />
   )

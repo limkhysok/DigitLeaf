@@ -9,10 +9,20 @@ import Image from "next/image"
 import { IconEye, IconEyeOff, IconLeaf, IconLoader2 } from "@tabler/icons-react"
 import { useAuth } from "@/hooks/use-auth"
 
+interface Leaf {
+  id: number
+  left: string
+  delay: string
+  duration: string
+  size: number
+  opacity: number
+  rotation: number
+}
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [leaves, setLeaves] = useState<any[]>([])
+  const [leaves, setLeaves] = useState<Leaf[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -28,15 +38,19 @@ export default function LoginPage() {
   }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
-    setMounted(true)
-    setLeaves(Array.from({ length: 15 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${10 + Math.random() * 15}s`,
-      size: 10 + Math.random() * 25,
-      opacity: 0.05 + Math.random() * 0.15,
-    })))
+    const frame = requestAnimationFrame(() => {
+      setMounted(true)
+      setLeaves(Array.from({ length: 25 }).map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        delay: `${Math.random() * 10}s`,
+        duration: `${10 + Math.random() * 15}s`,
+        size: 10 + Math.random() * 25,
+        opacity: 0.1 + Math.random() * 0.2,
+        rotation: Math.random() * 360,
+      })))
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -45,20 +59,21 @@ export default function LoginPage() {
       setErrorMsg("Please enter both username and password")
       return
     }
-    
+
     setIsLoading(true)
     setErrorMsg("")
     try {
       await login(username, password)
       setIsLoading(false)
-    } catch (err: any) {
-      setErrorMsg(err.message || "Incorrect username or password")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Incorrect username or password"
+      setErrorMsg(message)
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row overflow-x-hidden">
+    <div className="min-h-screen w-full flex flex-col md:flex-row overflow-x-hidden bg-white">
       {/* Brand Panel */}
       <div className="hidden md:flex md:w-[42%] bg-[#009640] items-center justify-center relative p-8 lg:p-12 overflow-hidden border-r border-white/5">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
@@ -74,6 +89,7 @@ export default function LoginPage() {
                 width: leaf.size,
                 height: leaf.size,
                 opacity: leaf.opacity,
+                transform: `rotate(${leaf.rotation}deg)`,
               }}
             >
               <IconLeaf size={leaf.size} stroke={1} />
@@ -85,8 +101,8 @@ export default function LoginPage() {
             <Image src="/assets/white-kaic.png" alt="Logo" width={140} height={140} priority unoptimized />
           </div>
           <div className="space-y-1 lg:space-y-2">
-            <h1 className="text-xl lg:text-2xl font-black tracking-[0.1em] text-white uppercase leading-tight">K.A.I.C</h1>
-            <p className="text-green-50/70 text-[10px] lg:text-sm tracking-widest uppercase font-medium">INTERNAL MANAGEMENT SYSTEM</p>
+            <h1 className="text-xl lg:text-2xl font-regular tracking-[0.1em] text-white leading-tight">K.A.I.C</h1>
+            <p className="text-green-50/70 text-[10px] lg:text-sm tracking-widest capitalize font-medium">Internal Management System</p>
           </div>
         </div>
       </div>
@@ -114,7 +130,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
-                  className="h-11 text-sm rounded-sm bg-muted/20 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40 transition-all"
+                  className="h-11 text-sm rounded-full px-5 bg-green-50/80 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40 transition-all"
                   required
                 />
               </div>
@@ -122,23 +138,23 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <div className="relative">
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••" 
-                    className="h-11 text-sm pr-10 rounded-sm bg-muted/20 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40" 
+                    placeholder="••••••••"
+                    className="h-11 text-sm pl-5 pr-12 rounded-full bg-green-50/80 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40"
                     required
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#009640]">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#009640]">
                     {showPassword ? <IconEyeOff className="size-4" /> : <IconEye className="size-4" />}
                   </button>
                 </div>
               </div>
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full h-11 bg-[#009640] hover:bg-[#008a3b] font-bold rounded-sm shadow-md transition-all active:scale-[0.98]">
+            <Button type="submit" disabled={isLoading} className="w-full h-11 bg-[#009640] hover:bg-[#008a3b] font-bold rounded-full transition-all active:scale-[0.98]">
               {isLoading ? <IconLoader2 className="animate-spin size-5" /> : "Sign In"}
             </Button>
 
@@ -147,7 +163,7 @@ export default function LoginPage() {
 
           <div className="flex justify-center pt-6">
             <p className="text-[12px] lg:text-xs text-muted-foreground">
-              Can't sign in? Get help <a href="https://t.me/soklimkhy" target="_blank" rel="noopener noreferrer" className="font-bold text-[#009640] hover:underline">Telegram</a>
+              Can&apos;t sign in? Get help <a href="https://t.me/soklimkhy" target="_blank" rel="noopener noreferrer" className="font-bold text-[#009640] hover:underline">Telegram</a>
             </p>
           </div>
         </div>
