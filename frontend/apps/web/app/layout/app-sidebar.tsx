@@ -94,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="font-branding text-sm tracking-[0.12em] text-[#009640] group-hover:text-[#008a3b] transition-colors duration-300 uppercase">
               K.A.I.C
             </span>
-            <span className="text-[9px] font-branding text-muted-foreground/40 tracking-[0.05em] uppercase -mt-0.5">
+            <span className="text-[9px] font-branding text-muted-foreground/100 tracking-[0.05em] uppercase -mt-0.5">
               Internal System
             </span>
           </div>
