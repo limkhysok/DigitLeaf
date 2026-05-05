@@ -2,8 +2,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Security
 from sqlmodel import Session, select
 from app.db.session import get_session
-from app.models.user import User, UserPublic
-from app.models.rbac import Role
+from app.domains.users.models import User, UserPublic
+from app.domains.rbac.models import Role
 from app.schemas.user import UserCreate
 from app.api.deps import get_current_user
 

@@ -73,15 +73,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader className="h-14 flex items-center justify-center p-0 px-2 transition-all duration-300 group-data-[collapsible=icon]/sidebar:h-14 border-b border-sidebar-border/50">
-        <div className="flex h-12 items-center gap-3 bg-white/[0.02] border border-white/10 rounded-none px-3 w-full group/logo cursor-pointer hover:bg-white/[0.04] hover:border-[#009640]/30 transition-all duration-300 group-data-[collapsible=icon]/sidebar:p-0 group-data-[collapsible=icon]/sidebar:bg-transparent group-data-[collapsible=icon]/sidebar:border-none group-data-[collapsible=icon]/sidebar:justify-center relative overflow-hidden">
+        <div className="flex h-12 items-center gap-3 bg-white/[0.02] border border-white/10 rounded-none px-3 w-full group/logo cursor-pointer hover:bg-white/[0.04] transition-all duration-300 group-data-[collapsible=icon]/sidebar:p-0 group-data-[collapsible=icon]/sidebar:bg-transparent group-data-[collapsible=icon]/sidebar:border-none group-data-[collapsible=icon]/sidebar:justify-center relative overflow-hidden">
           {/* Subtle Glow Background */}
           <div className="absolute inset-0 bg-[#009640]/0 group-hover:bg-[#009640]/5 transition-colors duration-500" />
 
-          {/* Decorative Corner */}
-          <div className="absolute top-0 right-0 w-4 h-4 overflow-hidden pointer-events-none group-data-[collapsible=icon]/sidebar:hidden">
-            <div className="absolute top-0 right-0 w-[1px] h-2 bg-[#009640]/40" />
-            <div className="absolute top-0 right-0 w-2 h-[1px] bg-[#009640]/40" />
-          </div>
+
 
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#009640] to-[#007a33] shadow-[0_4px_12px_rgba(0,150,64,0.2)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(0,150,64,0.3)] ml-0.5 relative z-10">
             <div className="absolute inset-0 animate-pulse bg-white/20 group-hover:animate-none opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -101,11 +97,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="text-[9px] font-bold text-muted-foreground/40 tracking-[0.05em] uppercase -mt-0.5">
               Internal System
             </span>
-          </div>
-
-          {/* Status Indicator */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 group-data-[collapsible=icon]/sidebar:hidden opacity-40 group-hover:opacity-100 transition-opacity">
-            <div className="h-1.5 w-1.5 rounded-full bg-[#009640] shadow-[0_0_8px_#009640]" />
           </div>
         </div>
       </SidebarHeader>

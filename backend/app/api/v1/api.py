@@ -1,5 +1,7 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, audit_log, users
+from app.domains.auth import api as auth
+from app.domains.audit import api as audit_log
+from app.domains.users import api as users
 from app.core.route_logger import AuditLogRoute
 
 api_router = APIRouter(route_class=AuditLogRoute)

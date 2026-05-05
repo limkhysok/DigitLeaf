@@ -4,12 +4,12 @@ from sqladmin.authentication import AuthenticationBackend
 from fastapi import Request
 from sqlmodel import Session
 from app.db.session import engine
-from app.models.user import User
-from app.models.user_token import UserToken
-from app.models.audit_log import AuditLog
-from app.models.rbac import Role, Permission, UserRoleLink
+from app.domains.users.models import User
+from app.domains.auth.models import UserToken
+from app.domains.audit.models import AuditLog
+from app.domains.rbac.models import Role, Permission, UserRoleLink
 from app.core import security
-from app.crud.user import get_user_by_username
+from app.domains.users.crud import get_user_by_username
 from app.core.config import settings
 
 class AdminAuth(AuthenticationBackend):

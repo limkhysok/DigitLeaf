@@ -6,7 +6,7 @@ from loguru import logger
 from sqlmodel import Session
 
 from app.db.session import engine
-from app.crud.audit_log import create_audit_log
+from app.domains.audit.crud import create_audit_log
 from app.core import security
 
 def _extract_body(body_bytes: bytes | None) -> str | None:

@@ -3,9 +3,10 @@ from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
 
 from app.core.config import CAMBODIA_TZ
-from app.models.rbac import UserRoleLink
+from app.domains.rbac.models.user_role import UserRoleLink
 if TYPE_CHECKING:
-    from app.models.rbac import Role
+    from app.domains.rbac.models.role import Role
+    from app.domains.auth.models.mfa import UserMFA
 
 class UserBase(SQLModel):
     user_name: str = Field(max_length=255)
@@ -18,18 +19,6 @@ class UserBase(SQLModel):
     edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     edit_ip_address: str = Field(default="127.0.0.1")
 
-class UserMFA(SQLModel, table=True):
-    __tablename__ = "dl_user_mfa"
-    
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", unique=True, index=True)
-    otp_code: Optional[str] = Field(default=None, max_length=6)
-    otp_expiry: Optional[datetime] = Field(default=None)
-    totp_secret: Optional[str] = Field(default=None, max_length=32)
-    totp_enabled: bool = Field(default=False)
-    
-    user: "User" = Relationship(back_populates="mfa")
-
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     password: str = Field(max_length=255)
@@ -40,7 +29,7 @@ class User(UserBase, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     
-    mfa: Optional[UserMFA] = Relationship(
+    mfa: Optional["UserMFA"] = Relationship(
         back_populates="user", 
         sa_relationship_kwargs={"uselist": False, "lazy": "selectin"}
     )

@@ -346,7 +346,7 @@ export const SidebarRail = React.forwardRef<
       onClick={toggleSidebar}
       title="Toggle Sidebar"
       className={cn(
-        "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[1px] hover:after:bg-sidebar-border group-data-[side=left]/sidebar:-right-4 group-data-[side=right]/sidebar:-left-4 sm:flex",
+        "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]/sidebar:-right-4 group-data-[side=right]/sidebar:-left-4 sm:flex",
         "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",
         "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
         "group-data-[collapsible=offcanvas]/sidebar:translate-x-0 group-data-[collapsible=offcanvas]/sidebar:after:left-full group-data-[collapsible=offcanvas]/sidebar:hover:bg-sidebar",
@@ -584,7 +584,6 @@ export const SidebarMenuButton = React.forwardRef<
   React.ComponentProps<"button"> & {
     asChild?: boolean
     isActive?: boolean
-    tooltip?: string | React.ComponentType<React.ComponentProps<"div">> // Tooltip placeholder
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(
   (
@@ -593,14 +592,13 @@ export const SidebarMenuButton = React.forwardRef<
       isActive = false,
       variant = "default",
       size = "default",
-      tooltip,
       className,
       ...props
     },
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
-    const { isMobile, state, mounted, setOpenMobile } = useSidebar()
+    const { isMobile, setOpenMobile } = useSidebar()
 
     const button = (
       <Comp
@@ -617,20 +615,7 @@ export const SidebarMenuButton = React.forwardRef<
       />
     )
 
-    if (!tooltip) {
-      return button
-    }
-
-    return (
-      <div className="relative group/tooltip">
-        {button}
-        {mounted && state === "collapsed" && !isMobile && (
-          <div className="absolute left-full ml-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-            {typeof tooltip === "string" ? tooltip : "Menu Item"}
-          </div>
-        )}
-      </div>
-    )
+    return button
   }
 )
 SidebarMenuButton.displayName = "SidebarMenuButton"

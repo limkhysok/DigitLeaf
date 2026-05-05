@@ -6,8 +6,8 @@ from pydantic import ValidationError
 from sqlmodel import Session
 from app.core.config import settings
 from app.db.session import get_session
-from app.crud import user as crud_user
-from app.models.user import User
+from app.domains.users import crud as crud_user
+from app.domains.users.models import User
 from app.schemas.token import TokenPayload
 
 reusable_oauth2 = OAuth2PasswordBearer(

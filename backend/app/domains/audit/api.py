@@ -2,8 +2,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Security
 from sqlmodel import Session, select
 from app.db.session import get_session
-from app.models.audit_log import AuditLog
-from app.models.user import User
+from app.domains.audit.models import AuditLog
+from app.domains.users.models import User
 from app.api.deps import get_current_user
 
 router = APIRouter()

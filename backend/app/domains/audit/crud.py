@@ -1,5 +1,5 @@
 from sqlmodel import Session
-from app.models.audit_log import AuditLog
+from app.domains.audit.models import AuditLog
 
 def create_audit_log(
     session: Session, 

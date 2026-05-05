@@ -7,11 +7,12 @@ from sqlmodel import Session
 from app.core.config import settings, CAMBODIA_TZ
 from app.core import security
 from app.db.session import get_session
-from app.crud import user as crud_user
-from app.crud import user_token as crud_token
+from app.domains.users import crud as crud_user
+from app.domains.auth import crud as crud_token
 from app.schemas.token import Token, RefreshTokenRequest
 from app.schemas.user import OTPRequest, OTPVerify, TOTPVerify
-from app.models.user import UserPublic, UserMFA
+from app.domains.users.models import UserPublic
+from app.domains.auth.models import UserMFA
 from app.api.deps import CurrentUser
 
 router = APIRouter()

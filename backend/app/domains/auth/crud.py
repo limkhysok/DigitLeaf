@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlmodel import Session, select
 from datetime import datetime
-from app.models.user_token import UserToken
+from app.domains.auth.models import UserToken
 
 def get_by_refresh_token(session: Session, refresh_token: str) -> Optional[UserToken]:
     statement = select(UserToken).where(UserToken.refresh_token == refresh_token)

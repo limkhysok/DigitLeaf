@@ -36,10 +36,9 @@ export function NavMain({
             <SidebarMenuItem key={item.title} className="px-2 mb-1.5 transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]">
               <SidebarMenuButton
                 asChild
-                tooltip={item.title}
                 isActive={isActive}
                 className={cn(
-                  "group/btn relative overflow-hidden transition-all duration-300 rounded-none h-10 px-3",
+                  "group/btn relative overflow-hidden transition-all duration-300 h-10 px-4 rounded-full",
                   isActive
                     ? "!bg-[#009640] !text-white hover:!bg-[#008a3b]"
                     : "hover:bg-[#009640]/5 active:bg-[#009640]/10"
@@ -51,7 +50,7 @@ export function NavMain({
                       "flex items-center justify-center transition-colors duration-300",
                       isActive ? "text-white" : "text-muted-foreground group-hover/btn:text-foreground"
                     )}>
-                      <item.icon size={18} stroke={isActive ? 2.5 : 1.5} />
+                      <item.icon size={17} stroke={isActive ? 2.5 : 1.5} />
                     </div>
                   )}
                   <span className={cn(

@@ -4,7 +4,7 @@ from datetime import datetime
 from app.core.config import CAMBODIA_TZ
 
 class AuditLog(SQLModel, table=True):
-    __tablename__ = "audit_log"
+    __tablename__ = "dl_audit_log"
     
     id: Optional[int] = Field(default=None, primary_key=True)
     user_name: Optional[str] = Field(default=None, index=True)

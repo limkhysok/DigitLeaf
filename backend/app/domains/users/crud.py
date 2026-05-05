@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlmodel import Session, select
-from app.models.user import User
+from app.domains.users.models import User
 
 def get_user_by_username(session: Session, user_name: str) -> Optional[User]:
     statement = select(User).where(User.user_name == user_name)
