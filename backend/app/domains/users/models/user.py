@@ -33,3 +33,7 @@ class User(SQLModel, table=True):
 
     def __str__(self):
         return self.user_name
+
+    @property
+    def totp_enabled(self) -> bool:
+        return self.mfa.totp_enabled if self.mfa else False

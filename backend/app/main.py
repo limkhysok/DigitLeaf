@@ -46,7 +46,7 @@ if settings.BACKEND_CORS_ORIGINS:
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("🚀 DigitLeaf API has successfully started!")
+    logger.info("DigitLeaf API has successfully started!")
 
 app.include_router(api_router, prefix="/api/v1")
 

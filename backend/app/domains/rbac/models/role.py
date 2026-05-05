@@ -1,5 +1,7 @@
 from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
+from .role_permission import RolePermissionLink
+from .user_role import UserRoleLink
 
 if TYPE_CHECKING:
     from app.domains.rbac.models.permission import Permission
@@ -13,13 +15,13 @@ class Role(SQLModel, table=True):
     
     permissions: List["Permission"] = Relationship(
         back_populates="roles",
-        link_model="RolePermissionLink",
+        link_model=RolePermissionLink,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     
     users: List["User"] = Relationship(
         back_populates="roles",
-        link_model="UserRoleLink",
+        link_model=UserRoleLink,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 

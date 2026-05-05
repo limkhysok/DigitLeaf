@@ -55,9 +55,9 @@ class AdminAuth(AuthenticationBackend):
 authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.user_name, User.roles, User.login_type, User.do_date]
+    column_list = [User.id, User.user_name, User.roles, User.is_active, User.created_at]
     column_searchable_list = [User.user_name]
-    column_sortable_list = [User.id, User.user_name]
+    column_sortable_list = [User.id, User.user_name, User.is_active, User.created_at]
     page_size = 100
     
     # Expose only the necessary fields to the CRUD form

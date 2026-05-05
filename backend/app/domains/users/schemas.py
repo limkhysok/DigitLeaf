@@ -26,3 +26,14 @@ class UserPublic(BaseModel):
 
     class ConfigDict:
         from_attributes = True
+
+class UserChangePassword(BaseModel):
+    current_password: str = Field(..., description="The user's current password")
+    new_password: str = Field(
+        ..., min_length=8, max_length=128, description="The new password, min 8 characters"
+    )
+
+class UserAdminResetPassword(BaseModel):
+    new_password: str = Field(
+        ..., min_length=8, max_length=128, description="The new password, min 8 characters"
+    )

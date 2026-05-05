@@ -246,3 +246,85 @@ curl -X 'GET' \
   }
 ]
 ```
+
+---
+
+## 👥 User Management Endpoints
+
+### 1. Create User
+Creates a new user account with a designated role.
+**Security:** Requires `manage_users` permission scope.
+
+**Endpoint:** `POST /users/`
+
+**Request Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+```json
+{
+  "user_name": "new_farmer",
+  "password": "StrongPassword123!",
+  "role_name": "Farmer"
+}
+```
+
+**Example Response (200 OK):**
+```json
+{
+  "id": 2,
+  "user_name": "new_farmer",
+  "totp_enabled": false,
+  "created_at": "2026-05-05T13:40:00.000Z"
+}
+```
+
+---
+
+### 2. Change Own Password
+Allows the currently authenticated user to change their password by providing their current password.
+
+**Endpoint:** `PATCH /users/me/password`
+
+**Request Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+```json
+{
+  "current_password": "OldPassword123",
+  "new_password": "NewStrongPassword456!"
+}
+```
+
+**Example Response (200 OK):**
+```json
+{
+  "message": "Password updated successfully"
+}
+```
+
+---
+
+### 3. Admin Reset Password
+Allows an administrator to forcefully reset the password of any user by their User ID, without needing their current password.
+**Security:** Requires `manage_users` permission scope.
+
+**Endpoint:** `PATCH /users/{user_id}/password`
+
+**Request Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+```json
+{
+  "new_password": "AdminForcedPassword789!"
+}
+```
+
+**Example Response (200 OK):**
+```json
+{
+  "message": "Password for user 'new_farmer' has been reset successfully"
+}
+```
