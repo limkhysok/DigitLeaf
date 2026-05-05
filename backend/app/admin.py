@@ -7,7 +7,7 @@ from app.db.session import engine
 from app.domains.users.models import User
 from app.domains.auth.models import UserToken
 from app.domains.audit.models import AuditLog
-from app.domains.rbac.models import Role, Permission, UserRoleLink
+from app.domains.rbac.models import Role, Permission
 from app.core import security
 from app.domains.users.crud import get_user_by_username
 from app.core.config import settings
@@ -23,14 +23,15 @@ class AdminAuth(AuthenticationBackend):
             if not user or not security.verify_password(password, user.password):
                 return False
             
-            # Require SuperAdmin or Manager role for dashboard access via the new RBAC table
-            has_admin_role = any(role.name.lower() in ["superadmin", "manager"] for role in user.roles)
-            if not has_admin_role:
+            # Require Admin or Manager role for dashboard access
+            is_admin = user.role and user.role.name.lower() in ["admin", "manager"]
+            if not is_admin:
                 return False
 
         # Create a session token using our standard JWT logic
         token = security.create_access_token(
             subject=user.user_name, 
+            user_id=user.id,
             scopes=["admin"], 
             expires_delta=timedelta(hours=2)
         )
@@ -55,13 +56,13 @@ class AdminAuth(AuthenticationBackend):
 authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.user_name, User.roles, User.is_active, User.created_at]
+    column_list = [User.id, User.user_name, User.role, User.is_active, User.created_at]
     column_searchable_list = [User.user_name]
     column_sortable_list = [User.id, User.user_name, User.is_active, User.created_at]
     page_size = 100
     
     # Expose only the necessary fields to the CRUD form
-    form_columns = [User.user_name, User.password, User.roles]
+    form_columns = [User.user_name, User.password, User.role]
     icon = "fa-solid fa-users"
 
 class UserTokenAdmin(ModelView, model=UserToken):
@@ -71,8 +72,8 @@ class UserTokenAdmin(ModelView, model=UserToken):
     icon = "fa-solid fa-key"
 
 class AuditLogAdmin(ModelView, model=AuditLog):
-    column_list = [AuditLog.id, AuditLog.user_name, AuditLog.endpoint, AuditLog.method, AuditLog.created_at]
-    column_searchable_list = [AuditLog.user_name, AuditLog.endpoint]
+    column_list = [AuditLog.id, AuditLog.user_id, AuditLog.endpoint, AuditLog.method, AuditLog.created_at]
+    column_searchable_list = [AuditLog.user_id, AuditLog.endpoint]
     column_default_sort = [(AuditLog.created_at, True)]
     page_size = 100
     icon = "fa-solid fa-list"
@@ -98,23 +99,14 @@ class PermissionAdmin(ModelView, model=Permission):
     form_columns = [Permission.name, Permission.description, Permission.roles]
     icon = "fa-solid fa-unlock-keyhole"
 
-def format_user_id(m, a):
+def format_user_id(m, _):
     with Session(engine) as session:
         user = session.get(User, m.user_id)
         return user.user_name if user else m.user_id
 
-def format_role_id(m, a):
+def format_role_id(m, _):
     with Session(engine) as session:
         role = session.get(Role, m.role_id)
         return role.name if role else m.role_id
 
-class UserRoleAdmin(ModelView, model=UserRoleLink):
-    column_list = [UserRoleLink.user_id, UserRoleLink.role_id]
-    column_labels = {UserRoleLink.user_id: "User Name", UserRoleLink.role_id: "Role Name"}
-    column_formatters = {
-        UserRoleLink.user_id: format_user_id,
-        UserRoleLink.role_id: format_role_id
-    }
-    icon = "fa-solid fa-link"
-    name = "User Role (Promote)"
-    name_plural = "User Roles (Promote)"
+

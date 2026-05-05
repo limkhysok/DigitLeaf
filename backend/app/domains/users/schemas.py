@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -18,14 +18,19 @@ class UserCreate(BaseModel):
     )
 
 
+class RolePublic(BaseModel):
+    name: str
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserPublic(BaseModel):
     id: int
     user_name: str
+    role: Optional[RolePublic] = None
     totp_enabled: bool = False
     created_at: Optional[datetime] = None
 
-    class ConfigDict:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserChangePassword(BaseModel):
     current_password: str = Field(..., description="The user's current password")

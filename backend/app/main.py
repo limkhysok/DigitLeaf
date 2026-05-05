@@ -6,7 +6,7 @@ from sqladmin import Admin
 from app.db.session import engine
 from app.admin import (
     authentication_backend, UserAdmin, UserTokenAdmin, 
-    AuditLogAdmin, RoleAdmin, PermissionAdmin, UserRoleAdmin
+    AuditLogAdmin, RoleAdmin, PermissionAdmin
 )
 import sys
 from loguru import logger
@@ -30,7 +30,6 @@ admin = Admin(app, engine, authentication_backend=authentication_backend)
 admin.add_view(UserAdmin)
 admin.add_view(RoleAdmin)
 admin.add_view(PermissionAdmin)
-admin.add_view(UserRoleAdmin)
 admin.add_view(UserTokenAdmin)
 admin.add_view(AuditLogAdmin)
 

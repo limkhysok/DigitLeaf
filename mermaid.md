@@ -1,16 +1,21 @@
 erDiagram
     %% USERS DOMAIN
     dl_user ||--o| dl_user_mfa : "1:1 MFA protection"
-    dl_user }|--|{ dl_role : "N:N via dl_user_role"
     
     %% RBAC DOMAIN
-    dl_role }|--|{ dl_permission : "N:N via dl_role_permission"
+    dl_role ||--o{ dl_user : "Role assigned to many users"
+    dl_role ||--o{ dl_role_permission : "Linked by role_id"
+    dl_permission ||--o{ dl_role_permission : "Linked by permission_id"
     
     %% AUTH DOMAIN
     dl_user ||--o{ dl_user_token : "1:N sessions"
 
+    %% AUDIT DOMAIN
+    dl_user ||--o{ dl_audit_log : "Audit trail"
+
     dl_user {
         int id PK
+        int role_id FK "Ref: dl_role.id"
         string user_name "Unique"
         string password "Plain Text"
         boolean is_active
@@ -20,7 +25,7 @@ erDiagram
 
     dl_user_mfa {
         int id PK
-        int user_id FK "References dl_user.id"
+        int user_id FK "Ref: dl_user.id"
         string otp_code
         datetime otp_expiry
         string totp_secret
@@ -39,19 +44,15 @@ erDiagram
         string description
     }
 
-    dl_user_role {
-        int user_id PK, FK
-        int role_id PK, FK
-    }
-
     dl_role_permission {
-        int role_id PK, FK
-        int permission_id PK, FK
+        int role_id PK, FK "Ref: dl_role.id"
+        int permission_id PK, FK "Ref: dl_permission.id"
     }
 
     dl_user_token {
         int id PK
-        string user_name "Ref to dl_user.user_name"
+        int user_id FK "Ref: dl_user.id"
+        string user_name
         string refresh_token
         datetime created_at
         datetime expires_at
@@ -59,6 +60,7 @@ erDiagram
 
     dl_audit_log {
         int id PK
+        int user_id FK "Ref: dl_user.id"
         string user_name
         string endpoint
         string method

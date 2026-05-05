@@ -14,8 +14,9 @@ from app.domains.auth.schemas import Token, RefreshTokenRequest, OTPRequest, OTP
 from app.domains.users.schemas import UserPublic
 from app.domains.auth.models import UserMFA
 from app.api.deps import CurrentUser
+from app.core.route_logger import AuditLogRoute
 
-router = APIRouter()
+router = APIRouter(route_class=AuditLogRoute)
 INVALID_TOTP_MSG = "Invalid TOTP code"
 
 
@@ -43,21 +44,19 @@ def login_access_token(
         )
 
     # 1. Handle Default Role for existing users
-    if not user.roles:
+    if not user.role:
         staff_role = session.exec(select(Role).where(Role.name == "staff")).first()
         if staff_role:
-            user.roles.append(staff_role)
+            user.role = staff_role
             session.add(user)
             session.commit()
             session.refresh(user)
 
-    # Define allowed scopes dynamically from DB Roles and Permissions
+    # Define allowed scopes dynamically from DB Role and Permissions
     allowed_scopes_set = {"user"}
-    for role in user.roles:
-        # Add the role name itself (e.g., "superadmin")
-        allowed_scopes_set.add(role.name.lower())
-        # Add all individual permissions attached to this role
-        for perm in role.permissions:
+    if user.role:
+        allowed_scopes_set.add(user.role.name.lower())
+        for perm in user.role.permissions:
             allowed_scopes_set.add(perm.name)
             
     allowed_scopes = list(allowed_scopes_set)
@@ -79,11 +78,11 @@ def login_access_token(
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
     
     # Save refresh token to DB in separate table
-    crud_token.create_user_token(session, user.user_name, refresh_token, expires_at)
+    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at)
 
     return Token(
         access_token=security.create_access_token(
-            user.user_name, scopes=scopes, expires_delta=access_token_expires
+            user.user_name, user.id, scopes=scopes, expires_delta=access_token_expires
         ),
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
@@ -147,9 +146,9 @@ def verify_otp(
     
     # Generate tokens
     allowed_scopes_set = {"user"}
-    for role in user.roles:
-        allowed_scopes_set.add(role.name.lower())
-        for perm in role.permissions:
+    if user.role:
+        allowed_scopes_set.add(user.role.name.lower())
+        for perm in user.role.permissions:
             allowed_scopes_set.add(perm.name)
             
     allowed_scopes = list(allowed_scopes_set)
@@ -162,13 +161,13 @@ def verify_otp(
     )
     
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
-    crud_token.create_user_token(session, user.user_name, refresh_token, expires_at)
+    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at)
     
     session.commit()
 
     return Token(
         access_token=security.create_access_token(
-            user.user_name, scopes=allowed_scopes, expires_delta=access_token_expires
+            user.user_name, user.id, scopes=allowed_scopes, expires_delta=access_token_expires
         ),
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
@@ -289,9 +288,9 @@ def verify_totp_login(
     
     # Generate tokens
     allowed_scopes_set = {"user"}
-    for role in user.roles:
-        allowed_scopes_set.add(role.name.lower())
-        for perm in role.permissions:
+    if user.role:
+        allowed_scopes_set.add(user.role.name.lower())
+        for perm in user.role.permissions:
             allowed_scopes_set.add(perm.name)
             
     allowed_scopes = list(allowed_scopes_set)
@@ -304,13 +303,13 @@ def verify_totp_login(
     )
     
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
-    crud_token.create_user_token(session, user.user_name, refresh_token, expires_at)
+    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at)
     
     session.commit()
 
     return Token(
         access_token=security.create_access_token(
-            user.user_name, scopes=allowed_scopes, expires_delta=access_token_expires
+            user.user_name, user.id, scopes=allowed_scopes, expires_delta=access_token_expires
         ),
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
@@ -363,9 +362,9 @@ def refresh_token(
 
     # Re-evaluate dynamic scopes
     allowed_scopes_set = {"user"}
-    for role in user.roles:
-        allowed_scopes_set.add(role.name.lower())
-        for perm in role.permissions:
+    if user.role:
+        allowed_scopes_set.add(user.role.name.lower())
+        for perm in user.role.permissions:
             allowed_scopes_set.add(perm.name)
             
     allowed_scopes = list(allowed_scopes_set)
@@ -384,11 +383,11 @@ def refresh_token(
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
     
     # Save the new token
-    crud_token.create_user_token(session, user.user_name, new_refresh_token, expires_at)
+    crud_token.create_user_token(session, user.id, user.user_name, new_refresh_token, expires_at)
 
     return Token(
         access_token=security.create_access_token(
-            user.user_name, scopes=allowed_scopes, expires_delta=access_token_expires
+            user.user_name, user.id, scopes=allowed_scopes, expires_delta=access_token_expires
         ),
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,

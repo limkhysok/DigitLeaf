@@ -16,9 +16,9 @@ def verify_password(plain_password: str, stored_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
-def create_access_token(subject: str | Any, scopes: list[str], expires_delta: timedelta) -> str:
+def create_access_token(subject: str | Any, user_id: int, scopes: list[str], expires_delta: timedelta) -> str:
     expire = datetime.now(CAMBODIA_TZ) + expires_delta
-    to_encode = {"exp": expire, "sub": str(subject), "scopes": scopes, "type": "access"}
+    to_encode = {"exp": expire, "sub": str(subject), "user_id": user_id, "scopes": scopes, "type": "access"}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 

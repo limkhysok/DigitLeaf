@@ -1,4 +1,3 @@
-import json
 from typing import Callable
 from fastapi import Request, Response
 from fastapi.routing import APIRoute
@@ -20,24 +19,28 @@ def _extract_body(body_bytes: bytes | None) -> str | None:
     except Exception:
         return "<binary data>"
 
-def _extract_user_name(auth_header: str | None) -> str | None:
+def _extract_user_info(auth_header: str | None) -> tuple[str | None, int | None]:
     if not auth_header or not auth_header.startswith("Bearer "):
-        return None
+        return None, None
     token = auth_header.split(" ")[1]
     payload = security.decode_token(token)
-    return payload.get("sub") if payload else None
+    if not payload:
+        return None, None
+    return payload.get("sub"), payload.get("user_id")
 
-def _log_to_db(ip_address: str | None, user_agent: str | None, headers_str: str, 
-               body_str: str | None, user_name: str | None, endpoint: str, method: str) -> None:
+def _log_to_db(ip_address: str | None, user_agent: str | None, 
+               user_id: int | None, endpoint: str, method: str) -> None:
+    if not user_id:
+        # Skip logging for non-authenticated requests (like login) if user_id is mandatory
+        return
+        
     try:
         with Session(engine) as db_session:
             create_audit_log(
                 session=db_session,
                 endpoint=endpoint,
                 method=method,
-                user_name=user_name,
-                headers=headers_str,
-                body=body_str,
+                user_id=user_id,
                 ip_address=ip_address,
                 user_agent=user_agent
             )
@@ -54,24 +57,20 @@ class AuditLogRoute(APIRoute):
 
             headers_dict = dict(request.headers)
             auth_header = headers_dict.pop("authorization", None)
-            headers_str = json.dumps(headers_dict)
 
-            body_str = _extract_body(await request.body())
-            user_name = _extract_user_name(auth_header)
+            # We don't need body/headers anymore per user request
+            _, user_id = _extract_user_info(auth_header)
 
             try:
                 response = await original_route_handler(request)
+                return response
             finally:
                 _log_to_db(
                     ip_address=ip_address,
                     user_agent=user_agent,
-                    headers_str=headers_str,
-                    body_str=body_str,
-                    user_name=user_name,
+                    user_id=user_id,
                     endpoint=request.url.path,
                     method=request.method
                 )
-
-            return response
 
         return custom_route_handler

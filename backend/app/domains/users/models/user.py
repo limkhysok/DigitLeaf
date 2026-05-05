@@ -3,7 +3,6 @@ from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
 
 from app.core.config import CAMBODIA_TZ
-from app.domains.rbac.models.user_role import UserRoleLink
 
 if TYPE_CHECKING:
     from app.domains.rbac.models.role import Role
@@ -20,9 +19,9 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
 
-    roles: list["Role"] = Relationship(
+    role_id: Optional[int] = Field(default=None, foreign_key="dl_role.id")
+    role: Optional["Role"] = Relationship(
         back_populates="users",
-        link_model=UserRoleLink,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
 

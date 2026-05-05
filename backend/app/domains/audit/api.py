@@ -6,7 +6,9 @@ from app.domains.audit.models import AuditLog
 from app.domains.users.models import User
 from app.api.deps import get_current_user
 
-router = APIRouter()
+from app.core.route_logger import AuditLogRoute
+
+router = APIRouter(route_class=AuditLogRoute)
 
 @router.get("/")
 def read_audit_logs(

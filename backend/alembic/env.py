@@ -18,7 +18,6 @@ from app.domains.auth.models.token import UserToken  # noqa: F401
 from app.domains.audit.models.audit_log import AuditLog  # noqa: F401
 from app.domains.rbac.models.role import Role  # noqa: F401
 from app.domains.rbac.models.permission import Permission  # noqa: F401
-from app.domains.rbac.models.user_role import UserRoleLink  # noqa: F401
 from app.domains.rbac.models.role_permission import RolePermissionLink  # noqa: F401
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
@@ -32,6 +31,12 @@ if config.config_file_name is not None:
 # add your model's MetaData object here for 'autogenerate' support
 target_metadata = SQLModel.metadata
 
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table":
+        # Only include tables starting with 'dl_' or the alembic version table
+        return name.startswith("dl_") or name == "alembic_version"
+    return True
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = settings.DATABASE_URL
@@ -40,6 +45,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -58,7 +64,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

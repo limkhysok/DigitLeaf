@@ -8,7 +8,9 @@ from app.domains.rbac.models import Role
 from app.api.deps import get_current_user
 from app.domains.users import crud
 
-router = APIRouter()
+from app.core.route_logger import AuditLogRoute
+
+router = APIRouter(route_class=AuditLogRoute)
 
 
 @router.post(
@@ -46,7 +48,7 @@ def create_user(
     new_user = User(
         user_name=user_in.user_name,
         password=user_in.password,
-        roles=[role],  # Magic: SQLModel instantly handles the bridging table insertion!
+        role=role,
     )
 
 

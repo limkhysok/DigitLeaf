@@ -5,18 +5,14 @@ def create_audit_log(
     session: Session, 
     endpoint: str, 
     method: str, 
-    user_name: str | None = None,
-    headers: str | None = None,
-    body: str | None = None,
+    user_id: int,
     ip_address: str | None = None,
     user_agent: str | None = None
 ) -> AuditLog:
     db_log = AuditLog(
-        user_name=user_name,
+        user_id=user_id,
         endpoint=endpoint,
         method=method,
-        headers=headers,
-        body=body,
         ip_address=ip_address,
         user_agent=user_agent
     )
