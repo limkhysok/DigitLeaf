@@ -1,60 +1,63 @@
 erDiagram
-    USER ||--o| USER_MFA : "1:1 has"
-    USER }|--|{ ROLE : "N:N user_role"
-    ROLE }|--|{ PERMISSION : "N:N role_permission"
+    %% USERS DOMAIN
+    user ||--o| dl_user_mfa : "1:1 MFA protection"
+    user }|--|{ dl_role : "N:N via dl_user_role"
     
-    USER {
+    %% RBAC DOMAIN
+    dl_role }|--|{ dl_permission : "N:N via dl_role_permission"
+    
+    %% AUTH DOMAIN
+    user ||--o{ dl_user_token : "1:N sessions"
+
+    user {
         int id PK
-        string user_name
-        string password
-        string access_type
-        string login_type
+        string user_name "Unique"
+        string password "Hashed"
         boolean is_active
         datetime created_at
     }
 
-    USER_MFA {
+    dl_user_mfa {
         int id PK
-        int user_id FK
-        string otp_code
-        datetime otp_expiry
+        int user_id FK "References user.id"
         string totp_secret
         boolean totp_enabled
     }
 
-    ROLE {
+    dl_role {
         int id PK
-        string name
+        string name "Unique"
         string description
     }
 
-    PERMISSION {
+    dl_permission {
         int id PK
-        string name
+        string name "Unique"
         string description
     }
 
-    USER_ROLE {
-        int user_id FK
-        int role_id FK
-    }
-
-    ROLE_PERMISSION {
-        int role_id FK
-        int permission_id FK
-    }
-
-    AUDIT_LOG {
+    dl_user_token {
         int id PK
-        string user_name
+        string user_name "Ref index"
+        string refresh_token
+        datetime expires_at
+    }
+
+    dl_audit_log {
+        int id PK
+        string user_name "Action owner"
         string endpoint
         string method
         datetime created_at
     }
 
-    USER_TOKEN {
-        int id PK
-        string user_name
-        string refresh_token
-        datetime expires_at
+    %% LINK TABLES
+    dl_user_role {
+        int user_id FK
+        int role_id FK
+    }
+
+    dl_role_permission {
+        int role_id FK
+        int permission_id FK
     }

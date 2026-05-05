@@ -2,9 +2,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Security
 from sqlmodel import Session, select
 from app.db.session import get_session
-from app.domains.users.models import User, UserPublic
+from app.domains.users.models import User
+from app.domains.users.schemas import UserPublic, UserCreate
 from app.domains.rbac.models import Role
-from app.schemas.user import UserCreate
 from app.api.deps import get_current_user
 
 router = APIRouter()
@@ -47,13 +47,9 @@ def create_user(
     new_user = User(
         user_name=user_in.user_name,
         password=user_in.password,
-        access_type="",  # Left blank as this is deprecated
-        user=current_user.user_name,
-        ip_address=request.client.host if request.client else "unknown",
-        edit_user=current_user.user_name,
-        edit_ip_address=request.client.host if request.client else "unknown",
         roles=[role],  # Magic: SQLModel instantly handles the bridging table insertion!
     )
+
 
     session.add(new_user)
     session.commit()

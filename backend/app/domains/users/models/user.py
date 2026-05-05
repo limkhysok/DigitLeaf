@@ -4,55 +4,32 @@ from sqlmodel import Field, SQLModel, Relationship
 
 from app.core.config import CAMBODIA_TZ
 from app.domains.rbac.models.user_role import UserRoleLink
+
 if TYPE_CHECKING:
     from app.domains.rbac.models.role import Role
     from app.domains.auth.models.mfa import UserMFA
 
-class UserBase(SQLModel):
-    user_name: str = Field(max_length=255)
-    access_type: str = Field(max_length=255, default="farmer")
-    login_type: str = Field(max_length=255, default="system")
-    user: str = Field(max_length=50, default="admin")
-    do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
-    ip_address: str = Field(default="127.0.0.1")
-    edit_user: str = Field(max_length=50, default="admin")
-    edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
-    edit_ip_address: str = Field(default="127.0.0.1")
 
-class User(UserBase, table=True):
+class User(SQLModel, table=True):
+    __tablename__ = "dl_user"
+
     id: Optional[int] = Field(default=None, primary_key=True)
+    user_name: str = Field(max_length=255, unique=True, index=True)
     password: str = Field(max_length=255)
-    
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+
     roles: list["Role"] = Relationship(
         back_populates="users",
         link_model=UserRoleLink,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
-    
+
     mfa: Optional["UserMFA"] = Relationship(
-        back_populates="user", 
-        sa_relationship_kwargs={"uselist": False, "lazy": "selectin"}
+        back_populates="user",
+        sa_relationship_kwargs={"uselist": False, "lazy": "selectin"},
     )
-    
-    # Profile & Status Fields (Sync with migration f35424d651c3)
-    avatar_url: Optional[str] = Field(default=None, max_length=255)
-    bio: Optional[str] = Field(default=None)
-    is_active: bool = Field(default=True)
-    refresh_token: Optional[str] = Field(default=None, max_length=255)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
 
     def __str__(self):
         return self.user_name
-
-class UserLogin(SQLModel):
-    user_name: str
-    password: str
-
-class UserPublic(SQLModel):
-    id: int
-    user_name: str
-    access_type: str
-    login_type: str
-    totp_enabled: bool = False
-    do_date: datetime | str | None = None

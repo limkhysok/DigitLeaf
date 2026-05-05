@@ -2,16 +2,16 @@ from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session
+from sqlmodel import Session, select
+from app.domains.rbac.models import Role
 
 from app.core.config import settings, CAMBODIA_TZ
 from app.core import security
 from app.db.session import get_session
 from app.domains.users import crud as crud_user
 from app.domains.auth import crud as crud_token
-from app.schemas.token import Token, RefreshTokenRequest
-from app.schemas.user import OTPRequest, OTPVerify, TOTPVerify
-from app.domains.users.models import UserPublic
+from app.domains.auth.schemas import Token, RefreshTokenRequest, OTPRequest, OTPVerify, TOTPVerify
+from app.domains.users.schemas import UserPublic
 from app.domains.auth.models import UserMFA
 from app.api.deps import CurrentUser
 
@@ -41,6 +41,15 @@ def login_access_token(
             mfa_required=True,
             username=user.user_name
         )
+
+    # 1. Handle Default Role for existing users
+    if not user.roles:
+        staff_role = session.exec(select(Role).where(Role.name == "staff")).first()
+        if staff_role:
+            user.roles.append(staff_role)
+            session.add(user)
+            session.commit()
+            session.refresh(user)
 
     # Define allowed scopes dynamically from DB Roles and Permissions
     allowed_scopes_set = {"user"}

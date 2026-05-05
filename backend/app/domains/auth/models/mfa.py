@@ -9,7 +9,7 @@ class UserMFA(SQLModel, table=True):
     __tablename__ = "dl_user_mfa"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", unique=True, index=True)
+    user_id: int = Field(foreign_key="dl_user.id", unique=True, index=True)
     otp_code: Optional[str] = Field(default=None, max_length=6)
     otp_expiry: Optional[datetime] = Field(default=None)
     totp_secret: Optional[str] = Field(default=None, max_length=32)
