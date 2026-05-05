@@ -131,27 +131,38 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-1 lg:space-y-2">
-            <h1 className={`text-xl lg:text-2xl font-regular tracking-[0.1em] leading-tight transition-colors duration-1000
+            <h1 className={`text-xl lg:text-2xl font-branding tracking-[0.1em] leading-tight transition-colors duration-1000
               ${isExiting ? 'text-[#009640] md:text-white' : 'text-white'}`}>
               K.A.I.C
             </h1>
-            <p className={`text-[10px] lg:text-sm tracking-widest capitalize font-medium transition-colors duration-1000
-              ${isExiting ? 'text-[#009640]/70 md:text-green-50/70' : 'text-green-50/70'}`}>
-              Internal Management System
-            </p>
           </div>
         </div>
 
         {/* Loading text: Fades out early */}
-        <div className={`absolute bottom-24 md:bottom-20 flex flex-col items-center space-y-6 transition-all duration-500 
+        <div className={`absolute bottom-24 md:bottom-20 flex flex-col items-center space-y-6 transition-all duration-700 delay-300
           ${isExiting ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}>
-          <div className="w-48 h-[1px] bg-white/10 rounded-full overflow-hidden relative">
-            <div className="absolute inset-0 bg-white/40 animate-loading-bar rounded-full blur-[1px]" />
-            <div className="absolute inset-0 bg-white animate-loading-bar rounded-full" />
+          
+          <div className="flex flex-col items-center gap-5">
+            {/* Premium Glowing Bar */}
+            <div className="w-40 h-[1.5px] bg-white/5 rounded-full overflow-hidden relative">
+              <div className="absolute inset-0 bg-white/20 animate-pulse" />
+              <div className="absolute h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] animate-loading-bar rounded-full" />
+            </div>
+
+            {/* High-end Tech Typography */}
+            <div className="flex flex-col items-center gap-2">
+              <p className="font-branding text-[8px] lg:text-[9px] tracking-[0.6em] text-white/60 uppercase animate-pulse">
+                Workspace Secured
+              </p>
+              <div className="flex items-center gap-3">
+                <span className="h-[1px] w-4 bg-white/20" />
+                <p className="font-branding text-[7px] tracking-[0.8em] text-white/30 uppercase">
+                  Initializing
+                </p>
+                <span className="h-[1px] w-4 bg-white/20" />
+              </div>
+            </div>
           </div>
-          <p className="text-white/60 text-[10px] font-bold tracking-[0.4em] uppercase animate-shimmer">
-            Loading, please wait a moment
-          </p>
         </div>
       </div>
 

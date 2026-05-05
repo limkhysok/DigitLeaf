@@ -1,4 +1,5 @@
 import { Geist_Mono, Figtree } from "next/font/google"
+import localFont from "next/font/local"
 
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -14,6 +15,11 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
+const comicRelief = localFont({
+  src: "../public/font/ComicRelief-Regular.ttf",
+  variable: "--font-branding",
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,9 +29,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable)}
+      className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable, comicRelief.variable)}
     >
-      <body className="bg-[#009640]">
+      <body className="bg-background">
         <AuthProvider>
           <ThemeProvider>
             {children}

@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from app.domains.rbac.models import Role
@@ -24,6 +24,7 @@ INVALID_TOTP_MSG = "Invalid TOTP code"
 def login_access_token(
     session: Annotated[Session, Depends(get_session)],
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    request: Request,
 ) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests
@@ -78,7 +79,9 @@ def login_access_token(
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
     
     # Save refresh token to DB in separate table
-    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at, ip_address, user_agent)
 
     return Token(
         access_token=security.create_access_token(
@@ -121,13 +124,14 @@ def request_otp(
 @router.post("/login/otp-verify")
 def verify_otp(
     session: Annotated[Session, Depends(get_session)],
-    request: OTPVerify,
+    request_data: OTPVerify,
+    request: Request,
 ) -> Token:
     """
     Verify 6-digit OTP and return access tokens
     """
-    user = crud_user.get_user_by_username(session, request.user_name)
-    if not user or not user.mfa or user.mfa.otp_code != request.otp_code:
+    user = crud_user.get_user_by_username(session, request_data.user_name)
+    if not user or not user.mfa or user.mfa.otp_code != request_data.otp_code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid username or OTP",
@@ -161,7 +165,9 @@ def verify_otp(
     )
     
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
-    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at, ip_address, user_agent)
     
     session.commit()
 
@@ -268,19 +274,20 @@ def disable_totp(
 @router.post("/login/totp-verify")
 def verify_totp_login(
     session: Annotated[Session, Depends(get_session)],
-    request: TOTPVerify,
+    request_data: TOTPVerify,
+    request: Request,
 ) -> Token:
     """
     Verify TOTP code during login and return access tokens
     """
-    user = crud_user.get_user_by_username(session, request.user_name)
+    user = crud_user.get_user_by_username(session, request_data.user_name)
     if not user or not user.mfa or not user.mfa.totp_enabled or not user.mfa.totp_secret:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="TOTP is not enabled for this user",
         )
     
-    if not security.verify_totp(user.mfa.totp_secret, request.totp_code):
+    if not security.verify_totp(user.mfa.totp_secret, request_data.totp_code):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=INVALID_TOTP_MSG,
@@ -303,7 +310,9 @@ def verify_totp_login(
     )
     
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
-    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    crud_token.create_user_token(session, user.id, user.user_name, refresh_token, expires_at, ip_address, user_agent)
     
     session.commit()
 
@@ -331,12 +340,13 @@ def read_users_me(current_user: CurrentUser) -> UserPublic:
 @router.post("/login/refresh")
 def refresh_token(
     session: Annotated[Session, Depends(get_session)],
-    request: RefreshTokenRequest,
+    refresh_request: RefreshTokenRequest,
+    request: Request,
 ) -> Token:
     """
     Refresh access token using a refresh token.
     """
-    payload = security.decode_token(request.refresh_token)
+    payload = security.decode_token(refresh_request.refresh_token)
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -346,7 +356,7 @@ def refresh_token(
     username = payload.get("sub")
     
     # Check if the token exists in the user_token table
-    db_token = crud_token.get_by_refresh_token(session, request.refresh_token)
+    db_token = crud_token.get_by_refresh_token(session, refresh_request.refresh_token)
     if not db_token or db_token.user_name != username:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -373,7 +383,7 @@ def refresh_token(
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     
     # Delete the old refresh token
-    crud_token.delete_specific_token(session, request.refresh_token)
+    crud_token.delete_specific_token(session, refresh_request.refresh_token)
 
     # Rotate refresh token
     new_refresh_token = security.create_refresh_token(
@@ -383,7 +393,9 @@ def refresh_token(
     expires_at = datetime.now(CAMBODIA_TZ) + refresh_token_expires
     
     # Save the new token
-    crud_token.create_user_token(session, user.id, user.user_name, new_refresh_token, expires_at)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    crud_token.create_user_token(session, user.id, user.user_name, new_refresh_token, expires_at, ip_address, user_agent)
 
     return Token(
         access_token=security.create_access_token(
@@ -405,3 +417,13 @@ def logout(
     """
     crud_token.delete_user_token(session, current_user.user_name)
     return {"message": "Successfully logged out of all sessions"}
+
+@router.get("/sessions")
+def get_active_sessions(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: CurrentUser,
+):
+    """
+    List all active refresh token sessions for the current user.
+    """
+    return crud_token.get_user_tokens(session, current_user.user_name)

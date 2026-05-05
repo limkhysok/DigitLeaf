@@ -101,8 +101,7 @@ export default function LoginPage() {
             <Image src="/assets/white-kaic.png" alt="Logo" width={140} height={140} priority unoptimized />
           </div>
           <div className="space-y-1 lg:space-y-2">
-            <h1 className="text-xl lg:text-2xl font-regular tracking-[0.1em] text-white leading-tight">K.A.I.C</h1>
-            <p className="text-green-50/70 text-[10px] lg:text-sm tracking-widest capitalize font-medium">Internal Management System</p>
+            <h1 className="text-xl lg:text-2xl font-branding tracking-[0.1em] text-white leading-tight">K.A.I.C</h1>
           </div>
         </div>
       </div>

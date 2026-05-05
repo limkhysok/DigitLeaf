@@ -73,9 +73,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader className="h-14 flex items-center justify-center p-0 px-2 transition-all duration-300 group-data-[collapsible=icon]/sidebar:h-14 border-b border-sidebar-border/50">
-        <div className="flex h-12 items-center gap-3 bg-white/[0.02] border border-white/10 rounded-none px-3 w-full group/logo cursor-pointer hover:bg-white/[0.04] transition-all duration-300 group-data-[collapsible=icon]/sidebar:p-0 group-data-[collapsible=icon]/sidebar:bg-transparent group-data-[collapsible=icon]/sidebar:border-none group-data-[collapsible=icon]/sidebar:justify-center relative overflow-hidden">
+        <div className="flex h-12 items-center gap-3 bg-transparent px-3 w-full group/logo cursor-pointer hover:bg-sidebar-accent/30 transition-all duration-300 group-data-[collapsible=icon]/sidebar:p-0 group-data-[collapsible=icon]/sidebar:bg-transparent group-data-[collapsible=icon]/sidebar:border-none group-data-[collapsible=icon]/sidebar:justify-center relative overflow-hidden">
           {/* Subtle Glow Background */}
-          <div className="absolute inset-0 bg-[#009640]/0 group-hover:bg-[#009640]/5 transition-colors duration-500" />
+          <div className="absolute inset-0 bg-[#009640]/0 group-hover:bg-[#009640]/2 transition-colors duration-500" />
 
 
 
@@ -91,10 +91,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
 
           <div className="flex flex-col truncate group-data-[collapsible=icon]/sidebar:hidden flex-1 ml-1 relative z-10">
-            <span className="font-black text-sm tracking-[0.12em] text-[#009640] group-hover:text-[#008a3b] transition-colors duration-300 uppercase">
+            <span className="font-branding text-sm tracking-[0.12em] text-[#009640] group-hover:text-[#008a3b] transition-colors duration-300 uppercase">
               K.A.I.C
             </span>
-            <span className="text-[9px] font-bold text-muted-foreground/40 tracking-[0.05em] uppercase -mt-0.5">
+            <span className="text-[9px] font-branding text-muted-foreground/40 tracking-[0.05em] uppercase -mt-0.5">
               Internal System
             </span>
           </div>

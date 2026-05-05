@@ -25,7 +25,7 @@ export function TopNav() {
   return (
     <header
       className={cn(
-        "flex h-14 shrink-0 items-center border-b sticky top-0 z-30 transition-all duration-300 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        "flex h-14 shrink-0 items-center border-b sticky top-0 z-30 transition-all duration-300 bg-background"
       )}
     >
       <div className="flex h-full w-full items-center gap-2 px-4">
