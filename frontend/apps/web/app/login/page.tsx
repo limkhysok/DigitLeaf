@@ -107,14 +107,14 @@ export default function LoginPage() {
       </div>
 
       {/* Login Section */}
-      <div className="flex-1 flex flex-col items-center justify-start pt-20 md:pt-0 md:justify-center min-h-[100svh] md:min-h-full p-6 sm:p-12 md:p-16 lg:p-24 bg-white relative">
-        <div className="w-full max-w-[340px] lg:max-w-sm space-y-10 animate-in fade-in duration-1000 slide-in-from-right-10">
+      <div className="flex-1 flex flex-col items-center justify-start pt-14 md:pt-0 md:justify-center min-h-[100svh] md:min-h-full p-6 sm:p-12 md:p-16 lg:p-24 bg-white relative">
+        <div className="w-full max-w-[340px] lg:max-w-sm space-y-8 md:space-y-10">
           <div className="flex flex-col items-center md:items-start space-y-4 md:space-y-3">
-            <div className="md:hidden flex flex-col items-center space-y-6">
-              <Image src="/assets/newKAIC.png" alt="Logo" width={90} height={90} priority className="object-contain mix-blend-multiply" />
+            <div className="md:hidden flex flex-col items-center mb-2">
+              <Image src="/assets/newKAIC.png" alt="Logo" width={80} height={80} priority className="object-contain" />
             </div>
             <div className="text-center md:text-left space-y-1">
-              <h2 className="text-3xl font-bold tracking-tight text-foreground">Sign In</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">Sign In</h2>
               <p className="text-sm text-muted-foreground font-medium">Welcome back to your workspace</p>
             </div>
           </div>

@@ -264,7 +264,7 @@ export default function ProfilePage() {
               <AvatarImage src="https://github.com/shadcn.png" alt={`@${user.user_name}`} className="object-cover" />
               <AvatarFallback className="text-5xl bg-muted text-foreground font-black rounded-full">{initials}</AvatarFallback>
             </Avatar>
-            <button className="absolute bottom-1 right-1 p-3 bg-emerald-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95 border-4 border-background">
+            <button className="absolute bottom-1 right-1 p-3 bg-[#009640] text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95 border-4 border-background">
               <IconCamera size={18} stroke={2.5} />
             </button>
           </div>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
   )
 
   const renderSessionsSection = () => (
-    <Card className="border border-border/40 bg-card rounded-md shadow-none ring-0">
+    <Card className="border border-border/40 bg-card rounded-[2rem] shadow-none ring-0">
       <CardContent className="p-8 space-y-8">
         <div className="space-y-1">
           <h3 className="text-lg font-bold tracking-tight">Active Sessions</h3>
@@ -320,12 +320,12 @@ export default function ProfilePage() {
 
   const renderSecuritySection = () => (
     <div className="space-y-10">
-      <Card className="border border-border/40 bg-card rounded-md shadow-none ring-0">
+      <Card className="border border-border/40 bg-card rounded-[2rem] shadow-none ring-0">
         <CardContent className="p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
             <div className="space-y-1">
               <h3 className="text-lg font-bold flex items-center gap-3">
-                <IconShieldLock className="text-emerald-600" size={20} />
+                <IconShieldLock className="text-[#009640]" size={20} />
                 Password Management
               </h3>
               <p className="text-xs font-medium text-muted-foreground capitalize">Keep your account secure with a strong password</p>
@@ -403,7 +403,7 @@ export default function ProfilePage() {
               </div>
 
               <Button 
-                className="w-full h-14 rounded-full font-bold capitalize tracking-[0.1em] text-xs bg-[#009640] hover:bg-[#008a3b] transition-all"
+                className="w-full h-14 rounded-full font-bold capitalize tracking-[0.1em] text-xs bg-[#009640] hover:bg-[#008a3b] transition-all shadow-[0_8px_30px_rgb(0,150,64,0.2)]"
                 onClick={handleChangePassword}
                 disabled={isUpdatingPassword}
               >
@@ -414,7 +414,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="border border-border/40 bg-card rounded-md shadow-none ring-0">
+      <Card className="border border-border/40 bg-card rounded-[2rem] shadow-none ring-0">
         <CardContent className="p-8 space-y-8">
           <div className="space-y-1">
             <h3 className="text-lg font-bold tracking-tight">Two-factor Authentication</h3>
@@ -441,7 +441,7 @@ export default function ProfilePage() {
               <p className="text-sm font-bold text-foreground capitalize tracking-widest">Scan with authenticator app</p>
               <div className="flex flex-col items-center gap-2">
                 <span className="text-xs font-bold text-muted-foreground capitalize tracking-wide">Manual secret key</span>
-                <code className="text-xs font-mono bg-muted px-4 py-2 border border-border/20 font-bold rounded-full text-emerald-600">{totpData.secret}</code>
+                <code className="text-xs font-mono bg-muted px-4 py-2 border border-border/20 font-bold rounded-full text-[#009640]">{totpData.secret}</code>
               </div>
             </div>
           </div>
@@ -491,7 +491,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-lg font-bold">Authenticator App</h3>
               {user.totp_enabled && (
-                <span className="flex items-center gap-1 text-xs font-bold capitalize tracking-wide text-emerald-600 bg-emerald-500/10 px-3 py-1 border border-emerald-500/20 rounded-full">
+                <span className="flex items-center gap-1 text-xs font-bold capitalize tracking-wide text-[#009640] bg-[#009640]/10 px-3 py-1 border border-[#009640]/20 rounded-full">
                   <IconCheck size={12} /> Active
                 </span>
               )}
@@ -549,7 +549,7 @@ export default function ProfilePage() {
           ) : (
             <Button 
               onClick={handleStartSetup} 
-              className="rounded-full px-8 h-12 font-bold capitalize tracking-widest text-xs bg-[#009640] hover:bg-[#008a3b] transition-all w-full sm:w-auto"
+              className="rounded-full px-8 h-12 font-bold capitalize tracking-widest text-xs bg-[#009640] hover:bg-[#008a3b] transition-all w-full sm:w-auto shadow-[0_8px_30px_rgb(0,150,64,0.2)]"
               disabled={isSettingUp}
             >
               {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : "Set Up 2FA"}
@@ -561,72 +561,68 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-6xl mx-auto pb-10 px-4">
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full pb-10 px-4 md:px-0">
       <div className="space-y-1.5 px-2">
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-xs font-bold text-emerald-600 capitalize tracking-[0.2em]">Manage your workspace account and security.</p>
+        <p className="text-xs font-bold text-[#009640] capitalize tracking-[0.2em]">Manage your workspace account and security.</p>
       </div>
 
-      {/* Mobile & Tablet View: All content stacked */}
-      <div className="lg:hidden space-y-12">
+      <div className="lg:hidden space-y-10">
         <div className="space-y-4">
-          <div className="flex items-center gap-2 px-2 text-emerald-600 font-bold capitalize tracking-wide text-xs">
+          <div className="flex items-center gap-2 px-2 text-[#009640] font-bold capitalize tracking-wide text-xs">
             <IconUser size={14} /> Profile
           </div>
           {renderProfileSection()}
         </div>
         <div className="space-y-4">
-          <div className="flex items-center gap-2 px-2 text-emerald-600 font-bold capitalize tracking-wide text-xs">
+          <div className="flex items-center gap-2 px-2 text-[#009640] font-bold capitalize tracking-wide text-xs">
             <IconHistory size={14} /> Sessions
           </div>
-          <div className="space-y-4">
-            {renderSessionsList()}
-          </div>
+          {renderSessionsSection()}
         </div>
         <div className="space-y-4">
-          <div className="flex items-center gap-2 px-2 text-emerald-600 font-bold capitalize tracking-wide text-xs">
+          <div className="flex items-center gap-2 px-2 text-[#009640] font-bold capitalize tracking-wide text-xs">
             <IconShieldLock size={14} /> Security
           </div>
           {renderSecuritySection()}
         </div>
       </div>
 
-      {/* Desktop View: Tabs */}
-      <Tabs defaultValue="profile" orientation="vertical" className="hidden lg:flex flex-row gap-16 items-start">
-        <TabsList className="flex flex-col h-auto bg-transparent p-0 gap-2 items-start w-56 border-none">
+      <Tabs defaultValue="profile" orientation="vertical" className="hidden lg:flex flex-row gap-10 items-start w-full">
+        <TabsList className="flex flex-col h-auto bg-transparent p-0 gap-2 items-start w-64 border-none sticky top-24">
           <TabsTrigger
             value="profile"
-            className="w-full justify-start rounded-full px-5 py-3 text-sm font-medium data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all gap-3 hover:bg-muted/50"
+            className="w-full justify-start rounded-full px-6 py-4 text-sm font-bold data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all gap-3 hover:bg-muted/50 text-muted-foreground/60 data-[state=active]:shadow-[0_8px_20px_rgba(0,150,64,0.15)]"
           >
-            <IconUser size={17} stroke={2} />
-            Profile
+            <IconUser size={18} stroke={2.5} />
+            Profile Details
           </TabsTrigger>
           <TabsTrigger
             value="sessions"
-            className="w-full justify-start rounded-full px-5 py-3 text-sm font-medium data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all gap-3 hover:bg-muted/50"
+            className="w-full justify-start rounded-full px-6 py-4 text-sm font-bold data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all gap-3 hover:bg-muted/50 text-muted-foreground/60 data-[state=active]:shadow-[0_8px_20px_rgba(0,150,64,0.15)]"
           >
-            <IconHistory size={17} stroke={2} />
-            Sessions
+            <IconHistory size={18} stroke={2.5} />
+            Active Sessions
           </TabsTrigger>
           <TabsTrigger
             value="security"
-            className="w-full justify-start rounded-full px-5 py-3 text-sm font-medium data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all gap-3 hover:bg-muted/50"
+            className="w-full justify-start rounded-full px-6 py-4 text-sm font-bold data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all gap-3 hover:bg-muted/50 text-muted-foreground/60 data-[state=active]:shadow-[0_8px_20px_rgba(0,150,64,0.15)]"
           >
-            <IconShieldLock size={17} stroke={2} />
-            Security
+            <IconShieldLock size={18} stroke={2.5} />
+            Security & 2FA
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 max-w-3xl">
-          <TabsContent value="profile" className="mt-0 animate-in fade-in duration-500">
+        <div className="flex-1 min-w-0">
+          <TabsContent value="profile" className="mt-0 animate-in fade-in slide-in-from-right-4 duration-500 focus-visible:outline-none">
             {renderProfileSection()}
           </TabsContent>
 
-          <TabsContent value="sessions" className="mt-0 animate-in fade-in duration-500">
+          <TabsContent value="sessions" className="mt-0 animate-in fade-in slide-in-from-right-4 duration-500 focus-visible:outline-none">
             {renderSessionsSection()}
           </TabsContent>
 
-          <TabsContent value="security" className="mt-0 animate-in fade-in duration-500">
+          <TabsContent value="security" className="mt-0 animate-in fade-in slide-in-from-right-4 duration-500 focus-visible:outline-none">
             {renderSecuritySection()}
           </TabsContent>
         </div>
