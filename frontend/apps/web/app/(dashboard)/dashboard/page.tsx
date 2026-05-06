@@ -113,7 +113,7 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px] w-full bg-muted/5 rounded-xl border border-border/50 flex flex-col relative overflow-hidden group">
+            <div className="h-87.5 w-full bg-muted/5 rounded-xl border border-border/50 flex flex-col relative overflow-hidden group">
               {/* Mock Chart SVG */}
               <div className="absolute inset-0 p-6 flex flex-col justify-end">
                 <svg className="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">

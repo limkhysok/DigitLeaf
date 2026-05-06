@@ -181,7 +181,7 @@ export default function ProfilePage() {
     }
     setIsUpdatingPassword(true)
     try {
-      await apiClient.changePassword(tokens.access_token, currentPassword, newPassword)
+      await apiClient.changePassword(tokens.access_token, { current_password: currentPassword, new_password: newPassword })
       toast.success("Password updated successfully")
       setCurrentPassword("")
       setNewPassword("")
@@ -241,7 +241,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <IconLoader2 className="animate-spin size-8 text-muted-foreground" />
       </div>
     )
@@ -260,7 +260,7 @@ export default function ProfilePage() {
       <CardContent className="p-8 pt-0 relative flex flex-col items-center gap-6 text-center">
         <div className="flex flex-col items-center gap-4 -mt-16 relative z-10 w-full">
           <div className="relative group mx-auto">
-            <Avatar className="size-36 border-[8px] border-background transition-all duration-500 group-hover:scale-105 rounded-full">
+            <Avatar className="size-36 border-8 border-background transition-all duration-500 group-hover:scale-105 rounded-full">
               <AvatarImage src="https://github.com/shadcn.png" alt={`@${user.user_name}`} className="object-cover" />
               <AvatarFallback className="text-5xl bg-muted text-foreground font-black rounded-full">{initials}</AvatarFallback>
             </Avatar>
@@ -403,7 +403,7 @@ export default function ProfilePage() {
               </div>
 
               <Button 
-                className="w-full h-14 rounded-full font-bold capitalize tracking-[0.1em] text-xs bg-[#009640] hover:bg-[#008a3b] transition-all shadow-[0_8px_30px_rgb(0,150,64,0.2)]"
+                className="w-full h-14 rounded-full font-bold capitalize tracking-widest text-xs bg-[#009640] hover:bg-[#008a3b] transition-all shadow-[0_8px_30px_rgb(0,150,64,0.2)]"
                 onClick={handleChangePassword}
                 disabled={isUpdatingPassword}
               >
@@ -539,7 +539,7 @@ export default function ProfilePage() {
                   <AlertDialogAction
                     onClick={handleDisableTOTP}
                     disabled={disableCode.length !== 6 || isSettingUp}
-                    className="bg-destructive text-white hover:bg-destructive/90 rounded-full font-bold text-xs capitalize tracking-wide h-12 px-6 min-w-[140px]"
+                    className="bg-destructive text-white hover:bg-destructive/90 rounded-full font-bold text-xs capitalize tracking-wide h-12 px-6 min-w-35"
                   >
                     {isSettingUp ? <IconLoader2 className="animate-spin size-4 mr-2" /> : "Confirm Disable"}
                   </AlertDialogAction>

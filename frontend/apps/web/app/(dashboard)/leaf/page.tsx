@@ -37,7 +37,7 @@ export default function LeafPage() {
           </div>
         </div>
       </div>
-      <div className="h-[400px] rounded-xl border bg-card p-6 shadow-sm flex items-center justify-center">
+      <div className="h-100 rounded-xl border bg-card p-6 shadow-sm flex items-center justify-center">
         <span className="text-muted-foreground italic text-sm">Leaf Content Visualization Placeholder</span>
       </div>
     </div>

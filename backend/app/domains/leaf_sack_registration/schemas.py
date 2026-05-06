@@ -1,0 +1,59 @@
+from pydantic import BaseModel, Field, ConfigDict, model_validator
+from datetime import datetime
+from typing import Optional
+
+
+class RepresentPublic(BaseModel):
+    represent_id: int
+    represent_name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MemberFarmerPublic(BaseModel):
+    mf_id: int
+    name: str
+    identified_no: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LeafSackRegistrationCreate(BaseModel):
+    represent_id: int = Field(..., description="Selected represent ID from dropdown")
+    member_farmer_name: Optional[str] = Field(default=None, max_length=255, description="Search farmer by name")
+    member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Search farmer by identity card")
+    sack_in_kg: int = Field(default=1, ge=1)
+    status: int = Field(default=0, description="0=pending, 1=approved, 2=rejected")
+    notes: Optional[str] = Field(default=None, max_length=500)
+
+    @model_validator(mode="after")
+    def require_farmer_lookup(self):
+        if not self.member_farmer_name and not self.member_farmer_identity_card:
+            raise ValueError("Provide either member_farmer_name or member_farmer_identity_card")
+        return self
+
+
+class LeafSackRegistrationUpdate(BaseModel):
+    sack_in_kg: Optional[int] = Field(default=None, ge=1)
+    status: Optional[int] = Field(default=None, description="0=pending, 1=approved, 2=rejected")
+    notes: Optional[str] = Field(default=None, max_length=500)
+
+
+class LeafSackRegistrationPublic(BaseModel):
+    id: int
+    leaf_sack_code: str
+    represent_id: int
+    represent_name: str
+    member_farmer_id: int
+    member_farmer_name: str
+    member_farmer_identity_card: str
+    dl_user_id: int
+    dl_user_name: str
+    sack_in_kg: int
+    status: int
+    notes: Optional[str] = None
+    registered_at: datetime
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

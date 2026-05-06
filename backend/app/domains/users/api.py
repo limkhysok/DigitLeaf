@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Security
 from sqlmodel import Session, select
 from app.db.session import get_session
 from app.domains.users.models import User
@@ -112,22 +112,4 @@ def admin_reset_password(
     session.commit()
     return {"message": "Password reset successfully by admin"}
 
-@router.post("/change-password")
-def change_password(
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-    password_data: UserChangePassword,
-):
-    """
-    Allow a user to change their own password.
-    """
-    if current_user.password != password_data.current_password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect current password"
-        )
-    
-    current_user.password = password_data.new_password
-    session.add(current_user)
-    session.commit()
-    return {"message": "Password updated successfully"}
+

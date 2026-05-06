@@ -30,9 +30,8 @@ def _extract_user_info(auth_header: str | None) -> tuple[str | None, int | None]
 
 def _log_to_db(ip_address: str | None, user_agent: str | None, 
                user_id: int | None, endpoint: str, method: str) -> None:
-    if not user_id:
-        # Skip logging for non-authenticated requests (like login) if user_id is mandatory
-        return
+    # Log everything, even unauthenticated requests
+
         
     try:
         with Session(engine) as db_session:

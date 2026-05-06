@@ -2,9 +2,11 @@ from fastapi import APIRouter
 from app.domains.auth import api as auth
 from app.domains.audit import api as audit_log
 from app.domains.users import api as users
+from app.domains.leaf_sack_registration import api as leaf_sack_registration
 from app.core.route_logger import AuditLogRoute
 
 api_router = APIRouter(route_class=AuditLogRoute)
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(audit_log.router, prefix="/audit-logs", tags=["audit-logs"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(leaf_sack_registration.router, prefix="/leaf-sack-registrations", tags=["leaf-sack-registrations"])

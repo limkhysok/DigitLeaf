@@ -101,14 +101,14 @@ export default function LoginPage() {
             <Image src="/assets/white-kaic.png" alt="Logo" width={140} height={140} priority unoptimized />
           </div>
           <div className="space-y-1 lg:space-y-2">
-            <h1 className="text-xl lg:text-2xl font-branding tracking-[0.1em] text-white leading-tight">K.A.I.C</h1>
+            <h1 className="text-xl lg:text-2xl font-branding tracking-widest text-white leading-tight">K.A.I.C</h1>
           </div>
         </div>
       </div>
 
       {/* Login Section */}
-      <div className="flex-1 flex flex-col items-center justify-start pt-14 md:pt-0 md:justify-center min-h-[100svh] md:min-h-full p-6 sm:p-12 md:p-16 lg:p-24 bg-white relative">
-        <div className="w-full max-w-[340px] lg:max-w-sm space-y-8 md:space-y-10">
+      <div className="flex-1 flex flex-col items-center justify-start pt-14 md:pt-0 md:justify-center min-h-svh md:min-h-full p-6 sm:p-12 md:p-16 lg:p-24 bg-white relative">
+        <div className="w-full max-w-85 lg:max-w-sm space-y-8 md:space-y-10">
           <div className="flex flex-col items-center md:items-start space-y-4 md:space-y-3">
             <div className="md:hidden flex flex-col items-center mb-2">
               <Image src="/assets/newKAIC.png" alt="Logo" width={80} height={80} priority className="object-contain" />

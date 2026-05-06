@@ -5,7 +5,7 @@ def create_audit_log(
     session: Session, 
     endpoint: str, 
     method: str, 
-    user_id: int,
+    user_id: int | None = None,
     ip_address: str | None = None,
     user_agent: str | None = None
 ) -> AuditLog:

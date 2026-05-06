@@ -7,6 +7,7 @@ import {
   IconLayoutDashboard,
   IconReceipt,
   IconTerminal2,
+  IconPackage,
 } from "@tabler/icons-react"
 
 import {
@@ -31,6 +32,11 @@ export const data = {
       title: "Leaf",
       url: "/leaf",
       icon: IconLeaf,
+    },
+    {
+      title: "Leaf Sack Registration",
+      url: "/leaf-sack-registration",
+      icon: IconPackage,
     },
     {
       title: "Invoices",
@@ -79,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 
 
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#009640] to-[#007a33] shadow-[0_4px_12px_rgba(0,150,64,0.2)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(0,150,64,0.3)] ml-0.5 relative z-10">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#009640] to-[#007a33] shadow-[0_4px_12px_rgba(0,150,64,0.2)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(0,150,64,0.3)] ml-0.5 relative z-10">
             <div className="absolute inset-0 animate-pulse bg-white/20 group-hover:animate-none opacity-0 group-hover:opacity-100 transition-opacity" />
             <Image
               src="/assets/newKAIC.png"
@@ -94,7 +100,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="font-branding text-sm tracking-[0.12em] text-[#009640] group-hover:text-[#008a3b] transition-colors duration-300 uppercase">
               K.A.I.C
             </span>
-            <span className="text-[9px] font-branding text-muted-foreground/100 tracking-[0.05em] uppercase -mt-0.5">
+            <span className="text-[9px] font-branding text-muted-foreground tracking-wider uppercase -mt-0.5">
               Internal System
             </span>
           </div>

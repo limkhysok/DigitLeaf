@@ -55,10 +55,10 @@ function VerifyContent() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
         <IconLeaf size={200} className="absolute -top-20 -left-20 rotate-45 text-[#009640]" />
         <IconLeaf size={150} className="absolute top-1/2 -right-10 -translate-y-1/2 -rotate-12 text-[#009640]" />
-        <IconLeaf size={180} className="absolute -bottom-10 left-1/4 rotate-[110deg] text-[#009640]" />
+        <IconLeaf size={180} className="absolute -bottom-10 left-1/4 rotate-110 text-[#009640]" />
       </div>
 
-      <div className="w-full max-w-[400px] space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="w-full max-w-100 space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="size-20 rounded-full bg-[#009640]/5 border border-[#009640]/20 flex items-center justify-center relative">
             <div className="absolute inset-0 rounded-full bg-[#009640]/10 animate-pulse" />
