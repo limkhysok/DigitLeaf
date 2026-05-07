@@ -34,8 +34,8 @@ export const data = {
       icon: IconLeaf,
     },
     {
-      title: "Leaf Sack Registration",
-      url: "/leaf-sack-registration",
+      title: "Sack Registration",
+      url: "/sack-registration",
       icon: IconPackage,
     },
     {

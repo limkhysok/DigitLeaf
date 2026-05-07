@@ -19,6 +19,12 @@ import {
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 
+const ROLE_AVATAR: Record<string, string> = {
+  admin:   "/avatars/avatar-admin.svg",
+  manager: "/avatars/avatar-manager.svg",
+  staff:   "/avatars/avatar-staff.svg",
+}
+
 export function NavUser({
   user,
 }: Readonly<{
@@ -26,6 +32,7 @@ export function NavUser({
     name: string
     email: string
     avatar: string
+    role?: string
   }
 }>) {
   const { mounted } = useSidebar()
@@ -45,8 +52,16 @@ export function NavUser({
           {/* Shimmering Ring */}
           <div className="absolute inset-0 rounded-full border-2 border-[#009640]/0 group-hover:border-[#009640]/20 group-hover:scale-110 transition-all duration-500 group-hover:shadow-[0_0_15px_rgba(0,150,64,0.2)]" />
 
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-green-600/10 text-[#009640] text-[10px] font-bold shadow-sm group-hover:bg-green-600/20 transition-colors duration-300 overflow-hidden relative border border-green-600/10">
-            {user.name.substring(0, 2).toUpperCase()}
+          <div className="flex h-full w-full items-center justify-center rounded-full overflow-hidden relative border border-green-600/20 bg-[#ecfdf5]">
+            {ROLE_AVATAR[user.role?.toLowerCase() ?? ""] ? (
+              <img
+                src={ROLE_AVATAR[user.role?.toLowerCase() ?? ""] ?? "/avatars/avatar-default.svg"}
+                alt={user.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="text-[#009640] text-[10px] font-bold">{user.name.substring(0, 2).toUpperCase()}</span>
+            )}
           </div>
 
           {/* Animated Online Status Dot */}

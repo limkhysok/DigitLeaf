@@ -30,7 +30,7 @@ export function NavMain({
     <SidebarGroup>
       <SidebarMenu>
         {items.map((item) => {
-          const isActive = pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url))
+          const isActive = pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))
 
           return (
             <SidebarMenuItem key={item.title} className="px-2 mb-1.5 transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]">
@@ -40,7 +40,7 @@ export function NavMain({
                 className={cn(
                   "group/btn relative overflow-hidden transition-all duration-300 h-10 px-4 rounded-full",
                   isActive
-                    ? "!bg-[#009640] !text-white hover:!bg-[#008a3b]"
+                    ? "bg-[#009640]! text-white! hover:bg-[#008a3b]!"
                     : "hover:bg-[#009640]/5 active:bg-[#009640]/10"
                 )}
               >

@@ -31,7 +31,7 @@ export function TopNav() {
       <div className="flex h-full w-full items-center gap-2 px-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <SidebarTrigger className="h-8 w-8 transition-transform hover:scale-110 active:scale-95" />
-          <div className="h-4 w-[1px] bg-border mx-1" />
+          <div className="h-4 w-px bg-border mx-1" />
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -47,11 +47,11 @@ export function TopNav() {
                     <BreadcrumbSeparator className="opacity-50" />
                     <BreadcrumbItem>
                       {index === pathSegments.length - 1 ? (
-                        <BreadcrumbPage className="capitalize truncate max-w-[140px] text-sm font-bold text-[#009640]">
+                        <BreadcrumbPage className="capitalize truncate max-w-35 text-sm font-bold text-[#009640]">
                           {segment.replaceAll('-', ' ')}
                         </BreadcrumbPage>
                       ) : (
-                        <BreadcrumbLink href={`/${pathSegments.slice(0, index + 1).join('/')}`} className="capitalize truncate max-w-[120px] text-xs hover:text-[#009640] transition-colors">
+                        <BreadcrumbLink href={`/${pathSegments.slice(0, index + 1).join('/')}`} className="capitalize truncate max-w-30 text-xs hover:text-[#009640] transition-colors">
                           {segment.replaceAll('-', ' ')}
                         </BreadcrumbLink>
                       )}
@@ -67,7 +67,8 @@ export function TopNav() {
           <NavUser user={{
             name: user?.user_name || "Guest",
             email: `${user?.user_name || "guest"}@example.com`,
-            avatar: ""
+            avatar: "",
+            role: user?.role?.name ?? ""
           }} />
         </div>
       </div>
