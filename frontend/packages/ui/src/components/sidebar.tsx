@@ -142,7 +142,7 @@ export const SidebarProvider = React.forwardRef<
             } as React.CSSProperties
           }
           className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full overflow-x-hidden bg-background has-[[data-variant=inset]]:bg-sidebar",
+            "group/sidebar-wrapper flex min-h-svh w-full overflow-x-hidden bg-background has-data-[variant=inset]:bg-sidebar",
             className
           )}
           ref={ref}
@@ -170,12 +170,12 @@ const SidebarMobile = ({
 }) => {
   return (
     <div className={cn(
-      "fixed inset-0 z-50 flex transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+      "fixed inset-0 z-50 flex transition-all duration-300 ease-in-out",
       openMobile ? "pointer-events-auto" : "pointer-events-none"
     )}>
       <button
         className={cn(
-          "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] border-none outline-none",
+          "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-in-out border-none outline-none",
           openMobile ? "opacity-100" : "opacity-0"
         )}
         onClick={() => setOpenMobile(false)}
@@ -183,7 +183,7 @@ const SidebarMobile = ({
       />
       <div
         className={cn(
-          "group relative flex h-full w-[var(--sidebar-width-mobile)] flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          "group relative flex h-full w-(--sidebar-width-mobile) flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-in-out",
           side === "left"
             ? "-translate-x-full border-r border-sidebar-border/50"
             : "translate-x-full border-l border-sidebar-border/50",
@@ -254,10 +254,10 @@ export const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "group/sidebar peer hidden md:block text-sidebar-foreground w-[var(--sidebar-width)] flex-shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          "data-[state=collapsed]:w-[var(--sidebar-width-icon)]",
+          "group/sidebar peer hidden md:block text-sidebar-foreground w-(--sidebar-width) shrink-0 transition-[width] duration-300 ease-in-out",
+          "data-[state=collapsed]:w-(--sidebar-width-icon)",
           (variant === "floating" || variant === "inset") &&
-          "data-[state=collapsed]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+          "data-[state=collapsed]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]",
           className
         )}
         data-state={state}
@@ -268,23 +268,23 @@ export const Sidebar = React.forwardRef<
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
-            "duration-300 relative h-svh w-[var(--sidebar-width)] bg-transparent transition-[width] ease-[cubic-bezier(0.4,0,0.2,1)]",
-            "group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)]",
+            "duration-300 relative h-svh w-(--sidebar-width) bg-transparent transition-[width] ease-in-out",
+            "group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon)",
             "group-data-[side=left]/sidebar:border-r group-data-[side=right]/sidebar:border-l group-data-[variant=floating]/sidebar:border-none",
             variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)]"
+              ? "group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
+              : "group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon)"
           )}
         />
         <div
           className={cn(
-            "duration-300 fixed inset-y-0 z-40 hidden h-svh w-[var(--sidebar-width)] flex-col transition-[left,right,width] ease-[cubic-bezier(0.4,0,0.2,1)] md:flex",
+            "duration-300 fixed inset-y-0 z-40 hidden h-svh w-(--sidebar-width) flex-col transition-[left,right,width] ease-in-out md:flex",
             side === "left"
-              ? "left-0 group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)] group-data-[side=left]/sidebar:border-r"
-              : "right-0 group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)] group-data-[side=right]/sidebar:border-l",
+              ? "left-0 group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon) group-data-[side=left]/sidebar:border-r"
+              : "right-0 group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon) group-data-[side=right]/sidebar:border-l",
             variant === "floating" || variant === "inset"
-              ? "p-0 group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]/sidebar:w-[var(--sidebar-width-icon)]",
+              ? "p-0 group-data-[collapsible=icon]/sidebar:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
+              : "group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon)",
             className
           )}
           {...props}
@@ -347,7 +347,7 @@ export const SidebarRail = React.forwardRef<
       title="Toggle Sidebar"
       className={cn(
         "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]/sidebar:-right-4 group-data-[side=right]/sidebar:-left-4 sm:flex",
-        "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",
+        "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
         "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
         "group-data-[collapsible=offcanvas]/sidebar:translate-x-0 group-data-[collapsible=offcanvas]/sidebar:after:left-full group-data-[collapsible=offcanvas]/sidebar:hover:bg-sidebar",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
@@ -368,8 +368,8 @@ export const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-0 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none md:peer-data-[variant=inset]:border-l",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-300 ease-in-out",
+        "peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))] md:peer-data-[variant=inset]:m-0 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none md:peer-data-[variant=inset]:border-l",
         className
       )}
       {...props}
