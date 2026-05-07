@@ -5,18 +5,18 @@ from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
 from app.core.route_logger import AuditLogRoute
-from app.domains.leaf_sack_registration import crud
-from app.domains.leaf_sack_registration.schemas import (
-    LeafSackRegistrationCreate,
-    LeafSackRegistrationUpdate,
-    LeafSackRegistrationPublic,
+from app.domains.sack_registration import crud
+from app.domains.sack_registration.schemas import (
+    SackRegistrationCreate,
+    SackRegistrationUpdate,
+    SackRegistrationPublic,
     RepresentPublic,
     MemberFarmerPublic,
 )
 
 router = APIRouter(route_class=AuditLogRoute)
 
-_NOT_FOUND = "Leaf sack registration not found"
+_NOT_FOUND = "Sack registration not found"
 
 
 @router.get("/represents", response_model=list[RepresentPublic])
@@ -51,7 +51,7 @@ def search_member_farmer(
     return farmer
 
 
-@router.get("/", response_model=list[LeafSackRegistrationPublic])
+@router.get("/", response_model=list[SackRegistrationPublic])
 def list_registrations(
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
@@ -61,7 +61,7 @@ def list_registrations(
     return crud.get_all(session=session, skip=skip, limit=limit)
 
 
-@router.get("/{sack_id}", response_model=LeafSackRegistrationPublic, responses={404: {"description": _NOT_FOUND}})
+@router.get("/{sack_id}", response_model=SackRegistrationPublic, responses={404: {"description": _NOT_FOUND}})
 def get_registration(
     sack_id: int,
     session: Annotated[Session, Depends(get_session)],
@@ -75,13 +75,13 @@ def get_registration(
 
 @router.post(
     "/",
-    response_model=LeafSackRegistrationPublic,
+    response_model=SackRegistrationPublic,
     responses={
         404: {"description": "Represent or member farmer not found"},
     },
 )
 def create_registration(
-    data: LeafSackRegistrationCreate,
+    data: SackRegistrationCreate,
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
@@ -100,12 +100,12 @@ def create_registration(
 
 @router.patch(
     "/{sack_id}",
-    response_model=LeafSackRegistrationPublic,
+    response_model=SackRegistrationPublic,
     responses={404: {"description": _NOT_FOUND}},
 )
 def update_registration(
     sack_id: int,
-    data: LeafSackRegistrationUpdate,
+    data: SackRegistrationUpdate,
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):

@@ -3,8 +3,8 @@ from typing import Optional
 from datetime import datetime
 from sqlmodel import Session, select
 from app.core.config import CAMBODIA_TZ
-from app.domains.leaf_sack_registration.models import LeafSackRegistration, Represent, MemberFarmer
-from app.domains.leaf_sack_registration.schemas import LeafSackRegistrationCreate, LeafSackRegistrationUpdate
+from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer
+from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate
 
 
 def _generate_sack_code() -> str:
@@ -34,22 +34,22 @@ def search_member_farmer(
     return None
 
 
-def get_by_id(session: Session, sack_id: int) -> Optional[LeafSackRegistration]:
-    return session.exec(select(LeafSackRegistration).where(LeafSackRegistration.id == sack_id)).first()
+def get_by_id(session: Session, sack_id: int) -> Optional[SackRegistration]:
+    return session.exec(select(SackRegistration).where(SackRegistration.id == sack_id)).first()
 
 
-def get_all(session: Session, skip: int = 0, limit: int = 100) -> list[LeafSackRegistration]:
+def get_all(session: Session, skip: int = 0, limit: int = 100) -> list[SackRegistration]:
     return session.exec(
-        select(LeafSackRegistration).order_by(LeafSackRegistration.created_at.desc()).offset(skip).limit(limit)
+        select(SackRegistration).order_by(SackRegistration.created_at.desc()).offset(skip).limit(limit)
     ).all()
 
 
 def create(
     session: Session,
-    data: LeafSackRegistrationCreate,
+    data: SackRegistrationCreate,
     current_user_id: int,
     current_user_name: str,
-) -> tuple[Optional[LeafSackRegistration], Optional[str]]:
+) -> tuple[Optional[SackRegistration], Optional[str]]:
     represent = session.exec(select(Represent).where(Represent.represent_id == data.represent_id)).first()
     if not represent:
         return None, "represent_not_found"
@@ -62,8 +62,8 @@ def create(
     if not farmer:
         return None, "farmer_not_found"
 
-    record = LeafSackRegistration(
-        leaf_sack_code=_generate_sack_code(),
+    record = SackRegistration(
+        sack_code=_generate_sack_code(),
         represent_id=represent.represent_id,
         represent_name=represent.represent_name,
         member_farmer_id=farmer.mf_id,
@@ -81,7 +81,7 @@ def create(
     return record, None
 
 
-def update(session: Session, record: LeafSackRegistration, data: LeafSackRegistrationUpdate) -> LeafSackRegistration:
+def update(session: Session, record: SackRegistration, data: SackRegistrationUpdate) -> SackRegistration:
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(record, key, value)
     record.updated_at = datetime.now(CAMBODIA_TZ)
@@ -91,6 +91,6 @@ def update(session: Session, record: LeafSackRegistration, data: LeafSackRegistr
     return record
 
 
-def delete(session: Session, record: LeafSackRegistration) -> None:
+def delete(session: Session, record: SackRegistration) -> None:
     session.delete(record)
     session.commit()

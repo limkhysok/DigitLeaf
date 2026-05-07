@@ -18,7 +18,7 @@ class MemberFarmerPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class LeafSackRegistrationCreate(BaseModel):
+class SackRegistrationCreate(BaseModel):
     represent_id: int = Field(..., description="Selected represent ID from dropdown")
     member_farmer_name: Optional[str] = Field(default=None, max_length=255, description="Search farmer by name")
     member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Search farmer by identity card")
@@ -33,15 +33,15 @@ class LeafSackRegistrationCreate(BaseModel):
         return self
 
 
-class LeafSackRegistrationUpdate(BaseModel):
+class SackRegistrationUpdate(BaseModel):
     sack_in_kg: Optional[int] = Field(default=None, ge=1)
     status: Optional[int] = Field(default=None, description="0=pending, 1=approved, 2=rejected")
     notes: Optional[str] = Field(default=None, max_length=500)
 
 
-class LeafSackRegistrationPublic(BaseModel):
+class SackRegistrationPublic(BaseModel):
     id: int
-    leaf_sack_code: str
+    sack_code: str
     represent_id: int
     represent_name: str
     member_farmer_id: int
