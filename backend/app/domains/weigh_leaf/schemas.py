@@ -20,7 +20,6 @@ class MemberFarmerSearchPublic(BaseModel):
 
 class SackRegistrationBriefPublic(BaseModel):
     id: int
-    sack_code: str
     sack_in_kg: int
 
     model_config = ConfigDict(from_attributes=True)
@@ -42,7 +41,6 @@ class WeighLeafUpdate(BaseModel):
 class WeighLeafPublic(BaseModel):
     id: int
     sack_registration_id: int
-    sack_code: str
     sack_in_kg: int
     user_id: int
     user_name: str

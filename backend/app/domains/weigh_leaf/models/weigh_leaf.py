@@ -11,7 +11,6 @@ class WeighLeaf(SQLModel, table=True):
 
     # Sack registration reference
     sack_registration_id: int = Field(foreign_key="dl_sack_registration.id", index=True)
-    sack_code: str = Field(max_length=100)
     sack_in_kg: int
 
     # User who owns the sack (denormalized from sack_registration.dl_user_id)

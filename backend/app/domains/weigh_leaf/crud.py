@@ -62,7 +62,6 @@ def create(
 
     record = WeighLeaf(
         sack_registration_id=sack.id,
-        sack_code=sack.sack_code,
         sack_in_kg=sack.sack_in_kg,
         user_id=sack.member_farmer_id,
         user_name=sack.member_farmer_name,
