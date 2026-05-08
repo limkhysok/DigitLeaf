@@ -278,7 +278,7 @@ export default function LeafPage() {
                 <thead>
                   <tr className="border-b bg-muted/40">
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground w-10">No.</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Sack Code</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Sack #</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Farmer</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Leaf Type</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Total (kg)</th>
@@ -294,7 +294,7 @@ export default function LeafPage() {
                   {records.map((rec, idx) => (
                     <tr key={rec.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{rec.sack_code}</td>
+                      <td className="px-4 py-3 font-mono text-xs">#{rec.sack_registration_id}</td>
                       <td className="px-4 py-3">{rec.user_name}</td>
                       <td className="px-4 py-3">{rec.leaf_type_name}</td>
                       <td className="px-4 py-3">{rec.total_in_kg}</td>
@@ -333,7 +333,7 @@ export default function LeafPage() {
           {editTarget && (
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs space-y-0.5">
-                <p className="text-muted-foreground">Sack: <span className="font-mono text-foreground">{editTarget.sack_code}</span></p>
+                <p className="text-muted-foreground">Sack: <span className="font-mono text-foreground">#{editTarget.sack_registration_id}</span></p>
                 <p className="text-muted-foreground">User: <span className="text-foreground">{editTarget.user_name}</span></p>
               </div>
 
@@ -478,7 +478,7 @@ export default function LeafPage() {
                     ? <IconLoader2 className="size-4 shrink-0 animate-spin opacity-50" />
                     : <IconSearch className="size-4 shrink-0 opacity-50" />}
                   <span className={cn("flex-1 text-sm", !selectedSack && "text-muted-foreground")}>
-                    {selectedSack ? selectedSack.sack_code : "Select sack code..."}
+                    {selectedSack ? `Sack #${selectedSack.id}` : "Select sack..."}
                   </span>
                   <IconChevronDown className={cn("size-4 shrink-0 opacity-50 transition-transform duration-200", sackOpen && "rotate-180")} />
                 </button>
@@ -495,7 +495,7 @@ export default function LeafPage() {
                           </span>
                         )}
                         <div className="flex flex-col items-start">
-                          <span className="font-mono">{s.sack_code}</span>
+                          <span className="font-mono">Sack #{s.id}</span>
                           <span className="text-[10px] text-muted-foreground">{s.sack_in_kg} kg</span>
                         </div>
                       </button>
@@ -506,7 +506,7 @@ export default function LeafPage() {
               {selectedSack && (
                 <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
                   <div className="flex flex-col">
-                    <span className="font-mono font-medium text-green-700 dark:text-green-400">{selectedSack.sack_code}</span>
+                    <span className="font-mono font-medium text-green-700 dark:text-green-400">Sack #{selectedSack.id}</span>
                     <span className="text-muted-foreground">Sack weight: {selectedSack.sack_in_kg} kg</span>
                   </div>
                   <IconCheck className="size-3.5 text-green-500" />

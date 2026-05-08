@@ -34,8 +34,8 @@ export const data = {
       icon: IconPackage,
     },
     {
-      title: "Leaf",
-      url: "/leaf",
+      title: "Leaf Weighing",
+      url: "/leaf-weighing",
       icon: IconLeaf,
     },
     {
