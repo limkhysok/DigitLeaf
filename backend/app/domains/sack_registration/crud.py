@@ -1,6 +1,6 @@
 from typing import Optional
-from datetime import datetime
-from sqlalchemy import func
+from datetime import datetime, date
+from sqlalchemy import cast, Date, func
 from sqlmodel import Session, select
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
@@ -9,11 +9,6 @@ from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRe
 
 _ACTIVE_YEAR = 2026
 _ACTIVE_JOIN = (MfConYear.mf_id == MemberFarmer.mf_id) & (MfConYear.year == _ACTIVE_YEAR)
-
-
-def _generate_sack_code() -> str:
-    today = datetime.now(CAMBODIA_TZ).strftime("%Y%m%d")
-    return f"LSR-{today}"
 
 
 def get_represents(session: Session) -> list[RepresentPublic]:
@@ -74,10 +69,50 @@ def get_by_id(session: Session, sack_id: int) -> Optional[SackRegistration]:
     return session.exec(select(SackRegistration).where(SackRegistration.id == sack_id)).first()
 
 
-def get_all(session: Session, skip: int = 0, limit: int = 100) -> list[SackRegistration]:
-    return session.exec(
-        select(SackRegistration).order_by(SackRegistration.created_at.desc()).offset(skip).limit(limit)
-    ).all()
+def get_all(
+    session: Session,
+    skip: int = 0,
+    limit: int = 200,
+    search: Optional[str] = None,
+    status: Optional[int] = None,
+    sort_by: Optional[str] = None,
+    order: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+) -> tuple[list[SackRegistration], int]:
+    stmt = select(SackRegistration)
+    count_stmt = select(func.count()).select_from(SackRegistration)
+
+    if search:
+        pattern = f"%{search}%"
+        cond = (
+            SackRegistration.member_farmer_name.ilike(pattern)
+            | SackRegistration.represent_name.ilike(pattern)
+        )
+        stmt = stmt.where(cond)
+        count_stmt = count_stmt.where(cond)
+
+    if status is not None:
+        stmt = stmt.where(SackRegistration.status == status)
+        count_stmt = count_stmt.where(SackRegistration.status == status)
+
+    if date_from is not None:
+        stmt = stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
+        count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
+
+    if date_to is not None:
+        stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
+        count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
+
+    if sort_by == "sack_in_kg":
+        col = SackRegistration.sack_in_kg
+        stmt = stmt.order_by(col.asc() if order == "asc" else col.desc())
+    else:
+        stmt = stmt.order_by(SackRegistration.created_at.desc())
+
+    total: int = session.exec(count_stmt).one()
+    items = list(session.exec(stmt.offset(skip).limit(limit)).all())
+    return items, total
 
 
 def create(
@@ -99,12 +134,10 @@ def create(
         return None, "farmer_not_found"
 
     record = SackRegistration(
-        sack_code=_generate_sack_code(),
         represent_id=represent.represent_id,
         represent_name=represent.represent_name,
         member_farmer_id=farmer.mf_id,
         member_farmer_name=farmer.name,
-        member_farmer_identity_card=farmer.mf_code,
         dl_user_id=current_user_id,
         dl_user_name=current_user_name,
         sack_in_kg=data.sack_in_kg,
@@ -127,7 +160,6 @@ def update(session: Session, record: SackRegistration, data: SackRegistrationUpd
             return record, "farmer_not_found"
         record.member_farmer_id = farmer.mf_id
         record.member_farmer_name = farmer.name
-        record.member_farmer_identity_card = farmer.mf_code
 
     for key, value in update_data.items():
         setattr(record, key, value)

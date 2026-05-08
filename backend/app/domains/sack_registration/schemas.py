@@ -44,12 +44,10 @@ class SackRegistrationUpdate(BaseModel):
 
 class SackRegistrationPublic(BaseModel):
     id: int
-    sack_code: str
     represent_id: int
     represent_name: str
     member_farmer_id: int
     member_farmer_name: str
-    member_farmer_identity_card: str
     dl_user_id: int
     dl_user_name: str
     sack_in_kg: int
@@ -60,3 +58,9 @@ class SackRegistrationPublic(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SackRegistrationListResponse(BaseModel):
+    items: list[SackRegistrationPublic]
+    total: int
+    has_more: bool

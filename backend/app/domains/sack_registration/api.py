@@ -1,4 +1,5 @@
 from typing import Annotated, Optional
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlmodel import Session
 from app.db.session import get_session
@@ -10,6 +11,7 @@ from app.domains.sack_registration.schemas import (
     SackRegistrationCreate,
     SackRegistrationUpdate,
     SackRegistrationPublic,
+    SackRegistrationListResponse,
     RepresentPublic,
     MemberFarmerPublic,
 )
@@ -64,14 +66,35 @@ def query_member_farmers(
     return crud.query_member_farmers(session=session, query=q, represent_id=represent_id, limit=limit)
 
 
-@router.get("/", response_model=list[SackRegistrationPublic])
+@router.get("/", response_model=SackRegistrationListResponse)
 def list_registrations(
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 200,
+    search: Optional[str] = None,
+    status: Optional[int] = None,
+    sort_by: Optional[str] = None,
+    order: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ):
-    return crud.get_all(session=session, skip=skip, limit=limit)
+    items, total = crud.get_all(
+        session=session,
+        skip=skip,
+        limit=limit,
+        search=search,
+        status=status,
+        sort_by=sort_by,
+        order=order,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    return SackRegistrationListResponse(
+        items=items,
+        total=total,
+        has_more=(skip + len(items)) < total,
+    )
 
 
 @router.get("/{sack_id}", response_model=SackRegistrationPublic, responses={404: {"description": _NOT_FOUND}})
