@@ -8,3 +8,4 @@ class MemberFarmer(SQLModel, table=True):
     mf_id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=50)
     mf_code: str = Field(max_length=255)
+    represent: Optional[int] = Field(default=None)

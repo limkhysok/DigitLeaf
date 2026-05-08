@@ -27,7 +27,9 @@ def get_sack_registrations_by_farmer(session: Session, farmer_id: int) -> list[S
 
 
 def get_leaf_types(session: Session) -> list[Tobacco]:
-    return session.exec(select(Tobacco).where(Tobacco.t_cate == 2)).all()
+    return session.exec(
+        select(Tobacco).where((Tobacco.t_cate == 2) & (Tobacco.discontinue == 0))
+    ).all()
 
 
 def get_all(session: Session, skip: int = 0, limit: int = 100) -> list[WeighLeaf]:

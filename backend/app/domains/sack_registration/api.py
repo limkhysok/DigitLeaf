@@ -57,10 +57,11 @@ def query_member_farmers(
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     q: str,
+    represent_id: Optional[int] = None,
     limit: int = 10,
 ):
-    """Query member farmers by name or identity card."""
-    return crud.query_member_farmers(session=session, query=q, limit=limit)
+    """Query member farmers by name or identity card, optionally filtered by represent."""
+    return crud.query_member_farmers(session=session, query=q, represent_id=represent_id, limit=limit)
 
 
 @router.get("/", response_model=list[SackRegistrationPublic])

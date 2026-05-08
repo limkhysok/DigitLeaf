@@ -1,0 +1,10 @@
+from typing import Optional
+from sqlmodel import Field, SQLModel
+
+
+class MfConYear(SQLModel, table=True):
+    __tablename__ = "mf_con_year"
+
+    mf_con_id: Optional[int] = Field(default=None, primary_key=True)
+    mf_id: int
+    year: int

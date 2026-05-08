@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "DigitLeaf"
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     BACKEND_CORS_ORIGINS: list[str] = ["*"] # Change this in .env for production (e.g., ["http://localhost:3000"])
     # MySQL Configuration

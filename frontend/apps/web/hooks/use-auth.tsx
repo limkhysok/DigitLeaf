@@ -188,6 +188,38 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     }
   }, [fetchCurrentUser, router, saveTokensToStorage])
 
+  // Proactive token refresh — fires 2 minutes before the access token expires
+  useEffect(() => {
+    if (!tokens?.access_token || !tokens?.refresh_token) return
+    try {
+      const payload = JSON.parse(atob(tokens.access_token.split(".")[1]))
+      const expiresAtMs = payload.exp * 1000
+      const refreshAtMs = expiresAtMs - 2 * 60 * 1000
+      const delay = refreshAtMs - Date.now()
+
+      const doRefresh = async () => {
+        try {
+          const newTokens = await apiClient.refreshToken(tokens.refresh_token)
+          saveTokensToStorage(newTokens)
+        } catch {
+          saveTokensToStorage(null)
+          setUser(null)
+          router.push("/login")
+        }
+      }
+
+      if (delay <= 0) {
+        doRefresh()
+        return
+      }
+
+      const timer = setTimeout(doRefresh, delay)
+      return () => clearTimeout(timer)
+    } catch {
+      // Unparseable token — let the existing 401 handler deal with it
+    }
+  }, [tokens?.access_token, tokens?.refresh_token, saveTokensToStorage, router])
+
   const refreshUserProfile = useCallback(async () => {
     if (tokens) {
       await fetchCurrentUser(tokens)

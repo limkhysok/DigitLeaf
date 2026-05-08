@@ -6,6 +6,7 @@ from typing import Optional
 class RepresentPublic(BaseModel):
     represent_id: int
     represent_name: str
+    farmer_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

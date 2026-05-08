@@ -1,9 +1,14 @@
 from typing import Optional
 from datetime import datetime
+from sqlalchemy import func
 from sqlmodel import Session, select
 from app.core.config import CAMBODIA_TZ
-from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer
-from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate
+from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
+from app.domains.weigh_leaf.models import WeighLeaf
+from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate, RepresentPublic
+
+_ACTIVE_YEAR = 2026
+_ACTIVE_JOIN = (MfConYear.mf_id == MemberFarmer.mf_id) & (MfConYear.year == _ACTIVE_YEAR)
 
 
 def _generate_sack_code() -> str:
@@ -11,8 +16,23 @@ def _generate_sack_code() -> str:
     return f"LSR-{today}"
 
 
-def get_represents(session: Session) -> list[Represent]:
-    return session.exec(select(Represent).order_by(Represent.represent_name)).all()
+def get_represents(session: Session) -> list[RepresentPublic]:
+    rows = session.exec(
+        select(
+            Represent.represent_id,
+            Represent.represent_name,
+            func.count(MemberFarmer.mf_id).label("farmer_count"),
+        )
+        .join(MemberFarmer, MemberFarmer.represent == Represent.represent_id)
+        .join(MfConYear, _ACTIVE_JOIN)
+        .where(Represent.do_not_show == 0)
+        .group_by(Represent.represent_id, Represent.represent_name)
+        .order_by(Represent.represent_name)
+    ).all()
+    return [
+        RepresentPublic(represent_id=r[0], represent_name=r[1], farmer_count=r[2])
+        for r in rows
+    ]
 
 
 def search_member_farmer(
@@ -20,28 +40,34 @@ def search_member_farmer(
     name: Optional[str] = None,
     identity_card: Optional[str] = None,
 ) -> Optional[MemberFarmer]:
+    base = select(MemberFarmer).join(MfConYear, _ACTIVE_JOIN)
     if identity_card:
-        farmer = session.exec(
-            select(MemberFarmer).where(MemberFarmer.mf_code == identity_card)
-        ).first()
+        farmer = session.exec(base.where(MemberFarmer.mf_code == identity_card)).first()
         if farmer:
             return farmer
     if name:
-        return session.exec(
-            select(MemberFarmer).where(MemberFarmer.name == name)
-        ).first()
+        return session.exec(base.where(MemberFarmer.name == name)).first()
     return None
 
 
-def query_member_farmers(session: Session, query: str, limit: int = 10) -> list[MemberFarmer]:
-    """Search member farmers by name or identity card (fuzzy)."""
-    return session.exec(
+def query_member_farmers(
+    session: Session,
+    query: str,
+    represent_id: Optional[int] = None,
+    limit: int = 10,
+) -> list[MemberFarmer]:
+    """Search member farmers by name or identity card (fuzzy), scoped to active 2026 contracts."""
+    stmt = (
         select(MemberFarmer)
+        .join(MfConYear, _ACTIVE_JOIN)
         .where(
             (MemberFarmer.name.ilike(f"%{query}%")) | (MemberFarmer.mf_code.ilike(f"%{query}%"))
         )
-        .limit(limit)
-    ).all()
+        .distinct()
+    )
+    if represent_id is not None:
+        stmt = stmt.where(MemberFarmer.represent == represent_id)
+    return session.exec(stmt.limit(limit)).all()
 
 
 def get_by_id(session: Session, sack_id: int) -> Optional[SackRegistration]:
@@ -114,5 +140,10 @@ def update(session: Session, record: SackRegistration, data: SackRegistrationUpd
 
 
 def delete(session: Session, record: SackRegistration) -> None:
+    weigh_leaves = session.exec(
+        select(WeighLeaf).where(WeighLeaf.sack_registration_id == record.id)
+    ).all()
+    for wl in weigh_leaves:
+        session.delete(wl)
     session.delete(record)
     session.commit()

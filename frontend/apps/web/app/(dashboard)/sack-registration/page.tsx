@@ -157,36 +157,41 @@ export default function SackRegistrationPage() {
   }, [])
 
   const handleFarmerSearch = React.useCallback(async (query: string) => {
-    if (!tokens?.access_token || !query.trim()) {
+    if (isAuthLoading || !tokens?.access_token) return
+    if (!representId && !query.trim()) {
       setFarmerResults([])
       return
     }
     setIsFarmerSearching(true)
     try {
-      const results = await apiClient.queryMemberFarmers(tokens.access_token, query)
+      const results = await apiClient.queryMemberFarmers(
+        tokens.access_token,
+        query,
+        representId ? Number(representId) : undefined,
+      )
       setFarmerResults(results)
     } catch (err) {
       console.error(err)
     } finally {
       setIsFarmerSearching(false)
     }
-  }, [tokens])
+  }, [isAuthLoading, tokens, representId])
 
-  // Debounce farmer search
+  // Debounce farmer search — also fires when representId changes to pre-load farmers
   React.useEffect(() => {
-    // If query is empty or matches current selection, ensure results are cleared
-    if (!farmerQuery.trim() || farmerResult?.name === farmerQuery) {
-      // Use a timeout to avoid synchronous setState warning
-      const timer = setTimeout(() => {
-        setFarmerResults([])
-      }, 0)
-      return () => clearTimeout(timer)
+    if (farmerResult?.name === farmerQuery) {
+      setFarmerResults([])
+      return
+    }
+    if (!representId && !farmerQuery.trim()) {
+      setFarmerResults([])
+      return
     }
     const timer = setTimeout(() => {
       handleFarmerSearch(farmerQuery)
     }, 300)
     return () => clearTimeout(timer)
-  }, [farmerQuery, handleFarmerSearch, farmerResult])
+  }, [farmerQuery, handleFarmerSearch, farmerResult, representId])
 
   const handleEditFarmerSearch = React.useCallback(async (query: string) => {
     if (!tokens?.access_token || !query.trim()) {
@@ -411,7 +416,7 @@ export default function SackRegistrationPage() {
 
               {/* Member Farmer */}
               <div className="space-y-1.5">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground">Member Farmer</Label>
+                <Label className="text-xs capitalize tracking-wide text-muted-foreground">Farmer Member</Label>
                 <div ref={editFarmerRef} className="relative">
                   <div className={cn(
                     "flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30",
@@ -609,7 +614,7 @@ export default function SackRegistrationPage() {
                   <IconSearch className="size-4 shrink-0 opacity-50" />
                   <input
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                    placeholder="Search/Select Representative..."
+                    placeholder="Search by Name"
                     value={representSearch}
                     onFocus={() => setRepresentOpen(true)}
                     onChange={(e) => {
@@ -638,6 +643,9 @@ export default function SackRegistrationPage() {
                           setRepresentId(String(r.represent_id))
                           setRepresentSearch(r.represent_name)
                           setRepresentOpen(false)
+                          setFarmerQuery("")
+                          setFarmerResult(null)
+                          setFarmerResults([])
                         }}
                         className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                       >
@@ -646,7 +654,7 @@ export default function SackRegistrationPage() {
                             <IconCheck className="size-3.5" />
                           </span>
                         )}
-                        {r.represent_name}
+                        {r.represent_name}<span className="text-muted-foreground text-[13px] ml-1">({r.farmer_count} Members)</span>
                       </button>
                     ))}
                   </div>
@@ -657,7 +665,7 @@ export default function SackRegistrationPage() {
             {/* Member Farmer — Unified Search Input */}
             <div className="space-y-1.5">
               <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                Member Farmer
+                Farmer Member
               </Label>
               <div ref={farmerRef} className="relative">
                 <div className={cn(
@@ -671,9 +679,12 @@ export default function SackRegistrationPage() {
                   )}
                   <input
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                    placeholder="Search by Name/ID Card..."
+                    placeholder="Search by Name/ID Card"
                     value={farmerQuery}
-                    onFocus={() => setFarmerOpen(true)}
+                    onFocus={() => {
+                      setFarmerOpen(true)
+                      if (representId && !farmerResult) handleFarmerSearch(farmerQuery)
+                    }}
                     onChange={(e) => {
                       setFarmerQuery(e.target.value)
                       if (farmerResult) setFarmerResult(null)
@@ -688,14 +699,13 @@ export default function SackRegistrationPage() {
 
                 {farmerOpen && (
                   <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
-                    {!farmerQuery.trim() && (
-                      <p className="py-6 text-center text-xs text-muted-foreground">Type to search farmers...</p>
-                    )}
-                    {farmerQuery.trim() && farmerResults.length === 0 && !isFarmerSearching && (
-                      <p className="py-6 text-center text-xs text-muted-foreground">No farmers found.</p>
-                    )}
-                    {farmerQuery.trim() && isFarmerSearching && farmerResults.length === 0 && (
+                    {isFarmerSearching && farmerResults.length === 0 && (
                       <p className="py-6 text-center text-xs text-muted-foreground">Searching...</p>
+                    )}
+                    {!isFarmerSearching && farmerResults.length === 0 && (
+                      <p className="py-6 text-center text-xs text-muted-foreground">
+                        {representId ? "No farmers found." : "Select a representative first."}
+                      </p>
                     )}
                     {farmerResults.map((f) => (
                       <button
