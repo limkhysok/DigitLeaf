@@ -8,7 +8,7 @@ class SackRegistration(SQLModel, table=True):
     __tablename__ = "dl_sack_registration"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    sack_code: str = Field(max_length=100, unique=True, index=True)
+    sack_code: str = Field(max_length=100, index=True)
     # Represents table
     represent_id: int = Field(index=True)
     represent_name: str = Field(max_length=255)

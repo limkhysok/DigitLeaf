@@ -20,6 +20,8 @@ from app.domains.rbac.models.role import Role  # noqa: F401
 from app.domains.rbac.models.permission import Permission  # noqa: F401
 from app.domains.rbac.models.role_permission import RolePermissionLink  # noqa: F401
 from app.domains.sack_registration.models.sack_registration import SackRegistration  # noqa: F401
+from app.domains.weigh_leaf.models.weigh_leaf import WeighLeaf  # noqa: F401
+from app.domains.weigh_leaf.models.tobacco import Tobacco  # noqa: F401
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config

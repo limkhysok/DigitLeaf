@@ -29,14 +29,14 @@ export const data = {
       isActive: true,
     },
     {
-      title: "Leaf",
-      url: "/leaf",
-      icon: IconLeaf,
-    },
-    {
       title: "Sack Registration",
       url: "/sack-registration",
       icon: IconPackage,
+    },
+    {
+      title: "Leaf",
+      url: "/leaf",
+      icon: IconLeaf,
     },
     {
       title: "Invoices",

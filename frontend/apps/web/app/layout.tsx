@@ -20,6 +20,11 @@ const comicRelief = localFont({
   variable: "--font-branding",
 })
 
+const kantumruyPro = localFont({
+  src: "../public/font/KantumruyPro-Regular.ttf",
+  variable: "--font-khmer",
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,7 +34,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable, comicRelief.variable)}
+      className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable, comicRelief.variable, kantumruyPro.variable)}
     >
       <body className="bg-background">
         <AuthProvider>

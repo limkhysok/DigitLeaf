@@ -17,6 +17,7 @@ from app.domains.sack_registration.schemas import (
 router = APIRouter(route_class=AuditLogRoute)
 
 _NOT_FOUND = "Sack registration not found"
+_FARMER_NOT_FOUND = "Member farmer not found"
 
 
 @router.get("/represents", response_model=list[RepresentPublic])
@@ -33,7 +34,7 @@ def list_represents(
     response_model=MemberFarmerPublic,
     responses={
         400: {"description": "No search parameter provided"},
-        404: {"description": "Member farmer not found"},
+        404: {"description": _FARMER_NOT_FOUND},
     },
 )
 def search_member_farmer(
@@ -47,8 +48,19 @@ def search_member_farmer(
         raise HTTPException(status_code=400, detail="Provide name or identity_card query parameter")
     farmer = crud.search_member_farmer(session=session, name=name, identity_card=identity_card)
     if not farmer:
-        raise HTTPException(status_code=404, detail="Member farmer not found")
+        raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)
     return farmer
+
+
+@router.get("/member-farmers/query", response_model=list[MemberFarmerPublic])
+def query_member_farmers(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    q: str,
+    limit: int = 10,
+):
+    """Query member farmers by name or identity card."""
+    return crud.query_member_farmers(session=session, query=q, limit=limit)
 
 
 @router.get("/", response_model=list[SackRegistrationPublic])
@@ -94,7 +106,7 @@ def create_registration(
     if error == "represent_not_found":
         raise HTTPException(status_code=404, detail="Represent not found")
     if error == "farmer_not_found":
-        raise HTTPException(status_code=404, detail="Member farmer not found")
+        raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)
     return record
 
 
@@ -112,7 +124,10 @@ def update_registration(
     record = crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    return crud.update(session=session, record=record, data=data)
+    updated, error = crud.update(session=session, record=record, data=data)
+    if error == "farmer_not_found":
+        raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)
+    return updated
 
 
 @router.delete(

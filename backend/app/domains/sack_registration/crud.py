@@ -1,4 +1,3 @@
-import uuid
 from typing import Optional
 from datetime import datetime
 from sqlmodel import Session, select
@@ -9,7 +8,7 @@ from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRe
 
 def _generate_sack_code() -> str:
     today = datetime.now(CAMBODIA_TZ).strftime("%Y%m%d")
-    return f"LSR-{today}-{uuid.uuid4().hex[:6].upper()}"
+    return f"LSR-{today}"
 
 
 def get_represents(session: Session) -> list[Represent]:
@@ -23,7 +22,7 @@ def search_member_farmer(
 ) -> Optional[MemberFarmer]:
     if identity_card:
         farmer = session.exec(
-            select(MemberFarmer).where(MemberFarmer.identified_no == identity_card)
+            select(MemberFarmer).where(MemberFarmer.mf_code == identity_card)
         ).first()
         if farmer:
             return farmer
@@ -32,6 +31,17 @@ def search_member_farmer(
             select(MemberFarmer).where(MemberFarmer.name == name)
         ).first()
     return None
+
+
+def query_member_farmers(session: Session, query: str, limit: int = 10) -> list[MemberFarmer]:
+    """Search member farmers by name or identity card (fuzzy)."""
+    return session.exec(
+        select(MemberFarmer)
+        .where(
+            (MemberFarmer.name.ilike(f"%{query}%")) | (MemberFarmer.mf_code.ilike(f"%{query}%"))
+        )
+        .limit(limit)
+    ).all()
 
 
 def get_by_id(session: Session, sack_id: int) -> Optional[SackRegistration]:
@@ -68,12 +78,13 @@ def create(
         represent_name=represent.represent_name,
         member_farmer_id=farmer.mf_id,
         member_farmer_name=farmer.name,
-        member_farmer_identity_card=farmer.identified_no,
+        member_farmer_identity_card=farmer.mf_code,
         dl_user_id=current_user_id,
         dl_user_name=current_user_name,
         sack_in_kg=data.sack_in_kg,
         status=data.status,
         notes=data.notes,
+        **({"registered_at": data.registered_at} if data.registered_at else {}),
     )
     session.add(record)
     session.commit()
@@ -81,14 +92,25 @@ def create(
     return record, None
 
 
-def update(session: Session, record: SackRegistration, data: SackRegistrationUpdate) -> SackRegistration:
-    for key, value in data.model_dump(exclude_unset=True).items():
+def update(session: Session, record: SackRegistration, data: SackRegistrationUpdate) -> tuple[SackRegistration, Optional[str]]:
+    update_data = data.model_dump(exclude_unset=True)
+
+    if "member_farmer_identity_card" in update_data:
+        farmer = search_member_farmer(session, identity_card=update_data.pop("member_farmer_identity_card"))
+        if not farmer:
+            return record, "farmer_not_found"
+        record.member_farmer_id = farmer.mf_id
+        record.member_farmer_name = farmer.name
+        record.member_farmer_identity_card = farmer.mf_code
+
+    for key, value in update_data.items():
         setattr(record, key, value)
+
     record.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(record)
     session.commit()
     session.refresh(record)
-    return record
+    return record, None
 
 
 def delete(session: Session, record: SackRegistration) -> None:

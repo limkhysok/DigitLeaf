@@ -13,7 +13,7 @@ class RepresentPublic(BaseModel):
 class MemberFarmerPublic(BaseModel):
     mf_id: int
     name: str
-    identified_no: str
+    mf_code: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -25,6 +25,7 @@ class SackRegistrationCreate(BaseModel):
     sack_in_kg: int = Field(default=1, ge=1)
     status: int = Field(default=0, description="0=pending, 1=approved, 2=rejected")
     notes: Optional[str] = Field(default=None, max_length=500)
+    registered_at: Optional[datetime] = Field(default=None, description="Date of registration (defaults to now)")
 
     @model_validator(mode="after")
     def require_farmer_lookup(self):
@@ -34,6 +35,7 @@ class SackRegistrationCreate(BaseModel):
 
 
 class SackRegistrationUpdate(BaseModel):
+    member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Change farmer by mf_code")
     sack_in_kg: Optional[int] = Field(default=None, ge=1)
     status: Optional[int] = Field(default=None, description="0=pending, 1=approved, 2=rejected")
     notes: Optional[str] = Field(default=None, max_length=500)
