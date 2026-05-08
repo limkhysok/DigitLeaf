@@ -47,7 +47,7 @@ export function TopNav() {
                     <BreadcrumbSeparator className="opacity-50" />
                     <BreadcrumbItem>
                       {index === pathSegments.length - 1 ? (
-                        <BreadcrumbPage className="capitalize truncate max-w-35 text-sm font-bold text-[#009640]">
+                        <BreadcrumbPage className="capitalize truncate max-w-35 text-sm font-regular text-[#009640]">
                           {segment.replaceAll('-', ' ')}
                         </BreadcrumbPage>
                       ) : (
