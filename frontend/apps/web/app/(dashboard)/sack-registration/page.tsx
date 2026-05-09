@@ -470,7 +470,7 @@ export default function SackRegistrationPage() {
                 {/* Top row: index + status */}
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-medium text-muted-foreground/60">No. {idx + 1}</span>
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${status.className}`}>
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border ${status.className}`}>
                     {status.label}
                   </span>
                 </div>
@@ -524,10 +524,10 @@ export default function SackRegistrationPage() {
 
       <EditDialog target={editTarget} onClose={() => setEditTarget(null)} onSuccess={refetch} accessToken={tokens?.access_token} />
       <DeleteDialog target={deleteTarget} onClose={() => setDeleteTarget(null)} onSuccess={refetch} accessToken={tokens?.access_token} />
-      <ViewDialog 
-        target={viewTarget} 
-        onClose={() => setViewTarget(null)} 
-        onEdit={setEditTarget} 
+      <ViewDialog
+        target={viewTarget}
+        onClose={() => setViewTarget(null)}
+        onEdit={setEditTarget}
         onDelete={(rec) => setDeleteTarget({ id: rec.id, no: records.findIndex(r => r.id === rec.id) + 1 })}
       />
       <RegisterDialog open={registerOpen} onClose={() => setRegisterOpen(false)} onSuccess={refetch} accessToken={tokens?.access_token} represents={represents} />
