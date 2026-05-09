@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@workspace/ui/components/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Calendar } from "@workspace/ui/components/calendar"
@@ -66,7 +67,62 @@ function getDateRange(preset: string): { date_from?: string; date_to?: string } 
 
 type SortOrder = "default" | "asc" | "desc"
 
-function filterRepresents(represents: RepresentItem[], query: string): RepresentItem[] {
+function RegistrationDetail({ target }: Readonly<{ target: SackRegistrationItem }>) {
+  const status = STATUS_MAP[target.status] ?? { label: String(target.status), className: "bg-gray-100 text-gray-800" }
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-muted-foreground text-xs">Status</span>
+        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>{status.label}</span>
+      </div>
+      <div className="rounded-lg border border-border divide-y divide-border">
+        <div className="flex items-center gap-3 px-3 py-2">
+          <IconUsers className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] text-muted-foreground">Representative</span>
+            <span className="text-xs font-medium truncate">{target.represent_name}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] text-muted-foreground">Farmer</span>
+            <span className="text-xs font-medium truncate">{target.member_farmer_name}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <IconMoneybag className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] text-muted-foreground">Sack Weight</span>
+            <span className="text-xs font-medium">{target.sack_in_kg} kg</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] text-muted-foreground">Registered At</span>
+            <span className="text-xs font-medium">{new Date(target.registered_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] text-muted-foreground">Registered By</span>
+            <span className="text-xs font-medium">{target.dl_user_name}</span>
+          </div>
+        </div>
+        {target.notes && (
+          <div className="px-3 py-2">
+            <span className="text-[10px] text-muted-foreground block mb-0.5">Notes</span>
+            <span className="text-xs">{target.notes}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function filterRepresents(represents: readonly RepresentItem[], query: string): readonly RepresentItem[] {
   if (!query.trim()) return represents
   const q = query.toLowerCase()
   return represents.filter((r) => r.represent_name.toLowerCase().includes(q))
@@ -88,7 +144,538 @@ function buildFetchParams(
   return { ...params, ...getDateRange(datePreset) }
 }
 
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function EditDialog({
+  target,
+  onClose,
+  onSuccess,
+  accessToken,
+}: {
+  readonly target: SackRegistrationItem | null
+  readonly onClose: () => void
+  readonly onSuccess: () => void
+  readonly accessToken?: string
+}) {
+  const [sackInKg, setSackInKg] = React.useState("1")
+  const [status, setStatus] = React.useState("0")
+  const [notes, setNotes] = React.useState("")
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [farmerQuery, setFarmerQuery] = React.useState("")
+  const [farmerResults, setFarmerResults] = React.useState<MemberFarmerItem[]>([])
+  const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
+  const [farmerOpen, setFarmerOpen] = React.useState(false)
+  const [isFarmerSearching, setIsFarmerSearching] = React.useState(false)
+  const farmerRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    if (target) {
+      const timer = setTimeout(() => {
+        setSackInKg(String(target.sack_in_kg))
+        setStatus(String(target.status))
+        setNotes(target.notes ?? "")
+        setFarmerQuery(target.member_farmer_name)
+        setFarmerResult(null)
+        setFarmerResults([])
+        setFarmerOpen(false)
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [target])
+
+  const handleFarmerSearch = React.useCallback(async (query: string) => {
+    if (!accessToken) return
+    setIsFarmerSearching(true)
+    try {
+      const results = await apiClient.queryMemberFarmers(accessToken, query)
+      setFarmerResults(results)
+    } catch {
+      setFarmerResults([])
+    } finally {
+      setIsFarmerSearching(false)
+    }
+  }, [accessToken])
+
+  React.useEffect(() => {
+    if (!farmerQuery.trim() || farmerResult?.name === farmerQuery) {
+      const timer = setTimeout(() => setFarmerResults([]), 0)
+      return () => clearTimeout(timer)
+    }
+    const timer = setTimeout(() => handleFarmerSearch(farmerQuery), 300)
+    return () => clearTimeout(timer)
+  }, [farmerQuery, handleFarmerSearch, farmerResult])
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (farmerRef.current && !farmerRef.current.contains(e.target as Node)) {
+        setFarmerOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const handleSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    if (!accessToken || !target) return
+    setIsSubmitting(true)
+    try {
+      await apiClient.updateSackRegistration(accessToken, target.id, {
+        ...(farmerResult ? { member_farmer_identity_card: farmerResult.mf_code } : {}),
+        sack_in_kg: Number(sackInKg),
+        status: Number(status),
+        notes: notes.trim() || undefined,
+      })
+      toast.success("Registration updated")
+      onSuccess()
+      onClose()
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Dialog open={!!target} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Edit Registration</DialogTitle>
+          <DialogDescription>
+            Make changes to the sack registration details here.
+          </DialogDescription>
+        </DialogHeader>
+        {target && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs capitalize tracking-wide text-muted-foreground">Farmer Member</Label>
+              <div ref={farmerRef} className="relative">
+                <div className={cn(
+                  "flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30",
+                  farmerOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40"
+                )}>
+                  {isFarmerSearching ? <IconLoader2 className="size-4 shrink-0 animate-spin opacity-50" /> : <IconSearch className="size-4 shrink-0 opacity-50" />}
+                  <input
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    placeholder="Search by Name or ID Card..."
+                    value={farmerQuery}
+                    onFocus={() => setFarmerOpen(true)}
+                    onChange={(e) => {
+                      setFarmerQuery(e.target.value)
+                      if (farmerResult) setFarmerResult(null)
+                      setFarmerOpen(true)
+                    }}
+                  />
+                  <IconChevronDown className={cn("size-4 shrink-0 opacity-50 transition-transform duration-200", farmerOpen && "rotate-180")} />
+                </div>
+                {farmerOpen && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
+                    {!farmerQuery.trim() && <p className="py-6 text-center text-xs text-muted-foreground">Type to search farmers...</p>}
+                    {farmerQuery.trim() && farmerResults.length === 0 && !isFarmerSearching && <p className="py-6 text-center text-xs text-muted-foreground">No farmers found.</p>}
+                    {farmerResults.map((f) => (
+                      <button
+                        key={f.mf_id}
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setFarmerResult(f)
+                          setFarmerQuery(f.name)
+                          setFarmerOpen(false)
+                        }}
+                        className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      >
+                        {farmerResult?.mf_id === f.mf_id && <span className="absolute left-2 flex size-4 items-center justify-center"><IconCheck className="size-3.5" /></span>}
+                        <div className="flex flex-col items-start">
+                          <span>{f.name}</span>
+                          <span className="text-[10px] text-muted-foreground">ID: {f.mf_code}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {farmerResult && !farmerOpen && (
+                <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-green-700 dark:text-green-400">{farmerResult.name}</span>
+                    <span className="text-muted-foreground">ID Card: {farmerResult.mf_code}</span>
+                  </div>
+                  <IconCheck className="size-3.5 text-green-500" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack (kg)</Label>
+              <Input className="h-9 text-sm" type="number" min={1} value={sackInKg} onChange={(e) => setSackInKg(e.target.value)} required />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs capitalize tracking-wide text-muted-foreground">Status</Label>
+              <div className="flex gap-2">
+                {Object.entries(STATUS_MAP).map(([val, { label, className }]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setStatus(val)}
+                    className={cn(
+                      "flex-1 rounded-full py-1 text-xs font-medium border transition-all",
+                      status === val ? cn(className, "border-transparent") : "border-border text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs capitalize tracking-wide text-muted-foreground">Notes <span className="font-normal text-muted-foreground/60">(optional)</span></Label>
+              <Input className="h-9 text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" className="rounded-full h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent">
+                {isSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}
+                Save
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function DeleteDialog({
+  target,
+  onClose,
+  onSuccess,
+  accessToken,
+}: {
+  readonly target: { readonly id: number; readonly no: number } | null
+  readonly onClose: () => void
+  readonly onSuccess: () => void
+  readonly accessToken?: string
+}) {
+  const [isDeleting, setIsDeleting] = React.useState(false)
+
+  const confirmDelete = async () => {
+    if (!accessToken || !target) return
+    setIsDeleting(true)
+    try {
+      await apiClient.deleteSackRegistration(accessToken, target.id)
+      toast.success("Registration deleted")
+      onSuccess()
+      onClose()
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  return (
+    <Dialog open={!!target} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Delete Registration</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete row{" "}
+            <span className="font-medium text-foreground">No. {target?.no}</span>?
+            This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" variant="outline" className="rounded-full h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose} disabled={isDeleting}>Cancel</Button>
+          <Button type="button" onClick={confirmDelete} disabled={isDeleting} className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-red-600 hover:bg-red-700 text-white border-transparent">
+            {isDeleting && <IconLoader2 className="size-3.5 animate-spin" />}
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ViewDialog({
+  target,
+  onClose,
+  onEdit,
+}: {
+  readonly target: SackRegistrationItem | null
+  readonly onClose: () => void
+  readonly onEdit: (rec: SackRegistrationItem) => void
+}) {
+  return (
+    <Dialog open={!!target} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Registration Detail</DialogTitle>
+          <DialogDescription>
+            Full details for this sack registration record.
+          </DialogDescription>
+        </DialogHeader>
+        {target && <RegistrationDetail target={target} />}
+        <DialogFooter>
+          <Button variant="outline" className="rounded-full h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose}>Close</Button>
+          <Button
+            className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
+            onClick={() => { if (target) { onClose(); onEdit(target) } }}
+          >
+            <IconPencil className="size-3.5" />
+            Edit
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function RegisterDialog({
+  open,
+  onClose,
+  onSuccess,
+  accessToken,
+  represents,
+}: {
+  readonly open: boolean
+  readonly onClose: () => void
+  readonly onSuccess: () => void
+  readonly accessToken?: string
+  readonly represents: readonly RepresentItem[]
+}) {
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [representId, setRepresentId] = React.useState("")
+  const [representOpen, setRepresentOpen] = React.useState(false)
+  const [representSearch, setRepresentSearch] = React.useState("")
+  const [farmerQuery, setFarmerQuery] = React.useState("")
+  const [farmerResults, setFarmerResults] = React.useState<MemberFarmerItem[]>([])
+  const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
+  const [farmerOpen, setFarmerOpen] = React.useState(false)
+  const [isFarmerSearching, setIsFarmerSearching] = React.useState(false)
+  const [sackInKg, setSackInKg] = React.useState("1")
+  const [registeredAt, setRegisteredAt] = React.useState<Date | null>(null)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setRegisteredAt(new Date()), 0)
+    return () => clearTimeout(timer)
+  }, [])
+  const [registeredAtOpen, setRegisteredAtOpen] = React.useState(false)
+  const [notes, setNotes] = React.useState("")
+
+  const representRef = React.useRef<HTMLDivElement>(null)
+  const farmerRef = React.useRef<HTMLDivElement>(null)
+
+  const filteredRepresents = React.useMemo(() => filterRepresents(represents, representSearch), [represents, representSearch])
+  const selectedRepresent = represents.find((r) => String(r.represent_id) === representId)
+
+  const handleFarmerSearch = React.useCallback(async (query: string) => {
+    if (!accessToken) return
+    setIsFarmerSearching(true)
+    try {
+      const results = await apiClient.queryMemberFarmers(accessToken, query, Number(representId) || undefined)
+      setFarmerResults(results)
+    } catch {
+      setFarmerResults([])
+    } finally {
+      setIsFarmerSearching(false)
+    }
+  }, [accessToken, representId])
+
+  React.useEffect(() => {
+    if (farmerResult?.name === farmerQuery || (!representId && !farmerQuery.trim())) {
+      const timer = setTimeout(() => setFarmerResults([]), 0)
+      return () => clearTimeout(timer)
+    }
+    const timer = setTimeout(() => handleFarmerSearch(farmerQuery), 300)
+    return () => clearTimeout(timer)
+  }, [farmerQuery, handleFarmerSearch, farmerResult, representId])
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (representRef.current && !representRef.current.contains(e.target as Node)) {
+        setRepresentOpen(false)
+        setRepresentSearch(selectedRepresent?.represent_name ?? "")
+      }
+      if (farmerRef.current && !farmerRef.current.contains(e.target as Node)) {
+        setFarmerOpen(false)
+        setFarmerQuery(farmerResult?.name ?? "")
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [selectedRepresent, farmerResult])
+
+  const handleSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    if (!accessToken) return
+    if (!representId) { toast.error("Please select a represent"); return }
+    if (!farmerResult) { toast.error("Please search and select a member farmer"); return }
+    if (!registeredAt) { toast.error("Please select a date"); return }
+    setIsSubmitting(true)
+    try {
+      await apiClient.createSackRegistration(accessToken, {
+        represent_id: Number(representId),
+        member_farmer_identity_card: farmerResult.mf_code,
+        sack_in_kg: Number(sackInKg),
+        registered_at: format(registeredAt, "yyyy-MM-dd"),
+        notes: notes.trim() || undefined,
+      })
+      toast.success("Sack registered successfully")
+      onSuccess()
+      onClose()
+      // reset
+      setRepresentId(""); setRepresentSearch(""); setFarmerQuery(""); setFarmerResult(null); setSackInKg("1"); setNotes(""); setRegisteredAt(new Date())
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Register Sack</DialogTitle>
+          <DialogDescription>Fill in the details to register a new sack for a farmer.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Representative</Label>
+            <div ref={representRef} className="relative">
+              <div className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30", representOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
+                <IconSearch className="size-4 shrink-0 opacity-50" />
+                <input
+                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  placeholder="Search by Name"
+                  value={representSearch}
+                  onFocus={() => setRepresentOpen(true)}
+                  onChange={(e) => {
+                    setRepresentSearch(e.target.value)
+                    if (representId) { setRepresentId("") }
+                    setRepresentOpen(true)
+                  }}
+                />
+                <IconChevronDown className={cn("size-4 shrink-0 opacity-50 transition-transform duration-200", representOpen && "rotate-180")} />
+              </div>
+              {representOpen && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
+                  {filteredRepresents.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">No results found.</p>}
+                  {filteredRepresents.map((r) => (
+                    <button
+                      key={r.represent_id}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setRepresentId(String(r.represent_id))
+                        setRepresentSearch(r.represent_name)
+                        setRepresentOpen(false)
+                        setFarmerQuery("")
+                        setFarmerResult(null)
+                        setFarmerResults([])
+                      }}
+                      className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                    >
+                      {representId === String(r.represent_id) && <span className="absolute left-2 flex size-4 items-center justify-center"><IconCheck className="size-3.5" /></span>}
+                      {r.represent_name}<span className="text-muted-foreground text-[13px] ml-1">({r.farmer_count} Members)</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Farmer Member</Label>
+            <div ref={farmerRef} className="relative">
+              <div className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30", farmerOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
+                {isFarmerSearching ? <IconLoader2 className="size-4 shrink-0 animate-spin opacity-50" /> : <IconSearch className="size-4 shrink-0 opacity-50" />}
+                <input
+                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  placeholder="Search by Name/ID Card"
+                  value={farmerQuery}
+                  onFocus={() => { setFarmerOpen(true); if (representId && !farmerResult) handleFarmerSearch(farmerQuery) }}
+                  onChange={(e) => {
+                    setFarmerQuery(e.target.value)
+                    if (farmerResult) { setFarmerResult(null) }
+                    setFarmerOpen(true)
+                  }}
+                />
+                <IconChevronDown className={cn("size-4 shrink-0 opacity-50 transition-transform duration-200", farmerOpen && "rotate-180")} />
+              </div>
+              {farmerOpen && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
+                  {isFarmerSearching && farmerResults.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">Searching...</p>}
+                  {!isFarmerSearching && farmerResults.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">{representId ? "No farmers found." : "Select a representative first."}</p>}
+                  {farmerResults.map((f) => (
+                    <button
+                      key={f.mf_id}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { setFarmerResult(f); setFarmerQuery(f.name); setFarmerOpen(false) }}
+                      className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                    >
+                      {farmerResult?.mf_id === f.mf_id && <span className="absolute left-2 flex size-4 items-center justify-center"><IconCheck className="size-3.5" /></span>}
+                      <div className="flex flex-col items-start"><span>{f.name}</span><span className="text-[10px] text-muted-foreground">ID: {f.mf_code}</span></div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {farmerResult && !farmerOpen && (
+              <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="flex flex-col"><span className="font-medium text-green-700 dark:text-green-400">{farmerResult.name}</span><span className="text-muted-foreground">ID Card: {farmerResult.mf_code}</span></div>
+                <IconCheck className="size-3.5 text-green-500" />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Registration Date</Label>
+            <Popover open={registeredAtOpen} onOpenChange={setRegisteredAtOpen}>
+              <PopoverTrigger asChild>
+                <button type="button" className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 text-sm transition-all duration-200 dark:bg-input/30", registeredAtOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
+                  <IconCalendar className="size-4 shrink-0 opacity-50" />
+                  <span className="flex-1 text-left">{registeredAt ? format(registeredAt, "PPP") : "Select date..."}</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={registeredAt ?? undefined} onSelect={(date) => { if (date) { setRegisteredAt(date); setRegisteredAtOpen(false) } }} autoFocus />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack (kg)</Label>
+            <Input className="h-9 text-sm" type="number" min={1} value={sackInKg} onChange={(e) => setSackInKg(e.target.value)} required />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Notes <span className="font-normal text-muted-foreground/60">(optional)</span></Label>
+            <Input className="h-9 text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" className="rounded-full h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting} className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent">
+              {isSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}Register
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function SackRegistrationPage() {
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0)
+    return () => clearTimeout(timer)
+  }, [])
+
   const { tokens, isLoading: isAuthLoading } = useAuth()
 
   // ── Data ────────────────────────────────────────────────────────────────────
@@ -111,50 +698,11 @@ export default function SackRegistrationPage() {
   const [datePresetOpen, setDatePresetOpen] = React.useState(false)
   const [sortOrder, setSortOrder] = React.useState<SortOrder>("default")
 
-  // ── View / dialogs ───────────────────────────────────────────────────────────
   const [view, setView] = React.useState<"list" | "grid">("list")
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [registerOpen, setRegisterOpen] = React.useState(false)
   const [viewTarget, setViewTarget] = React.useState<SackRegistrationItem | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
-  const [isDeleting, setIsDeleting] = React.useState(false)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
-  const [editSackInKg, setEditSackInKg] = React.useState("1")
-  const [editStatus, setEditStatus] = React.useState("0")
-  const [editNotes, setEditNotes] = React.useState("")
-  const [isEditSubmitting, setIsEditSubmitting] = React.useState(false)
-  const [editFarmerQuery, setEditFarmerQuery] = React.useState("")
-  const [editFarmerResults, setEditFarmerResults] = React.useState<MemberFarmerItem[]>([])
-  const [editFarmerResult, setEditFarmerResult] = React.useState<MemberFarmerItem | null>(null)
-  const [editFarmerOpen, setEditFarmerOpen] = React.useState(false)
-  const [isEditFarmerSearching, setIsEditFarmerSearching] = React.useState(false)
-  const editFarmerRef = React.useRef<HTMLDivElement>(null)
-
-  const representRef = React.useRef<HTMLDivElement>(null)
-  const farmerRef = React.useRef<HTMLDivElement>(null)
-
-  // form state
-  const [representId, setRepresentId] = React.useState("")
-  const [representOpen, setRepresentOpen] = React.useState(false)
-  const [representSearch, setRepresentSearch] = React.useState("")
-
-  const [farmerQuery, setFarmerQuery] = React.useState("")
-  const [farmerResults, setFarmerResults] = React.useState<MemberFarmerItem[]>([])
-  const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
-  const [farmerOpen, setFarmerOpen] = React.useState(false)
-  const [isFarmerSearching, setIsFarmerSearching] = React.useState(false)
-
-  const [sackInKg, setSackInKg] = React.useState("1")
-  const [registeredAt, setRegisteredAt] = React.useState<Date>(new Date())
-  const [registeredAtOpen, setRegisteredAtOpen] = React.useState(false)
-  const [notes, setNotes] = React.useState("")
-
-  const filteredRepresents = React.useMemo(
-    () => filterRepresents(represents, representSearch),
-    [represents, representSearch]
-  )
-
-  const selectedRepresent = represents.find((r) => String(r.represent_id) === representId)
 
   // ── Search debounce ──────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -172,7 +720,7 @@ export default function SackRegistrationPage() {
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
     let cancelled = false
-    setIsLoading(true)
+    const timer = setTimeout(() => setIsLoading(true), 0)
 
     const params = buildFetchParams(0, search, statusFilter, sortOrder, datePreset)
 
@@ -186,7 +734,7 @@ export default function SackRegistrationPage() {
       .catch((err) => { if (!cancelled) toast.error((err as Error).message) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
-    return () => { cancelled = true }
+    return () => { cancelled = true; clearTimeout(timer) }
   }, [isAuthLoading, tokens, search, statusFilter, sortOrder, datePreset, refetchKey])
 
   // ── Load more ─────────────────────────────────────────────────────────────
@@ -219,175 +767,9 @@ export default function SackRegistrationPage() {
     return () => observer.disconnect()
   }, [loadMore])
 
-  // Use a ref to keep the click-handler stable and avoid hook dependency size errors
-  const selectedRef = React.useRef(selectedRepresent)
-  React.useEffect(() => {
-    selectedRef.current = selectedRepresent
-  }, [selectedRepresent])
-
-  const farmerResultRef = React.useRef(farmerResult)
-  React.useEffect(() => {
-    farmerResultRef.current = farmerResult
-  }, [farmerResult])
-
-  React.useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      // Represent click outside
-      if (representRef.current && !representRef.current.contains(e.target as Node)) {
-        setRepresentOpen(false)
-        setRepresentSearch(selectedRef.current?.represent_name ?? "")
-      }
-      // Farmer click outside
-      if (farmerRef.current && !farmerRef.current.contains(e.target as Node)) {
-        setFarmerOpen(false)
-        setFarmerQuery(farmerResultRef.current?.name ?? "")
-      }
-      // Edit farmer click outside
-      if (editFarmerRef.current && !editFarmerRef.current.contains(e.target as Node)) {
-        setEditFarmerOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
-
-  const handleFarmerSearch = React.useCallback(async (query: string) => {
-    if (isAuthLoading || !tokens?.access_token) return
-    if (!representId && !query.trim()) { setFarmerResults([]); return }
-    setIsFarmerSearching(true)
-    const results = await apiClient.queryMemberFarmers(
-      tokens.access_token, query, Number(representId) || undefined,
-    ).catch(() => [] as MemberFarmerItem[])
-    setFarmerResults(results)
-    setIsFarmerSearching(false)
-  }, [isAuthLoading, tokens, representId])
-
-  // Debounce farmer search — also fires when representId changes to pre-load farmers
-  React.useEffect(() => {
-    if (farmerResult?.name === farmerQuery) {
-      setFarmerResults([])
-      return
-    }
-    if (!representId && !farmerQuery.trim()) {
-      setFarmerResults([])
-      return
-    }
-    const timer = setTimeout(() => {
-      handleFarmerSearch(farmerQuery)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [farmerQuery, handleFarmerSearch, farmerResult, representId])
-
-  const handleEditFarmerSearch = React.useCallback(async (query: string) => {
-    if (!tokens?.access_token || !query.trim()) { setEditFarmerResults([]); return }
-    setIsEditFarmerSearching(true)
-    const results = await apiClient.queryMemberFarmers(tokens.access_token, query)
-      .catch(() => [] as MemberFarmerItem[])
-    setEditFarmerResults(results)
-    setIsEditFarmerSearching(false)
-  }, [tokens])
-
-  // Debounce edit farmer search
-  React.useEffect(() => {
-    if (!editFarmerQuery.trim() || editFarmerResult?.name === editFarmerQuery) {
-      const timer = setTimeout(() => setEditFarmerResults([]), 0)
-      return () => clearTimeout(timer)
-    }
-    const timer = setTimeout(() => handleEditFarmerSearch(editFarmerQuery), 300)
-    return () => clearTimeout(timer)
-  }, [editFarmerQuery, handleEditFarmerSearch, editFarmerResult])
-
-  const resetForm = () => {
-    setRepresentId("")
-    setRepresentOpen(false)
-    setRepresentSearch("")
-    setFarmerQuery("")
-    setFarmerResults([])
-    setFarmerResult(null)
-    setFarmerOpen(false)
-    setSackInKg("1")
-    setRegisteredAt(new Date())
-    setNotes("")
-  }
-
-  const closeDialog = () => {
-    setDialogOpen(false)
-    resetForm()
-  }
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault()
-    if (!tokens?.access_token) return
-    if (!representId) { toast.error("Please select a represent"); return }
-    if (!farmerResult) { toast.error("Please search and select a member farmer"); return }
-
-    setIsSubmitting(true)
-    try {
-      await apiClient.createSackRegistration(tokens.access_token, {
-        represent_id: Number(representId),
-        member_farmer_identity_card: farmerResult.mf_code,
-        sack_in_kg: Number(sackInKg),
-        registered_at: format(registeredAt, "yyyy-MM-dd"),
-        notes: notes.trim() || undefined,
-      })
-      toast.success("Sack registered successfully")
-      closeDialog()
-      refetch()
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const openEditDialog = (rec: SackRegistrationItem) => {
-    setEditTarget(rec)
-    setEditSackInKg(String(rec.sack_in_kg))
-    setEditStatus(String(rec.status))
-    setEditNotes(rec.notes ?? "")
-    setEditFarmerQuery(rec.member_farmer_name)
-    setEditFarmerResult(null)
-    setEditFarmerResults([])
-    setEditFarmerOpen(false)
-  }
-
-  const handleEditSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault()
-    if (!tokens?.access_token || !editTarget) return
-    setIsEditSubmitting(true)
-    try {
-      await apiClient.updateSackRegistration(tokens.access_token, editTarget.id, {
-        ...(editFarmerResult ? { member_farmer_identity_card: editFarmerResult.mf_code } : {}),
-        sack_in_kg: Number(editSackInKg),
-        status: Number(editStatus),
-        notes: editNotes.trim() || undefined,
-      })
-      toast.success("Registration updated")
-      setEditTarget(null)
-      refetch()
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setIsEditSubmitting(false)
-    }
-  }
-
-  const confirmDelete = async () => {
-    if (!tokens?.access_token || !deleteTarget) return
-    setIsDeleting(true)
-    try {
-      await apiClient.deleteSackRegistration(tokens.access_token, deleteTarget.id)
-      toast.success("Registration deleted")
-      setDeleteTarget(null)
-      refetch()
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   const cycleSortOrder = () => setSortOrder((prev) => SORT_CYCLE[prev])
+
+  if (!mounted) return null
 
   const SORT_CONFIG: Record<"default" | "asc" | "desc", { icon: typeof IconArrowsSort; label: string }> = {
     default: { icon: IconArrowsSort, label: "Newest First" },
@@ -406,11 +788,11 @@ export default function SackRegistrationPage() {
           <p className="text-sm text-muted-foreground truncate hidden sm:block">Register and manage sacks.</p>
         </div>
         <Button
-          onClick={() => setDialogOpen(true)}
+          onClick={() => setRegisterOpen(true)}
           className="shrink-0 rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
         >
           <IconPlus className="size-3.5" />
-          <span className="hidden sm:inline">New Registration</span>
+          <span className="hidden sm:inline">New</span>
           <span className="sm:hidden">New</span>
         </Button>
       </div>
@@ -576,7 +958,7 @@ export default function SackRegistrationPage() {
                               <IconEye className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => openEditDialog(rec)}
+                              onClick={() => setEditTarget(rec)}
                               className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <IconPencil className="h-4 w-4" />
@@ -644,7 +1026,7 @@ export default function SackRegistrationPage() {
                   </div>
                   <div className="relative z-1 flex items-center gap-0.5">
                     <button
-                      onClick={() => openEditDialog(rec)}
+                      onClick={() => setEditTarget(rec)}
                       className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <IconPencil className="h-3.5 w-3.5" />
@@ -678,504 +1060,10 @@ export default function SackRegistrationPage() {
         </div>
       )}
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null) }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Edit Registration</DialogTitle>
-          </DialogHeader>
-          {editTarget && (
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              {/* Member Farmer */}
-              <div className="space-y-1.5">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground">Farmer Member</Label>
-                <div ref={editFarmerRef} className="relative">
-                  <div className={cn(
-                    "flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30",
-                    editFarmerOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40"
-                  )}>
-                    {isEditFarmerSearching
-                      ? <IconLoader2 className="size-4 shrink-0 animate-spin opacity-50" />
-                      : <IconSearch className="size-4 shrink-0 opacity-50" />
-                    }
-                    <input
-                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                      placeholder="Search by Name or ID Card..."
-                      value={editFarmerQuery}
-                      onFocus={() => setEditFarmerOpen(true)}
-                      onChange={(e) => {
-                        setEditFarmerQuery(e.target.value)
-                        if (editFarmerResult) setEditFarmerResult(null)
-                        setEditFarmerOpen(true)
-                      }}
-                    />
-                    <IconChevronDown className={cn(
-                      "size-4 shrink-0 opacity-50 transition-transform duration-200",
-                      editFarmerOpen && "rotate-180"
-                    )} />
-                  </div>
-                  {editFarmerOpen && (
-                    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
-                      {!editFarmerQuery.trim() && (
-                        <p className="py-6 text-center text-xs text-muted-foreground">Type to search farmers...</p>
-                      )}
-                      {editFarmerQuery.trim() && editFarmerResults.length === 0 && !isEditFarmerSearching && (
-                        <p className="py-6 text-center text-xs text-muted-foreground">No farmers found.</p>
-                      )}
-                      {editFarmerQuery.trim() && isEditFarmerSearching && editFarmerResults.length === 0 && (
-                        <p className="py-6 text-center text-xs text-muted-foreground">Searching...</p>
-                      )}
-                      {editFarmerResults.map((f) => (
-                        <button
-                          key={f.mf_id}
-                          type="button"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            setEditFarmerResult(f)
-                            setEditFarmerQuery(f.name)
-                            setEditFarmerOpen(false)
-                          }}
-                          className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                        >
-                          {editFarmerResult?.mf_id === f.mf_id && (
-                            <span className="absolute left-2 flex size-4 items-center justify-center">
-                              <IconCheck className="size-3.5" />
-                            </span>
-                          )}
-                          <div className="flex flex-col items-start">
-                            <span>{f.name}</span>
-                            <span className="text-[10px] text-muted-foreground">ID: {f.mf_code}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {editFarmerResult && !editFarmerOpen && (
-                  <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-green-700 dark:text-green-400">{editFarmerResult.name}</span>
-                      <span className="text-muted-foreground">ID Card: {editFarmerResult.mf_code}</span>
-                    </div>
-                    <IconCheck className="size-3.5 text-green-500" />
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack (kg)</Label>
-                <Input
-                  className="h-9 text-sm"
-                  type="number"
-                  min={1}
-                  value={editSackInKg}
-                  onChange={(e) => setEditSackInKg(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground">Status</Label>
-                <div className="flex gap-2">
-                  {Object.entries(STATUS_MAP).map(([val, { label, className }]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setEditStatus(val)}
-                      className={cn(
-                        "flex-1 rounded-full py-1 text-xs font-medium border transition-all",
-                        editStatus === val
-                          ? cn(className, "border-transparent")
-                          : "border-border text-muted-foreground hover:bg-muted"
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                  Notes <span className="font-normal text-muted-foreground/60">(optional)</span>
-                </Label>
-                <Input
-                  className="h-9 text-sm"
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Additional notes..."
-                />
-              </div>
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full h-8 px-4 text-xs capitalize tracking-wide"
-                  onClick={() => setEditTarget(null)}
-                  disabled={isEditSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isEditSubmitting}
-                  className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
-                >
-                  {isEditSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}
-                  Save
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Registration</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete row{" "}
-            <span className="font-medium text-foreground">No. {deleteTarget?.no}</span>?
-            This action cannot be undone.
-          </p>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-full h-8 px-4 text-xs capitalize tracking-wide"
-              onClick={() => setDeleteTarget(null)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-red-600 hover:bg-red-700 text-white border-transparent"
-            >
-              {isDeleting && <IconLoader2 className="size-3.5 animate-spin" />}
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Detail Dialog */}
-      <Dialog open={!!viewTarget} onOpenChange={(open) => { if (!open) setViewTarget(null) }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Registration Detail</DialogTitle>
-          </DialogHeader>
-          {viewTarget && (() => {
-            const status = STATUS_MAP[viewTarget.status] ?? { label: String(viewTarget.status), className: "bg-gray-100 text-gray-800" }
-            return (
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">Status</span>
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>{status.label}</span>
-                </div>
-                <div className="rounded-lg border border-border divide-y divide-border">
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <IconUsers className="size-3.5 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-muted-foreground">Representative</span>
-                      <span className="text-xs font-medium truncate">{viewTarget.represent_name}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-muted-foreground">Farmer</span>
-                      <span className="text-xs font-medium truncate">{viewTarget.member_farmer_name}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <IconMoneybag className="size-3.5 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-muted-foreground">Sack Weight</span>
-                      <span className="text-xs font-medium">{viewTarget.sack_in_kg} kg</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-muted-foreground">Registered At</span>
-                      <span className="text-xs font-medium">{new Date(viewTarget.registered_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-muted-foreground">Registered By</span>
-                      <span className="text-xs font-medium">{viewTarget.dl_user_name}</span>
-                    </div>
-                  </div>
-                  {viewTarget.notes && (
-                    <div className="px-3 py-2">
-                      <span className="text-[10px] text-muted-foreground block mb-0.5">Notes</span>
-                      <span className="text-xs">{viewTarget.notes}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })()}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              className="rounded-full h-8 px-4 text-xs capitalize tracking-wide"
-              onClick={() => setViewTarget(null)}
-            >
-              Close
-            </Button>
-            <Button
-              className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
-              onClick={() => { if (viewTarget) { setViewTarget(null); openEditDialog(viewTarget) } }}
-            >
-              <IconPencil className="size-3.5" />
-              Edit
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Register Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog() }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Register Sack</DialogTitle>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Represent — Unified Search Input */}
-            <div className="space-y-1.5">
-              <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                Representative
-              </Label>
-              <div ref={representRef} className="relative">
-                <div className={cn(
-                  "flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30",
-                  representOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40"
-                )}>
-                  <IconSearch className="size-4 shrink-0 opacity-50" />
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                    placeholder="Search by Name"
-                    value={representSearch}
-                    onFocus={() => setRepresentOpen(true)}
-                    onChange={(e) => {
-                      setRepresentSearch(e.target.value)
-                      if (representId) setRepresentId("") // Clear selection if typing
-                      setRepresentOpen(true)
-                    }}
-                  />
-                  <IconChevronDown className={cn(
-                    "size-4 shrink-0 opacity-50 transition-transform duration-200",
-                    representOpen && "rotate-180"
-                  )} />
-                </div>
-
-                {representOpen && (
-                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
-                    {filteredRepresents.length === 0 && (
-                      <p className="py-6 text-center text-xs text-muted-foreground">No results found.</p>
-                    )}
-                    {filteredRepresents.map((r) => (
-                      <button
-                        key={r.represent_id}
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setRepresentId(String(r.represent_id))
-                          setRepresentSearch(r.represent_name)
-                          setRepresentOpen(false)
-                          setFarmerQuery("")
-                          setFarmerResult(null)
-                          setFarmerResults([])
-                        }}
-                        className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      >
-                        {representId === String(r.represent_id) && (
-                          <span className="absolute left-2 flex size-4 items-center justify-center">
-                            <IconCheck className="size-3.5" />
-                          </span>
-                        )}
-                        {r.represent_name}<span className="text-muted-foreground text-[13px] ml-1">({r.farmer_count} Members)</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Member Farmer — Unified Search Input */}
-            <div className="space-y-1.5">
-              <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                Farmer Member
-              </Label>
-              <div ref={farmerRef} className="relative">
-                <div className={cn(
-                  "flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30",
-                  farmerOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40"
-                )}>
-                  {isFarmerSearching ? (
-                    <IconLoader2 className="size-4 shrink-0 animate-spin opacity-50" />
-                  ) : (
-                    <IconSearch className="size-4 shrink-0 opacity-50" />
-                  )}
-                  <input
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                    placeholder="Search by Name/ID Card"
-                    value={farmerQuery}
-                    onFocus={() => {
-                      setFarmerOpen(true)
-                      if (representId && !farmerResult) handleFarmerSearch(farmerQuery)
-                    }}
-                    onChange={(e) => {
-                      setFarmerQuery(e.target.value)
-                      if (farmerResult) setFarmerResult(null)
-                      setFarmerOpen(true)
-                    }}
-                  />
-                  <IconChevronDown className={cn(
-                    "size-4 shrink-0 opacity-50 transition-transform duration-200",
-                    farmerOpen && "rotate-180"
-                  )} />
-                </div>
-
-                {farmerOpen && (
-                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
-                    {isFarmerSearching && farmerResults.length === 0 && (
-                      <p className="py-6 text-center text-xs text-muted-foreground">Searching...</p>
-                    )}
-                    {!isFarmerSearching && farmerResults.length === 0 && (
-                      <p className="py-6 text-center text-xs text-muted-foreground">
-                        {representId ? "No farmers found." : "Select a representative first."}
-                      </p>
-                    )}
-                    {farmerResults.map((f) => (
-                      <button
-                        key={f.mf_id}
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setFarmerResult(f)
-                          setFarmerQuery(f.name)
-                          setFarmerOpen(false)
-                        }}
-                        className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      >
-                        {farmerResult?.mf_id === f.mf_id && (
-                          <span className="absolute left-2 flex size-4 items-center justify-center">
-                            <IconCheck className="size-3.5" />
-                          </span>
-                        )}
-                        <div className="flex flex-col items-start">
-                          <span>{f.name}</span>
-                          <span className="text-[10px] text-muted-foreground">ID: {f.mf_code}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {farmerResult && !farmerOpen && (
-                <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-green-700 dark:text-green-400">{farmerResult.name}</span>
-                    <span className="text-muted-foreground">ID Card: {farmerResult.mf_code}</span>
-                  </div>
-                  <IconCheck className="size-3.5 text-green-500" />
-                </div>
-              )}
-            </div>
-
-            {/* Registered At */}
-            <div className="space-y-1.5">
-              <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                Registration Date
-              </Label>
-              <Popover open={registeredAtOpen} onOpenChange={setRegisteredAtOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 text-sm transition-all duration-200 dark:bg-input/30",
-                      registeredAtOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40"
-                    )}
-                  >
-                    <IconCalendar className="size-4 shrink-0 opacity-50" />
-                    <span className="flex-1 text-left">{format(registeredAt, "PPP")}</span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={registeredAt}
-                    onSelect={(date) => {
-                      if (date) { setRegisteredAt(date); setRegisteredAtOpen(false) }
-                    }}
-                    autoFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Sack in KG */}
-            <div className="space-y-1.5">
-              <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                Sack (kg)
-              </Label>
-              <Input
-                className="h-9 text-sm"
-                type="number"
-                min={1}
-                value={sackInKg}
-                onChange={(e) => setSackInKg(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-1.5">
-              <Label className="text-xs capitalize tracking-wide text-muted-foreground">
-                Notes{" "}
-                <span className="font-normal text-muted-foreground/60">(optional)</span>
-              </Label>
-              <Input
-                className="h-9 text-sm"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Additional notes..."
-              />
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full h-8 px-4 text-xs capitalize tracking-wide"
-                onClick={closeDialog}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
-              >
-                {isSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}
-                Register
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <EditDialog target={editTarget} onClose={() => setEditTarget(null)} onSuccess={refetch} accessToken={tokens?.access_token} />
+      <DeleteDialog target={deleteTarget} onClose={() => setDeleteTarget(null)} onSuccess={refetch} accessToken={tokens?.access_token} />
+      <ViewDialog target={viewTarget} onClose={() => setViewTarget(null)} onEdit={setEditTarget} />
+      <RegisterDialog open={registerOpen} onClose={() => setRegisterOpen(false)} onSuccess={refetch} accessToken={tokens?.access_token} represents={represents} />
     </div>
   )
 }

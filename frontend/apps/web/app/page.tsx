@@ -100,7 +100,7 @@ export default function LandingPage() {
   }, [mounted])
 
   return (
-    <div className="min-h-[100svh] w-full flex flex-col md:flex-row overflow-hidden relative bg-[#009640]">
+    <div className="min-h-svh w-full flex flex-col md:flex-row overflow-hidden relative bg-[#009640]">
       {/* BACKGROUND LAYERS - SMOOTH COMPOSITING */}
       {/* Mobile White Background Fade */}
       <div className={`absolute inset-0 bg-white transition-opacity duration-1000 ease-in-out md:hidden z-0
@@ -139,14 +139,14 @@ export default function LandingPage() {
 
       {/* BRANDING CONTENT - PIXEL PERFECT SYNC WITH LOGIN */}
       <div className={`relative z-20 flex flex-col items-center transition-all duration-1000 ease-in-out
-        ${isExiting ? 'md:w-[42%] w-full h-[100svh] justify-center' : 'w-full h-[100svh] justify-center'}`}>
+        ${isExiting ? 'md:w-[42%] w-full h-svh justify-center' : 'w-full h-svh justify-center'}`}>
 
-        <div className={`flex flex-col items-center text-center transition-all duration-[1200ms] ease-in-out
+        <div className={`flex flex-col items-center text-center transition-all duration-1200 ease-in-out
           ${isExiting
             ? 'translate-y-[calc(-50svh+96px)] md:translate-y-0 space-y-0 md:space-y-6'
             : 'translate-y-0 space-y-4 lg:space-y-6'}`}>
 
-          <div className={`relative transition-all duration-[1200ms] ease-in-out ${isExiting ? 'w-20 h-20 md:w-[140px] md:h-[140px]' : 'w-[140px] h-[140px]'}`}>
+          <div className={`relative transition-all duration-1200 ease-in-out ${isExiting ? 'w-20 h-20 md:w-35 md:h-35' : 'w-35 h-35'}`}>
             {/* Branding Glow - Softer and warmer */}
             <div className={`absolute inset-[-20%] bg-white/20 rounded-full blur-3xl backdrop-blur-sm transition-all duration-1000 
               ${isExiting ? 'opacity-30 scale-125' : 'opacity-0 scale-75'}`} />
@@ -172,10 +172,10 @@ export default function LandingPage() {
             />
           </div>
 
-          <div className={`transition-all duration-[1200ms] ease-in-out overflow-hidden
+          <div className={`transition-all duration-1200 ease-in-out overflow-hidden
             ${isExiting ? 'h-0 opacity-0 md:h-auto md:opacity-100 md:mt-0' : 'h-auto opacity-100 mt-1 lg:mt-2'}`}>
             <div className="space-y-1 lg:space-y-2">
-              <h1 className={`font-branding tracking-[0.1em] leading-tight transition-all duration-[1100ms]
+              <h1 className={`font-branding tracking-widest leading-tight transition-all duration-1100
                 ${isExiting ? 'text-xl text-[#009640] md:text-white' : 'text-xl lg:text-2xl text-white'}`}>
                 K.A.I.C
               </h1>
