@@ -206,9 +206,9 @@ export function EditDialog({
               <Input className="h-9 text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." />
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" className="rounded-full h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent">
+            <DialogFooter className="flex-row items-center justify-end gap-2 sm:justify-end">
+              <Button type="button" variant="outline" className="rounded-full h-9 px-4 text-xs capitalize tracking-wide" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-full h-9 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent">
                 {isSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}
                 Save
               </Button>
