@@ -33,29 +33,34 @@ export function NavMain({
           const isActive = pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))
 
           return (
-            <SidebarMenuItem key={item.title} className="px-2 transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]">
+            <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
                 isActive={isActive}
                 className={cn(
-                  "group/btn relative overflow-hidden transition-all duration-300 h-8 px-3 rounded-full",
+                  "group/btn relative overflow-hidden transition-all duration-500 ease-in-out",
+                  // Sizing
+                  "h-10 px-4 group-data-[collapsible=icon]/sidebar:h-11 group-data-[collapsible=icon]/sidebar:w-11 group-data-[collapsible=icon]/sidebar:p-0 group-data-[collapsible=icon]/sidebar:flex group-data-[collapsible=icon]/sidebar:items-center group-data-[collapsible=icon]/sidebar:justify-center",
+                  // Shape
+                  "rounded-none group-data-[collapsible=icon]/sidebar:rounded-full",
+                  // Active State
                   isActive
                     ? "bg-[#009640]! text-white! hover:bg-[#008a3b]!"
                     : "hover:bg-[#009640]/5 active:bg-[#009640]/10"
                 )}
               >
-                <Link href={item.url} className="flex items-center gap-2">
+                <Link href={item.url} className="flex items-center gap-2 group-data-[collapsible=icon]/sidebar:gap-0 group-data-[collapsible=icon]/sidebar:justify-center">
                   {item.icon && (
                     <div className={cn(
                       "flex items-center justify-center transition-colors duration-300",
                       isActive ? "text-white" : "text-muted-foreground group-hover/btn:text-foreground"
                     )}>
-                      <item.icon size={15} stroke={isActive ? 2.5 : 1.5} />
+                      <item.icon size={17} stroke={2} />
                     </div>
                   )}
                   <span className={cn(
-                    "truncate text-xs transition-all duration-300",
-                    isActive ? "font-bold text-white" : "text-sidebar-foreground/70 group-hover/btn:text-sidebar-foreground"
+                    "truncate text-[13px] transition-all duration-300 group-data-[collapsible=icon]/sidebar:hidden",
+                    isActive ? "font-bold text-white" : "text-sidebar-foreground/80 group-hover/btn:text-sidebar-foreground"
                   )}>
                     {item.title}
                   </span>

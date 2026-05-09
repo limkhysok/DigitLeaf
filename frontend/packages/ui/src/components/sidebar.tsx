@@ -17,7 +17,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "12rem"
 const SIDEBAR_WIDTH_MOBILE = "13rem"
-const SIDEBAR_WIDTH_ICON = "2.5rem"
+const SIDEBAR_WIDTH_ICON = "3.5rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {
@@ -170,12 +170,12 @@ const SidebarMobile = ({
 }) => {
   return (
     <div className={cn(
-      "fixed inset-0 z-50 flex transition-all duration-300 ease-in-out",
+      "fixed inset-0 z-50 flex transition-all duration-500 ease-in-out",
       openMobile ? "pointer-events-auto" : "pointer-events-none"
     )}>
       <button
         className={cn(
-          "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-in-out border-none outline-none",
+          "fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500 ease-in-out border-none outline-none",
           openMobile ? "opacity-100" : "opacity-0"
         )}
         onClick={() => setOpenMobile(false)}
@@ -183,7 +183,7 @@ const SidebarMobile = ({
       />
       <div
         className={cn(
-          "group relative flex h-full w-(--sidebar-width-mobile) flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-in-out",
+          "group relative flex h-full w-(--sidebar-width-mobile) flex-col bg-sidebar p-0 text-sidebar-foreground shadow-2xl transition-transform duration-500 ease-in-out",
           side === "left"
             ? "-translate-x-full border-r border-sidebar-border/50"
             : "translate-x-full border-l border-sidebar-border/50",
@@ -254,7 +254,7 @@ export const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "group/sidebar peer hidden md:block text-sidebar-foreground w-(--sidebar-width) shrink-0 transition-[width] duration-300 ease-in-out",
+          "group/sidebar peer hidden md:block text-sidebar-foreground w-(--sidebar-width) shrink-0 transition-[width] duration-500 ease-in-out",
           "data-[state=collapsed]:w-(--sidebar-width-icon)",
           (variant === "floating" || variant === "inset") &&
           "data-[state=collapsed]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]",
@@ -368,7 +368,7 @@ export const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-300 ease-in-out",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-500 ease-in-out",
         "peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))] md:peer-data-[variant=inset]:m-0 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none md:peer-data-[variant=inset]:border-l",
         className
       )}
@@ -485,7 +485,7 @@ export const SidebarGroupLabel = React.forwardRef<
       ref={ref}
       data-sidebar="group-label"
       className={cn(
-        "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opacity] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/80 outline-none ring-sidebar-ring transition-[margin,opacity] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]/sidebar:-ml-8 group-data-[collapsible=icon]/sidebar:opacity-0",
         className
       )}
@@ -538,7 +538,7 @@ export const SidebarMenu = React.forwardRef<
   <ul
     ref={ref}
     data-sidebar="menu"
-    className={cn("flex w-full min-w-0 flex-col gap-1.5 group-data-[collapsible=icon]/sidebar:items-center", className)}
+    className={cn("flex w-full min-w-0 flex-col gap-0 group-data-[collapsible=icon]/sidebar:gap-2 group-data-[collapsible=icon]/sidebar:items-center", className)}
     {...props}
   />
 ))
@@ -551,14 +551,14 @@ export const SidebarMenuItem = React.forwardRef<
   <li
     ref={ref}
     data-sidebar="menu-item"
-    className={cn("group/menu-item relative transition-all duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:flex group-data-[collapsible=icon]/sidebar:justify-center", className)}
+    className={cn("group/menu-item relative transition-all duration-500 ease-in-out group-data-[collapsible=icon]/sidebar:flex group-data-[collapsible=icon]/sidebar:justify-center", className)}
     {...props}
   />
 ))
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button relative flex w-full items-center gap-2 rounded-none py-3 px-4 text-left text-sm outline-none ring-sidebar-ring transition-all duration-300 ease-in-out hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]/sidebar:!size-8 group-data-[collapsible=icon]/sidebar:!p-2 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:transition-transform [&>svg]:duration-300",
+  "peer/menu-button relative flex w-full items-center gap-2 rounded-none py-3 px-4 text-left text-sm outline-none ring-sidebar-ring transition-all duration-500 ease-in-out hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]/sidebar:!size-8 group-data-[collapsible=icon]/sidebar:!p-2 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:transition-transform [&>svg]:duration-300",
   {
     variants: {
       variant: {

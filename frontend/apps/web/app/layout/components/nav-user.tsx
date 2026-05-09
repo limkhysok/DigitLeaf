@@ -18,11 +18,13 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/hooks/use-language"
+import Image from "next/image"
 
 const ROLE_AVATAR: Record<string, string> = {
-  admin:   "/avatars/avatar-admin.svg",
+  admin: "/avatars/avatar-admin.svg",
   manager: "/avatars/avatar-manager.svg",
-  staff:   "/avatars/avatar-staff.svg",
+  staff: "/avatars/avatar-staff.svg",
 }
 
 export function NavUser({
@@ -38,6 +40,7 @@ export function NavUser({
   const { mounted } = useSidebar()
   const router = useRouter()
   const { logout } = useAuth()
+  const { t } = useLanguage()
 
   if (!mounted) {
     return <div className="h-8 w-8 animate-pulse bg-muted rounded-full" />
@@ -54,9 +57,11 @@ export function NavUser({
 
           <div className="flex h-full w-full items-center justify-center rounded-full overflow-hidden relative border border-green-600/20 bg-[#ecfdf5]">
             {ROLE_AVATAR[user.role?.toLowerCase() ?? ""] ? (
-              <img
+              <Image
                 src={ROLE_AVATAR[user.role?.toLowerCase() ?? ""] ?? "/avatars/avatar-default.svg"}
                 alt={user.name}
+                width={32}
+                height={32}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -78,8 +83,7 @@ export function NavUser({
         sideOffset={8}
       >
         <div className="px-2 py-1.5 mb-1">
-          <p className="text-xs font-bold text-[#009640] uppercase tracking-wider">User Account</p>
-          <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+          <p className="text-xs font-bold text-[#009640] uppercase tracking-wider">{t.userMenu.userAccount}</p>
         </div>
 
         <DropdownMenuItem
@@ -87,7 +91,7 @@ export function NavUser({
           onClick={() => router.push("/profile")}
         >
           <IconUser className="size-4 text-muted-foreground group-focus:text-[#009640] transition-colors" />
-          <span className="text-sm font-medium">Profile Settings</span>
+          <span className="text-sm font-medium">{t.userMenu.profileSettings}</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-1 mx-1 opacity-50" />
@@ -97,7 +101,7 @@ export function NavUser({
           onClick={() => logout()}
         >
           <IconLogout className="size-4 opacity-70 group-focus:opacity-100 transition-opacity" />
-          <span className="text-sm font-medium">Log out</span>
+          <span className="text-sm font-medium">{t.userMenu.logout}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

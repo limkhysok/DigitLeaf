@@ -12,11 +12,14 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { NavUser } from "@/app/layout/components/nav-user"
+import { LanguageToggle } from "@/app/layout/components/language-toggle"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/hooks/use-language"
 import { cn } from "@workspace/ui/lib/utils"
 
 export function TopNav() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const pathname = usePathname()
 
   const pathSegments = pathname.split('/').filter(Boolean)
@@ -36,7 +39,7 @@ export function TopNav() {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink href="/dashboard" className="text-sm hover:text-[#009640] transition-colors">
-                  Workspace
+                  {t.breadcrumb.workspace}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               {pathSegments.map((segment, index) => {
@@ -63,7 +66,9 @@ export function TopNav() {
           </Breadcrumb>
         </div>
 
-        <div className="ml-auto flex items-center gap-2 pr-1">
+        <div className="ml-auto flex items-center gap-1.5 pr-2">
+          <LanguageToggle />
+          <div className="h-6 w-px bg-border/60 mx-1.5" />
           <NavUser user={{
             name: user?.user_name || "Guest",
             email: `${user?.user_name || "guest"}@example.com`,

@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/av
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/hooks/use-language"
 import { apiClient, UserSession } from "@/lib/api-client"
 import { QRCodeSVG } from "qrcode.react"
 import { toast } from "sonner"
@@ -69,6 +70,7 @@ const LEAF_PATTERN = [
 
 export default function ProfilePage() {
   const { user, tokens, isLoading: isAuthLoading, refreshUserProfile } = useAuth()
+  const { t, language } = useLanguage()
   const [totpData, setTotpData] = useState<{ secret: string; uri: string } | null>(null)
   const [isSettingUp, setIsSettingUp] = useState(false)
   const [verificationCode, setVerificationCode] = useState("")
@@ -214,7 +216,7 @@ export default function ProfilePage() {
     }
 
     if (sessions.length === 0) {
-      return <p className="text-center text-xs text-muted-foreground py-4">No other active sessions found.</p>
+      return <p className="text-center text-xs text-muted-foreground py-4">{t.profile.sessions.noSessions}</p>
     }
 
     return sessions.map((session) => (
@@ -227,7 +229,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm">{parseUserAgent(session.user_agent)}</p>
               {session.refresh_token === tokens?.refresh_token && (
-                <span className="text-[9px] font-bold capitalize tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/20 rounded-full">Current</span>
+                <span className="text-[9px] font-bold capitalize tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/20 rounded-full">{t.profile.sessions.current}</span>
               )}
             </div>
             <div className="space-y-1">
@@ -235,10 +237,10 @@ export default function ProfilePage() {
                 <span className="text-foreground/70">IP:</span> {session.ip_address || "Unknown"}
               </p>
               <p className="text-[11px] text-muted-foreground/70 font-medium">
-                <span className="text-foreground/70">Started:</span> {new Date(session.created_at).toLocaleString()}
+                <span className="text-foreground/70">{t.profile.sessions.started}:</span> {new Date(session.created_at).toLocaleString()}
               </p>
               <p className="text-[11px] text-muted-foreground/70 font-medium">
-                <span className="text-foreground/70">Expires:</span> {new Date(session.expires_at).toLocaleString()}
+                <span className="text-foreground/70">{t.profile.sessions.expires}:</span> {new Date(session.expires_at).toLocaleString()}
               </p>
             </div>
           </div>
@@ -289,19 +291,19 @@ export default function ProfilePage() {
             <h2 className="text-lg sm:text-2xl tracking-tight text-foreground capitalize">{user.user_name}</h2>
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground capitalize tracking-wider">
               <IconBriefcase size={13} stroke={2} />
-              {user.role?.name || "Standard"} Role
+              {user.role?.name || "Standard"} {t.profile.details.role}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 w-full text-left pt-2 sm:pt-6">
           <div className="space-y-1 bg-muted/20 p-3 sm:p-5 border border-border/60 rounded-sm sm:rounded-md transition-colors hover:bg-muted/30">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-1 sm:ml-2">Username</Label>
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-1 sm:ml-2">{t.profile.details.username}</Label>
             <p className="text-xs sm:text-sm font-medium px-1 sm:px-2 capitalize">{user.user_name}</p>
           </div>
           <div className="space-y-1 bg-muted/20 p-3 sm:p-5 border border-border/60 rounded-sm sm:rounded-md transition-colors hover:bg-muted/30">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-1 sm:ml-2">Member Since</Label>
-            <p className="text-xs sm:text-sm font-medium px-1 sm:px-2">{new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric', day: 'numeric' })}</p>
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-1 sm:ml-2">{t.profile.details.memberSince}</Label>
+            <p className="text-xs sm:text-sm font-medium px-1 sm:px-2">{new Date(user.created_at).toLocaleDateString(language === 'en' ? 'en-US' : 'km-KH', { month: 'short', year: 'numeric', day: 'numeric' })}</p>
           </div>
         </div>
       </CardContent>
@@ -312,8 +314,8 @@ export default function ProfilePage() {
     <Card className="border border-border/70 bg-card rounded-md shadow-none ring-0">
       <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
         <div className="space-y-1">
-          <h3 className="text-base sm:text-lg tracking-tight">Active Sessions</h3>
-          <p className="text-xs text-muted-foreground tracking-wide">Manage your login sessions across devices.</p>
+          <h3 className="text-base sm:text-lg tracking-tight">{t.profile.sessions.title}</h3>
+          <p className="text-xs text-muted-foreground tracking-wide">{t.profile.sessions.subtitle}</p>
         </div>
 
         <div className="space-y-3 sm:space-y-4">
@@ -328,7 +330,7 @@ export default function ProfilePage() {
                 className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full sm:w-auto gap-2 border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
               >
                 <IconLogout size={16} stroke={2.5} />
-                Terminate All Sessions
+                {t.profile.sessions.terminateAll}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="rounded-md border-border/70 shadow-none ring-0 p-8 gap-0">
@@ -337,9 +339,9 @@ export default function ProfilePage() {
                   <IconLogout className="text-destructive" size={22} stroke={1.75} />
                 </div>
                 <AlertDialogHeader className="space-y-2 items-center">
-                  <AlertDialogTitle className="text-lg text-foreground">Terminate All Sessions?</AlertDialogTitle>
+                  <AlertDialogTitle className="text-lg text-foreground">{t.profile.sessions.confirmTerminateTitle}</AlertDialogTitle>
                   <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                    You&apos;ll be signed out of every device immediately. You will need to log in again on each one.
+                    {t.profile.sessions.confirmTerminateDesc}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
               </div>
@@ -348,9 +350,9 @@ export default function ProfilePage() {
                   onClick={handleLogoutAll}
                   className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 bg-destructive hover:bg-destructive/90 text-white w-full"
                 >
-                  Yes, terminate all
+                  {t.profile.sessions.confirmTerminateAction}
                 </AlertDialogAction>
-                <AlertDialogCancel className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full m-0">Cancel</AlertDialogCancel>
+                <AlertDialogCancel className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full m-0">{t.common.cancel || "Cancel"}</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -367,28 +369,28 @@ export default function ProfilePage() {
             <div className="space-y-1">
               <h3 className="text-lg flex items-center gap-3">
                 <IconShieldLock className="text-foreground" size={20} />
-                Password Management
+                {t.profile.security.passwordTitle}
               </h3>
-              <p className="text-xs font-medium text-muted-foreground capitalize">Keep your account secure with a strong password</p>
+              <p className="text-xs font-medium text-muted-foreground capitalize">{t.profile.security.passwordSubtitle}</p>
             </div>
             <Button 
               variant={isChangingPassword ? "ghost" : "outline"}
               onClick={() => setIsChangingPassword(!isChangingPassword)}
               className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full sm:w-auto"
             >
-              {isChangingPassword ? "Cancel" : "Change Password"}
+              {isChangingPassword ? (t.common.cancel || "Cancel") : t.profile.security.changePassword}
             </Button>
           </div>
 
           {isChangingPassword && (
             <div className="space-y-5 sm:space-y-8 pt-5 sm:pt-8 border-t border-border/40 animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-4 sm:ml-6">Current Password</Label>
+                <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-4 sm:ml-6">{t.profile.security.currentPassword}</Label>
                 <div className="relative group">
                   <Input
                     type={showCurrentPassword ? "text" : "password"}
                     className="rounded-full h-11 sm:h-14 pr-14 bg-muted/10 border-border/40 focus:bg-white transition-all pl-6 sm:pl-8 text-sm placeholder:text-muted-foreground/40 shadow-none"
-                    placeholder="Enter current password"
+                    placeholder={t.profile.security.currentPasswordPlaceholder}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                   />
@@ -404,12 +406,12 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                 <div className="space-y-2 sm:space-y-3">
-                  <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-4 sm:ml-6">New Password</Label>
+                  <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-4 sm:ml-6">{t.profile.security.newPassword}</Label>
                   <div className="relative group">
                     <Input
                       type={showNewPassword ? "text" : "password"}
                       className="rounded-full h-11 sm:h-14 pr-14 bg-muted/10 border-border/40 focus:bg-white transition-all pl-6 sm:pl-8 text-sm placeholder:text-muted-foreground/40 shadow-none"
-                      placeholder="Enter new password"
+                      placeholder={t.profile.security.newPasswordPlaceholder}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                     />
@@ -423,12 +425,12 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="space-y-2 sm:space-y-3">
-                  <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-4 sm:ml-6">Confirm Password</Label>
+                  <Label className="text-xs capitalize tracking-wide text-muted-foreground ml-4 sm:ml-6">{t.profile.security.confirmPassword}</Label>
                   <div className="relative group">
                     <Input
                       type={showConfirmPassword ? "text" : "password"}
                       className="rounded-full h-11 sm:h-14 pr-14 bg-muted/10 border-border/40 focus:bg-white transition-all pl-6 sm:pl-8 text-sm placeholder:text-muted-foreground/40 shadow-none"
-                      placeholder="Confirm new password"
+                      placeholder={t.profile.security.confirmPasswordPlaceholder}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
@@ -448,7 +450,7 @@ export default function ProfilePage() {
                 onClick={handleChangePassword}
                 disabled={isUpdatingPassword}
               >
-                {isUpdatingPassword ? <IconLoader2 className="animate-spin mr-3" size={20} /> : "Update Password"}
+                {isUpdatingPassword ? <IconLoader2 className="animate-spin mr-3" size={20} /> : t.profile.security.updatePassword}
               </Button>
             </div>
           )}
@@ -458,8 +460,8 @@ export default function ProfilePage() {
       <Card className="border border-border/70 bg-card rounded-md shadow-none ring-0">
         <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-8">
           <div className="space-y-1">
-            <h3 className="text-base sm:text-lg tracking-tight">Two-factor Authentication</h3>
-            <p className="text-xs text-muted-foreground tracking-wide">Protect your account with time-based verification codes.</p>
+            <h3 className="text-base sm:text-lg tracking-tight">{t.profile.security.twoFactorTitle}</h3>
+            <p className="text-xs text-muted-foreground tracking-wide">{t.profile.security.twoFactorSubtitle}</p>
           </div>
 
           <div className="pt-3 sm:pt-4 border-t border-border/40">
@@ -479,9 +481,9 @@ export default function ProfilePage() {
               <QRCodeSVG value={totpData.uri} size={180} />
             </div>
             <div className="text-center space-y-3">
-              <p className="text-sm text-foreground capitalize tracking-wide">Scan with authenticator app</p>
+              <p className="text-sm text-foreground capitalize tracking-wide">{t.profile.security.scanQR}</p>
               <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-muted-foreground capitalize tracking-wide">Manual secret key</span>
+                <span className="text-xs text-muted-foreground capitalize tracking-wide">{t.profile.security.manualKey}</span>
                 <code className="text-xs font-mono bg-muted px-4 py-2 border border-border/20 rounded-full text-[#009640]">{totpData.secret}</code>
               </div>
             </div>
@@ -489,7 +491,7 @@ export default function ProfilePage() {
 
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="verification" className="text-xs font-bold capitalize tracking-wide ml-6">Enter 6-digit code</Label>
+              <Label htmlFor="verification" className="text-xs font-bold capitalize tracking-wide ml-6">{t.profile.security.enterCode}</Label>
               <Input 
                 id="verification" 
                 type="text" 
@@ -506,14 +508,14 @@ export default function ProfilePage() {
                 disabled={isSettingUp || verificationCode.length !== 6} 
                 className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full sm:flex-1 bg-[#009640] hover:bg-[#008a3b]"
               >
-                {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : "Verify & Activate"}
+                {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : t.profile.security.verifyActivate}
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => setTotpData(null)} 
                 className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full sm:w-auto"
               >
-                Cancel
+                {t.common.cancel}
               </Button>
             </div>
             {setupError && <p className="text-xs text-destructive flex items-center gap-2 px-4 animate-in fade-in"><IconAlertCircle size={14} /> {setupError}</p>}
@@ -528,16 +530,16 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-lg flex items-center gap-3">
               <IconShieldLock className="text-foreground" size={20} />
-              Authenticator App
+              {t.profile.security.authenticatorApp}
             </h3>
             {user.totp_enabled && (
               <span className="flex items-center gap-1 text-xs font-bold capitalize tracking-wide text-[#009640] bg-[#009640]/10 px-3 py-1 border border-[#009640]/20 rounded-full">
-                <IconCheck size={12} /> Active
+                <IconCheck size={12} /> {t.profile.security.active}
               </span>
             )}
           </div>
           <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-md">
-            Protect your account with time-based verification codes.
+            {t.profile.security.twoFactorSubtitle}
           </p>
         </div>
         <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
@@ -549,19 +551,17 @@ export default function ProfilePage() {
                   className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 border-destructive/20 text-destructive hover:bg-destructive hover:text-white w-full sm:w-auto"
                   disabled={isSettingUp}
                 >
-                  {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : "Disable 2FA"}
+                  {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : t.profile.security.disable2FA}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="rounded-md border-border/40 shadow-none ring-0">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-lg text-destructive">Disable Security Layer?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm font-medium text-muted-foreground">
-                    Enter your 6-digit code to confirm removal of 2FA protection.
-                  </AlertDialogDescription>
+                  <AlertDialogTitle className="text-lg text-destructive">{t.profile.security.disableConfirmTitle}</AlertDialogTitle>
+                    {t.profile.security.disableConfirmDesc}
                 </AlertDialogHeader>
 
                 <div className="py-4 space-y-4">
-                  <Label htmlFor="disable-code" className="text-xs capitalize tracking-wide ml-4">Verification Code</Label>
+                  <Label htmlFor="disable-code" className="text-xs capitalize tracking-wide ml-4">{t.profile.security.verificationCode}</Label>
                   <Input
                     id="disable-code"
                     type="text"
@@ -574,13 +574,13 @@ export default function ProfilePage() {
                 </div>
 
                 <AlertDialogFooter className="gap-3">
-                  <AlertDialogCancel className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300" onClick={() => setDisableCode("")}>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300" onClick={() => setDisableCode("")}>{t.common.cancel}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDisableTOTP}
                     disabled={disableCode.length !== 6 || isSettingUp}
                     className="bg-destructive text-white hover:bg-destructive/90 rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 min-w-35"
                   >
-                    {isSettingUp ? <IconLoader2 className="animate-spin size-4 mr-2" /> : "Confirm Disable"}
+                    {isSettingUp ? <IconLoader2 className="animate-spin size-4 mr-2" /> : t.profile.security.confirmDisable}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -591,7 +591,7 @@ export default function ProfilePage() {
               className="rounded-full h-10 px-6 text-xs capitalize tracking-wide transition-all duration-300 w-full sm:w-auto bg-[#009640] hover:bg-[#008a3b]"
               disabled={isSettingUp}
             >
-              {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : "Set Up 2FA"}
+              {isSettingUp ? <IconLoader2 className="animate-spin size-4" /> : t.profile.security.setup2FA}
             </Button>
           )}
         </div>
@@ -602,8 +602,8 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full pb-10 md:px-0">
       <div className="space-y-1 px-2">
-        <h1 className="text-xl text-foreground">Profile</h1>
-        <p className="text-xs text-muted-foreground tracking-wide">Manage your workspace account and security.</p>
+        <h1 className="text-xl text-foreground">{t.profile.title}</h1>
+        <p className="text-xs text-muted-foreground tracking-wide">{t.profile.subtitle}</p>
       </div>
 
       <div className="lg:hidden space-y-6">
@@ -619,21 +619,21 @@ export default function ProfilePage() {
             className="w-full justify-start rounded-md px-4 py-2.5 text-sm data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all duration-200 gap-2.5 hover:bg-muted/50 text-muted-foreground/60"
           >
             <IconUser size={16} stroke={1.75} />
-            Profile Details
+            {t.profile.tabs.details}
           </TabsTrigger>
           <TabsTrigger
             value="sessions"
             className="w-full justify-start rounded-md px-4 py-2.5 text-sm data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all duration-200 gap-2.5 hover:bg-muted/50 text-muted-foreground/60"
           >
             <IconHistory size={16} stroke={1.75} />
-            Active Sessions
+            {t.profile.tabs.sessions}
           </TabsTrigger>
           <TabsTrigger
             value="security"
             className="w-full justify-start rounded-md px-4 py-2.5 text-sm data-[state=active]:bg-[#009640] data-[state=active]:text-white transition-all duration-200 gap-2.5 hover:bg-muted/50 text-muted-foreground/60"
           >
             <IconShieldLock size={16} stroke={1.75} />
-            Security & 2FA
+            {t.profile.tabs.security}
           </TabsTrigger>
         </TabsList>
 

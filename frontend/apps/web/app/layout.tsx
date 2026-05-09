@@ -5,6 +5,7 @@ import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils";
 import { AuthProvider } from "@/hooks/use-auth";
+import { LanguageProvider } from "@/hooks/use-language";
 
 import { Toaster } from "@workspace/ui/components/sonner"
 
@@ -38,10 +39,12 @@ export default function RootLayout({
     >
       <body className="bg-background">
         <AuthProvider>
-          <ThemeProvider>
-            {children}
-            <Toaster richColors position="bottom-right" />
-          </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </ThemeProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>
