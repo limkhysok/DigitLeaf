@@ -191,8 +191,10 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   // Proactive token refresh — fires 2 minutes before the access token expires
   useEffect(() => {
     if (!tokens?.access_token || !tokens?.refresh_token) return
+    const base64Payload = tokens.access_token.split(".")[1]
+    if (!base64Payload) return
     try {
-      const payload = JSON.parse(atob(tokens.access_token.split(".")[1]))
+      const payload = JSON.parse(atob(base64Payload))
       const expiresAtMs = payload.exp * 1000
       const refreshAtMs = expiresAtMs - 2 * 60 * 1000
       const delay = refreshAtMs - Date.now()
