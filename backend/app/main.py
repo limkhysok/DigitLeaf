@@ -1,15 +1,25 @@
+import sys
+from loguru import logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config import settings
 from sqladmin import Admin
-from app.db.session import engine
+from app.db.session import engine, init_db
+
+# Core models for mapping to prevent relationship resolution errors
+from app.domains.rbac.models import Role, Permission, RolePermissionLink
+from app.domains.users.models import User
+from app.domains.auth.models import UserMFA
 from app.admin import (
     authentication_backend, UserAdmin, UserTokenAdmin, 
     AuditLogAdmin, RoleAdmin, PermissionAdmin
 )
-import sys
-from loguru import logger
+from app.domains.tobacco_purchase import models as tobacco_models # Ensure tobacco models are registered
+
+# Register models with SQLModel/SQLAlchemy to prevent relationship resolution errors
+_ = (Role, Permission, RolePermissionLink, User, UserMFA)
+_ = tobacco_models 
 
 # Setup structured logging
 logger.remove() # Remove default console logger
@@ -43,9 +53,11 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+
 @app.on_event("startup")
 async def startup_event():
-    logger.info("DigitLeaf API has successfully started!")
+    init_db()
+    logger.info("DigitLeaf API has successfully started and database initialized!")
 
 app.include_router(api_router, prefix="/api/v1")
 

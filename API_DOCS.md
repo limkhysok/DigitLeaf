@@ -328,3 +328,54 @@ Allows an administrator to forcefully reset the password of any user by their Us
   "message": "Password for user 'new_farmer' has been reset successfully"
 }
 ```
+
+---
+
+## 🍂 Tobacco Purchase Endpoints
+
+### 1. Create Tobacco Purchase
+Creates a new tobacco purchase header with multiple item details in a single transaction.
+**Endpoint:** `POST /tobacco-purchases/`
+
+**Request Headers:**
+- `Authorization: Bearer <access_token>`
+
+**Request Body (JSON):**
+```json
+{
+  "invoice_num": "string (Optional, auto-generated if omitted)",
+  "buyer": 1,
+  "vendor": "string (mf_id)",
+  "v_addr": "string (address)",
+  "region": 1,
+  "tp_date": "2026-05-11",
+  "tp_note": "string",
+  "closing": "string",
+  "oven": 1,
+  "rate": 100,
+  "details": [
+    {
+      "tobacco_name": 1,
+      "qty": 50.5,
+      "price": 10.0,
+      "CreatedDate": "2026-05-11"
+    }
+  ]
+}
+```
+
+### 2. List Tobacco Purchases
+**Endpoint:** `GET /tobacco-purchases/`
+
+**Query Parameters:**
+- `skip`: int (Default: 0)
+- `limit`: int (Default: 100)
+- `search`: string (Optional, search by invoice or vendor)
+
+### 3. Get Purchase Lookups (Dropdowns)
+Endpoints for populating frontend selection menus:
+- `GET /tobacco-purchases/purchasers`: List available buyers.
+- `GET /tobacco-purchases/regions`: List available regions (where `do_now_show=0`).
+- `GET /tobacco-purchases/ovens`: List all ovens.
+- `GET /tobacco-purchases/tobacco-types`: List active tobacco types.
+

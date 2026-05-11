@@ -3,10 +3,8 @@
 import * as React from "react"
 import { useSyncExternalStore } from "react"
 import {
-  IconLeaf,
   IconLayoutDashboard,
   IconReceipt,
-  IconTerminal2,
   IconPackage,
 } from "@tabler/icons-react"
 
@@ -37,20 +35,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: IconPackage,
     },
     {
-      title: t.sidebar.leafWeighing,
-      url: "/leaf-weighing",
-      icon: IconLeaf,
-    },
-    {
-      title: t.sidebar.invoice,
-      url: "/invoice",
+      title: t.sidebar.tobaccoPurchase,
+      url: "/tobacco-purchase",
       icon: IconReceipt,
-      badge: "3",
-    },
-    {
-      title: "Activity Logs",
-      url: "/logs",
-      icon: IconTerminal2,
     },
   ], [t])
 
