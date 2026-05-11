@@ -15,6 +15,7 @@ class MemberFarmerPublic(BaseModel):
     mf_id: int
     name: str
     mf_code: str
+    address: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

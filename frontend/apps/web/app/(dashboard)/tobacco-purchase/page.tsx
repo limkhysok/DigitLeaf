@@ -9,6 +9,7 @@ import {
   RegionItem,
   OvenItem,
   TobaccoItem,
+  MemberFarmerItem,
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import { IconEdit, IconEye, IconLoader2, IconPlus, IconTrash } from "@tabler/icons-react"
@@ -47,21 +48,24 @@ export default function TobaccoPurchasePage() {
   const [regions, setRegions] = React.useState<RegionItem[]>([])
   const [ovens, setOvens] = React.useState<OvenItem[]>([])
   const [tobaccoTypes, setTobaccoTypes] = React.useState<TobaccoItem[]>([])
+  const [farmers, setFarmers] = React.useState<MemberFarmerItem[]>([])
 
   const fetchRecords = React.useCallback(async () => {
     if (!tokens?.access_token) return
     try {
-      const [pData, rData, oData, tData, recData] = await Promise.all([
+      const [pData, rData, oData, tData, fData, recData] = await Promise.all([
         apiClient.getPurchasers(tokens.access_token),
         apiClient.getRegions(tokens.access_token),
         apiClient.getOvens(tokens.access_token),
         apiClient.getTobaccoTypes(tokens.access_token),
+        apiClient.getMemberFarmers(tokens.access_token),
         apiClient.getTobaccoPurchases(tokens.access_token)
       ])
       setPurchasers(pData)
       setRegions(rData)
       setOvens(oData)
       setTobaccoTypes(tData)
+      setFarmers(fData)
       setRecords(recData.items)
     } catch (err) {
       toast.error((err as Error).message)
@@ -179,6 +183,7 @@ export default function TobaccoPurchasePage() {
         regions={regions}
         ovens={ovens}
         tobaccoTypes={tobaccoTypes}
+        farmers={farmers}
       />
 
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
