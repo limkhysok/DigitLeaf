@@ -21,7 +21,6 @@ import {
   IconCheck,
   IconCalendar,
   IconX,
-  IconHelpCircle,
 } from "@tabler/icons-react"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { format } from "date-fns"
@@ -35,6 +34,15 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { Label } from "@workspace/ui/components/label"
 import {
   Popover,
@@ -90,6 +98,7 @@ export function AddPurchaseDialog({
   const [tpNote, setTpNote] = React.useState("")
   const [oven, setOven] = React.useState<string>("")
   const [rate, setRate] = React.useState("4000")
+  const [tpCode, setTpCode] = React.useState("")
   const [details, setDetails] = React.useState<(Partial<TobaccoPurchaseDetail> & { tempId: string })[]>([])
 
   const initialized = React.useRef(false)
@@ -109,6 +118,7 @@ export function AddPurchaseDialog({
         setOven("")
         setOvenSearch("")
         setRate("4000")
+        setTpCode(`INV-${format(new Date(), "yyyyMMdd")}-TEMP`)
         setDetails([{ tempId: "initial-0", tobacco_name: undefined, qty: 0, price: 0 }])
       }
 
@@ -122,6 +132,7 @@ export function AddPurchaseDialog({
         setTpNote(data.tp_note || "")
         setOven(data.oven?.toString() || "")
         setRate(data.rate.toString())
+        setTpCode(data.invoice_num || "")
         setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: crypto.randomUUID() })) || [])
 
         const b = purchasers.find(p => p.p_id === data.buyer)
@@ -150,8 +161,8 @@ export function AddPurchaseDialog({
   }, [open, initialData, purchasers, regions, ovens, tobaccoTypes, farmers])
 
   const handleAddDetail = React.useCallback(() => {
-    setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, qty: 0, price: Number(rate) || 0 }])
-  }, [rate])
+    setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, qty: 0, price: 0 }])
+  }, [])
 
   const handleRemoveDetail = React.useCallback((index: number) => {
     setDetails(prev => prev.filter((_, i) => i !== index))
@@ -227,19 +238,38 @@ export function AddPurchaseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <DialogTitle className="text-[18px] font-bold text-foreground flex items-center gap-2">
+                {title}
+                {tpCode && (
+                  <span className="text-[14px] font-mono text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-sm border border-border/60">
+                    {tpCode}
+                  </span>
+                )}
+              </DialogTitle>
+              <DialogDescription className="text-[13px] text-muted-foreground/70">{description}</DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Header Info Group - Invoice Paper Style */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="bg-white p-6 rounded-md border border-border/60 space-y-2">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-5">
-              {/* Row 1: Primary Transaction Entities */}
+              {/* Row 1: Invoice, Buyer, Region */}
+              <div className="md:col-span-1 space-y-1.5">
+                <Label className="text-[12px] font-bold text-muted-foreground/70">Invoice No.</Label>
+                <Input
+                  value={tpCode}
+                  readOnly
+                  className="h-9 text-[13px] font-bold bg-slate-50 border-border/60 text-muted-foreground shadow-none cursor-default"
+                />
+              </div>
+
               <div className="md:col-span-2 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Buyer (EN/KH)</Label>
+                <Label className="text-[12px] font-bold text-muted-foreground/70">Buyer selection</Label>
                 <Popover open={isBuyerOpen} onOpenChange={setIsBuyerOpen}>
                   <PopoverAnchor asChild>
                     <div className="relative group">
@@ -247,7 +277,9 @@ export function AddPurchaseDialog({
                         placeholder="Search buyer..."
                         value={buyerSearch}
                         onChange={(e) => {
-                          setBuyerSearch(e.target.value)
+                          const val = e.target.value
+                          setBuyerSearch(val)
+                          setBuyer(val)
                           if (!isBuyerOpen) setIsBuyerOpen(true)
                         }}
                         onFocus={() => setIsBuyerOpen(true)}
@@ -279,15 +311,15 @@ export function AddPurchaseDialog({
                             key={p.p_id}
                             type="button"
                             className={cn(
-                              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground transition-colors",
+                              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
                               buyer === p.p_id.toString() && "bg-accent"
                             )}
                             onClick={() => {
                               setBuyer(p.p_id.toString())
                               setBuyerSearch(`${p.p_name} | ${p.p_name_kh || ""}`)
                               setIsBuyerOpen(false)
-                              if (p.region) {
-                                const r = regions.find(item => item.reg_id === p.region)
+                              if (p.p_id) {
+                                const r = regions.find(reg => reg.reg_id === p.region)
                                 if (r) {
                                   setRegion(r.reg_id.toString())
                                   setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
@@ -304,7 +336,7 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
+              <div className="md:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Region</Label>
                 <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                   <PopoverAnchor asChild>
@@ -365,8 +397,9 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Farmer)</Label>
+              {/* Row 2: Vendor, Address, Oven */}
+              <div className="md:col-span-1 space-y-1.5">
+                <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Id)</Label>
                 <Popover open={isVendorOpen} onOpenChange={setIsVendorOpen}>
                   <PopoverAnchor asChild>
                     <div className="relative group">
@@ -438,7 +471,7 @@ export function AddPurchaseDialog({
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
+              <div className="md:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Oven</Label>
                 <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
                   <PopoverAnchor asChild>
@@ -497,7 +530,8 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
+              {/* Row 3: Rate, Remark, Date */}
+              <div className="md:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">System Rate</Label>
                 <div className="relative group">
                   <Input
@@ -506,13 +540,23 @@ export function AddPurchaseDialog({
                     onChange={(e) => setRate(e.target.value)}
                     required
                     disabled={isReadOnly}
-                    className="h-9 text-[13px] font-bold bg-primary/5 border-primary/10 text-primary shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-9 text-[13px] font-bold bg-white border border-border/60 text-black shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                 </div>
               </div>
 
-              {/* Row 4: Transaction Date and Notes */}
+              <div className="md:col-span-2 space-y-1.5">
+                <Label className="text-[12px] font-bold text-muted-foreground/70">Remark(Optional)</Label>
+                <Input
+                  value={tpNote}
+                  onChange={(e) => setTpNote(e.target.value)}
+                  placeholder="Type notes here..."
+                  disabled={isReadOnly}
+                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                />
+              </div>
+
               <div className="md:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Purchase Date</Label>
                 <Popover>
@@ -538,133 +582,117 @@ export function AddPurchaseDialog({
                   </PopoverContent>
                 </Popover>
               </div>
-
-              <div className="md:col-span-3 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Remark(Optional)</Label>
-                <Input
-                  value={tpNote}
-                  onChange={(e) => setTpNote(e.target.value)}
-                  placeholder="Type notes here..."
-                  disabled={isReadOnly}
-                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Details Section - Invoice Paper Style */}
-          <div className="space-y-4 bg-white p-3 rounded-md border border-border/60">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-foreground">Purchase Items</h3>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button type="button" className="inline-flex items-center justify-center size-5 rounded-full bg-muted/50 text-muted-foreground/60 hover:bg-primary/10 hover:text-primary transition-colors cursor-help border border-border/40">
-                      <IconHelpCircle className="size-3" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 p-4 shadow-2xl border-border/60 z-[100]" side="top" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 pb-2 border-b border-border/40">
-                        <IconHelpCircle className="size-4 text-primary" />
-                        <h4 className="font-bold text-[13px] uppercase tracking-widest text-primary">Calculation Formulas</h4>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="p-2 bg-slate-50 rounded-md border border-border/40">
-                          <div className="text-[13px] font-black uppercase text-muted-foreground/50 mb-1">Row 1: Net Weight</div>
-                          <div className="flex items-center gap-2 text-[13px] font-bold tabular-nums text-foreground">
-                            <span>QTY (G)</span>
-                            <span className="text-muted-foreground/30">−</span>
-                            <span>REMORK</span>
-                            <span className="text-muted-foreground/30">−</span>
-                            <span>SACK</span>
-                            <span className="text-muted-foreground/30">=</span>
-                            <span className="text-primary underline decoration-primary/30">NET WEIGHT</span>
-                          </div>
-                        </div>
-
-                        <div className="p-2 bg-emerald-50/50 rounded-md border border-emerald-100">
-                          <div className="text-[13px] font-black uppercase text-emerald-700/50 mb-1">Row 2: Grand Total</div>
-                          <div className="flex items-center gap-2 text-[13px] font-bold tabular-nums text-emerald-700">
-                            <span>NET WEIGHT</span>
-                            <span className="text-emerald-700/30">×</span>
-                            <span>PRICE/KG</span>
-                            <span className="text-emerald-700/30">=</span>
-                            <span className="underline decoration-emerald-700/30">TOTAL MONEY</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <p className="text-[13px] text-muted-foreground italic leading-relaxed">
-                        Note: All weight calculations are done in KG. Rates are based on the system rate selected above.
-                      </p>
+          {/* Details Section - Premium Shadcn Table Style */}
+          <div className="bg-white rounded-none border border-border/80 mt-4 overflow-hidden">
+            <Table className="table-fixed border-collapse">
+              <TableHeader className="bg-slate-50/90 backdrop-blur-sm sticky top-0 z-20 shadow-xs border-t border-b border-border/80">
+                <TableRow className="hover:bg-transparent border-none">
+                  <TableHead className="w-[50px] text-[13px] font-bold text-center border-r border-border/60">#</TableHead>
+                  <TableHead className="min-w-[250px] text-[13px] font-bold border-r border-border/60">
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
+                      Tobacco Item
                     </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              {!isReadOnly && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddDetail}
-                  className="h-8 text-[13px] gap-2 px-4 bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs rounded-full"
-                >
-                  <IconPlus className="size-3.5" /> Add New Item
-                </Button>
-              )}
-            </div>
+                  </TableHead>
+                  <TableHead className="w-[60px] text-[13px] font-bold text-center border-r border-border/60">Image</TableHead>
+                  <TableHead className="w-[90px] text-[13px] font-bold text-center border-r border-border/60">Qty(KG)</TableHead>
+                  <TableHead className="w-[90px] text-[13px] font-bold text-center border-r border-border/60">Remork(KG)</TableHead>
+                  <TableHead className="w-[90px] text-[13px] font-bold text-center border-r border-border/60">Sack(KG)</TableHead>
+                  <TableHead className="w-[95px] text-[13px] font-bold text-center border-r border-border/60">Price</TableHead>
+                  <TableHead className="w-[105px] text-[13px] font-bold text-center bg-primary/[0.03] text-primary/80 border-r border-border/60">Net Weight</TableHead>
+                  <TableHead className="w-[130px] text-[13px] font-bold text-right bg-emerald-500/[0.03] text-emerald-700/80 pr-4">Grand Total</TableHead>
+                </TableRow>
+              </TableHeader>
 
-            {/* Removed redundant headers */}
+              <TableBody className="bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+                {details.length > 0 ? (
+                  details.map((detail, idx) => (
+                    <PurchaseDetailRow
+                      key={detail.tempId}
+                      detail={detail}
+                      index={idx}
+                      isReadOnly={isReadOnly}
+                      tobaccoTypes={tobaccoTypes}
+                      onRemove={handleRemoveDetail}
+                      onChange={handleDetailChange}
+                    />
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} className="h-64 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4 bg-white/80 backdrop-blur-[2px]">
+                        <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-border/60">
+                          <IconPlus className="size-6 text-muted-foreground/20" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[14px] font-bold text-foreground">No items recorded yet</p>
+                          <p className="text-[12px] text-muted-foreground/60 max-w-[240px]">Start building your purchase invoice by adding tobacco items.</p>
+                        </div>
+                        {!isReadOnly && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAddDetail}
+                            className="mt-2 h-9 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs"
+                          >
+                            <IconPlus className="mr-2 size-3.5" /> Add First Item
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              <TableFooter className="bg-slate-50/80 border-t-2 border-border/80">
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={7} className="text-right text-[11px] font-bold text-muted-foreground uppercase pr-4">Total Summary</TableCell>
+                  <TableCell className="text-center p-2 bg-primary/[0.04] border-r border-border/60">
+                    <div className="flex flex-col items-center">
+                      <span className="text-[9px] font-bold text-muted-foreground/50 uppercase leading-none mb-1">Total Weight</span>
+                      <span className="text-[14px] font-black text-primary tabular-nums">
+                        {details.reduce((sum, item) => {
+                          const netQty = Math.max(0, (Number(item.qty) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
+                          return sum + netQty
+                        }, 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right p-2 bg-emerald-500/[0.04] pr-4">
+                    <div className="flex flex-col items-end">
+                      <span className="text-[9px] font-bold text-emerald-700/50 uppercase leading-none mb-1">Grand Total</span>
+                      <span className="text-[16px] font-black text-emerald-700 tabular-nums">
+                        ៛{Math.round(details.reduce((sum, item) => {
+                          const netQty = Math.max(0, (Number(item.qty) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
+                          return sum + (netQty * (Number(item.price) || 0))
+                        }, 0)).toLocaleString()}
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
 
-            <div className="space-y-0 min-h-[50px]">
-              {details.length > 0 ? (
-                details.map((detail, idx) => (
-                  <PurchaseDetailRow
-                    key={detail.tempId}
-                    detail={detail}
-                    index={idx}
-                    isReadOnly={isReadOnly}
-                    tobaccoTypes={tobaccoTypes}
-                    onRemove={handleRemoveDetail}
-                    onChange={handleDetailChange}
-                  />
-                ))
-              ) : (
-                <div className="py-10 text-center border-2 border-dashed border-border/40 rounded-xl">
-                  <p className="text-sm text-muted-foreground">No items added to this purchase.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end items-end p-0 pt-4 gap-12">
-              {/* Total Weight Summary */}
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-[12px] font-bold text-muted-foreground/60">Total Weight (Net)</span>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-3xl font-black tabular-nums text-foreground">
-                    {details.reduce((sum, item) => {
-                      const netQty = Math.max(0, (Number(item.qty) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
-                      return sum + netQty
-                    }, 0).toFixed(2)}
-                  </span>
-                  <span className="text-[13px] font-bold text-muted-foreground">KG</span>
-                </div>
-              </div>
-
-              {/* Total Amount Summary */}
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-[12px] font-bold text-[#009640]/70">Grand Total Amount</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-bold text-[#009640]/80">៛</span>
-                  <span className="text-4xl font-black tabular-nums text-[#009640]">
-                    {Math.round(details.reduce((sum, item) => {
-                      const netQty = Math.max(0, (Number(item.qty) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
-                      return sum + (netQty * (Number(rate) || 0))
-                    }, 0)).toLocaleString()}
-                  </span>
-                </div>
+            {/* Table Action Footer */}
+            <div className="bg-slate-50/50 border-t border-border/80 p-3 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                {!isReadOnly && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddDetail}
+                    className="h-9 px-5 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs transition-all active:scale-95"
+                  >
+                    <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+                  </Button>
+                )}
+                <span className="text-[11px] font-medium text-muted-foreground italic">
+                  Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
+                </span>
               </div>
             </div>
           </div>
@@ -721,147 +749,129 @@ const PurchaseDetailRow = React.memo(({
   }
 
   return (
-    <div className={cn(
-      "grid grid-cols-1 md:grid-cols-[80px_1fr] gap-4 p-4 md:p-3 border-b border-border/40 group transition-all duration-200 relative",
-      index % 2 === 0 ? "bg-white" : "bg-muted/10",
-      "hover:bg-primary/[0.02]"
+    <TableRow className={cn(
+      "group transition-all duration-200 relative border-b border-border/60",
+      "focus-within:bg-emerald-50/40",
+      index % 2 === 0 ? "bg-white" : "bg-slate-50/30",
+      "hover:bg-primary/[0.01]"
     )}>
-      {/* Top-Right Delete Action - Compact X Icon */}
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        {!isReadOnly && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => onRemove(index)}
-            className="h-6 w-6 text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-          >
-            <IconX className="size-3" />
-          </Button>
-        )}
-      </div>
-
-      {/* Left Column: Tall Image & Number (Spans 2 rows) */}
-      <div className="flex flex-col gap-2 h-full">
-        <div className="text-[13px] font-black text-muted-foreground/30 flex items-center gap-1 self-start ml-1">
-          <span className="opacity-50">#</span>{index + 1}
+      {/* Column 1: No. */}
+      <TableCell className="p-1 w-[50px] border-r border-border/60 text-center align-middle">
+        <div className="text-[12px] font-bold text-muted-foreground/60 tabular-nums">
+          {index + 1}
         </div>
-        <div className="flex-1 w-full bg-white rounded-lg border-2 border-dashed border-border/60 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-all group/img overflow-hidden relative shadow-xs min-h-[80px]">
-          <IconPlus className="size-4 text-muted-foreground/20 group-hover/img:text-primary/40 transition-colors" />
-          <span className="text-[13px] font-bold uppercase tracking-tighter text-muted-foreground/30 group-hover/img:text-primary/40">Img</span>
-        </div>
-      </div>
+      </TableCell>
 
-      {/* Right Column: Data Entry & Results */}
-      <div className="flex flex-col gap-3">
-        {/* Row 1: Item Selection & Inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-          {/* Tobacco Type */}
-          <div className="col-span-12 md:col-span-6 space-y-1.5">
-            <Label className="text-[12px] font-bold text-muted-foreground/70">Tobacco Item</Label>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverAnchor asChild>
-                <div className="relative group/type">
-                  <Input
-                    placeholder="Select tobacco..."
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value)
-                      if (!open) setOpen(true)
-                    }}
-                    onFocus={() => setOpen(true)}
-                    onClick={() => setOpen(true)}
-                    disabled={isReadOnly}
-                    className="h-9 text-[13px] font-medium pr-10 bg-white border-border/60 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/20"
-                  />
-                  <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 opacity-20 group-focus-within/type:opacity-50 transition-opacity pointer-events-none" />
-                </div>
-              </PopoverAnchor>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 shadow-2xl border-border/50 z-[100]" align="start" sideOffset={4} onOpenAutoFocus={(e) => e.preventDefault()}>
-                <div className="max-h-[250px] overflow-y-auto p-1">
-                  {tobaccoTypes.filter(t => t.t_name.toLowerCase().includes(search.toLowerCase()) || t.t_name_kh?.toLowerCase().includes(search.toLowerCase()))
-                    .map((t) => (
-                      <button key={t.t_id} type="button" className={cn("relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[13px] outline-hidden hover:bg-accent", detail.tobacco_name === t.t_id && "bg-accent")}
-                        onClick={() => { onChange(index, "tobacco_name", t.t_id); setSearch(`${t.t_name} | ${t.t_name_kh || ""}`); setOpen(false) }}>
-                        <IconCheck className={cn("mr-2 h-3.5 w-3.5", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                        <div className="flex flex-col items-start">
-                          <span className="font-bold text-[13px]">{t.t_name}</span>
-                          <span className="text-[13px] text-muted-foreground">{t.t_name_kh || "-"}</span>
-                        </div>
-                      </button>
-                    ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Gross Weight */}
-          <div className="col-span-3 md:col-span-2 space-y-1.5">
-            <Label className="text-[12px] font-bold text-muted-foreground/70">Qty (KG)</Label>
-            <div className="relative">
-              <Input type="number" step="1" className="h-9 text-[13px] font-bold bg-white border-border/60 text-center" value={detail.qty ?? ""}
-                onChange={(e) => onChange(index, "qty", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-                onFocus={(e) => e.currentTarget.select()} onClick={(e) => e.currentTarget.select()} disabled={isReadOnly} />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-30">KG</span>
-            </div>
-          </div>
-
-          {/* Remork */}
-          <div className="col-span-3 md:col-span-2 space-y-1.5">
-            <Label className="text-[12px] font-bold text-muted-foreground/70">Remork (KG)</Label>
-            <Input type="number" step="1" className="h-9 text-[13px] bg-white border-border/60 text-center" value={detail.remork_in_kg ?? ""}
-              onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              onFocus={(e) => e.currentTarget.select()} onClick={(e) => e.currentTarget.select()} disabled={isReadOnly} />
-          </div>
-
-          {/* Sack */}
-          <div className="col-span-3 md:col-span-2 space-y-1.5">
-            <Label className="text-[12px] font-bold text-muted-foreground/70">Sack (KG)</Label>
-            <Input type="number" step="1" className="h-9 text-[13px] bg-white border-border/60 text-center" value={detail.sack_in_kg ?? ""}
-              onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              onFocus={(e) => e.currentTarget.select()} onClick={(e) => e.currentTarget.select()} disabled={isReadOnly} />
-          </div>
-        </div>
-
-        {/* Row 2: Results & Actions */}
-        <div className="flex items-center gap-3">
-          {/* Price per KG Input */}
-          <div className="flex-1 bg-white rounded-md p-2 border border-border/60 flex items-center justify-between group/price focus-within:border-primary/40 transition-colors shadow-xs">
-            <span className="text-[12px] font-bold text-muted-foreground/70">Price / KG</span>
-            <div className="relative flex items-center justify-end">
+      {/* Column 2: Tobacco Item */}
+      <TableCell className="p-0 min-w-[250px] border-r border-border/60 align-middle">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverAnchor asChild>
+            <div className="relative group/type">
               <Input
-                type="number"
-                className="h-6 w-24 text-[13px] font-bold text-right border-none bg-transparent shadow-none focus-visible:ring-0 p-0"
-                value={detail.price ?? ""}
-                onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-                onFocus={(e) => e.currentTarget.select()}
+                placeholder="Item..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  if (!open) setOpen(true)
+                }}
+                onFocus={() => setOpen(true)}
+                onClick={() => setOpen(true)}
                 disabled={isReadOnly}
+                className="h-9 text-[12px] bg-transparent border-none shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3"
               />
-              <span className="ml-1 text-[13px] font-bold opacity-30">៛</span>
             </div>
-          </div>
-
-          {/* Net Weight Display */}
-          <div className="flex-1 bg-white rounded-md p-2 border border-border/60 flex items-center justify-between shadow-xs">
-            <span className="text-[12px] font-bold text-muted-foreground/70">Net Weight</span>
-            <div className="flex items-center gap-2">
-              <span className="text-[13px] font-black text-primary tabular-nums">
-                {Math.max(0, (Number(detail.qty) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)).toFixed(2)}
-              </span>
-              <span className="text-[13px] font-bold opacity-40">KG</span>
+          </PopoverAnchor>
+          <PopoverContent className="w-[300px] p-0 shadow-2xl border-border/50 z-[100]" align="start" sideOffset={4} onOpenAutoFocus={(e) => e.preventDefault()}>
+            <div className="max-h-[250px] overflow-y-auto p-1">
+              {tobaccoTypes.filter(t => t.t_name.toLowerCase().includes(search.toLowerCase()) || t.t_name_kh?.toLowerCase().includes(search.toLowerCase()))
+                .map((t) => (
+                  <button key={t.t_id} type="button" className={cn("relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent", detail.tobacco_name === t.t_id && "bg-accent")}
+                    onClick={() => { onChange(index, "tobacco_name", t.t_id); setSearch(`${t.t_name} | ${t.t_name_kh || ""}`); setOpen(false) }}>
+                    <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                    <div className="flex flex-col items-start">
+                      <span className="font-bold text-[12px]">{t.t_name}</span>
+                      <span className="text-[12px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                    </div>
+                  </button>
+                ))}
             </div>
-          </div>
+          </PopoverContent>
+        </Popover>
+      </TableCell>
 
-          {/* Row Total Display */}
-          <div className="flex-1 bg-white rounded-md p-2 border border-border/60 flex items-center justify-between shadow-xs">
-            <span className="text-[12px] font-bold text-emerald-700/70">Grand Total</span>
-            <span className="text-[15px] font-black text-emerald-700 tabular-nums">
-              ៛{Math.round(Math.max(0, (Number(detail.qty) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)) * (Number(detail.price) || 0)).toLocaleString()}
-            </span>
+      {/* Column 3: Image */}
+      <TableCell className="p-1 w-[60px] border-r border-border/60 align-middle">
+        <div className="flex justify-center">
+          <div className="w-8 aspect-square bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img">
+            <IconPlus className="size-2 text-muted-foreground/20 group-hover/img:text-primary/40" />
           </div>
         </div>
-      </div>
-    </div>
+      </TableCell>
+
+      {/* Column 4: Qty (KG) */}
+      <TableCell className="p-1 w-[90px] border-r border-border/60 text-center align-middle">
+        <Input type="number" step="1" className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" value={detail.qty ?? ""}
+          onChange={(e) => onChange(index, "qty", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          disabled={isReadOnly} />
+      </TableCell>
+
+      {/* Column 5: Remork */}
+      <TableCell className="p-1 w-[90px] border-r border-border/60 text-center align-middle">
+        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" value={detail.remork_in_kg ?? ""}
+          onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          disabled={isReadOnly} />
+      </TableCell>
+
+      {/* Column 6: Sack */}
+      <TableCell className="p-1 w-[90px] border-r border-border/60 text-center align-middle">
+        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" value={detail.sack_in_kg ?? ""}
+          onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          disabled={isReadOnly} />
+      </TableCell>
+
+      {/* Column 7: Price */}
+      <TableCell className="p-1 w-[95px] border-r border-border/60 text-center align-middle">
+        <div className="relative w-full text-center">
+          <Input
+            type="number"
+            className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            value={detail.price ?? ""}
+            onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            disabled={isReadOnly}
+          />
+          <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-20">៛</span>
+        </div>
+      </TableCell>
+
+      {/* Column 8: Weight */}
+      <TableCell className="p-1 w-[85px] border-r border-border/60 text-center align-middle bg-primary/[0.01]">
+        <span className="text-[12px] font-bold text-primary tabular-nums leading-none">
+          {Math.max(0, (Number(detail.qty) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)).toFixed(2)}
+        </span>
+      </TableCell>
+
+      {/* Column 9: Grand Total */}
+      <TableCell className="p-1 w-[130px] text-right align-middle bg-emerald-50/20 pr-4">
+        <span className="text-[12px] font-bold text-emerald-700 tabular-nums leading-none">
+          ៛{Math.round(Math.max(0, (Number(detail.qty) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)) * (Number(detail.price) || 0)).toLocaleString()}
+        </span>
+
+        {/* Absolute delete button - visible on row hover */}
+        <div className="absolute top-1/2 -translate-y-1/2 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          {!isReadOnly && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => onRemove(index)}
+              className="h-6 w-6 text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            >
+              <IconX className="size-3" />
+            </Button>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
   )
 })
 
