@@ -136,4 +136,4 @@ def get_ovens(db: Session) -> List[Oven]:
     return db.exec(select(Oven).where(Oven.do_not_show == 0)).all()
 
 def get_tobacco_types(db: Session) -> List[Tobacco]:
-    return db.exec(select(Tobacco).where(Tobacco.discontinue == 0)).all()
+    return db.exec(select(Tobacco).where((Tobacco.t_cate == 2) & (Tobacco.discontinue == 0))).all()

@@ -239,7 +239,7 @@ const TobaccoPurchaseTable = React.memo(({
             <th className="px-4 py-3 font-medium text-muted-foreground">Address</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Assigned By</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Oven</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground text-right">Rate(Riels)</th>
+            <th className="px-4 py-3 font-medium text-muted-foreground text-right">Rate(៛)</th>
             <th className="px-4 py-3 font-medium text-muted-foreground text-center">Actions</th>
           </tr>
         </thead>

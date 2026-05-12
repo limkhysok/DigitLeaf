@@ -617,7 +617,7 @@ export function AddPurchaseDialog({
           </div>
 
           {/* Details Section - Invoice Paper Style */}
-          <div className="space-y-6 bg-white p-6 rounded-md border border-border/60 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
+          <div className="space-y-6 bg-white p-6 rounded-md border border-border/60">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="space-y-1">
                 <Label className="text-sm font-bold tracking-tight">Purchase Items (x{details.length})</Label>
@@ -686,7 +686,7 @@ export function AddPurchaseDialog({
             {/* Grand Total Bar - Invoice Style */}
             <div className="flex justify-end pt-5 border-t border-border/40 mt-4">
               <div className="flex flex-col items-end gap-1 px-4">
-                <span className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground/60">Grand Total (Riels)</span>
+                <span className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground/60">Grand Total ៛</span>
                 <span className="text-3xl font-bold tabular-nums text-[#009640]">
                   {Math.round(details.reduce((sum, item) => {
                     const netQty = Math.max(0, (Number(item.qty) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
@@ -742,6 +742,14 @@ const PurchaseDetailRow = React.memo(({
 }) => {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+  const [prevTobaccoId, setPrevTobaccoId] = React.useState(detail.tobacco_name)
+
+  // Sync search text when the selection changes (e.g. initial load or parent update)
+  if (detail.tobacco_name !== prevTobaccoId) {
+    setPrevTobaccoId(detail.tobacco_name)
+    const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
+    setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+  }
 
   return (
     <div className="flex flex-wrap md:flex-nowrap gap-3 items-center bg-[#fcfcfc] p-2 rounded-none border border-border/50 group relative hover:bg-white transition-colors duration-200">
@@ -779,7 +787,10 @@ const PurchaseDetailRow = React.memo(({
           >
             <div className="max-h-[200px] overflow-y-auto p-1">
               {tobaccoTypes
-                .filter(t => t.t_name.toLowerCase().includes(search.toLowerCase()))
+                .filter(t => 
+                  t.t_name.toLowerCase().includes(search.toLowerCase()) || 
+                  t.t_name_kh?.toLowerCase().includes(search.toLowerCase())
+                )
                 .map((t) => (
                   <button
                     key={t.t_id}
@@ -790,7 +801,7 @@ const PurchaseDetailRow = React.memo(({
                     )}
                     onClick={() => {
                       onChange(index, "tobacco_name", t.t_id)
-                      setSearch(t.t_name)
+                      setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
                       setOpen(false)
                     }}
                   >
@@ -800,7 +811,7 @@ const PurchaseDetailRow = React.memo(({
                         detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {t.t_name}
+                    {t.t_name} | {t.t_name_kh || "-"}
                   </button>
                 ))}
             </div>
