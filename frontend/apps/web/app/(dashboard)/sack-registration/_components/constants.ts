@@ -4,9 +4,9 @@ import { format, subDays } from "date-fns"
 import { RepresentItem, SackRegistrationListParams } from "@/lib/api-client"
 
 export const STATUS_MAP: Record<number, { label: string; className: string }> = {
-  0: { label: "Pending", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  1: { label: "Approved", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  2: { label: "Rejected", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
+  0: { label: "Pending", className: "bg-amber-100 text-amber-700 border-amber-200" },
+  1: { label: "Approved", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  2: { label: "Rejected", className: "bg-rose-100 text-rose-700 border-rose-200" },
 }
 
 export const STATUS_FILTER_OPTIONS: { label: string; value: number | null }[] = [

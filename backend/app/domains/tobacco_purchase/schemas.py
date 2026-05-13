@@ -65,6 +65,7 @@ class PurchaseUpdate(BaseModel):
     closing: Optional[str] = None
     oven: Optional[int] = None
     rate: Optional[int] = None
+    details: Optional[List[PurchaseDetailCreate]] = None
 
 class Purchase(PurchaseBase):
     tp_id: int

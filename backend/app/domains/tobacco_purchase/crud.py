@@ -6,7 +6,7 @@ from app.domains.sack_registration.models.sack_registration import SackRegistrat
 from app.domains.sack_registration.models.represent import Represent
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
 from app.domains.sack_registration.models.mf_con_year import MfConYear
-from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem
+from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate
 from datetime import datetime
 from app.core.config import CAMBODIA_TZ
 
@@ -31,47 +31,38 @@ def generate_invoice_num(db: Session) -> str:
         
     return f"{prefix}{new_seq:05d}"
 
-def create_purchase(
-    db: Session, 
-    obj_in: PurchaseCreate, 
-    user_name: str, 
-    ip_address: str
-) -> TobaccoPurchase:
-    # 1. Generate Invoice Number
-    invoice_num = generate_invoice_num(db)
-
-    # 2. Compute header summary values from details
-    tobacco_item_count = len(obj_in.details)
+def _sync_purchase_details(
+    db: Session,
+    db_obj: TobaccoPurchase,
+    details: List[PurchaseDetailCreate],
+    user_name: str,
+    ip_address: str,
+    delete_existing: bool = False
+) -> None:
+    """Helper to sync details, update header summaries, and handle sack registration."""
+    if delete_existing:
+        statement = select(TobaccoPurchaseDetail).where(TobaccoPurchaseDetail.invoice_num == db_obj.invoice_num)
+        for d in db.exec(statement).all():
+            db.delete(d)
+        db.flush() # Force deletion to be executed in DB before re-inserting
+            
+    tobacco_item_count = len(details)
     total_net_weight = 0.0
     grand_total = 0.0
     max_sack_kg = 0.0
-    for d in obj_in.details:
-        net = max(0.0, (d.gross_weight or 0) - (d.remork_in_kg or 0) - (d.sack_in_kg or 0))
-        total_net_weight += net
-        grand_total += net * (d.price or 0)
-        max_sack_kg = max(max_sack_kg, d.sack_in_kg or 0)
-
-    # 3. Create the Header
-    db_obj = TobaccoPurchase(
-        **obj_in.model_dump(exclude={"details", "invoice_num"}),
-        invoice_num=invoice_num,
-        user=user_name,
-        ip_address=ip_address,
-        do_date=datetime.now(CAMBODIA_TZ),
-        tobacco_item_count=tobacco_item_count,
-        total_net_weight=round(total_net_weight, 3),
-        grand_total=round(grand_total, 2),
-    )
-    db.add(db_obj)
-    db.flush()
-
-    # 4. Create the Details (qty = net weight; sack_in_kg excluded — not a DB column)
-    for detail_in in obj_in.details:
+    
+    for detail_in in details:
+        # Calculate net weight: Gross - Remork - Sack
         net = max(0.0, (detail_in.gross_weight or 0) - (detail_in.remork_in_kg or 0) - (detail_in.sack_in_kg or 0))
         total_amount = round(net * (detail_in.price or 0), 2)
+        
+        total_net_weight += net
+        grand_total += total_amount
+        max_sack_kg = max(max_sack_kg, detail_in.sack_in_kg or 0)
+        
         db_detail = TobaccoPurchaseDetail(
             **detail_in.model_dump(exclude={"invoice_num", "m_id", "sack_in_kg"}),
-            invoice_num=invoice_num,
+            invoice_num=db_obj.invoice_num,
             m_id=db_obj.tp_id,
             qty=round(net, 3),
             user=user_name,
@@ -80,12 +71,17 @@ def create_purchase(
             total_amount=total_amount,
         )
         db.add(db_detail)
+        
+    # Update summary fields on header
+    db_obj.tobacco_item_count = tobacco_item_count
+    db_obj.total_net_weight = round(total_net_weight, 3)
+    db_obj.grand_total = round(grand_total, 2)
 
-    # 5. Update vendor's sack registration: overwrite sack_in_kg and approve
-    if obj_in.vendor and max_sack_kg > 0:
+    # Handle vendor sack registration (approve and record sack weight)
+    if db_obj.vendor and max_sack_kg > 0:
         sack_reg = db.exec(
             select(SackRegistration)
-            .where(SackRegistration.member_farmer_name == obj_in.vendor)
+            .where(SackRegistration.member_farmer_name == db_obj.vendor)
             .where(SackRegistration.status == 0)
             .order_by(SackRegistration.registered_at.desc())
         ).first()
@@ -95,6 +91,25 @@ def create_purchase(
             sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
             db.add(sack_reg)
 
+def create_purchase(
+    db: Session, 
+    obj_in: PurchaseCreate, 
+    user_name: str, 
+    ip_address: str
+) -> TobaccoPurchase:
+    invoice_num = generate_invoice_num(db)
+    db_obj = TobaccoPurchase(
+        **obj_in.model_dump(exclude={"details", "invoice_num"}),
+        invoice_num=invoice_num,
+        user=user_name,
+        ip_address=ip_address,
+        do_date=datetime.now(CAMBODIA_TZ),
+    )
+    db.add(db_obj)
+    db.flush() # Ensure tp_id is available
+    
+    _sync_purchase_details(db, db_obj, obj_in.details, user_name, ip_address)
+    
     db.commit()
     db.refresh(db_obj)
     return db_obj
@@ -133,10 +148,21 @@ def update_purchase(
     user_name: str,
     ip_address: str
 ) -> TobaccoPurchase:
-    update_data = obj_in.model_dump(exclude_unset=True)
+    update_data = obj_in.model_dump(exclude_unset=True, exclude={"details"})
     for key, value in update_data.items():
         setattr(db_obj, key, value)
     
+    # If details are provided, sync them
+    if obj_in.details is not None:
+        _sync_purchase_details(
+            db, 
+            db_obj, 
+            obj_in.details, 
+            user_name, 
+            ip_address, 
+            delete_existing=True
+        )
+
     db_obj.edit_user = user_name
     db_obj.edit_ip_address = ip_address
     db_obj.edit_do_date = datetime.now(CAMBODIA_TZ)

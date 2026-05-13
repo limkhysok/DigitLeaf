@@ -33,7 +33,7 @@ export function TopNav() {
     >
       <div className="flex h-full w-full items-center gap-2 px-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <SidebarTrigger className="h-8 w-8 transition-transform hover:scale-110 active:scale-95" />
+          <SidebarTrigger className="h-8 w-8 hover:bg-muted/80 transition-colors" />
           <div className="h-4 w-px bg-border mx-1" />
           <Breadcrumb className="hidden md:flex">
             <BreadcrumbList>
@@ -50,7 +50,7 @@ export function TopNav() {
                     <BreadcrumbSeparator className="opacity-50" />
                     <BreadcrumbItem>
                       {index === pathSegments.length - 1 ? (
-                        <BreadcrumbPage className="capitalize truncate max-w-35 text-sm font-regular text-[#009640]">
+                        <BreadcrumbPage className="capitalize truncate max-w-35 text-sm font-medium text-foreground">
                           {segment.replaceAll('-', ' ')}
                         </BreadcrumbPage>
                       ) : (

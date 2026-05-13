@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import {
   IconEdit, IconEye, IconLayoutGrid, IconLayoutList,
   IconLoader2, IconPlus, IconSearch, IconTrash,
+  IconCalendar, IconUser, IconFlame, IconMapPin
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -131,10 +132,10 @@ export default function TobaccoPurchasePage() {
   const q = search.toLowerCase()
   const filteredRecords = search
     ? records.filter(r =>
-        (r.invoice_num?.toLowerCase().includes(q)) ||
-        (r.vendor?.toLowerCase().includes(q)) ||
-        (purchasers.find(p => p.p_id === r.buyer)?.p_name?.toLowerCase().includes(q))
-      )
+      (r.invoice_num?.toLowerCase().includes(q)) ||
+      (r.vendor?.toLowerCase().includes(q)) ||
+      (purchasers.find(p => p.p_id === r.buyer)?.p_name?.toLowerCase().includes(q))
+    )
     : records
 
   return (
@@ -148,9 +149,9 @@ export default function TobaccoPurchasePage() {
         </div>
         <Button
           onClick={handleAddNew}
-          className="shrink-0 rounded-full h-9 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
+          className="shrink-0 rounded-md h-9 px-4 text-xs font-bold uppercase tracking-wide gap-2 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
         >
-          <IconPlus className="size-3.5" />
+          <IconPlus className="size-4" />
           New Purchase
         </Button>
       </div>
@@ -158,34 +159,36 @@ export default function TobaccoPurchasePage() {
       {/* Filter bar */}
       <div className="flex items-center gap-2">
         {/* Search */}
-        <div className="relative flex items-center h-9 flex-1 max-w-sm rounded-full border border-border bg-muted/30 px-3 gap-2 focus-within:ring-2 focus-within:ring-[#009640]/20 focus-within:border-[#009640] transition-all">
-          <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
+        <div className="relative flex items-center h-9 flex-1 max-w-sm rounded-md border border-slate-200 bg-transparent px-3 gap-2.5 shadow-xs focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
+          <IconSearch className="size-4 shrink-0 text-slate-400" stroke={1.5} />
           <input
-            className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400"
             placeholder="Search invoice, vendor, buyer..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
           {searchInput && (
-            <button onClick={() => setSearchInput("")} className="text-muted-foreground hover:text-foreground text-xs leading-none">✕</button>
+            <button onClick={() => setSearchInput("")} className="text-slate-400 hover:text-slate-600 text-xs p-1">✕</button>
           )}
         </div>
 
         <div className="flex-1" />
 
         {/* View toggle */}
-        <div className="flex items-center rounded-full border border-border p-0.5 gap-0.5">
+        <div className="flex items-center rounded-md border border-input p-1 gap-1 bg-background shadow-sm">
           <button
             onClick={() => setView("list")}
-            className={cn("flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200", view === "list" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground")}
+            className={cn("flex items-center justify-center h-7 px-2 rounded-sm transition-all duration-200 gap-1.5 text-xs font-medium", view === "list" ? "bg-secondary text-secondary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground hover:bg-muted/50")}
           >
             <IconLayoutList className="size-3.5" />
+            <span>List</span>
           </button>
           <button
             onClick={() => setView("grid")}
-            className={cn("flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200", view === "grid" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground")}
+            className={cn("flex items-center justify-center h-7 px-2 rounded-sm transition-all duration-200 gap-1.5 text-xs font-medium", view === "grid" ? "bg-secondary text-secondary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground hover:bg-muted/50")}
           >
             <IconLayoutGrid className="size-3.5" />
+            <span>Grid</span>
           </button>
         </div>
       </div>
@@ -303,84 +306,109 @@ const TobaccoPurchaseCard = React.memo(({
   onDelete: (id: number) => void
 }) => {
   return (
-    <div className="group relative flex flex-col gap-2 rounded-sm border border-border bg-card px-3 py-2.5 transition-all duration-200 hover:shadow-sm hover:border-border/80">
-      {/* Top row: index + invoice */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-medium text-muted-foreground/60">No. {index + 1}</span>
-        <span className="font-mono text-[12px] font-semibold text-foreground truncate">{rec.invoice_num}</span>
-      </div>
-
-      {/* Date + Oven */}
-      <div className="flex items-center justify-between gap-2 -mt-1">
-        <span className="text-[11px] text-muted-foreground">{rec.tp_date || "-"}</span>
-        {oven && (
-          <span className="text-[10px] text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5 truncate max-w-25">{oven.name_en}</span>
-        )}
-      </div>
-
-      {/* Buyer + Vendor */}
-      <div className="flex flex-col gap-0.5 min-w-0">
-        <div className="flex items-baseline gap-1 min-w-0">
-          <span className="text-[11px] text-muted-foreground shrink-0">Buyer:</span>
-          <span className="text-[13px] font-semibold truncate leading-tight">{purchaser?.p_name || "-"}</span>
-        </div>
-        <div className="flex items-baseline gap-1 min-w-0">
-          <span className="text-[11px] text-muted-foreground shrink-0">Vendor:</span>
-          <span className="text-[12px] text-muted-foreground truncate">{rec.vendor || "-"}</span>
-        </div>
-        {region && (
-          <div className="flex items-baseline gap-1 min-w-0">
-            <span className="text-[11px] text-muted-foreground shrink-0">Region:</span>
-            <span className="text-[12px] text-muted-foreground truncate">{region.reg_name}</span>
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:ring-1 hover:ring-emerald-500/20">
+      {/* Card Header: Invoice & Actions */}
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center size-5 rounded bg-emerald-500 text-white text-[10px] font-bold shadow-xs">
+            {index + 1}
           </div>
-        )}
-      </div>
-
-      {/* Footer: items · weight · total */}
-      <div className="flex items-center justify-between pt-1.5 border-t border-border/60 gap-2">
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          {rec.tobacco_item_count != null && (
-            <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-muted text-foreground text-[10px] font-bold">
-              {rec.tobacco_item_count}
-            </span>
-          )}
-          <span className="font-medium text-foreground tabular-nums">
-            {rec.total_net_weight == null ? "-" : rec.total_net_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg
+          <span className="font-mono text-[11px] font-bold text-slate-600 tracking-tight">
+            {rec.invoice_num}
           </span>
         </div>
-        <span className="text-[12px] font-bold text-foreground tabular-nums">
-          {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
-        </span>
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+          <button onClick={() => onView(rec)} className="p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-all">
+            <IconEye className="size-3.5" stroke={1.5} />
+          </button>
+          <button onClick={() => onEdit(rec)} className="p-1.5 rounded-md hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all">
+            <IconEdit className="size-3.5" stroke={1.5} />
+          </button>
+          <button onClick={() => onDelete(rec.tp_id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all">
+            <IconTrash className="size-3.5" stroke={1.5} />
+          </button>
+        </div>
       </div>
 
-      {/* Invisible overlay for view click */}
+      {/* Card Body: Main Participants */}
+      <div className="p-4 flex flex-col gap-5 flex-1">
+        <div className="space-y-3.5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <IconUser className="size-3" stroke={1.5} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Purchaser</span>
+            </div>
+            <p className="text-[13px] font-semibold text-slate-900 leading-tight line-clamp-1 pl-4.5">
+              {purchaser?.p_name || "Direct Sale"}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <IconCalendar className="size-3" stroke={1.5} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Vendor & Date</span>
+            </div>
+            <div className="flex items-center gap-2 pl-4.5">
+              <p className="text-[12px] font-medium text-slate-700 truncate">
+                {rec.vendor || "Farmer"}
+              </p>
+              <div className="size-1 rounded-full bg-slate-200" />
+              <p className="text-[12px] font-medium text-slate-500 shrink-0">
+                {rec.tp_date || "-"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Metadata Grid */}
+        <div className="grid grid-cols-2 gap-4 p-3 rounded-md bg-slate-50 border border-slate-100">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Region</span>
+            <div className="flex items-center gap-1.5">
+              <IconMapPin className="size-3 text-slate-300" stroke={1.5} />
+              <span className="text-[11px] font-medium text-slate-700 truncate">{region?.reg_name || "-"}</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-0.5 min-w-0 text-right">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Processing</span>
+            <div className="flex items-center gap-1.5 justify-end">
+              <IconFlame className="size-3 text-slate-300" stroke={1.5} />
+              <span className="text-[11px] font-medium text-slate-700 truncate">{oven?.name_en || "-"}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Card Footer: Totals */}
+      <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-100 mt-auto flex items-center justify-between">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Net weight</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-[15px] font-bold text-slate-900 tabular-nums">
+              {rec.total_net_weight?.toLocaleString(undefined, { minimumFractionDigits: 1 }) || "0.0"}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400">KG</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-end gap-0.5">
+          <span className="text-[9px] font-black uppercase text-emerald-600/80 tracking-wider">Total amount</span>
+          <div className="flex items-baseline gap-0.5 text-emerald-600">
+            <span className="text-[11px] font-bold">៛</span>
+            <span className="text-[16px] font-black tabular-nums">
+              {Math.round(rec.grand_total || 0).toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Click Overlay */}
       <button
         onClick={() => onView(rec)}
-        className="absolute inset-0 rounded-sm cursor-pointer focus:outline-none"
-        aria-label={`View purchase ${rec.invoice_num}`}
+        className="absolute inset-0 z-0 cursor-pointer focus:outline-none"
+        aria-label={`View ${rec.invoice_num}`}
       />
-
-      {/* Action buttons (above overlay) */}
-      <div className="absolute top-2 right-2 hidden group-hover:flex items-center gap-0.5 z-10 bg-card/80 backdrop-blur-sm rounded-md px-0.5 py-0.5">
-        <button
-          onClick={(e) => { e.stopPropagation(); onView(rec) }}
-          className="flex items-center justify-center h-6 w-6 rounded text-muted-foreground hover:text-green-600 hover:bg-green-50 transition-colors"
-        >
-          <IconEye className="size-3" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onEdit(rec) }}
-          className="flex items-center justify-center h-6 w-6 rounded text-muted-foreground hover:text-blue-600 hover:bg-blue-50 transition-colors"
-        >
-          <IconEdit className="size-3" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(rec.tp_id) }}
-          className="flex items-center justify-center h-6 w-6 rounded text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <IconTrash className="size-3" />
-        </button>
-      </div>
     </div>
   )
 })
@@ -402,19 +430,19 @@ const TobaccoPurchaseTable = React.memo(({
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left">
-        <thead className="bg-muted/40 border-b">
+        <thead className="bg-slate-50/50 border-b border-slate-100">
           <tr>
-            <th className="px-4 py-3 font-medium text-muted-foreground w-10 text-center">No</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Invoice</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Date</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Buyer</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Vendor</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Region</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Oven</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground text-center">Items</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground text-right">Net Weight(KG)</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground text-right">Grand Total(៛)</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground text-center">Actions</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider w-10 text-center">No.</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Invoice</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Date</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Buyer</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Vendor</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Region</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Oven</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-center">Items</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-right">Net Weight</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-right">Grand Total</th>
+            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-center">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -450,54 +478,54 @@ const TobaccoPurchaseRow = React.memo(({
   onDelete: (id: number) => void
 }) => {
   return (
-    <tr className="hover:bg-muted/30 transition-colors">
-      <td className="px-4 py-3 text-center text-muted-foreground text-xs">{index + 1}</td>
-      <td className="px-4 py-3 font-mono text-[13px] font-semibold text-foreground">{rec.invoice_num}</td>
-      <td className="px-4 py-3 text-[13px] text-muted-foreground whitespace-nowrap">{rec.tp_date || "-"}</td>
-      <td className="px-4 py-3 text-[13px]">{purchaser?.p_name || "-"}</td>
-      <td className="px-4 py-3 text-[13px] font-medium">{rec.vendor || "-"}</td>
-      <td className="px-4 py-3 text-[13px]">{region?.reg_name || "-"}</td>
-      <td className="px-4 py-3 text-[13px]">{oven?.name_en || "-"}</td>
+    <tr className="group/row hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0">
+      <td className="px-4 py-3 text-center text-slate-400 text-xs">{index + 1}</td>
+      <td className="px-4 py-3 font-mono text-[13px] font-semibold text-slate-900">{rec.invoice_num}</td>
+      <td className="px-4 py-3 text-[13px] text-slate-500 whitespace-nowrap">{rec.tp_date || "-"}</td>
+      <td className="px-4 py-3 text-[13px] text-slate-900">{purchaser?.p_name || "-"}</td>
+      <td className="px-4 py-3 text-[13px] font-medium text-slate-700">{rec.vendor || "-"}</td>
+      <td className="px-4 py-3 text-[13px] text-slate-500">{region?.reg_name || "-"}</td>
+      <td className="px-4 py-3 text-[13px] text-slate-500">{oven?.name_en || "-"}</td>
       <td className="px-4 py-3 text-center">
         {rec.tobacco_item_count == null ? (
-          <span className="text-muted-foreground text-xs">-</span>
+          <span className="text-slate-300 text-xs">-</span>
         ) : (
-          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-muted text-foreground text-[11px] font-bold">
+          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
             {rec.tobacco_item_count}
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-right text-[13px] font-bold text-foreground tabular-nums">
+      <td className="px-4 py-3 text-right text-[13px] font-bold text-slate-900 tabular-nums">
         {rec.total_net_weight == null ? "-" : rec.total_net_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </td>
-      <td className="px-4 py-3 text-right text-[13px] font-bold text-foreground tabular-nums">
+      <td className="px-4 py-3 text-right text-[13px] font-black text-emerald-600 tabular-nums">
         {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
       </td>
       <td className="px-4 py-3">
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-center gap-1 opacity-60 group-hover/row:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-green-600 hover:bg-green-50"
+            className="h-7 w-7 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
             onClick={() => onView(rec)}
           >
-            <IconEye className="size-3.5" />
+            <IconEye className="size-3.5" stroke={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
+            className="h-7 w-7 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
             onClick={() => onEdit(rec)}
           >
-            <IconEdit className="size-3.5" />
+            <IconEdit className="size-3.5" stroke={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+            className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50"
             onClick={() => onDelete(rec.tp_id)}
           >
-            <IconTrash className="size-3.5" />
+            <IconTrash className="size-3.5" stroke={1.5} />
           </Button>
         </div>
       </td>

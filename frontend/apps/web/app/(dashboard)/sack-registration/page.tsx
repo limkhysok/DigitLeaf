@@ -140,18 +140,16 @@ export default function SackRegistrationPage() {
     <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-xl font-medium text-foreground whitespace-nowrap">Sack Registration</h1>
-          <span className="text-muted-foreground/40 hidden sm:inline">/</span>
-          <p className="text-sm text-muted-foreground truncate hidden sm:block">Register and manage sacks.</p>
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <h1 className="text-xl font-bold text-slate-900 whitespace-nowrap">Sack Registration</h1>
+          <p className="text-xs text-slate-500 truncate hidden sm:block">Register and manage sacks for tobacco processing.</p>
         </div>
         <Button
           onClick={() => setRegisterOpen(true)}
-          className="shrink-0 rounded-full h-9 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
+          className="shrink-0 rounded-md h-9 px-4 text-xs font-bold uppercase tracking-wide gap-2 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
         >
-          <IconPlus className="size-3.5" />
-          <span className="hidden sm:inline">New</span>
-          <span className="sm:hidden">New</span>
+          <IconPlus className="size-4" />
+          New Registration
         </Button>
       </div>
 
@@ -341,16 +339,16 @@ export default function SackRegistrationPage() {
           <div className="flex-1" />
 
           {/* Search */}
-          <div className="relative flex items-center h-9 min-w-40 max-w-xs rounded-full border border-border bg-muted/30 px-3 gap-2 focus-within:ring-2 focus-within:ring-[#009640]/20 focus-within:border-[#009640] transition-all">
-            <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="relative flex items-center h-9 min-w-40 max-w-xs rounded-md border border-slate-200 bg-transparent px-3 gap-2.5 shadow-xs focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
+            <IconSearch className="size-4 shrink-0 text-slate-400" stroke={1.5} />
             <input
-              className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400"
               placeholder="Search..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
             {searchInput && (
-              <button onClick={() => setSearchInput("")} className="text-muted-foreground hover:text-foreground text-xs leading-none">✕</button>
+              <button onClick={() => setSearchInput("")} className="text-slate-400 hover:text-slate-600 text-xs p-1">✕</button>
             )}
           </div>
 
@@ -392,54 +390,54 @@ export default function SackRegistrationPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b bg-muted/40">
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground w-10">No.</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Represent</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Farmer</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Sack (kg)</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registered By</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registered At</th>
-                      <th className="px-4 py-3 w-10" />
+                    <tr className="border-b bg-slate-50/50 border-slate-100">
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider w-10">No.</th>
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Represent</th>
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Farmer</th>
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Sack (kg)</th>
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Registered By</th>
+                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Registered At</th>
+                      <th className="px-4 py-3 w-10 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {records.map((rec, idx) => {
                       const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
                       return (
-                        <tr key={rec.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
-                          <td className="px-4 py-3">{rec.represent_name}</td>
-                          <td className="px-4 py-3">{rec.member_farmer_name}</td>
-                          <td className="px-4 py-3">{rec.sack_in_kg}</td>
+                        <tr key={rec.id} className="group/row border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 text-slate-400 text-xs">{idx + 1}</td>
+                          <td className="px-4 py-3 text-slate-900 font-medium">{rec.represent_name}</td>
+                          <td className="px-4 py-3 text-slate-700">{rec.member_farmer_name}</td>
+                          <td className="px-4 py-3 text-slate-900 font-bold tabular-nums">{rec.sack_in_kg}</td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                            <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border", status.className)}>
                               {status.label}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-muted-foreground text-xs">{rec.dl_user_name}</td>
-                          <td className="px-4 py-3 text-muted-foreground text-xs">
+                          <td className="px-4 py-3 text-slate-500 text-xs font-medium">{rec.dl_user_name}</td>
+                          <td className="px-4 py-3 text-slate-400 text-xs">
                             {new Date(rec.registered_at).toLocaleDateString()}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center justify-center gap-1 opacity-60 group-hover/row:opacity-100 transition-opacity">
                               <button
                                 onClick={() => setViewTarget(rec)}
-                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-1 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors"
                               >
-                                <IconEye className="h-4 w-4" />
+                                <IconEye className="size-4" stroke={1.5} />
                               </button>
                               <button
                                 onClick={() => setEditTarget(rec)}
-                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                className="p-1 rounded-md hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
                               >
-                                <IconPencil className="h-4 w-4" />
+                                <IconPencil className="size-4" stroke={1.5} />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget({ id: rec.id, no: idx + 1 })}
-                                className="p-1 rounded hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors"
+                                className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
                               >
-                                <IconTrash className="h-4 w-4" />
+                                <IconTrash className="size-4" stroke={1.5} />
                               </button>
                             </div>
                           </td>

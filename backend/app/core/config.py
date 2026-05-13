@@ -13,7 +13,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    BACKEND_CORS_ORIGINS: list[str] = ["*"] # Change this in .env for production (e.g., ["http://localhost:3000"])
+    BACKEND_CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ] # Change this in .env for production (e.g., ["http://localhost:3000"])
     # MySQL Configuration
     MYSQL_USER: str
     MYSQL_PASSWORD: str

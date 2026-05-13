@@ -70,22 +70,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="flex h-12 items-center gap-3 bg-transparent px-3 w-full group/logo cursor-pointer hover:bg-sidebar-accent/30 transition-all duration-300 group-data-[collapsible=icon]/sidebar:px-0 group-data-[collapsible=icon]/sidebar:bg-transparent group-data-[collapsible=icon]/sidebar:border-none group-data-[collapsible=icon]/sidebar:justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[#009640]/0 group-hover:bg-[#009640]/2 transition-colors duration-500" />
 
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#009640] to-[#007a33] shadow-[0_4px_12px_rgba(0,150,64,0.2)] transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_6px_20px_rgba(0,150,64,0.3)] relative z-10">
-            <div className="absolute inset-0 animate-pulse bg-white/20 group-hover:animate-none opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 transition-all duration-500 group-hover:bg-emerald-100/80 relative z-10 shadow-xs border border-emerald-100/50">
             <Image
               src="/assets/newKAIC.png"
               alt="KAIC Logo"
               width={18}
               height={18}
-              className="object-contain brightness-0 invert relative z-20 transition-transform duration-500 group-hover:scale-110"
+              className="object-contain relative z-20 transition-transform duration-500 group-hover:scale-110"
             />
           </div>
 
           <div className="flex flex-col truncate group-data-[collapsible=icon]/sidebar:hidden flex-1 relative z-10">
-            <span className="font-branding text-sm tracking-[0.12em] text-[#009640] group-hover:text-[#008a3b] transition-colors duration-300 uppercase">
-              K.A.I.C
+            <span className="text-sm font-bold tracking-tight text-slate-900 group-hover:text-slate-800 transition-colors duration-300 uppercase leading-none">
+              KAIC
             </span>
-            <span className="text-[9px] font-branding text-muted-foreground tracking-wider uppercase -mt-0.5">
+            <span className="text-[10px] font-medium text-slate-400 tracking-[0.15em] uppercase ">
               Internal System
             </span>
           </div>

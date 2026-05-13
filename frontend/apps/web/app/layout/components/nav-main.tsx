@@ -38,53 +38,41 @@ export function NavMain({
                 asChild
                 isActive={isActive}
                 className={cn(
-                  "group/btn relative overflow-hidden transition-all duration-500 ease-in-out",
-                  // Sizing
-                  "h-10 px-4 group-data-[collapsible=icon]/sidebar:h-11 group-data-[collapsible=icon]/sidebar:w-11 group-data-[collapsible=icon]/sidebar:p-0 group-data-[collapsible=icon]/sidebar:flex group-data-[collapsible=icon]/sidebar:items-center group-data-[collapsible=icon]/sidebar:justify-center",
-                  // Shape
-                  "rounded-none group-data-[collapsible=icon]/sidebar:rounded-full",
-                  // Active State
-                  isActive
-                    ? "bg-[#009640]! text-white! hover:bg-[#008a3b]!"
-                    : "hover:bg-[#009640]/5 active:bg-[#009640]/10"
+                  "group/btn relative transition-all duration-300 ease-in-out h-9 px-3",
+                  isActive 
+                    ? "bg-emerald-50 text-emerald-700 font-medium" 
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/50"
                 )}
               >
-                <Link href={item.url} className="flex items-center gap-2 group-data-[collapsible=icon]/sidebar:gap-0 group-data-[collapsible=icon]/sidebar:justify-center">
+                <Link href={item.url} className="flex items-center gap-3 w-full">
+                  {/* Indicator Line */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-emerald-500 rounded-r-full" />
+                  )}
+
                   {item.icon && (
                     <div className={cn(
                       "flex items-center justify-center transition-colors duration-300",
-                      isActive ? "text-white" : "text-muted-foreground group-hover/btn:text-foreground"
+                      isActive ? "text-emerald-600" : "text-slate-400 group-hover/btn:text-slate-600"
                     )}>
-                      <item.icon size={17} stroke={2} />
+                      <item.icon size={18} stroke={1.5} />
                     </div>
                   )}
                   <span className={cn(
-                    "truncate text-[13px] transition-all duration-300 group-data-[collapsible=icon]/sidebar:hidden",
-                    isActive ? "font-bold text-white" : "text-sidebar-foreground/80 group-hover/btn:text-sidebar-foreground"
+                    "truncate text-sm transition-all duration-300",
+                    isActive ? "font-semibold" : "font-medium"
                   )}>
                     {item.title}
                   </span>
 
                   {item.badge && (
-                    <span className={cn(
-                      "ml-auto flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold group-data-[collapsible=icon]/sidebar:hidden",
-                      isActive ? "bg-white text-[#009640]" : "bg-[#009640] text-white"
-                    )}>
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1">
                       {item.badge}
                     </span>
                   )}
 
                   {item.hasUpdate && !item.badge && (
-                    <div className="ml-auto h-2 w-2 relative group-data-[collapsible=icon]/sidebar:hidden">
-                      <span className={cn(
-                        "absolute inset-0 animate-ping rounded-full opacity-75",
-                        isActive ? "bg-white" : "bg-green-400"
-                      )} />
-                      <span className={cn(
-                        "relative block h-2 w-2 rounded-full",
-                        isActive ? "bg-white" : "bg-[#009640]"
-                      )} />
-                    </div>
+                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   )}
                 </Link>
               </SidebarMenuButton>
