@@ -8,7 +8,14 @@ import {
   SackRegistrationItem,
 } from "@/lib/api-client"
 import { toast } from "sonner"
-import { IconArrowsSort, IconChevronDown, IconCalendar, IconEye, IconLayoutGrid, IconLayoutList, IconLoader2, IconMoneybag, IconPencil, IconPlus, IconSearch, IconSortAscending, IconSortDescending, IconTrash, IconFilter } from "@tabler/icons-react"
+import {
+  IconArrowsSort, IconChevronDown, IconCalendar, IconEye,
+  IconLayoutGrid, IconLayoutList, IconLoader2,
+  IconPencil, IconPlus, IconSearch, IconSortAscending,
+  IconSortDescending, IconTrash, IconFilter, IconUser,
+  IconUsers, IconClock, IconWeight
+
+} from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
@@ -141,8 +148,8 @@ export default function SackRegistrationPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-xl font-bold text-slate-900 whitespace-nowrap">Sack Registration</h1>
-          <p className="text-xs text-slate-500 truncate hidden sm:block">Register and manage sacks for tobacco processing.</p>
+          <h1 className="text-xl font-medium text-foreground whitespace-nowrap">Sack Registration</h1>
+          <p className="text-sm text-muted-foreground truncate hidden sm:block">Register and manage sacks for tobacco processing.</p>
         </div>
         <Button
           onClick={() => setRegisterOpen(true)}
@@ -455,60 +462,19 @@ export default function SackRegistrationPage() {
       {/* Grid View (Shown if view is 'grid' OR on mobile/tablet when view is 'list') */}
       {!isLoading && records.length > 0 && (
         <div className={cn(
-          "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3",
+          "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4",
           view === "list" && "md:hidden"
         )}>
-          {records.map((rec, idx) => {
-            const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
-            return (
-              <div
-                key={rec.id}
-                className="group relative flex flex-col gap-2 rounded-sm border border-border bg-card px-3 py-2.5 transition-all duration-200 hover:shadow-sm hover:border-border/80 mb-2"
-              >
-                {/* Top row: index + status */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-medium text-muted-foreground/60">No. {idx + 1}</span>
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border ${status.className}`}>
-                    {status.label}
-                  </span>
-                </div>
-
-                {/* Farmer + Represent */}
-                <div className="flex flex-col min-w-0 -mt-0.5">
-                  <div className="flex items-baseline gap-1 min-w-0">
-                    <span className="text-[13px] text-muted-foreground shrink-0">Farmer:</span>
-                    <span className="text-sm font-semibold truncate leading-tight">{rec.member_farmer_name}</span>
-                  </div>
-                  <div className="flex items-baseline gap-1 min-w-0">
-                    <span className="text-[13px] text-muted-foreground shrink-0">Representative:</span>
-                    <span className="text-[13px] text-muted-foreground truncate">{rec.represent_name}</span>
-                  </div>
-                </div>
-
-                {/* Footer: kg · date */}
-                <div className="flex items-center justify-between pt-1.5 border-t border-border/60">
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                      <IconMoneybag className="h-3 w-3 text-muted-foreground" />
-                      {rec.sack_in_kg} kg
-                    </span>
-                    <span>·</span>
-                    <span className="inline-flex items-center gap-1">
-                      <IconCalendar className="h-3 w-3 text-muted-foreground" />
-                      {new Date(rec.registered_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Overlay — last in DOM so it's above non-positioned content, below z-[1] action buttons */}
-                <button
-                  onClick={() => setViewTarget(rec)}
-                  className="absolute inset-0 rounded-sm cursor-pointer focus:outline-none"
-                  aria-label={`View detail for ${rec.member_farmer_name}`}
-                />
-              </div>
-            )
-          })}
+          {records.map((rec, idx) => (
+            <SackRegistrationCard
+              key={rec.id}
+              rec={rec}
+              index={idx}
+              onView={setViewTarget}
+              onEdit={setEditTarget}
+              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: idx + 1 })}
+            />
+          ))}
         </div>
       )}
 
@@ -532,3 +498,115 @@ export default function SackRegistrationPage() {
     </div>
   )
 }
+
+// ── Enhanced Grid Card Component ──────────────────────────────────────────
+
+const SackRegistrationCard = React.memo(({
+  rec, index, onView, onEdit, onDelete
+}: {
+  rec: SackRegistrationItem,
+  index: number,
+  onView: (rec: SackRegistrationItem) => void,
+  onEdit: (rec: SackRegistrationItem) => void,
+  onDelete: (rec: SackRegistrationItem) => void
+}) => {
+  const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
+
+  return (
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:ring-1 hover:ring-emerald-500/20">
+      {/* Card Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center size-5 rounded bg-[#009640] text-white text-[10px] font-bold shadow-xs">
+            {index + 1}
+          </div>
+          <span className="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            ID: {rec.id.toString().padStart(5, '0')}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+          <button onClick={() => onView(rec)} className="p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-all">
+            <IconEye className="size-3.5" stroke={1.5} />
+          </button>
+          <button onClick={() => onEdit(rec)} className="p-1.5 rounded-md hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all">
+            <IconPencil className="size-3.5" stroke={1.5} />
+          </button>
+          <button onClick={() => onDelete(rec)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all">
+            <IconTrash className="size-3.5" stroke={1.5} />
+          </button>
+        </div>
+      </div>
+
+      {/* Card Body */}
+      <div className="p-4 flex flex-col gap-4 flex-1">
+        {/* Main Participant */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-slate-400">
+            <IconUser className="size-3" stroke={1.5} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Member Farmer</span>
+          </div>
+          <p className="text-[14px] font-bold text-slate-900 leading-tight line-clamp-1 pl-4.5">
+            {rec.member_farmer_name}
+          </p>
+        </div>
+
+        {/* Support Section */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-slate-400">
+            <IconUsers className="size-3" stroke={1.5} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Represent Group</span>
+          </div>
+          <p className="text-[12px] font-medium text-slate-600 line-clamp-1 pl-4.5">
+            {rec.represent_name}
+          </p>
+        </div>
+
+        {/* Metadata Grid */}
+        <div className="grid grid-cols-2 gap-3 p-3 rounded-md bg-slate-50 border border-slate-100 mt-auto">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Sack weight</span>
+            <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
+              <IconWeight className="size-3" stroke={2} />
+              <span className="text-[13px] tabular-nums">{rec.sack_in_kg} kg</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-0.5 text-right items-end">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Status</span>
+            <span className={cn(
+              "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black border uppercase tracking-wider",
+              status.className
+            )}>
+              {status.label}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Card Footer */}
+      <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-100 mt-auto flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <IconClock className="size-3 text-slate-300" stroke={1.5} />
+          <span className="text-[10px] font-medium text-slate-500 tabular-nums">
+            {new Date(rec.registered_at).toLocaleDateString()}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="size-1.5 rounded-full bg-slate-300" />
+          <span className="text-[10px] font-bold text-slate-400 truncate max-w-[80px]">
+            {rec.dl_user_name}
+          </span>
+        </div>
+      </div>
+
+      {/* Click Overlay */}
+      <button
+        onClick={() => onView(rec)}
+        className="absolute inset-0 z-0 cursor-pointer focus:outline-none"
+        aria-label={`View ${rec.member_farmer_name}`}
+      />
+    </div>
+  )
+})
+
+SackRegistrationCard.displayName = "SackRegistrationCard"
