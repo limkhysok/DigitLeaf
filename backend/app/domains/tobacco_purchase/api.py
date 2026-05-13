@@ -52,12 +52,17 @@ def create_purchase(
 ):
     """Create a new tobacco purchase with details."""
     ip_address = request.client.host if request.client else "unknown"
-    return crud.create_purchase(
+    purchase = crud.create_purchase(
         db=session,
         obj_in=data,
         user_name=current_user.user_name,
         ip_address=ip_address
     )
+    raw_details = crud.get_purchase_details(db=session, invoice_num=purchase.invoice_num)
+    detail_schemas = [schemas.PurchaseDetail.model_validate(d) for d in raw_details]
+    result = schemas.Purchase.model_validate(purchase)
+    result.details = detail_schemas
+    return result
 
 @router.get("/", response_model=schemas.PurchaseList)
 def list_purchases(
@@ -81,13 +86,12 @@ def get_purchase(
     purchase = crud.get_purchase(db=session, tp_id=tp_id)
     if not purchase:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    
-    # Details are handled by the relationship if defined, 
-    # but here we'll manually attach them if needed, or let schemas handle it if defined in model.
-    # Note: In our model we haven't defined relationship yet. 
-    # Let's add the details to the object for the response model.
-    purchase.details = crud.get_purchase_details(db=session, invoice_num=purchase.invoice_num)
-    return purchase
+
+    raw_details = crud.get_purchase_details(db=session, invoice_num=purchase.invoice_num)
+    detail_schemas = [schemas.PurchaseDetail.model_validate(d) for d in raw_details]
+    result = schemas.Purchase.model_validate(purchase)
+    result.details = detail_schemas
+    return result
 
 @router.patch("/{tp_id}", response_model=schemas.Purchase, responses={404: {"description": _NOT_FOUND}})
 def update_purchase(

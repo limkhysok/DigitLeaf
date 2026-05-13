@@ -20,9 +20,12 @@ class TobaccoPurchaseDetail(SQLModel, table=True):
     user: Optional[str] = Field(default=None, max_length=50)
     do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     ip_address: Optional[str] = Field(default=None)
-    edit_user: Optional[str] = Field(default=None, max_length=50)
-    edit_do_date: Optional[datetime] = None
-    edit_ip_address: Optional[str] = Field(default=None)
+    edit_user: str = Field(default="", max_length=50)
+    edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    edit_ip_address: str = Field(default="")
+    remork_in_kg: Optional[float] = Field(default=None)
+    gross_weight: Optional[float] = Field(default=None)
+    total_amount: Optional[float] = Field(default=None)
 
     def __str__(self):
         return f"{self.invoice_num} - {self.tpd_id}"

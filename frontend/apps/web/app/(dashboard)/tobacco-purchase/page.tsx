@@ -82,17 +82,20 @@ export default function TobaccoPurchasePage() {
     return () => clearTimeout(timer)
   }, [isAuthLoading, tokens, fetchRecords])
 
-  const handleEdit = (record: TobaccoPurchase) => {
-    setSelectedRecord(record)
-    setIsViewOnly(false)
-    setDialogOpen(true)
-  }
+  const openRecord = React.useCallback(async (record: TobaccoPurchase, viewOnly: boolean) => {
+    if (!tokens?.access_token) return
+    try {
+      const full = await apiClient.getTobaccoPurchase(tokens.access_token, record.tp_id)
+      setSelectedRecord(full)
+      setIsViewOnly(viewOnly)
+      setDialogOpen(true)
+    } catch {
+      toast.error("Failed to load purchase details")
+    }
+  }, [tokens])
 
-  const handleView = (record: TobaccoPurchase) => {
-    setSelectedRecord(record)
-    setIsViewOnly(true)
-    setDialogOpen(true)
-  }
+  const handleEdit = (record: TobaccoPurchase) => openRecord(record, false)
+  const handleView = (record: TobaccoPurchase) => openRecord(record, true)
 
   const handleDelete = async () => {
     if (!deleteId || !tokens?.access_token) return
@@ -231,15 +234,16 @@ const TobaccoPurchaseTable = React.memo(({
       <table className="w-full text-sm text-left">
         <thead className="bg-muted/40 border-b">
           <tr>
-            <th className="px-4 py-3 font-medium text-muted-foreground w-12 text-center">No</th>
+            <th className="px-4 py-3 font-medium text-muted-foreground w-10 text-center">No</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Invoice</th>
+            <th className="px-4 py-3 font-medium text-muted-foreground">Date</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Buyer</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Vendor</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Region</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Address</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">Assigned By</th>
             <th className="px-4 py-3 font-medium text-muted-foreground">Oven</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground text-right">Rate(៛)</th>
+            <th className="px-4 py-3 font-medium text-muted-foreground text-center">Items</th>
+            <th className="px-4 py-3 font-medium text-primary/70 text-right">Net Weight(KG)</th>
+            <th className="px-4 py-3 font-medium text-emerald-700/70 text-right">Grand Total(៛)</th>
             <th className="px-4 py-3 font-medium text-muted-foreground text-center">Actions</th>
           </tr>
         </thead>
@@ -277,15 +281,28 @@ const TobaccoPurchaseRow = React.memo(({
 }) => {
   return (
     <tr className="hover:bg-muted/30 transition-colors">
-      <td className="px-4 py-3 text-center text-muted-foreground">{index + 1}</td>
-      <td className="px-4 py-3 font-mono  font-medium text-primary">{rec.invoice_num}</td>
-      <td className="px-4 py-3">{purchaser?.p_name || "-"}</td>
-      <td className="px-4 py-3">{rec.vendor || "-"}</td>
-      <td className="px-4 py-3 ">{region?.reg_name || "-"}</td>
-      <td className="px-4 py-3 ">{rec.v_addr || "-"}</td>
-      <td className="px-4 py-3 text-muted-foreground">{rec.user || "-"}</td>
-      <td className="px-4 py-3 ">{oven?.name_en || "-"}</td>
-      <td className="px-4 py-3 text-right font-medium">{rec.rate.toLocaleString()}</td>
+      <td className="px-4 py-3 text-center text-muted-foreground text-xs">{index + 1}</td>
+      <td className="px-4 py-3 font-mono text-[13px] font-semibold text-primary">{rec.invoice_num}</td>
+      <td className="px-4 py-3 text-[13px] text-muted-foreground whitespace-nowrap">{rec.tp_date || "-"}</td>
+      <td className="px-4 py-3 text-[13px]">{purchaser?.p_name || "-"}</td>
+      <td className="px-4 py-3 text-[13px] font-medium">{rec.vendor || "-"}</td>
+      <td className="px-4 py-3 text-[13px]">{region?.reg_name || "-"}</td>
+      <td className="px-4 py-3 text-[13px]">{oven?.name_en || "-"}</td>
+      <td className="px-4 py-3 text-center">
+        {rec.tobacco_item_count == null ? (
+          <span className="text-muted-foreground text-xs">-</span>
+        ) : (
+          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold">
+            {rec.tobacco_item_count}
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3 text-right text-[13px] font-bold text-primary tabular-nums">
+        {rec.total_net_weight == null ? "-" : rec.total_net_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </td>
+      <td className="px-4 py-3 text-right text-[13px] font-bold text-emerald-700 tabular-nums">
+        {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
+      </td>
       <td className="px-4 py-3">
         <div className="flex items-center justify-center gap-1">
           <Button

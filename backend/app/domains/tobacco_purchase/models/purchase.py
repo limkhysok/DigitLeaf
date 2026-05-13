@@ -15,14 +15,17 @@ class TobaccoPurchase(SQLModel, table=True):
     tp_date: date = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ).date())
     tp_note: Optional[str] = Field(default=None, max_length=255)
     user: Optional[str] = Field(default=None, max_length=255)
-    closing: Optional[str] = Field(default=None, max_length=3)
+    closing: str = Field(default="NO", max_length=3)
     oven: Optional[int] = None
     rate: int = Field() # Required input
     do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     ip_address: Optional[str] = Field(default=None)
-    edit_user: Optional[str] = Field(default=None, max_length=50)
-    edit_do_date: Optional[datetime] = None
-    edit_ip_address: Optional[str] = Field(default=None)
+    edit_user: str = Field(default="", max_length=50)
+    edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    edit_ip_address: str = Field(default="")
+    tobacco_item_count: Optional[int] = Field(default=None)
+    total_net_weight: Optional[float] = Field(default=None)
+    grand_total: Optional[float] = Field(default=None)
 
     def __str__(self):
         return self.invoice_num
