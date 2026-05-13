@@ -75,8 +75,6 @@ def get_all(
     limit: int = 200,
     search: Optional[str] = None,
     status: Optional[int] = None,
-    sort_by: Optional[str] = None,
-    order: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
 ) -> tuple[list[SackRegistration], int]:
@@ -104,11 +102,7 @@ def get_all(
         stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
         count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
 
-    if sort_by == "sack_in_kg":
-        col = SackRegistration.sack_in_kg
-        stmt = stmt.order_by(col.asc() if order == "asc" else col.desc())
-    else:
-        stmt = stmt.order_by(SackRegistration.created_at.desc())
+    stmt = stmt.order_by(SackRegistration.created_at.desc())
 
     total: int = session.exec(count_stmt).one()
     items = list(session.exec(stmt.offset(skip).limit(limit)).all())
@@ -140,7 +134,6 @@ def create(
         member_farmer_name=farmer.name,
         dl_user_id=current_user_id,
         dl_user_name=current_user_name,
-        sack_in_kg=data.sack_in_kg,
         status=data.status,
         notes=data.notes,
         **({"registered_at": data.registered_at} if data.registered_at else {}),

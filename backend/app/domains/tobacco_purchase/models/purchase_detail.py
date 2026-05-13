@@ -25,8 +25,10 @@ class TobaccoPurchaseDetail(SQLModel, table=True):
     edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     edit_ip_address: str = Field(default="")
     remork_in_kg: float = Field(default=0.0)
+    sack_in_kg: float = Field(default=0.0)
     gross_weight: float = Field(default=0.0)
     total_amount: float = Field(default=0.0)
+
 
 
     def __str__(self):

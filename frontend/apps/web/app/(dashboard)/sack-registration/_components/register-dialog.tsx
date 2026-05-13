@@ -43,7 +43,6 @@ export function RegisterDialog({
   const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
   const [farmerOpen, setFarmerOpen] = React.useState(false)
   const [isFarmerSearching, setIsFarmerSearching] = React.useState(false)
-  const [sackInKg, setSackInKg] = React.useState("1")
   const [registeredAt, setRegisteredAt] = React.useState<Date | null>(null)
   React.useEffect(() => {
     const timer = setTimeout(() => setRegisteredAt(new Date()), 0)
@@ -106,7 +105,6 @@ export function RegisterDialog({
       await apiClient.createSackRegistration(accessToken, {
         represent_id: Number(representId),
         member_farmer_identity_card: farmerResult.mf_code,
-        sack_in_kg: Number(sackInKg),
         registered_at: format(registeredAt, "yyyy-MM-dd"),
         notes: notes.trim() || undefined,
       })
@@ -114,7 +112,7 @@ export function RegisterDialog({
       onSuccess()
       onClose()
       // reset
-      setRepresentId(""); setRepresentSearch(""); setFarmerQuery(""); setFarmerResult(null); setSackInKg("1"); setNotes(""); setRegisteredAt(new Date())
+      setRepresentId(""); setRepresentSearch(""); setFarmerQuery(""); setFarmerResult(null); setNotes(""); setRegisteredAt(new Date())
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -235,10 +233,6 @@ export function RegisterDialog({
             </Popover>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack (kg)</Label>
-            <Input className="h-9 text-sm" type="number" min={1} value={sackInKg} onChange={(e) => setSackInKg(e.target.value)} required />
-          </div>
 
           <div className="space-y-1.5">
             <Label className="text-xs capitalize tracking-wide text-muted-foreground">Notes <span className="font-normal text-muted-foreground/60">(optional)</span></Label>

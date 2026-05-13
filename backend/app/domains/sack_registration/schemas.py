@@ -24,7 +24,6 @@ class SackRegistrationCreate(BaseModel):
     represent_id: int = Field(..., description="Selected represent ID from dropdown")
     member_farmer_name: Optional[str] = Field(default=None, max_length=255, description="Search farmer by name")
     member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Search farmer by identity card")
-    sack_in_kg: int = Field(default=1, ge=1)
     status: int = Field(default=0, description="0=pending, 1=approved, 2=rejected")
     notes: Optional[str] = Field(default=None, max_length=500)
     registered_at: Optional[datetime] = Field(default=None, description="Date of registration (defaults to now)")
@@ -38,7 +37,6 @@ class SackRegistrationCreate(BaseModel):
 
 class SackRegistrationUpdate(BaseModel):
     member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Change farmer by mf_code")
-    sack_in_kg: Optional[int] = Field(default=None, ge=1)
     status: Optional[int] = Field(default=None, description="0=pending, 1=approved, 2=rejected")
     notes: Optional[str] = Field(default=None, max_length=500)
 
@@ -51,7 +49,6 @@ class SackRegistrationPublic(BaseModel):
     member_farmer_name: str
     dl_user_id: int
     dl_user_name: str
-    sack_in_kg: int
     status: int
     notes: Optional[str] = None
     registered_at: datetime

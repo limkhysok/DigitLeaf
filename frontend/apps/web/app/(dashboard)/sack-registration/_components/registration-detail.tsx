@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconUsers, IconUser, IconMoneybag, IconCalendar } from "@tabler/icons-react"
+import { IconUsers, IconUser, IconCalendar } from "@tabler/icons-react"
 import { SackRegistrationItem } from "@/lib/api-client"
 import { STATUS_MAP } from "./constants"
 
@@ -26,13 +26,6 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] text-muted-foreground">Farmer</span>
             <span className="text-xs font-medium truncate">{target.member_farmer_name}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 px-3 py-2">
-          <IconMoneybag className="size-3.5 shrink-0 text-muted-foreground" />
-          <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-muted-foreground">Sack Weight</span>
-            <span className="text-xs font-medium">{target.sack_in_kg} kg</span>
           </div>
         </div>
         <div className="flex items-center gap-3 px-3 py-2">

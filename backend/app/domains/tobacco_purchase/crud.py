@@ -45,11 +45,11 @@ def _sync_purchase_details(
         # With cascade delete-orphan, we can just clear the list
         db_obj.details.clear()
         db.flush()
-            
+
     tobacco_item_count = len(details)
     total_net_weight = 0.0
     grand_total = 0.0
-    max_sack_kg = 0.0
+    max_sack_kg_val = 0.0
     
     new_details = []
     for detail_in in details:
@@ -59,10 +59,11 @@ def _sync_purchase_details(
         
         total_net_weight += net
         grand_total += total_amount
-        max_sack_kg = max(max_sack_kg, detail_in.sack_in_kg or 0)
+        max_sack_kg_val = max(max_sack_kg_val, detail_in.sack_in_kg or 0)
         
         db_detail = TobaccoPurchaseDetail(
-            **detail_in.model_dump(exclude={"invoice_num", "m_id", "sack_in_kg"}, exclude_none=True),
+            **detail_in.model_dump(exclude={"invoice_num", "m_id"}, exclude_none=True),
+
             invoice_num=db_obj.invoice_num,
             m_id=db_obj.tp_id,
             qty=round(net, 3),
@@ -80,8 +81,8 @@ def _sync_purchase_details(
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
 
-    # Handle vendor sack registration (approve and record sack weight)
-    if db_obj.vendor and max_sack_kg > 0:
+    # Handle vendor sack registration (approve when purchase is made)
+    if db_obj.vendor and max_sack_kg_val > 0:
         sack_reg = db.exec(
             select(SackRegistration)
             .where(SackRegistration.member_farmer_name == db_obj.vendor)
@@ -89,10 +90,10 @@ def _sync_purchase_details(
             .order_by(SackRegistration.registered_at.desc())
         ).first()
         if sack_reg:
-            sack_reg.sack_in_kg = int(max_sack_kg)
             sack_reg.status = 1
             sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
             db.add(sack_reg)
+
 
 def create_purchase(
     db: Session, 

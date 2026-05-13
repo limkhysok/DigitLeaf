@@ -26,8 +26,8 @@ export const DATE_PRESETS = [
   { label: "All", value: "all" },
 ]
 
-export type SortOrder = "default" | "asc" | "desc"
-export const SORT_CYCLE: Record<SortOrder, SortOrder> = { default: "asc", asc: "desc", desc: "default" }
+export type SortOrder = "default"
+export const SORT_CYCLE: Record<SortOrder, SortOrder> = { default: "default" }
 
 export function getDateRange(preset: string): { date_from?: string; date_to?: string } {
   const today = new Date()
@@ -59,6 +59,7 @@ export function buildFetchParams(
   const params: SackRegistrationListParams = { skip, limit: 200 }
   if (search.trim()) params.search = search.trim()
   if (statusFilter !== null) params.status = statusFilter
-  if (sortOrder !== "default") { params.sort_by = "sack_in_kg"; params.order = sortOrder }
+  // Sort is handled by default in backend (created_at desc)
   return { ...params, ...getDateRange(datePreset) }
 }
+

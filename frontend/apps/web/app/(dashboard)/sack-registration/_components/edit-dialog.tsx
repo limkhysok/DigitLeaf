@@ -29,7 +29,6 @@ export function EditDialog({
   readonly onSuccess: () => void
   readonly accessToken?: string
 }) {
-  const [sackInKg, setSackInKg] = React.useState("1")
   const [status, setStatus] = React.useState("0")
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -43,7 +42,6 @@ export function EditDialog({
   React.useEffect(() => {
     if (target) {
       const timer = setTimeout(() => {
-        setSackInKg(String(target.sack_in_kg))
         setStatus(String(target.status))
         setNotes(target.notes ?? "")
         setFarmerQuery(target.member_farmer_name)
@@ -94,7 +92,6 @@ export function EditDialog({
     try {
       await apiClient.updateSackRegistration(accessToken, target.id, {
         ...(farmerResult ? { member_farmer_identity_card: farmerResult.mf_code } : {}),
-        sack_in_kg: Number(sackInKg),
         status: Number(status),
         notes: notes.trim() || undefined,
       })
@@ -177,10 +174,6 @@ export function EditDialog({
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack (kg)</Label>
-              <Input className="h-9 text-sm" type="number" min={1} value={sackInKg} onChange={(e) => setSackInKg(e.target.value)} required />
-            </div>
 
             <div className="space-y-1.5">
               <Label className="text-xs capitalize tracking-wide text-muted-foreground">Status</Label>

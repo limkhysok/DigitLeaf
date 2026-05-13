@@ -74,9 +74,8 @@ def list_registrations(
     limit: int = 200,
     search: Optional[str] = None,
     status: Optional[int] = None,
-    sort_by: Optional[str] = None,
-    order: Optional[str] = None,
     date_from: Optional[date] = None,
+
     date_to: Optional[date] = None,
 ):
     items, total = crud.get_all(
@@ -85,11 +84,10 @@ def list_registrations(
         limit=limit,
         search=search,
         status=status,
-        sort_by=sort_by,
-        order=order,
         date_from=date_from,
         date_to=date_to,
     )
+
     return SackRegistrationListResponse(
         items=items,
         total=total,

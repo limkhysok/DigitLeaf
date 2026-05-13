@@ -11,9 +11,8 @@ import { toast } from "sonner"
 import {
   IconArrowsSort, IconChevronDown, IconCalendar, IconEye,
   IconLayoutGrid, IconLayoutList, IconLoader2,
-  IconPencil, IconPlus, IconSearch, IconSortAscending,
-  IconSortDescending, IconTrash, IconFilter, IconUser,
-  IconUsers, IconClock, IconWeight
+  IconPencil, IconPlus, IconSearch, IconTrash, IconFilter, IconUser,
+  IconUsers, IconClock
 
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
@@ -136,10 +135,8 @@ export default function SackRegistrationPage() {
 
   if (!mounted) return null
 
-  const SORT_CONFIG: Record<"default" | "asc" | "desc", { icon: typeof IconArrowsSort; label: string }> = {
+  const SORT_CONFIG: Record<"default", { icon: typeof IconArrowsSort; label: string }> = {
     default: { icon: IconArrowsSort, label: "Newest First" },
-    asc: { icon: IconSortAscending, label: "Sack kg ↑" },
-    desc: { icon: IconSortDescending, label: "Sack kg ↓" },
   }
   const { icon: SortIcon, label: sortLabel } = SORT_CONFIG[sortOrder]
 
@@ -401,7 +398,6 @@ export default function SackRegistrationPage() {
                       <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider w-10">No.</th>
                       <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Represent</th>
                       <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Farmer</th>
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Sack (kg)</th>
                       <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Registered By</th>
                       <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Registered At</th>
@@ -416,7 +412,6 @@ export default function SackRegistrationPage() {
                           <td className="px-4 py-3 text-slate-400 text-xs">{idx + 1}</td>
                           <td className="px-4 py-3 text-slate-900 font-medium">{rec.represent_name}</td>
                           <td className="px-4 py-3 text-slate-700">{rec.member_farmer_name}</td>
-                          <td className="px-4 py-3 text-slate-900 font-bold tabular-nums">{rec.sack_in_kg}</td>
                           <td className="px-4 py-3">
                             <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border", status.className)}>
                               {status.label}
@@ -563,15 +558,8 @@ const SackRegistrationCard = React.memo(({
         </div>
 
         {/* Metadata Grid */}
-        <div className="grid grid-cols-2 gap-3 p-3 rounded-md bg-slate-50 border border-slate-100 mt-auto">
+        <div className="flex items-center justify-between p-3 rounded-md bg-slate-50 border border-slate-100 mt-auto">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Sack weight</span>
-            <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
-              <IconWeight className="size-3" stroke={2} />
-              <span className="text-[13px] tabular-nums">{rec.sack_in_kg} kg</span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-0.5 text-right items-end">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Status</span>
             <span className={cn(
               "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black border uppercase tracking-wider",
@@ -581,6 +569,7 @@ const SackRegistrationCard = React.memo(({
             </span>
           </div>
         </div>
+
       </div>
 
       {/* Card Footer */}
