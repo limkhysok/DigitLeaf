@@ -35,13 +35,14 @@ def list_ovens(
     """List all ovens."""
     return crud.get_ovens(db=session)
 
-@router.get("/tobacco-types")
+@router.get("/tobacco-types", response_model=List[schemas.TobaccoItem])
 def list_tobacco_types(
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     """List all active tobacco types."""
     return crud.get_tobacco_types(db=session)
+
 
 @router.get("/vendors", response_model=List[schemas.VendorItem])
 def list_vendors_by_buyer(
@@ -67,11 +68,8 @@ def create_purchase(
         user_name=current_user.user_name,
         ip_address=ip_address
     )
-    raw_details = crud.get_purchase_details(db=session, invoice_num=purchase.invoice_num)
-    detail_schemas = [schemas.PurchaseDetail.model_validate(d) for d in raw_details]
-    result = schemas.Purchase.model_validate(purchase)
-    result.details = detail_schemas
-    return result
+    # details are pre-loaded via Relationship(lazy="selectin")
+    return purchase
 
 @router.get("/", response_model=schemas.PurchaseList)
 def list_purchases(
@@ -96,11 +94,8 @@ def get_purchase(
     if not purchase:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
 
-    raw_details = crud.get_purchase_details(db=session, invoice_num=purchase.invoice_num)
-    detail_schemas = [schemas.PurchaseDetail.model_validate(d) for d in raw_details]
-    result = schemas.Purchase.model_validate(purchase)
-    result.details = detail_schemas
-    return result
+    # details are pre-loaded via Relationship(lazy="selectin")
+    return purchase
 
 @router.patch("/{tp_id}", response_model=schemas.Purchase, responses={404: {"description": _NOT_FOUND}})
 def update_purchase(
@@ -135,3 +130,4 @@ def delete_purchase(
     if not success:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
     return None
+

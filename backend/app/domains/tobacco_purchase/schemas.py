@@ -1,6 +1,7 @@
 from typing import List, Optional
 from datetime import date, datetime
 from pydantic import BaseModel, Field
+from .constants import ClosingStatus
 
 # ── Vendor (Member Farmer by Buyer) ──────────────────────────────────────
 
@@ -9,6 +10,14 @@ class VendorItem(BaseModel):
     name: str
     mf_code: str
     address: Optional[str] = None
+
+class TobaccoItem(BaseModel):
+    t_id: int
+    t_name: str
+    t_name_kh: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 # ── Purchase Detail Schemas ───────────────────────────────────────────────
 
@@ -19,7 +28,7 @@ class PurchaseDetailBase(BaseModel):
     remork_in_kg: Optional[float] = None
     sack_in_kg: Optional[float] = None
     CreatedDate: date = Field(default_factory=date.today)
-    closing: str = "NO"
+    closing: ClosingStatus = ClosingStatus.NO
     buyer: int = 0
     oven: int = 0
     region: int = 0
@@ -48,7 +57,7 @@ class PurchaseBase(BaseModel):
     region: Optional[int] = None
     tp_date: date = Field(default_factory=date.today)
     tp_note: Optional[str] = None
-    closing: Optional[str] = None
+    closing: ClosingStatus = ClosingStatus.NO
     oven: Optional[int] = None
     rate: int
 
@@ -62,7 +71,7 @@ class PurchaseUpdate(BaseModel):
     region: Optional[int] = None
     tp_date: Optional[date] = None
     tp_note: Optional[str] = None
-    closing: Optional[str] = None
+    closing: Optional[ClosingStatus] = None
     oven: Optional[int] = None
     rate: Optional[int] = None
     details: Optional[List[PurchaseDetailCreate]] = None
@@ -82,3 +91,4 @@ class Purchase(PurchaseBase):
 class PurchaseList(BaseModel):
     items: List[Purchase]
     total: int
+

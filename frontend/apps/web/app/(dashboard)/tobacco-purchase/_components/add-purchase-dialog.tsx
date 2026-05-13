@@ -46,7 +46,9 @@ import {
   Popover,
   PopoverContent,
   PopoverAnchor,
+  PopoverTrigger,
 } from "@workspace/ui/components/popover"
+
 import { cn } from "@workspace/ui/lib/utils"
 
 function maskDate(raw: string): string {
@@ -835,39 +837,69 @@ const PurchaseDetailRow = React.memo(({
       {/* Column 2: Tobacco Item */}
       <TableCell className="p-0 min-w-62.5 border-r border-border/60 align-middle">
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverAnchor asChild>
+          <PopoverTrigger asChild>
             <div className="relative group/type">
               <Input
-                placeholder="Item..."
+                placeholder="Search item..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value)
                   if (!open) setOpen(true)
                 }}
-                onFocus={() => setOpen(true)}
-                onClick={() => setOpen(true)}
+                onFocus={() => {
+                  setSearch("")
+                  setOpen(true)
+                }}
+                onClick={() => {
+                  setSearch("")
+                  setOpen(true)
+                }}
                 disabled={isReadOnly}
-                className="h-9 text-[12px] bg-transparent border-none shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3"
+                className="h-9 text-[12px] bg-transparent border-none shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3 cursor-pointer"
               />
             </div>
-          </PopoverAnchor>
+          </PopoverTrigger>
           <PopoverContent className="w-75 p-0 shadow-2xl border-border/50 z-100" align="start" sideOffset={4} onOpenAutoFocus={(e) => e.preventDefault()}>
             <div className="max-h-62.5 overflow-y-auto p-1">
-              {tobaccoTypes.filter(t => t.t_name.toLowerCase().includes(search.toLowerCase()) || t.t_name_kh?.toLowerCase().includes(search.toLowerCase()))
-                .map((t) => (
-                  <button key={t.t_id} type="button" className={cn("relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent", detail.tobacco_name === t.t_id && "bg-accent")}
-                    onClick={() => { onChange(index, "tobacco_name", t.t_id); setSearch(`${t.t_name} | ${t.t_name_kh || ""}`); setOpen(false) }}>
-                    <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                    <div className="flex flex-col items-start">
-                      <span className="font-bold text-[12px]">{t.t_name}</span>
-                      <span className="text-[12px] text-muted-foreground">{t.t_name_kh || "-"}</span>
-                    </div>
-                  </button>
-                ))}
+              {tobaccoTypes.length === 0 ? (
+                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
+                  No tobacco items found
+                </div>
+              ) : (
+                tobaccoTypes
+                  .filter(t => {
+                    const s = search.toLowerCase()
+                    return (t.t_name?.toLowerCase().includes(s) || 
+                            t.t_name_kh?.toLowerCase().includes(s))
+                  })
+
+                  .map((t) => (
+                    <button 
+                      key={t.t_id} 
+                      type="button" 
+                      className={cn(
+                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent", 
+                        detail.tobacco_name === t.t_id && "bg-accent"
+                      )}
+                      onClick={() => { 
+                        onChange(index, "tobacco_name", t.t_id)
+                        setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
+                        setOpen(false) 
+                      }}
+                    >
+                      <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                      <div className="flex flex-col items-start">
+                        <span className="font-bold text-[12px]">{t.t_name}</span>
+                        <span className="text-[12px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                      </div>
+                    </button>
+                  ))
+              )}
             </div>
           </PopoverContent>
         </Popover>
       </TableCell>
+
 
       {/* Column 3: Image */}
       <TableCell className="p-1 w-15 border-r border-border/60 align-middle">
