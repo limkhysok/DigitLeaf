@@ -3,13 +3,16 @@ from sqlmodel import Session, select, func
 from .models import TobaccoPurchase, TobaccoPurchaseDetail, Purchaser, Region, Oven
 from app.domains.weigh_leaf.models.tobacco import Tobacco
 from app.domains.sack_registration.models.sack_registration import SackRegistration
-from .schemas import PurchaseCreate, PurchaseUpdate
+from app.domains.sack_registration.models.represent import Represent
+from app.domains.sack_registration.models.member_farmer import MemberFarmer
+from app.domains.sack_registration.models.mf_con_year import MfConYear
+from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem
 from datetime import datetime
 from app.core.config import CAMBODIA_TZ
 
 def generate_invoice_num(db: Session) -> str:
     today_str = datetime.now(CAMBODIA_TZ).strftime("%Y%m%d")
-    prefix = f"INV-{today_str}-"
+    prefix = f"{today_str}-"
     
     statement = select(TobaccoPurchase.invoice_num).where(
         TobaccoPurchase.invoice_num.like(f"{prefix}%")
@@ -41,12 +44,12 @@ def create_purchase(
     tobacco_item_count = len(obj_in.details)
     total_net_weight = 0.0
     grand_total = 0.0
-    total_sack_kg = 0.0
+    max_sack_kg = 0.0
     for d in obj_in.details:
         net = max(0.0, (d.gross_weight or 0) - (d.remork_in_kg or 0) - (d.sack_in_kg or 0))
         total_net_weight += net
         grand_total += net * (d.price or 0)
-        total_sack_kg += d.sack_in_kg or 0
+        max_sack_kg = max(max_sack_kg, d.sack_in_kg or 0)
 
     # 3. Create the Header
     db_obj = TobaccoPurchase(
@@ -79,7 +82,7 @@ def create_purchase(
         db.add(db_detail)
 
     # 5. Update vendor's sack registration: overwrite sack_in_kg and approve
-    if obj_in.vendor and total_sack_kg > 0:
+    if obj_in.vendor and max_sack_kg > 0:
         sack_reg = db.exec(
             select(SackRegistration)
             .where(SackRegistration.member_farmer_name == obj_in.vendor)
@@ -87,7 +90,7 @@ def create_purchase(
             .order_by(SackRegistration.registered_at.desc())
         ).first()
         if sack_reg:
-            sack_reg.sack_in_kg = int(total_sack_kg)
+            sack_reg.sack_in_kg = int(max_sack_kg)
             sack_reg.status = 1
             sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
             db.add(sack_reg)
@@ -158,8 +161,27 @@ def delete_purchase(db: Session, tp_id: int) -> bool:
     db.commit()
     return True
 
+def get_vendors_by_buyer(db: Session, buyer_id: int) -> List[VendorItem]:
+    current_year = datetime.now(CAMBODIA_TZ).year
+    statement = (
+        select(MemberFarmer)
+        .join(Represent, MemberFarmer.represent == Represent.represent_id)
+        .join(MfConYear, MfConYear.mf_id == MemberFarmer.mf_id)
+        .where(Represent.p_id == buyer_id)
+        .where(Represent.do_not_show == 0)
+        .where(MemberFarmer.active == "YES")
+        .where(MfConYear.year == current_year)
+    )
+    rows = db.exec(statement).all()
+    return [VendorItem(mf_id=r.mf_id, name=r.name, mf_code=r.mf_code, address=r.address) for r in rows]
+
 def get_purchasers(db: Session) -> List[Purchaser]:
-    return db.exec(select(Purchaser).where(Purchaser.do_not_show == 0)).all()
+    statement = (
+        select(Purchaser)
+        .join(Represent, Purchaser.p_id == Represent.p_id)
+        .where(Represent.do_not_show == 0)
+    )
+    return db.exec(statement).all()
 
 def get_regions(db: Session) -> List[Region]:
     # Only show regions where do_not_show is 0

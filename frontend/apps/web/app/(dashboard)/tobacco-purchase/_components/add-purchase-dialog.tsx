@@ -19,10 +19,8 @@ import {
   IconPlus,
   IconSearch,
   IconCheck,
-  IconCalendar,
   IconX,
 } from "@tabler/icons-react"
-import { Calendar } from "@workspace/ui/components/calendar"
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -48,9 +46,31 @@ import {
   Popover,
   PopoverContent,
   PopoverAnchor,
-  PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
+
+function maskDate(raw: string): string {
+  const digits = raw.replaceAll(/\D/g, "").slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
+  if (isReadOnly) {
+    return {
+      title: initialData?.invoice_num ? `View Purchase: ${initialData.invoice_num}` : "View Tobacco Purchase",
+      description: "Viewing purchase details.",
+    }
+  }
+  if (initialData) {
+    return {
+      title: initialData.invoice_num ? `Edit Purchase: ${initialData.invoice_num}` : "Edit Tobacco Purchase",
+      description: "Update the purchase information below.",
+    }
+  }
+  return { title: "New Tobacco Purchase", description: "Enter purchase details and item breakdown." }
+}
 
 interface AddPurchaseDialogProps {
   open: boolean
@@ -63,7 +83,6 @@ interface AddPurchaseDialogProps {
   regions: RegionItem[]
   ovens: OvenItem[]
   tobaccoTypes: TobaccoItem[]
-  farmers: MemberFarmerItem[]
 }
 
 export function AddPurchaseDialog({
@@ -77,9 +96,11 @@ export function AddPurchaseDialog({
   regions,
   ovens,
   tobaccoTypes,
-  farmers
 }: Readonly<AddPurchaseDialogProps>) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [vendors, setVendors] = React.useState<MemberFarmerItem[]>([])
+  const [isVendorsLoading, setIsVendorsLoading] = React.useState(false)
+  const [dateDisplay, setDateDisplay] = React.useState("")
 
   // Form State
   const [buyer, setBuyer] = React.useState<string>("")
@@ -103,62 +124,78 @@ export function AddPurchaseDialog({
 
   const initialized = React.useRef(false)
 
+  const resetForm = React.useCallback(() => {
+    setBuyer("")
+    setBuyerSearch("")
+    setVendor("")
+    setVendorSearch("")
+    setVendors([])
+    setVAddr("")
+    setRegion("")
+    setRegionSearch("")
+    const today = new Date()
+    setTpDate(today.toISOString().split("T")[0] || "")
+    setDateDisplay(format(today, "dd/MM/yyyy"))
+    setTpNote("")
+    const defaultOven = ovens[0]
+    setOven(defaultOven ? defaultOven.id.toString() : "")
+    setOvenSearch(defaultOven ? `${defaultOven.name_en} | ${defaultOven.name_kh || ""}` : "")
+    setRate("4000")
+    setTpCode(`${format(new Date(), "yyyyMMdd")}-TEMP`)
+    setDetails([{ tempId: "initial-0", tobacco_name: undefined, gross_weight: 0, price: 0 }])
+  }, [ovens])
+
+  const populateForm = React.useCallback((data: TobaccoPurchase) => {
+    setBuyer(data.buyer?.toString() || "")
+    setVendor(data.vendor || "")
+    setVendorSearch(data.vendor || "")
+    setVAddr(data.v_addr || "")
+    setRegion(data.region?.toString() || "")
+    setTpDate(data.tp_date || "")
+    if (data.tp_date) {
+      const [y, m, d] = data.tp_date.split("-")
+      setDateDisplay(`${d}/${m}/${y}`)
+    }
+    setTpNote(data.tp_note || "")
+    setOven(data.oven?.toString() || "")
+    setRate(data.rate.toString())
+    setTpCode(data.invoice_num || "")
+    setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: crypto.randomUUID() })) || [])
+
+    const b = purchasers.find(p => p.p_id === data.buyer)
+    if (b) setBuyerSearch(`${b.p_name} | ${b.p_name_kh || ""}`)
+
+    const r = regions.find(item => item.reg_id === data.region)
+    if (r) setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
+
+    const o = ovens.find(item => item.id === data.oven)
+    if (o) setOvenSearch(`${o.name_en} | ${o.name_kh || ""}`)
+
+    if (data.buyer) {
+      setIsVendorsLoading(true)
+      apiClient.getVendorsByBuyer(accessToken, data.buyer)
+        .then(v => {
+          setVendors(v)
+          const match = v.find(item => item.name === data.vendor)
+          if (match) setVendorSearch(`${match.name} | ${match.mf_code}`)
+        })
+        .catch(() => setVendors([]))
+        .finally(() => setIsVendorsLoading(false))
+    }
+  }, [purchasers, regions, ovens, accessToken])
+
   React.useEffect(() => {
     if (open && !initialized.current) {
-      const resetForm = () => {
-        setBuyer("")
-        setBuyerSearch("")
-        setVendor("")
-        setVendorSearch("")
-        setVAddr("")
-        setRegion("")
-        setRegionSearch("")
-        setTpDate(new Date().toISOString().split("T")[0] || "")
-        setTpNote("")
-        setOven("")
-        setOvenSearch("")
-        setRate("4000")
-        setTpCode(`INV-${format(new Date(), "yyyyMMdd")}-TEMP`)
-        setDetails([{ tempId: "initial-0", tobacco_name: undefined, gross_weight: 0, price: 0 }])
-      }
-
-      const populateForm = (data: TobaccoPurchase) => {
-        setBuyer(data.buyer?.toString() || "")
-        setVendor(data.vendor || "")
-        setVendorSearch(data.vendor || "")
-        setVAddr(data.v_addr || "")
-        setRegion(data.region?.toString() || "")
-        setTpDate(data.tp_date || "")
-        setTpNote(data.tp_note || "")
-        setOven(data.oven?.toString() || "")
-        setRate(data.rate.toString())
-        setTpCode(data.invoice_num || "")
-        setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: crypto.randomUUID() })) || [])
-
-        const b = purchasers.find(p => p.p_id === data.buyer)
-        if (b) setBuyerSearch(`${b.p_name} | ${b.p_name_kh || ""}`)
-
-        const f = farmers.find(item => item.name === data.vendor || item.mf_code === data.vendor)
-        if (f) setVendorSearch(`${f.name} | ${f.mf_code}`)
-
-        const r = regions.find(item => item.reg_id === data.region)
-        if (r) setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
-
-        const o = ovens.find(item => item.id === data.oven)
-        if (o) setOvenSearch(`${o.name_en} | ${o.name_kh || ""}`)
-      }
-
       const timer = setTimeout(() => {
         if (initialData) populateForm(initialData)
         else resetForm()
       }, 0)
-
       initialized.current = true
       return () => clearTimeout(timer)
     } else if (!open) {
       initialized.current = false
     }
-  }, [open, initialData, purchasers, regions, ovens, tobaccoTypes, farmers])
+  }, [open, initialData, populateForm, resetForm])
 
   const handleAddDetail = React.useCallback(() => {
     setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, gross_weight: 0, price: 0 }])
@@ -228,16 +265,49 @@ export function AddPurchaseDialog({
     }
   }
 
-  let title = "New Tobacco Purchase"
-  let description = "Enter purchase details and item breakdown."
+  const isBuyerSelected = purchasers.some(p => p.p_id.toString() === buyer)
 
-  if (isReadOnly) {
-    title = initialData?.invoice_num ? `View Purchase: ${initialData.invoice_num}` : "View Tobacco Purchase"
-    description = "Viewing purchase details."
-  } else if (initialData) {
-    title = initialData.invoice_num ? `Edit Purchase: ${initialData.invoice_num}` : "Edit Tobacco Purchase"
-    description = "Update the purchase information below."
+  let vendorListContent: React.ReactNode
+  if (isVendorsLoading) {
+    vendorListContent = (
+      <div className="flex items-center justify-center py-4">
+        <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    )
+  } else if (vendors.length === 0) {
+    vendorListContent = (
+      <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
+        {buyer ? "No vendors found for this buyer" : "Select a buyer first"}
+      </div>
+    )
+  } else {
+    vendorListContent = vendors
+      .filter(f =>
+        f.name.toLowerCase().includes(vendorSearch.toLowerCase()) ||
+        f.mf_code.toLowerCase().includes(vendorSearch.toLowerCase())
+      )
+      .map((f) => (
+        <button
+          key={f.mf_id}
+          type="button"
+          className={cn(
+            "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+            vendor === f.name && "bg-accent"
+          )}
+          onClick={() => {
+            setVendor(f.name)
+            setVendorSearch(`${f.name} | ${f.mf_code}`)
+            setVAddr(f.address || "")
+            setIsVendorOpen(false)
+          }}
+        >
+          <IconCheck className={cn("mr-2 h-3.5 w-3.5", vendor === f.name ? "opacity-100" : "opacity-0")} />
+          {f.name} | {f.mf_code}
+        </button>
+      ))
   }
+
+  const { title, description } = getDialogLabels(isReadOnly, initialData)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -273,7 +343,13 @@ export function AddPurchaseDialog({
 
               <div className="md:col-span-2 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Buyer selection</Label>
-                <Popover open={isBuyerOpen} onOpenChange={setIsBuyerOpen}>
+                <Popover open={isBuyerOpen} onOpenChange={(open) => {
+                  setIsBuyerOpen(open)
+                  if (!open) {
+                    const b = purchasers.find(p => p.p_id.toString() === buyer)
+                    setBuyerSearch(b ? `${b.p_name} | ${b.p_name_kh || ""}` : "")
+                  }
+                }}>
                   <PopoverAnchor asChild>
                     <div className="relative group">
                       <Input
@@ -285,8 +361,8 @@ export function AddPurchaseDialog({
                           setBuyer(val)
                           if (!isBuyerOpen) setIsBuyerOpen(true)
                         }}
-                        onFocus={() => setIsBuyerOpen(true)}
-                        onClick={() => setIsBuyerOpen(true)}
+                        onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
+                        onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                         disabled={isReadOnly}
                         className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                       />
@@ -297,6 +373,7 @@ export function AddPurchaseDialog({
                     className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
                     align="start"
                     sideOffset={4}
+                    onMouseDown={(e) => e.preventDefault()}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                     onInteractOutside={(e) => {
                       const target = e.target as HTMLElement
@@ -321,13 +398,19 @@ export function AddPurchaseDialog({
                               setBuyer(p.p_id.toString())
                               setBuyerSearch(`${p.p_name} | ${p.p_name_kh || ""}`)
                               setIsBuyerOpen(false)
-                              if (p.p_id) {
-                                const r = regions.find(reg => reg.reg_id === p.region)
-                                if (r) {
-                                  setRegion(r.reg_id.toString())
-                                  setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
-                                }
+                              const r = regions.find(reg => reg.reg_id === p.region)
+                              if (r) {
+                                setRegion(r.reg_id.toString())
+                                setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
                               }
+                              setVendor("")
+                              setVendorSearch("")
+                              setVendors([])
+                              setIsVendorsLoading(true)
+                              apiClient.getVendorsByBuyer(accessToken, p.p_id)
+                                .then(setVendors)
+                                .catch(() => setVendors([]))
+                                .finally(() => setIsVendorsLoading(false))
                             }}
                           >
                             <IconCheck className={cn("mr-2 h-3.5 w-3.5", buyer === p.p_id.toString() ? "opacity-100" : "opacity-0")} />
@@ -403,7 +486,10 @@ export function AddPurchaseDialog({
               {/* Row 2: Vendor, Address, Oven */}
               <div className="md:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Id)</Label>
-                <Popover open={isVendorOpen} onOpenChange={setIsVendorOpen}>
+                <Popover open={isVendorOpen} onOpenChange={(open) => {
+                  setIsVendorOpen(open)
+                  if (!open) setVendorSearch(vendor)
+                }}>
                   <PopoverAnchor asChild>
                     <div className="relative group">
                       <Input
@@ -412,12 +498,11 @@ export function AddPurchaseDialog({
                         onChange={(e) => {
                           const val = e.target.value
                           setVendorSearch(val)
-                          setVendor(val)
                           if (!isVendorOpen) setIsVendorOpen(true)
                         }}
-                        onFocus={() => setIsVendorOpen(true)}
-                        onClick={() => setIsVendorOpen(true)}
-                        disabled={isReadOnly}
+                        onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
+                        onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
+                        disabled={isReadOnly || !isBuyerSelected}
                         className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                       />
                       <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
@@ -427,6 +512,7 @@ export function AddPurchaseDialog({
                     className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
                     align="start"
                     sideOffset={4}
+                    onMouseDown={(e) => e.preventDefault()}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                     onInteractOutside={(e) => {
                       const target = e.target as HTMLElement
@@ -434,30 +520,7 @@ export function AddPurchaseDialog({
                     }}
                   >
                     <div className="max-h-75 overflow-y-auto p-1">
-                      {farmers
-                        .filter(f =>
-                          f.name.toLowerCase().includes(vendorSearch.toLowerCase()) ||
-                          f.mf_code.toLowerCase().includes(vendorSearch.toLowerCase())
-                        )
-                        .map((f) => (
-                          <button
-                            key={f.mf_id}
-                            type="button"
-                            className={cn(
-                              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
-                              (vendor === f.name || vendor === f.mf_code) && "bg-accent"
-                            )}
-                            onClick={() => {
-                              setVendor(f.name)
-                              setVendorSearch(`${f.name} | ${f.mf_code}`)
-                              setVAddr(f.address || f.v_addr || f.addr || "")
-                              setIsVendorOpen(false)
-                            }}
-                          >
-                            <IconCheck className={cn("mr-2 h-3.5 w-3.5", (vendor === f.name || vendor === f.mf_code) ? "opacity-100" : "opacity-0")} />
-                            {f.name} | {f.mf_code}
-                          </button>
-                        ))}
+                      {vendorListContent}
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -468,7 +531,7 @@ export function AddPurchaseDialog({
                 <Input
                   value={v_addr}
                   onChange={(e) => setVAddr(e.target.value)}
-                  disabled={isReadOnly}
+                  disabled={isReadOnly || !isBuyerSelected}
                   placeholder="Enter address..."
                   className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                 />
@@ -562,28 +625,26 @@ export function AddPurchaseDialog({
 
               <div className="md:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Purchase Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal h-9 text-[13px] bg-white border border-border/60 shadow-none hover:bg-slate-50 transition-all",
-                        !tpDate && "text-muted-foreground"
-                      )}
-                      disabled={isReadOnly}
-                    >
-                      <IconCalendar className="mr-2 h-4 w-4 opacity-40" />
-                      {tpDate ? format(new Date(tpDate), "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 shadow-2xl border-border/50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={tpDate ? new Date(tpDate) : undefined}
-                      onSelect={(date) => date && setTpDate(format(date, "yyyy-MM-dd"))}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Input
+                  value={dateDisplay}
+                  onChange={(e) => {
+                    const masked = maskDate(e.target.value)
+                    setDateDisplay(masked)
+                    const digits = masked.replaceAll(/\D/g, "")
+                    if (digits.length === 8) {
+                      const d = digits.slice(0, 2)
+                      const m = digits.slice(2, 4)
+                      const y = digits.slice(4, 8)
+                      setTpDate(`${y}-${m}-${d}`)
+                    } else {
+                      setTpDate("")
+                    }
+                  }}
+                  placeholder="DD/MM/YYYY"
+                  maxLength={10}
+                  disabled={isReadOnly}
+                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                />
               </div>
             </div>
           </div>
@@ -657,7 +718,7 @@ export function AddPurchaseDialog({
                   {/* cols 6–7: Sack + Net Weight */}
                   <TableCell colSpan={2} className="p-2 bg-primary/4 border-x border-border/60">
                     <div className="flex items-center justify-between px-1">
-                      <span className="text-[13px] font-normal text-muted-foreground/50">Total Weight</span>
+                      <span className="text-[11px] font-bold uppercase text-muted-foreground/50">Total Weight</span>
                       <span className="text-[14px] font-black text-primary tabular-nums">
                         {details.reduce((sum, item) => {
                           const netQty = Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
@@ -669,7 +730,7 @@ export function AddPurchaseDialog({
                   {/* cols 8–9: Price + Grand Total */}
                   <TableCell colSpan={2} className="p-2 bg-emerald-500/4">
                     <div className="flex items-center justify-between px-1">
-                      <span className="text-[13px] font-normal text-emerald-700/50">Grand Total</span>
+                      <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total</span>
                       <span className="text-[16px] font-black text-emerald-700 tabular-nums">
                         ៛{Math.round(details.reduce((sum, item) => {
                           const netQty = Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))

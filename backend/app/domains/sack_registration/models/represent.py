@@ -7,4 +7,5 @@ class Represent(SQLModel, table=True):
 
     represent_id: Optional[int] = Field(default=None, primary_key=True)
     represent_name: str = Field(max_length=255)
+    p_id: Optional[int] = Field(default=None)
     do_not_show: int = Field(default=0)

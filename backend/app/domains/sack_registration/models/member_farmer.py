@@ -10,3 +10,4 @@ class MemberFarmer(SQLModel, table=True):
     mf_code: str = Field(max_length=255)
     represent: Optional[int] = Field(default=None)
     address: Optional[str] = Field(default=None, max_length=255)
+    active: Optional[str] = Field(default=None, max_length=10)

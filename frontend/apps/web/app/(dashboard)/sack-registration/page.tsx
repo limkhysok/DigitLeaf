@@ -169,7 +169,7 @@ export default function SackRegistrationPage() {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-4" align="start">
+            <PopoverContent className="w-70 p-4" align="start">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b pb-2">
                   <h3 className="text-sm font-semibold">Filters</h3>

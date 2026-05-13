@@ -2,6 +2,14 @@ from typing import List, Optional
 from datetime import date, datetime
 from pydantic import BaseModel, Field
 
+# ── Vendor (Member Farmer by Buyer) ──────────────────────────────────────
+
+class VendorItem(BaseModel):
+    mf_id: int
+    name: str
+    mf_code: str
+    address: Optional[str] = None
+
 # ── Purchase Detail Schemas ───────────────────────────────────────────────
 
 class PurchaseDetailBase(BaseModel):

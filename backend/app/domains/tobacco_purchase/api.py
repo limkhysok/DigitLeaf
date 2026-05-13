@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Security, Request
 from sqlmodel import Session
 from app.db.session import get_session
@@ -42,6 +42,15 @@ def list_tobacco_types(
 ):
     """List all active tobacco types."""
     return crud.get_tobacco_types(db=session)
+
+@router.get("/vendors", response_model=List[schemas.VendorItem])
+def list_vendors_by_buyer(
+    buyer_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    """List member farmers belonging to a buyer's represent groups."""
+    return crud.get_vendors_by_buyer(db=session, buyer_id=buyer_id)
 
 @router.post("/", response_model=schemas.Purchase)
 def create_purchase(
