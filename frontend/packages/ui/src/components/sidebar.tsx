@@ -254,7 +254,7 @@ export const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "group/sidebar peer hidden md:block text-sidebar-foreground w-(--sidebar-width) shrink-0 transition-[width] duration-500 ease-in-out",
+          "group/sidebar peer hidden md:block text-sidebar-foreground w-(--sidebar-width) shrink-0 transition-[width] duration-300 ease-in-out",
           "data-[state=collapsed]:w-(--sidebar-width-icon)",
           (variant === "floating" || variant === "inset") &&
           "data-[state=collapsed]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]",
@@ -268,7 +268,7 @@ export const Sidebar = React.forwardRef<
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
-            "duration-300 relative h-svh w-(--sidebar-width) bg-transparent transition-[width] ease-in-out",
+            "duration-300 relative h-svh w-(--sidebar-width) bg-transparent transition-[width] ease-in-out will-change-[width]",
             "group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon)",
             "group-data-[side=left]/sidebar:border-r group-data-[side=right]/sidebar:border-l group-data-[variant=floating]/sidebar:border-none",
             variant === "floating" || variant === "inset"
@@ -278,7 +278,7 @@ export const Sidebar = React.forwardRef<
         />
         <div
           className={cn(
-            "duration-300 fixed inset-y-0 z-40 hidden h-svh w-(--sidebar-width) flex-col transition-[left,right,width] ease-in-out md:flex",
+            "duration-300 fixed inset-y-0 z-40 hidden h-svh w-(--sidebar-width) flex-col transition-[left,right,width] ease-in-out md:flex will-change-[width]",
             side === "left"
               ? "left-0 group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon) group-data-[side=left]/sidebar:border-r"
               : "right-0 group-data-[collapsible=icon]/sidebar:w-(--sidebar-width-icon) group-data-[side=right]/sidebar:border-l",
@@ -324,7 +324,7 @@ export const SidebarTrigger = React.forwardRef<
       }}
       {...props}
     >
-      <Icon className="size-5" />
+      <Icon className="size-5" stroke={1.5} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

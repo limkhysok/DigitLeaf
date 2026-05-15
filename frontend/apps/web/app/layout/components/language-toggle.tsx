@@ -42,13 +42,13 @@ export function LanguageToggle() {
       <Button
         variant="ghost"
         size="sm"
-        className="h-9 w-[70px] px-2 flex items-center justify-between hover:bg-accent/50 hover:text-accent-foreground transition-all duration-200 border border-transparent hover:border-border/50 rounded-lg group"
+        className="h-9 w-17.5 px-2 flex items-center justify-between hover:bg-black/5 text-black transition-all duration-200 border border-transparent hover:border-black/20 rounded-lg group"
       >
         <div className="flex items-center gap-1.5">
-          <IconWorld className="size-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-bold tracking-tight">EN</span>
+          <IconWorld className="size-3.5 text-black" />
+          <span className="text-[11px] font-bold tracking-tight text-black">EN</span>
         </div>
-        <IconChevronDown className="size-3 opacity-30" />
+        <IconChevronDown className="size-3 text-black opacity-40" />
       </Button>
     )
   }
@@ -59,21 +59,21 @@ export function LanguageToggle() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 w-[70px] px-2 flex items-center justify-between hover:bg-accent/50 hover:text-accent-foreground transition-all duration-200 border border-transparent hover:border-border/50 rounded-lg group"
+          className="h-9 w-17.5 px-2 flex items-center justify-between hover:bg-black/5 text-black transition-all duration-200 border border-transparent hover:border-black/20 rounded-lg group"
         >
           <div className="flex items-center gap-1.5">
-            <IconWorld className="size-3.5 text-muted-foreground group-hover:text-[#009640] transition-colors" />
-            <span className="text-[11px] font-bold tracking-tight">
+            <IconWorld className="size-3.5 text-black group-hover:text-[#009640] transition-colors" />
+            <span className="text-[11px] font-bold tracking-tight text-black">
               {selectedLang?.native}
             </span>
           </div>
-          <IconChevronDown className="size-3 opacity-30 group-hover:opacity-100 transition-opacity" />
+          <IconChevronDown className="size-3 text-black opacity-40 group-hover:opacity-70 transition-opacity" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
         sideOffset={8}
-        className="w-[160px] p-1.5 shadow-xl border-border/40 backdrop-blur-md bg-background/95 animate-in fade-in zoom-in-95 duration-200 rounded-xl z-50"
+        className="w-40 p-1.5 shadow-xl border-border/40 backdrop-blur-md bg-background/95 animate-in fade-in zoom-in-95 duration-200 rounded-xl z-50"
       >
         <div className="px-2 py-1.5 mb-1">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">

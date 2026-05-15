@@ -65,26 +65,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" {...props}>
-      <SidebarHeader className="h-14 flex items-center justify-center p-0 transition-all duration-300 border-b border-sidebar-border/50">
-        <div className="flex h-12 items-center gap-3 bg-transparent px-3 w-full group/logo cursor-pointer hover:bg-sidebar-accent/30 transition-all duration-300 group-data-[collapsible=icon]/sidebar:px-0 group-data-[collapsible=icon]/sidebar:bg-transparent group-data-[collapsible=icon]/sidebar:border-none group-data-[collapsible=icon]/sidebar:justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#009640]/0 group-hover:bg-[#009640]/2 transition-colors duration-500" />
+    <Sidebar variant="sidebar" collapsible="icon" className="bg-white border-r border-black" {...props}>
+      <SidebarHeader className="h-14 flex items-center bg-white border-b border-black p-0">
+        <div className="flex h-full items-center gap-3 w-full px-4 group/logo cursor-pointer hover:bg-black/5 transition-colors group-data-[collapsible=icon]/sidebar:justify-center group-data-[collapsible=icon]/sidebar:px-0 group-data-[collapsible=icon]/sidebar:gap-0">
+          <Image
+            src="/assets/newKAIC.png"
+            alt="KAIC Logo"
+            width={26}
+            height={26}
+            className="object-contain shrink-0 transition-transform duration-300 group-hover/logo:scale-105"
+          />
 
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 transition-all duration-500 group-hover:bg-emerald-100/80 relative z-10 shadow-xs border border-emerald-100/50">
-            <Image
-              src="/assets/newKAIC.png"
-              alt="KAIC Logo"
-              width={18}
-              height={18}
-              className="object-contain relative z-20 transition-transform duration-500 group-hover:scale-110"
-            />
-          </div>
-
-          <div className="flex flex-col truncate group-data-[collapsible=icon]/sidebar:hidden flex-1 relative z-10">
-            <span className="text-sm font-bold tracking-tight text-slate-900 group-hover:text-slate-800 transition-colors duration-300 uppercase leading-none">
+          <div className="flex flex-col gap-0.5 min-w-0 flex-1 overflow-hidden transition-[opacity,max-width] duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:opacity-0 group-data-[collapsible=icon]/sidebar:max-w-0">
+            <span className="text-sm font-medium tracking-widest text-black uppercase leading-none whitespace-nowrap">
               KAIC
             </span>
-            <span className="text-[10px] font-medium text-slate-400 tracking-[0.15em] uppercase ">
+            <span className="text-[9px] font-normal text-black/40 tracking-[0.2em] uppercase whitespace-nowrap">
               Internal System
             </span>
           </div>

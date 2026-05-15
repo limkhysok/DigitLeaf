@@ -394,50 +394,50 @@ export default function SackRegistrationPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b bg-slate-50/50 border-slate-100">
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider w-10">No.</th>
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Represent</th>
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Farmer</th>
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Status</th>
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Registered By</th>
-                      <th className="px-4 py-3 text-left font-bold text-slate-400 text-[10px] uppercase tracking-wider">Registered At</th>
-                      <th className="px-4 py-3 w-10 text-center font-bold text-slate-400 text-[10px] uppercase tracking-wider">Actions</th>
+                    <tr className="border-b bg-[#F9FAFB] border-[#E5E7EB]">
+                      <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">No.</th>
+                      <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Represent</th>
+                      <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Farmer</th>
+                      <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered By</th>
+                      <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered At</th>
+                      <th className="px-4 py-3 w-10 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {records.map((rec, idx) => {
                       const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
                       return (
-                        <tr key={rec.id} className="group/row border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-slate-400 text-xs">{idx + 1}</td>
-                          <td className="px-4 py-3 text-slate-900 font-medium">{rec.represent_name}</td>
-                          <td className="px-4 py-3 text-slate-700">{rec.member_farmer_name}</td>
+                        <tr key={rec.id} className={cn("group/row border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB] transition-colors", idx % 2 === 1 && "bg-[#F9FAFB]/60")}>
+                          <td className="px-4 py-3 text-[#9CA3AF] text-xs">{idx + 1}</td>
+                          <td className="px-4 py-3 text-[#111827] font-semibold">{rec.represent_name}</td>
+                          <td className="px-4 py-3 text-[#374151]">{rec.member_farmer_name}</td>
                           <td className="px-4 py-3">
                             <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border", status.className)}>
                               {status.label}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-500 text-xs font-medium">{rec.dl_user_name}</td>
-                          <td className="px-4 py-3 text-slate-400 text-xs">
+                          <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{rec.dl_user_name}</td>
+                          <td className="px-4 py-3 text-[#9CA3AF] text-xs">
                             {new Date(rec.registered_at).toLocaleDateString()}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center justify-center gap-1 opacity-60 group-hover/row:opacity-100 transition-opacity">
+                            <div className="flex items-center justify-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
                               <button
                                 onClick={() => setViewTarget(rec)}
-                                className="p-1 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-colors"
+                                className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
                               >
                                 <IconEye className="size-4" stroke={1.5} />
                               </button>
                               <button
                                 onClick={() => setEditTarget(rec)}
-                                className="p-1 rounded-md hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
+                                className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
                               >
                                 <IconPencil className="size-4" stroke={1.5} />
                               </button>
                               <button
                                 onClick={() => setDeleteTarget({ id: rec.id, no: idx + 1 })}
-                                className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                                className="p-1 rounded-md hover:bg-rose-50 text-[#9CA3AF] hover:text-rose-600 transition-colors"
                               >
                                 <IconTrash className="size-4" stroke={1.5} />
                               </button>
@@ -508,26 +508,26 @@ const SackRegistrationCard = React.memo(({
   const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:ring-1 hover:ring-emerald-500/20">
+    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:ring-1 hover:ring-[#009640]/20">
       {/* Card Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border-b border-slate-100">
+      <div className="flex items-center justify-between px-4 py-3 bg-[#F9FAFB] border-b border-[#E5E7EB]">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center size-5 rounded bg-[#009640] text-white text-[10px] font-bold shadow-xs">
             {index + 1}
           </div>
-          <span className="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          <span className="font-mono text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
             ID: {rec.id.toString().padStart(5, '0')}
           </span>
         </div>
 
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-          <button onClick={() => onView(rec)} className="p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-all">
+          <button onClick={() => onView(rec)} className="p-1.5 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-all">
             <IconEye className="size-3.5" stroke={1.5} />
           </button>
-          <button onClick={() => onEdit(rec)} className="p-1.5 rounded-md hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all">
+          <button onClick={() => onEdit(rec)} className="p-1.5 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-all">
             <IconPencil className="size-3.5" stroke={1.5} />
           </button>
-          <button onClick={() => onDelete(rec)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all">
+          <button onClick={() => onDelete(rec)} className="p-1.5 rounded-md hover:bg-rose-50 text-[#9CA3AF] hover:text-rose-600 transition-all">
             <IconTrash className="size-3.5" stroke={1.5} />
           </button>
         </div>
@@ -537,30 +537,30 @@ const SackRegistrationCard = React.memo(({
       <div className="p-4 flex flex-col gap-4 flex-1">
         {/* Main Participant */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-[#9CA3AF]">
             <IconUser className="size-3" stroke={1.5} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Member Farmer</span>
           </div>
-          <p className="text-[14px] font-bold text-slate-900 leading-tight line-clamp-1 pl-4.5">
+          <p className="text-[14px] font-bold text-[#111827] leading-tight line-clamp-1 pl-4.5">
             {rec.member_farmer_name}
           </p>
         </div>
 
         {/* Support Section */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-[#9CA3AF]">
             <IconUsers className="size-3" stroke={1.5} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Represent Group</span>
           </div>
-          <p className="text-[12px] font-medium text-slate-600 line-clamp-1 pl-4.5">
+          <p className="text-[12px] font-medium text-[#374151] line-clamp-1 pl-4.5">
             {rec.represent_name}
           </p>
         </div>
 
         {/* Metadata Grid */}
-        <div className="flex items-center justify-between p-3 rounded-md bg-slate-50 border border-slate-100 mt-auto">
+        <div className="flex items-center justify-between p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EB] mt-auto">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Status</span>
+            <span className="text-[9px] font-bold text-[#9CA3AF] uppercase tracking-tight">Status</span>
             <span className={cn(
               "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black border uppercase tracking-wider",
               status.className
@@ -573,16 +573,16 @@ const SackRegistrationCard = React.memo(({
       </div>
 
       {/* Card Footer */}
-      <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-100 mt-auto flex items-center justify-between">
+      <div className="px-4 py-3 bg-[#F9FAFB] border-t border-[#E5E7EB] mt-auto flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <IconClock className="size-3 text-slate-300" stroke={1.5} />
-          <span className="text-[10px] font-medium text-slate-500 tabular-nums">
+          <IconClock className="size-3 text-[#D1D5DB]" stroke={1.5} />
+          <span className="text-[10px] font-medium text-[#6B7280] tabular-nums">
             {new Date(rec.registered_at).toLocaleDateString()}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="size-1.5 rounded-full bg-slate-300" />
-          <span className="text-[10px] font-bold text-slate-400 truncate max-w-[80px]">
+          <div className="size-1.5 rounded-full bg-[#D1D5DB]" />
+          <span className="text-[10px] font-bold text-[#9CA3AF] truncate max-w-20">
             {rec.dl_user_name}
           </span>
         </div>

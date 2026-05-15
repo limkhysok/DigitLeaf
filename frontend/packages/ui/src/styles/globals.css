@@ -85,14 +85,14 @@
   --chart-4: oklch(0.527 0.154 150.069);
   --chart-5: oklch(0.448 0.119 151.328);
   --radius: 0.875rem;
-  --sidebar: #f9fafb;
-  --sidebar-foreground: #334155; /* Slate-700 */
-  --sidebar-primary: #10b981; /* Emerald-500 */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #009640;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0fdf4; /* Emerald-50 */
-  --sidebar-accent-foreground: #047857; /* Emerald-700 */
-  --sidebar-border: #f1f5f9; /* Slate-100 */
-  --sidebar-ring: #10b981;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #000000;
+  --sidebar-ring: #009640;
 }
 
 .dark {
@@ -127,6 +127,30 @@
   --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.553 0.013 58.071);
+}
+
+/* ── Sidebar hard overrides ─────────────────────────────────────────────── */
+[data-sidebar="sidebar"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+[data-sidebar="menu-button"] {
+  color: #000000 !important;
+}
+
+[data-sidebar="menu-button"]:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #000000 !important;
+}
+
+[data-sidebar="menu-button"][data-active="true"] {
+  background-color: #009640 !important;
+  color: #ffffff !important;
+}
+
+[data-sidebar="menu-button"][data-active="true"]:hover {
+  background-color: #008a3b !important;
 }
 
 @layer base {
