@@ -62,3 +62,10 @@ class SackRegistrationListResponse(BaseModel):
     items: list[SackRegistrationPublic]
     total: int
     has_more: bool
+
+
+class SackRegistrationStatusCounts(BaseModel):
+    all: int
+    pending: int
+    approved: int
+    rejected: int

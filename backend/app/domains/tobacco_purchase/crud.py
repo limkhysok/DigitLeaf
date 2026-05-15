@@ -1,9 +1,9 @@
 from typing import List, Optional, Tuple
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select, func
-from .models import TobaccoPurchase, TobaccoPurchaseDetail, Purchaser, Region, Oven
-from app.domains.weigh_leaf.models.tobacco import Tobacco
+from .models import TobaccoPurchase, TobaccoPurchaseDetail, Purchaser, Region, Oven, Tobacco
 from app.domains.sack_registration.models.sack_registration import SackRegistration
 from app.domains.sack_registration.models.represent import Represent
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
@@ -47,7 +47,9 @@ async def _sync_purchase_details(
     delete_existing: bool = False,
 ) -> None:
     if delete_existing:
-        db_obj.details.clear()
+        await db.execute(
+            sa_delete(TobaccoPurchaseDetail).where(TobaccoPurchaseDetail.m_id == db_obj.tp_id)
+        )
         await db.flush()
 
     tobacco_item_count = len(details)
@@ -55,7 +57,6 @@ async def _sync_purchase_details(
     grand_total = 0.0
     max_sack_kg_val = 0.0
 
-    new_details = []
     for detail_in in details:
         net = max(0.0, (detail_in.gross_weight or 0) - (detail_in.remork_in_kg or 0) - (detail_in.sack_in_kg or 0))
         total_amount = round(net * (detail_in.price or 0), 2)
@@ -64,7 +65,7 @@ async def _sync_purchase_details(
         grand_total += total_amount
         max_sack_kg_val = max(max_sack_kg_val, detail_in.sack_in_kg or 0)
 
-        db_detail = TobaccoPurchaseDetail(
+        db.add(TobaccoPurchaseDetail(
             **detail_in.model_dump(exclude={"invoice_num", "m_id"}, exclude_none=True),
             invoice_num=db_obj.invoice_num,
             m_id=db_obj.tp_id,
@@ -73,10 +74,7 @@ async def _sync_purchase_details(
             ip_address=ip_address,
             do_date=datetime.now(CAMBODIA_TZ),
             total_amount=total_amount,
-        )
-        new_details.append(db_detail)
-
-    db_obj.details.extend(new_details)
+        ))
 
     db_obj.tobacco_item_count = tobacco_item_count
     db_obj.total_net_weight = round(total_net_weight, 3)

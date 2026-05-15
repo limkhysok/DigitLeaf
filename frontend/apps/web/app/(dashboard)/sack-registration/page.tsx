@@ -6,6 +6,7 @@ import {
   apiClient,
   RepresentItem,
   SackRegistrationItem,
+  SackStatusCounts,
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import {
@@ -16,9 +17,8 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import {
   STATUS_MAP,
-  SortOrder,
-  SORT_CYCLE,
-  buildFetchParams
+  buildFetchParams,
+  getDateRange,
 } from "./_components/constants"
 import { EditDialog } from "./_components/edit-dialog"
 import { DeleteDialog } from "./_components/delete-dialog"
@@ -28,12 +28,8 @@ import { SackRegistrationCard } from "./_components/sack-registration-card"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { FilterBar } from "./_components/filter-bar"
 
-function checkHasActiveFilters(
-  statusFilter: number | null,
-  datePreset: string,
-  sortOrder: SortOrder
-) {
-  return statusFilter !== null || datePreset !== "last30" || sortOrder !== "default"
+function checkHasActiveFilters(statusFilter: number | null, datePreset: string) {
+  return statusFilter !== null || datePreset !== "last30"
 }
 
 export default function SackRegistrationPage() {
@@ -61,12 +57,12 @@ export default function SackRegistrationPage() {
   const [search, setSearch] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<number | null>(null)
   const [datePreset, setDatePreset] = React.useState("last30")
-  const [sortOrder, setSortOrder] = React.useState<SortOrder>("default")
   const [view, setView] = React.useState<"list" | "grid">("list")
   const [registerOpen, setRegisterOpen] = React.useState(false)
   const [viewTarget, setViewTarget] = React.useState<SackRegistrationItem | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
+  const [statusCounts, setStatusCounts] = React.useState<SackStatusCounts | null>(null)
 
   // ── Search debounce ───────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -80,12 +76,25 @@ export default function SackRegistrationPage() {
     apiClient.getRepresents(tokens.access_token).then(setRepresents).catch(() => {})
   }, [isAuthLoading, tokens])
 
+  // ── Fetch status counts (no status param — shows all buckets) ─────────────
+  React.useEffect(() => {
+    if (isAuthLoading || !tokens?.access_token) return
+    const dateRange = getDateRange(datePreset)
+    const params = {
+      ...(search.trim() ? { search: search.trim() } : {}),
+      ...dateRange,
+    }
+    apiClient.getSackStatusCounts(tokens.access_token, params)
+      .then(setStatusCounts)
+      .catch(() => {})
+  }, [isAuthLoading, tokens, search, datePreset, refetchKey])
+
   // ── Fetch records ─────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
     let cancelled = false
     const timer = setTimeout(() => setIsLoading(true), 0)
-    const params = buildFetchParams(0, search, statusFilter, sortOrder, datePreset)
+    const params = buildFetchParams(0, search, statusFilter, datePreset)
     apiClient.getSackRegistrations(tokens.access_token, params)
       .then((res) => {
         if (cancelled) return
@@ -96,14 +105,14 @@ export default function SackRegistrationPage() {
       .catch((err) => { toast.error((err as Error).message) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
     return () => { cancelled = true; clearTimeout(timer) }
-  }, [isAuthLoading, tokens, search, statusFilter, sortOrder, datePreset, refetchKey])
+  }, [isAuthLoading, tokens, search, statusFilter, datePreset, refetchKey])
 
   // ── Load more ─────────────────────────────────────────────────────────────
   const loadMore = React.useCallback(async () => {
     if (!tokens?.access_token || !hasMore || isLoadingMore || isLoading) return
     setIsLoadingMore(true)
     const currentSkip = skip
-    const params = buildFetchParams(currentSkip, search, statusFilter, sortOrder, datePreset)
+    const params = buildFetchParams(currentSkip, search, statusFilter, datePreset)
     try {
       const res = await apiClient.getSackRegistrations(tokens.access_token, params)
       setRecords((prev) => [...prev, ...res.items])
@@ -114,7 +123,7 @@ export default function SackRegistrationPage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, statusFilter, sortOrder, datePreset])
+  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, statusFilter, datePreset])
 
   // ── IntersectionObserver ──────────────────────────────────────────────────
   React.useEffect(() => {
@@ -128,11 +137,9 @@ export default function SackRegistrationPage() {
     return () => observer.disconnect()
   }, [loadMore])
 
-  const cycleSortOrder = () => setSortOrder((prev) => SORT_CYCLE[prev])
-
   if (!mounted) return null
 
-  const hasActiveFilters = checkHasActiveFilters(statusFilter, datePreset, sortOrder)
+  const hasActiveFilters = checkHasActiveFilters(statusFilter, datePreset)
 
   return (
     <div className="flex flex-col gap-4">
@@ -157,11 +164,10 @@ export default function SackRegistrationPage() {
         setStatusFilter={setStatusFilter}
         datePreset={datePreset}
         setDatePreset={setDatePreset}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         hasActiveFilters={hasActiveFilters}
+        statusCounts={statusCounts}
         onRegister={() => setRegisterOpen(true)}
       />
 
@@ -175,12 +181,11 @@ export default function SackRegistrationPage() {
         setStatusFilter={setStatusFilter}
         datePreset={datePreset}
         setDatePreset={setDatePreset}
-        sortOrder={sortOrder}
-        cycleSortOrder={cycleSortOrder}
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         view={view}
         setView={setView}
+        statusCounts={statusCounts}
         onRegister={() => setRegisterOpen(true)}
       />
 
@@ -194,12 +199,11 @@ export default function SackRegistrationPage() {
         setStatusFilter={setStatusFilter}
         datePreset={datePreset}
         setDatePreset={setDatePreset}
-        sortOrder={sortOrder}
-        cycleSortOrder={cycleSortOrder}
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         view={view}
         setView={setView}
+        statusCounts={statusCounts}
         onRegister={() => setRegisterOpen(true)}
       />
 

@@ -12,6 +12,7 @@ from app.domains.sack_registration.schemas import (
     SackRegistrationUpdate,
     SackRegistrationPublic,
     SackRegistrationListResponse,
+    SackRegistrationStatusCounts,
     RepresentPublic,
     MemberFarmerPublic,
 )
@@ -83,6 +84,22 @@ async def list_registrations(
         items=items,
         total=total,
         has_more=(skip + len(items)) < total,
+    )
+
+
+@router.get("/status-counts", response_model=SackRegistrationStatusCounts)
+async def get_status_counts(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    search: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+):
+    return await crud.get_status_counts(
+        session=session,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
     )
 
 

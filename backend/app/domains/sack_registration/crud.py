@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
-from app.domains.weigh_leaf.models import WeighLeaf
 from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate, RepresentPublic
 
 _ACTIVE_YEAR = 2026
@@ -115,6 +114,44 @@ async def get_all(
     return items, total
 
 
+async def get_status_counts(
+    session: AsyncSession,
+    search: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+) -> dict:
+    stmt = select(SackRegistration.status, func.count().label("cnt")).select_from(SackRegistration)
+
+    if search:
+        pattern = f"%{search}%"
+        cond = (
+            SackRegistration.member_farmer_name.ilike(pattern)
+            | SackRegistration.represent_name.ilike(pattern)
+        )
+        stmt = stmt.where(cond)
+
+    if date_from is not None:
+        stmt = stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
+
+    if date_to is not None:
+        stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
+
+    stmt = stmt.group_by(SackRegistration.status)
+    result = await session.execute(stmt)
+    rows = result.all()
+
+    counts = {0: 0, 1: 0, 2: 0}
+    for status, cnt in rows:
+        counts[status] = cnt
+
+    return {
+        "all": sum(counts.values()),
+        "pending": counts[0],
+        "approved": counts[1],
+        "rejected": counts[2],
+    }
+
+
 async def create(
     session: AsyncSession,
     data: SackRegistrationCreate,
@@ -176,10 +213,5 @@ async def update(
 
 
 async def delete(session: AsyncSession, record: SackRegistration) -> None:
-    result = await session.execute(
-        select(WeighLeaf).where(WeighLeaf.sack_registration_id == record.id)
-    )
-    for wl in result.scalars().all():
-        session.delete(wl)
     session.delete(record)
     await session.commit()

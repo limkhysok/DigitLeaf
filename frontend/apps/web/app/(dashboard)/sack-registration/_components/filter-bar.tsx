@@ -2,16 +2,20 @@
 
 import * as React from "react"
 import {
-  IconArrowsSort, IconCalendar, IconChevronDown,
+  IconCalendar, IconChevronDown,
   IconLayoutGrid, IconLayoutList, IconPlus, IconSearch
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import { DATE_PRESETS, SortOrder, STATUS_FILTER_OPTIONS, STATUS_MAP } from "./constants"
+import { SackStatusCounts } from "@/lib/api-client"
+import { DATE_PRESETS, STATUS_FILTER_OPTIONS, STATUS_MAP } from "./constants"
 
-const SORT_CONFIG: Record<SortOrder, { icon: typeof IconArrowsSort; label: string }> = {
-  default: { icon: IconArrowsSort, label: "Newest First" },
+function statusCount(counts: SackStatusCounts, value: number | null): number {
+  if (value === null) return counts.all
+  if (value === 0) return counts.pending
+  if (value === 1) return counts.approved
+  return counts.rejected
 }
 
 interface FilterBarProps {
@@ -21,12 +25,11 @@ interface FilterBarProps {
   setStatusFilter: (v: number | null) => void
   datePreset: string
   setDatePreset: (v: string) => void
-  sortOrder: SortOrder
-  cycleSortOrder: () => void
   searchInput: string
   setSearchInput: (v: string) => void
   view: "list" | "grid"
   setView: (v: "list" | "grid") => void
+  statusCounts: SackStatusCounts | null
   onRegister: () => void
 }
 
@@ -35,14 +38,13 @@ export function FilterBar({
   searchClassName,
   statusFilter, setStatusFilter,
   datePreset, setDatePreset,
-  sortOrder, cycleSortOrder,
   searchInput, setSearchInput,
   view, setView,
+  statusCounts,
   onRegister,
-}: FilterBarProps) {
+}: Readonly<FilterBarProps>) {
   const [statusFilterOpen, setStatusFilterOpen] = React.useState(false)
   const [datePresetOpen, setDatePresetOpen] = React.useState(false)
-  const { icon: SortIcon, label: sortLabel } = SORT_CONFIG[sortOrder]
 
   return (
     <div className={cn("flex-wrap items-center gap-2", className)}>
@@ -58,17 +60,22 @@ export function FilterBar({
             <IconChevronDown className={cn("size-3.5 transition-transform duration-200", statusFilterOpen && "rotate-180")} />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-32 p-1" align="start">
+        <PopoverContent className="w-40 p-1" align="start">
           {STATUS_FILTER_OPTIONS.map((opt) => (
             <button
               key={String(opt.value)}
               onClick={() => { setStatusFilter(opt.value); setStatusFilterOpen(false) }}
               className={cn(
-                "w-full text-left px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent",
+                "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent",
                 statusFilter === opt.value && "font-medium bg-accent"
               )}
             >
-              {opt.label}
+              <span>{opt.label}</span>
+              {statusCounts && (
+                <span className="text-muted-foreground tabular-nums">
+                  {statusCount(statusCounts, opt.value)}
+                </span>
+              )}
             </button>
           ))}
         </PopoverContent>
@@ -100,17 +107,6 @@ export function FilterBar({
           ))}
         </PopoverContent>
       </Popover>
-
-      <button
-        onClick={cycleSortOrder}
-        className={cn(
-          "flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs transition-colors",
-          sortOrder === "default" ? "text-muted-foreground hover:text-foreground hover:bg-muted/30" : "font-medium text-foreground bg-muted/50"
-        )}
-      >
-        <SortIcon className="size-3.5" />
-        {sortLabel}
-      </button>
 
       <div className="flex-1" />
 

@@ -20,8 +20,7 @@ Error responses always return:
 2. [Audit Logs](#audit-logs)
 3. [User Management](#user-management)
 4. [Sack Registration](#sack-registration)
-5. [Weigh Leaf](#weigh-leaf)
-6. [Tobacco Purchase](#tobacco-purchase)
+5. [Tobacco Purchase](#tobacco-purchase)
 
 ---
 
@@ -436,6 +435,32 @@ Returns a paginated, filterable list of sack registrations.
 
 ---
 
+### GET `/sack-registrations/status-counts`
+Returns the count of registrations for each status, respecting the same `search` and date filters as the list endpoint. Use this to populate count badges next to filter options.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Notes |
+|-------|------|-------|
+| `search` | string | Same as list — matches farmer name or represent name |
+| `date_from` | date | `YYYY-MM-DD` |
+| `date_to` | date | `YYYY-MM-DD` |
+
+Note: no `status` param — counts are always returned for all statuses.
+
+**Response `200 OK`:**
+```json
+{
+  "all": 140,
+  "pending": 90,
+  "approved": 20,
+  "rejected": 30
+}
+```
+
+---
+
 ### GET `/sack-registrations/{sack_id}`
 Returns a single sack registration by ID.
 
@@ -503,147 +528,6 @@ Deletes a sack registration and all associated weigh leaf records.
 **Response:** `204 No Content`
 
 **Errors:** `404` Sack registration not found
-
----
-
-## Weigh Leaf
-
-### GET `/weigh-leaves/farmers/search`
-Typeahead search for farmers by name or identity card.
-
-**Auth required:** Yes — `login_system` scope
-
-**Query Parameters:**
-| Param | Type | Default |
-|-------|------|---------|
-| `q` | string | Required |
-| `limit` | int | 10 |
-
-**Response `200 OK`:**
-```json
-[
-  { "mf_id": 10, "name": "Sok Chan", "mf_code": "KP-001" }
-]
-```
-
----
-
-### GET `/weigh-leaves/sack-registrations`
-Returns all sack registrations belonging to a specific farmer.
-
-**Auth required:** Yes — `login_system` scope
-
-**Query Parameter:** `farmer_id` — integer (mf_id), required
-
-**Response `200 OK`:**
-```json
-[
-  { "id": 1, "sack_in_kg": 2 }
-]
-```
-
----
-
-### GET `/weigh-leaves/leaf-types`
-Returns all active tobacco leaf types for dropdown population.
-
-**Auth required:** Yes — `login_system` scope
-
-**Response `200 OK`:**
-```json
-[
-  { "t_id": 3, "t_name": "Grade A Leaf" }
-]
-```
-
----
-
-### GET `/weigh-leaves/`
-Returns a paginated list of all weigh leaf records, newest first.
-
-**Auth required:** Yes — `login_system` scope
-
-**Query Parameters:**
-| Param | Type | Default |
-|-------|------|---------|
-| `skip` | int | 0 |
-| `limit` | int | 100 |
-
-**Response `200 OK`:**
-```json
-[
-  {
-    "id": 1,
-    "sack_registration_id": 1,
-    "sack_in_kg": 2,
-    "user_id": 10,
-    "user_name": "Sok Chan",
-    "leaf_type_id": 3,
-    "leaf_type_name": "Grade A Leaf",
-    "total_in_kg": 85.5,
-    "remork": 3,
-    "total_weight_in_kg": 80.5,
-    "dl_user_id": 2,
-    "dl_user_name": "johndoe",
-    "created_at": "2026-05-10T09:00:00+07:00",
-    "updated_at": "2026-05-10T09:00:00+07:00"
-  }
-]
-```
-
----
-
-### POST `/weigh-leaves/`
-Creates a new weigh leaf record. Automatically approves the linked sack registration (status → 1).
-
-**Auth required:** Yes — `login_system` scope
-
-**Body (JSON):**
-```json
-{
-  "sack_registration_id": 1,
-  "leaf_type_id": 3,
-  "total_in_kg": 85.5,
-  "remork": 3
-}
-```
-
-**Computed field:** `total_weight_in_kg = total_in_kg - remork - sack_in_kg`
-
-**Response `200 OK`:** Full `WeighLeaf` object.
-
-**Errors:** `404` Sack registration not found / Leaf type not found
-
----
-
-### PATCH `/weigh-leaves/{weigh_id}`
-Partially updates a weigh leaf record. Changing `leaf_type_id` re-links to a different leaf type.
-
-**Auth required:** Yes — `login_system` scope
-
-**Body (JSON) — all fields optional:**
-```json
-{
-  "leaf_type_id": 4,
-  "total_in_kg": 90.0,
-  "remork": 2
-}
-```
-
-**Response `200 OK`:** Updated `WeighLeaf` object.
-
-**Errors:** `404` Record not found / Leaf type not found
-
----
-
-### DELETE `/weigh-leaves/{weigh_id}`
-Deletes a weigh leaf record.
-
-**Auth required:** Yes — `login_system` scope
-
-**Response:** `204 No Content`
-
-**Errors:** `404` Weigh leaf record not found
 
 ---
 

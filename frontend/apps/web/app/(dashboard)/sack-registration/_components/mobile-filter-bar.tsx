@@ -1,14 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { IconArrowsSort, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react"
+import { IconFilter, IconPlus, IconSearch } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import { DATE_PRESETS, SortOrder, STATUS_FILTER_OPTIONS } from "./constants"
+import { SackStatusCounts } from "@/lib/api-client"
+import { DATE_PRESETS, STATUS_FILTER_OPTIONS } from "./constants"
 
-const SORT_CONFIG: Record<SortOrder, { icon: typeof IconArrowsSort; label: string }> = {
-  default: { icon: IconArrowsSort, label: "Newest First" },
+function statusCount(counts: SackStatusCounts, value: number | null): number {
+  if (value === null) return counts.all
+  if (value === 0) return counts.pending
+  if (value === 1) return counts.approved
+  return counts.rejected
 }
 
 interface MobileFilterBarProps {
@@ -16,22 +20,21 @@ interface MobileFilterBarProps {
   setStatusFilter: (v: number | null) => void
   datePreset: string
   setDatePreset: (v: string) => void
-  sortOrder: SortOrder
-  setSortOrder: (v: SortOrder) => void
   searchInput: string
   setSearchInput: (v: string) => void
   hasActiveFilters: boolean
+  statusCounts: SackStatusCounts | null
   onRegister: () => void
 }
 
 export function MobileFilterBar({
   statusFilter, setStatusFilter,
   datePreset, setDatePreset,
-  sortOrder, setSortOrder,
   searchInput, setSearchInput,
   hasActiveFilters,
+  statusCounts,
   onRegister,
-}: MobileFilterBarProps) {
+}: Readonly<MobileFilterBarProps>) {
   return (
     <div className="flex md:hidden items-center gap-2">
       <Popover>
@@ -50,7 +53,7 @@ export function MobileFilterBar({
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="text-sm font-semibold">Filters</h3>
               <button
-                onClick={() => { setStatusFilter(null); setDatePreset("last30"); setSortOrder("default") }}
+                onClick={() => { setStatusFilter(null); setDatePreset("last30") }}
                 className="text-[10px] text-[#009640] font-medium hover:underline"
               >
                 Reset All
@@ -71,6 +74,11 @@ export function MobileFilterBar({
                     )}
                   >
                     {opt.label}
+                    {statusCounts && (
+                      <span className="ml-1 opacity-70">
+                        ({statusCount(statusCounts, opt.value)})
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -90,26 +98,6 @@ export function MobileFilterBar({
                     )}
                   >
                     {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Sort Order</span>
-              <div className="grid grid-cols-1 gap-1.5">
-                {Object.entries(SORT_CONFIG).map(([key, cfg]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSortOrder(key as SortOrder)}
-                    className={cn(
-                      "flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
-                      sortOrder === key
-                        ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
-                        : "bg-muted/30 text-muted-foreground border-border"
-                    )}
-                  >
-                    <cfg.icon className="size-3.5" />
-                    {cfg.label}
                   </button>
                 ))}
               </div>
