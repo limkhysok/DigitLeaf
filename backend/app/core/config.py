@@ -18,7 +18,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
-    ] # Change this in .env for production (e.g., ["http://localhost:3000"])
+    ] # Override in .env: BACKEND_CORS_ORIGINS=["http://192.168.x.x:3000","http://localhost:3000"]
     # MySQL Configuration
     MYSQL_USER: str
     MYSQL_PASSWORD: str

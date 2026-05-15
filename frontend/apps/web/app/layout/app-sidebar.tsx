@@ -65,9 +65,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="bg-white border-r border-black" {...props}>
-      <SidebarHeader className="h-14 flex items-center bg-white border-b border-black p-0">
-        <div className="flex h-full items-center gap-3 w-full px-4 group/logo cursor-pointer hover:bg-black/5 transition-colors group-data-[collapsible=icon]/sidebar:justify-center group-data-[collapsible=icon]/sidebar:px-0 group-data-[collapsible=icon]/sidebar:gap-0">
+    <Sidebar variant="sidebar" collapsible="icon" className="bg-white border-r border-gray-200" {...props}>
+      <SidebarHeader className="h-14 flex items-center bg-white border-b border-gray-200 p-0">
+        <div className="flex h-full items-center gap-3 w-full px-4 group/logo cursor-pointer hover:bg-gray-200 transition-colors group-data-[collapsible=icon]/sidebar:justify-center group-data-[collapsible=icon]/sidebar:px-0 group-data-[collapsible=icon]/sidebar:gap-0">
           <Image
             src="/assets/newKAIC.png"
             alt="KAIC Logo"
