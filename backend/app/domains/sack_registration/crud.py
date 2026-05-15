@@ -1,7 +1,8 @@
 from typing import Optional
 from datetime import datetime, date
 from sqlalchemy import cast, Date, func
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
 from app.domains.weigh_leaf.models import WeighLeaf
@@ -11,8 +12,8 @@ _ACTIVE_YEAR = 2026
 _ACTIVE_JOIN = (MfConYear.mf_id == MemberFarmer.mf_id) & (MfConYear.year == _ACTIVE_YEAR)
 
 
-def get_represents(session: Session) -> list[RepresentPublic]:
-    rows = session.exec(
+async def get_represents(session: AsyncSession) -> list[RepresentPublic]:
+    result = await session.execute(
         select(
             Represent.represent_id,
             Represent.represent_name,
@@ -23,35 +24,37 @@ def get_represents(session: Session) -> list[RepresentPublic]:
         .where(Represent.do_not_show == 0)
         .group_by(Represent.represent_id, Represent.represent_name)
         .order_by(Represent.represent_name)
-    ).all()
+    )
+    rows = result.all()
     return [
         RepresentPublic(represent_id=r[0], represent_name=r[1], farmer_count=r[2])
         for r in rows
     ]
 
 
-def search_member_farmer(
-    session: Session,
+async def search_member_farmer(
+    session: AsyncSession,
     name: Optional[str] = None,
     identity_card: Optional[str] = None,
 ) -> Optional[MemberFarmer]:
     base = select(MemberFarmer).join(MfConYear, _ACTIVE_JOIN)
     if identity_card:
-        farmer = session.exec(base.where(MemberFarmer.mf_code == identity_card)).first()
+        result = await session.execute(base.where(MemberFarmer.mf_code == identity_card))
+        farmer = result.scalars().first()
         if farmer:
             return farmer
     if name:
-        return session.exec(base.where(MemberFarmer.name == name)).first()
+        result = await session.execute(base.where(MemberFarmer.name == name))
+        return result.scalars().first()
     return None
 
 
-def query_member_farmers(
-    session: Session,
+async def query_member_farmers(
+    session: AsyncSession,
     query: str,
     represent_id: Optional[int] = None,
     limit: int = 10,
 ) -> list[MemberFarmer]:
-    """Search member farmers by name or identity card (fuzzy), scoped to active 2026 contracts."""
     stmt = (
         select(MemberFarmer)
         .join(MfConYear, _ACTIVE_JOIN)
@@ -62,15 +65,17 @@ def query_member_farmers(
     )
     if represent_id is not None:
         stmt = stmt.where(MemberFarmer.represent == represent_id)
-    return session.exec(stmt.limit(limit)).all()
+    result = await session.execute(stmt.limit(limit))
+    return list(result.scalars().all())
 
 
-def get_by_id(session: Session, sack_id: int) -> Optional[SackRegistration]:
-    return session.exec(select(SackRegistration).where(SackRegistration.id == sack_id)).first()
+async def get_by_id(session: AsyncSession, sack_id: int) -> Optional[SackRegistration]:
+    result = await session.execute(select(SackRegistration).where(SackRegistration.id == sack_id))
+    return result.scalars().first()
 
 
-def get_all(
-    session: Session,
+async def get_all(
+    session: AsyncSession,
     skip: int = 0,
     limit: int = 200,
     search: Optional[str] = None,
@@ -104,22 +109,24 @@ def get_all(
 
     stmt = stmt.order_by(SackRegistration.created_at.desc())
 
-    total: int = session.exec(count_stmt).one()
-    items = list(session.exec(stmt.offset(skip).limit(limit)).all())
+    total: int = await session.scalar(count_stmt)
+    result = await session.execute(stmt.offset(skip).limit(limit))
+    items = list(result.scalars().all())
     return items, total
 
 
-def create(
-    session: Session,
+async def create(
+    session: AsyncSession,
     data: SackRegistrationCreate,
     current_user_id: int,
     current_user_name: str,
 ) -> tuple[Optional[SackRegistration], Optional[str]]:
-    represent = session.exec(select(Represent).where(Represent.represent_id == data.represent_id)).first()
+    result = await session.execute(select(Represent).where(Represent.represent_id == data.represent_id))
+    represent = result.scalars().first()
     if not represent:
         return None, "represent_not_found"
 
-    farmer = search_member_farmer(
+    farmer = await search_member_farmer(
         session,
         name=data.member_farmer_name,
         identity_card=data.member_farmer_identity_card,
@@ -139,16 +146,20 @@ def create(
         **({"registered_at": data.registered_at} if data.registered_at else {}),
     )
     session.add(record)
-    session.commit()
-    session.refresh(record)
+    await session.commit()
+    await session.refresh(record)
     return record, None
 
 
-def update(session: Session, record: SackRegistration, data: SackRegistrationUpdate) -> tuple[SackRegistration, Optional[str]]:
+async def update(
+    session: AsyncSession,
+    record: SackRegistration,
+    data: SackRegistrationUpdate,
+) -> tuple[SackRegistration, Optional[str]]:
     update_data = data.model_dump(exclude_unset=True)
 
     if "member_farmer_identity_card" in update_data:
-        farmer = search_member_farmer(session, identity_card=update_data.pop("member_farmer_identity_card"))
+        farmer = await search_member_farmer(session, identity_card=update_data.pop("member_farmer_identity_card"))
         if not farmer:
             return record, "farmer_not_found"
         record.member_farmer_id = farmer.mf_id
@@ -159,16 +170,16 @@ def update(session: Session, record: SackRegistration, data: SackRegistrationUpd
 
     record.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(record)
-    session.commit()
-    session.refresh(record)
+    await session.commit()
+    await session.refresh(record)
     return record, None
 
 
-def delete(session: Session, record: SackRegistration) -> None:
-    weigh_leaves = session.exec(
+async def delete(session: AsyncSession, record: SackRegistration) -> None:
+    result = await session.execute(
         select(WeighLeaf).where(WeighLeaf.sack_registration_id == record.id)
-    ).all()
-    for wl in weigh_leaves:
+    )
+    for wl in result.scalars().all():
         session.delete(wl)
     session.delete(record)
-    session.commit()
+    await session.commit()

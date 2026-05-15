@@ -2,170 +2,193 @@
 
 Base URL: `http://localhost:8000/api/v1`
 
----
-
-## 🔐 Authentication Endpoints
-
-### 1. Login (Get Tokens)
-Authenticates a user using standard OAuth2 Password flow. Returns a short-lived access token and a long-lived refresh token.
-
-**Endpoint:** `POST /auth/login/access-token`
-
-**Request Headers:**
-- `Content-Type: application/x-www-form-urlencoded`
-
-**Request Body (Form Data):**
-- `username`: `string` (Required)
-- `password`: `string` (Required)
-- `scope`: `string` (Optional, space-separated e.g., "user admin")
-
-**Example Request (curl):**
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/v1/auth/login/access-token' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=johndoe&password=mysecretpassword'
+All protected endpoints require:
+```
+Authorization: Bearer <access_token>
 ```
 
-**Example Response (200 OK):**
+Error responses always return:
+```json
+{ "detail": "Error message here" }
+```
+
+---
+
+## Table of Contents
+
+1. [Authentication](#authentication)
+2. [Audit Logs](#audit-logs)
+3. [User Management](#user-management)
+4. [Sack Registration](#sack-registration)
+5. [Weigh Leaf](#weigh-leaf)
+6. [Tobacco Purchase](#tobacco-purchase)
+
+---
+
+## Authentication
+
+### POST `/auth/login/access-token`
+Standard OAuth2 password login. Returns a short-lived access token (8 hours) and a long-lived refresh token (7 days).
+
+**Headers:** `Content-Type: application/x-www-form-urlencoded`
+
+**Form Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `username` | string | Yes |
+| `password` | string | Yes |
+| `scope` | string | No — space-separated e.g. `"user login_system"` |
+
+**Response `200 OK` (normal login):**
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsIn...",
   "token_type": "bearer",
-  "expires_in": 900,
-  "scope": "user admin",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsIn..."
+  "expires_in": 28800,
+  "scope": "user login_system",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsIn...",
+  "mfa_required": false,
+  "username": "johndoe"
 }
 ```
 
----
-
-### 2. Get Current User Profile (Me)
-Retrieves the profile information of the currently authenticated user.
-
-**Endpoint:** `GET /auth/me`
-
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
-
-**Example Request (curl):**
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/api/v1/auth/me' \
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...'
+**Response `200 OK` (TOTP required — call `/auth/login/totp-verify` next):**
+```json
+{
+  "access_token": "",
+  "token_type": "mfa",
+  "mfa_required": true,
+  "username": "johndoe"
+}
 ```
 
-**Example Response (200 OK):**
+**Errors:** `400` Incorrect username or password
+
+---
+
+### POST `/auth/login/otp-request`
+Generates a 6-digit OTP for the given user. Currently returns the OTP in the response body for development.
+
+**Body (JSON):**
+```json
+{ "user_name": "johndoe" }
+```
+
+**Response `200 OK`:**
+```json
+{ "message": "OTP generated successfully", "otp": "482910" }
+```
+
+**Errors:** `404` User not found
+
+---
+
+### POST `/auth/login/otp-verify`
+Verifies the 6-digit OTP and returns full auth tokens.
+
+**Body (JSON):**
+```json
+{
+  "user_name": "johndoe",
+  "otp_code": "482910"
+}
+```
+
+**Response `200 OK`:** Same shape as `/auth/login/access-token` success response.
+
+**Errors:** `400` Invalid username or OTP / OTP has expired
+
+---
+
+### POST `/auth/login/totp-verify`
+Verifies a TOTP code (Google Authenticator) during login and returns full auth tokens.
+
+**Body (JSON):**
+```json
+{
+  "user_name": "johndoe",
+  "totp_code": "123456"
+}
+```
+
+**Response `200 OK`:** Same shape as `/auth/login/access-token` success response.
+
+**Errors:** `400` TOTP not enabled for user / Invalid TOTP code
+
+---
+
+### GET `/auth/me`
+Returns the profile of the currently authenticated user.
+
+**Auth required:** Yes
+
+**Response `200 OK`:**
 ```json
 {
   "id": 1,
   "user_name": "johndoe",
-  "access_type": "admin",
-  "login_type": "email",
-  "do_date": "2026-04-28T08:00:00Z"
+  "role": { "name": "staff" },
+  "totp_enabled": false,
+  "created_at": "2026-04-28T08:00:00+07:00"
 }
 ```
 
 ---
 
-### 3. Refresh Access Token
-When the 15-minute `access_token` expires, the frontend must call this endpoint with the 7-day `refresh_token` to get a new session silently.
+### POST `/auth/login/refresh`
+Exchanges a valid refresh token for a new access token. The old refresh token is deleted and a new one is issued (rotation).
 
-**Endpoint:** `POST /auth/login/refresh`
-
-**Request Headers:**
-- `Content-Type: application/json`
-
-**Request Body (JSON):**
+**Body (JSON):**
 ```json
-{
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsIn..."
-}
+{ "refresh_token": "eyJhbGciOiJIUzI1NiIsIn..." }
 ```
 
-**Example Request (curl):**
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/v1/auth/login/refresh' \
-  -H 'Content-Type: application/json' \
-  -d '{"refresh_token": "eyJhbGciOiJIUzI1NiIsIn..."}'
-```
+**Response `200 OK`:** Same shape as `/auth/login/access-token` success response.
 
-**Example Response (200 OK):**
+**Errors:** `401` Invalid or expired refresh token / User no longer exists
+
+---
+
+### POST `/auth/logout`
+Deletes all refresh tokens for the current user. The existing access token remains valid until it expires naturally (8 hours).
+
+**Auth required:** Yes
+
+**Response `200 OK`:**
 ```json
-{
-  "access_token": "new_eyJhbGciOiJIUzI1NiIsIn...",
-  "token_type": "bearer",
-  "expires_in": 900,
-  "scope": "user admin",
-  "refresh_token": "new_refresh_eyJhbGciOiJIUzI1NiIsIn..."
-}
+{ "message": "Successfully logged out of all sessions" }
 ```
 
 ---
 
-### 4. Logout
-Permanently logs the user out by deleting their active `refresh_token` from the database. Once their current 15-minute access token expires, they will be completely locked out.
+### GET `/auth/sessions`
+Lists all active refresh token sessions for the current user.
 
-**Endpoint:** `POST /auth/logout`
+**Auth required:** Yes
 
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
-
-**Example Request (curl):**
-```bash
-curl -X 'POST' \
-  'http://localhost:8000/api/v1/auth/logout' \
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...'
-```
-
-**Example Response (200 OK):**
+**Response `200 OK`:**
 ```json
-{
-  "message": "Successfully logged out of all sessions"
-}
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "user_name": "johndoe",
+    "refresh_token": "eyJ...",
+    "expires_at": "2026-05-22T08:00:00+07:00",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0..."
+  }
+]
 ```
 
 ---
 
-### 5. Request Login OTP
-Generates a 6-digit OTP for the specified user and returns it (for development/testing).
+### POST `/auth/totp/setup`
+Generates a new TOTP secret and QR provisioning URI for the current user. Must be followed by `/auth/totp/enable` to activate.
 
-**Endpoint:** `POST /auth/login/otp-request`
+**Auth required:** Yes
 
-**Request Body (JSON):**
-```json
-{
-  "user_name": "string"
-}
-```
-
----
-
-### 6. Verify Login OTP
-Verifies the 6-digit OTP and returns access tokens.
-
-**Endpoint:** `POST /auth/login/otp-verify`
-
-**Request Body (JSON):**
-```json
-{
-  "user_name": "string",
-  "otp_code": "string"
-}
-```
-
----
-
-### 7. Setup Google Authenticator (TOTP)
-Generates a TOTP secret and provisioning URI for the current user.
-
-**Endpoint:** `POST /auth/totp/setup`
-
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
-
-**Example Response (200 OK):**
+**Response `200 OK`:**
 ```json
 {
   "secret": "JBSWY3DPEHPK3PXP",
@@ -173,94 +196,94 @@ Generates a TOTP secret and provisioning URI for the current user.
 }
 ```
 
+**Errors:** `400` TOTP is already enabled
+
 ---
 
-### 8. Enable Google Authenticator (TOTP)
-Verifies the first TOTP code and permanently enables TOTP for the user.
+### POST `/auth/totp/enable`
+Confirms the TOTP setup by verifying the first code. TOTP becomes active after this call.
 
-**Endpoint:** `POST /auth/totp/enable`
+**Auth required:** Yes
 
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
-
-**Request Body (JSON):**
+**Body (JSON):**
 ```json
 {
-  "user_name": "string",
-  "totp_code": "string"
+  "user_name": "johndoe",
+  "totp_code": "123456"
 }
 ```
 
+**Response `200 OK`:**
+```json
+{ "message": "TOTP enabled successfully" }
+```
+
+**Errors:** `400` Already enabled / Secret not generated (call `/totp/setup` first) / Invalid TOTP code
+
 ---
 
-### 9. Verify Google Authenticator Login
-Verifies the TOTP code during login and returns access tokens.
+### POST `/auth/totp/disable`
+Disables TOTP for the current user after verifying the current code.
 
-**Endpoint:** `POST /auth/login/totp-verify`
+**Auth required:** Yes
 
-**Request Body (JSON):**
+**Body (JSON):**
 ```json
 {
-  "user_name": "string",
-  "totp_code": "string"
+  "user_name": "johndoe",
+  "totp_code": "123456"
 }
 ```
 
+**Response `200 OK`:**
+```json
+{ "message": "TOTP disabled successfully" }
+```
+
+**Errors:** `400` Already disabled / Invalid TOTP code
+
 ---
 
-## 📋 System Audit Endpoints
+## Audit Logs
 
-### 5. View Audit Logs
-Retrieves a paginated list of all system activity.
-**Security:** Requires `admin` scope. Normal users will receive a 403 Forbidden error.
+### GET `/audit-logs/`
+Returns a paginated list of all system activity.
 
-**Endpoint:** `GET /audit-logs/`
-
-**Request Headers:**
-- `Authorization: Bearer <access_token>` (Must have "admin" scope)
+**Auth required:** Yes — `admin` scope only
 
 **Query Parameters:**
-- `skip`: int (Default: 0)
-- `limit`: int (Default: 100)
+| Param | Type | Default |
+|-------|------|---------|
+| `skip` | int | 0 |
+| `limit` | int | 100 |
 
-**Example Request (curl):**
-```bash
-curl -X 'GET' \
-  'http://localhost:8000/api/v1/audit-logs/?skip=0&limit=10' \
-  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsIn...'
-```
-
-**Example Response (200 OK):**
+**Response `200 OK`:**
 ```json
 [
   {
     "id": 1,
-    "user_name": "admin_user",
+    "user_id": 1,
     "endpoint": "/api/v1/auth/login/access-token",
     "method": "POST",
-    "headers": "{\"host\": \"localhost:8000\", \"user-agent\": \"curl/7.81.0\"}",
-    "body": "<redacted for security>",
     "ip_address": "127.0.0.1",
     "user_agent": "curl/7.81.0",
-    "created_at": "2026-04-28T09:40:00.000Z"
+    "created_at": "2026-04-28T09:40:00+07:00"
   }
 ]
 ```
 
+**Errors:** `403` Insufficient scope (non-admin users)
+
 ---
 
-## 👥 User Management Endpoints
+## User Management
 
-### 1. Create User
+### POST `/users/`
 Creates a new user account with a designated role.
-**Security:** Requires `manage_users` permission scope.
 
-**Endpoint:** `POST /users/`
+**Auth required:** Yes — `manage_users` scope
 
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
-
-**Request Body (JSON):**
+**Body (JSON):**
 ```json
 {
   "user_name": "new_farmer",
@@ -269,27 +292,29 @@ Creates a new user account with a designated role.
 }
 ```
 
-**Example Response (200 OK):**
+**Constraints:** `user_name` 3–50 chars · `password` 8–128 chars · `role_name` must exist in DB
+
+**Response `200 OK`:**
 ```json
 {
   "id": 2,
   "user_name": "new_farmer",
+  "role": { "name": "Farmer" },
   "totp_enabled": false,
-  "created_at": "2026-05-05T13:40:00.000Z"
+  "created_at": "2026-05-05T13:40:00+07:00"
 }
 ```
 
+**Errors:** `400` Username already exists · `404` Role not found
+
 ---
 
-### 2. Change Own Password
-Allows the currently authenticated user to change their password by providing their current password.
+### PATCH `/users/me/password`
+Allows the authenticated user to change their own password.
 
-**Endpoint:** `PATCH /users/me/password`
+**Auth required:** Yes
 
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
-
-**Request Body (JSON):**
+**Body (JSON):**
 ```json
 {
   "current_password": "OldPassword123",
@@ -297,85 +322,565 @@ Allows the currently authenticated user to change their password by providing th
 }
 ```
 
-**Example Response (200 OK):**
+**Response `200 OK`:**
+```json
+{ "message": "Password updated successfully" }
+```
+
+**Errors:** `400` Incorrect current password
+
+---
+
+### PATCH `/users/{user_id}/password`
+Admin endpoint — forcefully resets a user's password without requiring their current password.
+
+**Auth required:** Yes — `manage_users` scope
+
+**Path Parameter:** `user_id` — integer
+
+**Body (JSON):**
+```json
+{ "new_password": "AdminForcedPassword789!" }
+```
+
+**Response `200 OK`:**
+```json
+{ "message": "Password reset successfully by admin" }
+```
+
+**Errors:** `404` User not found
+
+---
+
+## Sack Registration
+
+### GET `/sack-registrations/represents`
+Returns all represents for dropdown population. Only represents with active 2026 farmer contracts are included.
+
+**Auth required:** Yes — `login_system` scope
+
+**Response `200 OK`:**
+```json
+[
+  { "represent_id": 1, "represent_name": "Kampong Cham", "farmer_count": 42 }
+]
+```
+
+---
+
+### GET `/sack-registrations/member-farmers`
+Unified farmer lookup — fuzzy typeahead or exact match, always returns a list.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Notes |
+|-------|------|-------|
+| `q` | string | Fuzzy search — returns up to `limit` results |
+| `name` | string | Exact name match (use without `q`) |
+| `identity_card` | string | Exact ID card match (use without `q`; takes priority over `name`) |
+| `represent_id` | int | Optional — scope fuzzy results to a represent |
+| `limit` | int | Default `10` — applies to fuzzy mode only |
+
+Provide either `q` (fuzzy) **or** `name`/`identity_card` (exact). The response is always a list. For exact lookup, check `list[0]` — empty list means no match.
+
+**Response `200 OK`:**
+```json
+[
+  { "mf_id": 10, "name": "Sok Chan", "mf_code": "KP-001", "address": "Kampong Cham" }
+]
+```
+
+**Errors:** `400` No parameter provided
+
+---
+
+### GET `/sack-registrations/`
+Returns a paginated, filterable list of sack registrations.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Default | Notes |
+|-------|------|---------|-------|
+| `skip` | int | 0 | |
+| `limit` | int | 200 | |
+| `search` | string | — | Matches farmer name or represent name |
+| `status` | int | — | `0`=pending `1`=approved `2`=rejected |
+| `date_from` | date | — | `YYYY-MM-DD` |
+| `date_to` | date | — | `YYYY-MM-DD` |
+
+**Response `200 OK`:**
 ```json
 {
-  "message": "Password updated successfully"
+  "items": [
+    {
+      "id": 1,
+      "represent_id": 1,
+      "represent_name": "Kampong Cham",
+      "member_farmer_id": 10,
+      "member_farmer_name": "Sok Chan",
+      "dl_user_id": 2,
+      "dl_user_name": "johndoe",
+      "status": 0,
+      "notes": null,
+      "registered_at": "2026-05-01T08:00:00+07:00",
+      "created_at": "2026-05-01T08:00:00+07:00",
+      "updated_at": "2026-05-01T08:00:00+07:00"
+    }
+  ],
+  "total": 150,
+  "has_more": true
 }
 ```
 
 ---
 
-### 3. Admin Reset Password
-Allows an administrator to forcefully reset the password of any user by their User ID, without needing their current password.
-**Security:** Requires `manage_users` permission scope.
+### GET `/sack-registrations/{sack_id}`
+Returns a single sack registration by ID.
 
-**Endpoint:** `PATCH /users/{user_id}/password`
+**Auth required:** Yes — `login_system` scope
 
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
+**Response `200 OK`:** Single `SackRegistration` object (same shape as an item above).
 
-**Request Body (JSON):**
+**Errors:** `404` Sack registration not found
+
+---
+
+### POST `/sack-registrations/`
+Creates a new sack registration. The farmer is resolved by name or identity card.
+
+**Auth required:** Yes — `login_system` scope
+
+**Body (JSON):**
 ```json
 {
-  "new_password": "AdminForcedPassword789!"
+  "represent_id": 1,
+  "member_farmer_name": "Sok Chan",
+  "member_farmer_identity_card": "KP-001",
+  "status": 0,
+  "notes": "Batch 3",
+  "registered_at": "2026-05-10T08:00:00+07:00"
 }
 ```
 
-**Example Response (200 OK):**
+**Notes:**
+- Either `member_farmer_name` or `member_farmer_identity_card` is required (not both needed)
+- `registered_at` defaults to current timestamp if omitted
+- `status` defaults to `0` (pending)
+
+**Response `200 OK`:** Full `SackRegistration` object.
+
+**Errors:** `404` Represent not found / Member farmer not found
+
+---
+
+### PATCH `/sack-registrations/{sack_id}`
+Partially updates a sack registration. Changing `member_farmer_identity_card` re-links to a different farmer.
+
+**Auth required:** Yes — `login_system` scope
+
+**Body (JSON) — all fields optional:**
 ```json
 {
-  "message": "Password for user 'new_farmer' has been reset successfully"
+  "member_farmer_identity_card": "KP-002",
+  "status": 1,
+  "notes": "Approved batch"
 }
+```
+
+**Response `200 OK`:** Updated `SackRegistration` object.
+
+**Errors:** `404` Record not found / Farmer not found
+
+---
+
+### DELETE `/sack-registrations/{sack_id}`
+Deletes a sack registration and all associated weigh leaf records.
+
+**Auth required:** Yes — `login_system` scope
+
+**Response:** `204 No Content`
+
+**Errors:** `404` Sack registration not found
+
+---
+
+## Weigh Leaf
+
+### GET `/weigh-leaves/farmers/search`
+Typeahead search for farmers by name or identity card.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Default |
+|-------|------|---------|
+| `q` | string | Required |
+| `limit` | int | 10 |
+
+**Response `200 OK`:**
+```json
+[
+  { "mf_id": 10, "name": "Sok Chan", "mf_code": "KP-001" }
+]
 ```
 
 ---
 
-## 🍂 Tobacco Purchase Endpoints
+### GET `/weigh-leaves/sack-registrations`
+Returns all sack registrations belonging to a specific farmer.
 
-### 1. Create Tobacco Purchase
-Creates a new tobacco purchase header with multiple item details in a single transaction.
-**Endpoint:** `POST /tobacco-purchases/`
+**Auth required:** Yes — `login_system` scope
 
-**Request Headers:**
-- `Authorization: Bearer <access_token>`
+**Query Parameter:** `farmer_id` — integer (mf_id), required
 
-**Request Body (JSON):**
+**Response `200 OK`:**
+```json
+[
+  { "id": 1, "sack_in_kg": 2 }
+]
+```
+
+---
+
+### GET `/weigh-leaves/leaf-types`
+Returns all active tobacco leaf types for dropdown population.
+
+**Auth required:** Yes — `login_system` scope
+
+**Response `200 OK`:**
+```json
+[
+  { "t_id": 3, "t_name": "Grade A Leaf" }
+]
+```
+
+---
+
+### GET `/weigh-leaves/`
+Returns a paginated list of all weigh leaf records, newest first.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Default |
+|-------|------|---------|
+| `skip` | int | 0 |
+| `limit` | int | 100 |
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "sack_registration_id": 1,
+    "sack_in_kg": 2,
+    "user_id": 10,
+    "user_name": "Sok Chan",
+    "leaf_type_id": 3,
+    "leaf_type_name": "Grade A Leaf",
+    "total_in_kg": 85.5,
+    "remork": 3,
+    "total_weight_in_kg": 80.5,
+    "dl_user_id": 2,
+    "dl_user_name": "johndoe",
+    "created_at": "2026-05-10T09:00:00+07:00",
+    "updated_at": "2026-05-10T09:00:00+07:00"
+  }
+]
+```
+
+---
+
+### POST `/weigh-leaves/`
+Creates a new weigh leaf record. Automatically approves the linked sack registration (status → 1).
+
+**Auth required:** Yes — `login_system` scope
+
+**Body (JSON):**
 ```json
 {
-  "invoice_num": "string (Optional, auto-generated if omitted)",
+  "sack_registration_id": 1,
+  "leaf_type_id": 3,
+  "total_in_kg": 85.5,
+  "remork": 3
+}
+```
+
+**Computed field:** `total_weight_in_kg = total_in_kg - remork - sack_in_kg`
+
+**Response `200 OK`:** Full `WeighLeaf` object.
+
+**Errors:** `404` Sack registration not found / Leaf type not found
+
+---
+
+### PATCH `/weigh-leaves/{weigh_id}`
+Partially updates a weigh leaf record. Changing `leaf_type_id` re-links to a different leaf type.
+
+**Auth required:** Yes — `login_system` scope
+
+**Body (JSON) — all fields optional:**
+```json
+{
+  "leaf_type_id": 4,
+  "total_in_kg": 90.0,
+  "remork": 2
+}
+```
+
+**Response `200 OK`:** Updated `WeighLeaf` object.
+
+**Errors:** `404` Record not found / Leaf type not found
+
+---
+
+### DELETE `/weigh-leaves/{weigh_id}`
+Deletes a weigh leaf record.
+
+**Auth required:** Yes — `login_system` scope
+
+**Response:** `204 No Content`
+
+**Errors:** `404` Weigh leaf record not found
+
+---
+
+## Tobacco Purchase
+
+### GET `/tobacco-purchases/purchasers`
+Returns all active purchasers (buyers) for dropdown population.
+
+**Auth required:** Yes — `login_system` scope
+
+**Response `200 OK`:**
+```json
+[
+  { "p_id": 1, "p_name": "Buyer Co. Ltd" }
+]
+```
+
+---
+
+### GET `/tobacco-purchases/regions`
+Returns all active regions (`do_not_show = 0`) for dropdown population.
+
+**Auth required:** Yes — `login_system` scope
+
+---
+
+### GET `/tobacco-purchases/ovens`
+Returns all active ovens (`do_not_show = 0`) for dropdown population.
+
+**Auth required:** Yes — `login_system` scope
+
+---
+
+### GET `/tobacco-purchases/tobacco-types`
+Returns all active tobacco types (category 2, not discontinued).
+
+**Auth required:** Yes — `login_system` scope
+
+**Response `200 OK`:**
+```json
+[
+  { "t_id": 3, "t_name": "Grade A", "t_name_kh": "ថ្នាក់ A" }
+]
+```
+
+---
+
+### GET `/tobacco-purchases/vendors`
+Returns all active member farmers belonging to a buyer's represent groups.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Required |
+|-------|------|----------|
+| `buyer_id` | int | Yes |
+
+**Response `200 OK`:**
+```json
+[
+  { "mf_id": 10, "name": "Sok Chan", "mf_code": "KP-001", "address": "Kampong Cham" }
+]
+```
+
+---
+
+### POST `/tobacco-purchases/`
+Creates a new tobacco purchase header with all line item details in a single transaction. Invoice number is auto-generated.
+
+**Auth required:** Yes — `login_system` scope
+
+**Body (JSON):**
+```json
+{
   "buyer": 1,
-  "vendor": "string (mf_id)",
-  "v_addr": "string (address)",
-  "region": 1,
+  "vendor": "Sok Chan",
+  "v_addr": "Kampong Cham",
+  "region": 2,
   "tp_date": "2026-05-11",
-  "tp_note": "string",
-  "closing": "string",
+  "tp_note": "Morning batch",
+  "closing": "NO",
   "oven": 1,
   "rate": 100,
   "details": [
     {
-      "tobacco_name": 1,
-      "qty": 50.5,
-      "price": 10.0,
-      "CreatedDate": "2026-05-11"
+      "tobacco_name": 3,
+      "gross_weight": 90.0,
+      "price": 1200.0,
+      "remork_in_kg": 3.0,
+      "sack_in_kg": 2.0,
+      "CreatedDate": "2026-05-11",
+      "closing": "NO",
+      "buyer": 1,
+      "oven": 1,
+      "region": 2
     }
   ]
 }
 ```
 
-### 2. List Tobacco Purchases
-**Endpoint:** `GET /tobacco-purchases/`
+**Notes:**
+- `invoice_num` is auto-generated in format `YYYYMMDD-00001` and should not be sent
+- `closing`: `"YES"` or `"NO"`
+- `rate` is required
+- Per detail: `net = gross_weight - remork_in_kg - sack_in_kg`, `total_amount = net × price`
+- If the vendor has a pending sack registration (`status=0`) and `sack_in_kg > 0`, it is auto-approved
+
+**Response `200 OK`:**
+```json
+{
+  "tp_id": 1,
+  "invoice_num": "20260511-00000",
+  "buyer": 1,
+  "vendor": "Sok Chan",
+  "v_addr": "Kampong Cham",
+  "region": 2,
+  "tp_date": "2026-05-11",
+  "tp_note": "Morning batch",
+  "closing": "NO",
+  "oven": 1,
+  "rate": 100,
+  "user": "johndoe",
+  "do_date": "2026-05-11T08:00:00+07:00",
+  "tobacco_item_count": 1,
+  "total_net_weight": 85.0,
+  "grand_total": 102000.0,
+  "details": [
+    {
+      "tpd_id": 1,
+      "invoice_num": "20260511-00000",
+      "tobacco_name": 3,
+      "gross_weight": 90.0,
+      "price": 1200.0,
+      "remork_in_kg": 3.0,
+      "sack_in_kg": 2.0,
+      "CreatedDate": "2026-05-11",
+      "closing": "NO",
+      "buyer": 1,
+      "oven": 1,
+      "region": 2,
+      "m_id": 1,
+      "total_amount": 102000.0,
+      "user": "johndoe",
+      "do_date": "2026-05-11T08:00:00+07:00"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/tobacco-purchases/`
+Returns a paginated, searchable list of tobacco purchases.
+
+**Auth required:** Yes — `login_system` scope
 
 **Query Parameters:**
-- `skip`: int (Default: 0)
-- `limit`: int (Default: 100)
-- `search`: string (Optional, search by invoice or vendor)
+| Param | Type | Default | Notes |
+|-------|------|---------|-------|
+| `skip` | int | 0 | |
+| `limit` | int | 100 | |
+| `search` | string | — | Matches invoice number or vendor name |
 
-### 3. Get Purchase Lookups (Dropdowns)
-Endpoints for populating frontend selection menus:
-- `GET /tobacco-purchases/purchasers`: List available buyers.
-- `GET /tobacco-purchases/regions`: List available regions (where `do_now_show=0`).
-- `GET /tobacco-purchases/ovens`: List all ovens.
-- `GET /tobacco-purchases/tobacco-types`: List active tobacco types.
+**Response `200 OK`:**
+```json
+{
+  "items": [ /* Purchase objects */ ],
+  "total": 200
+}
+```
 
+---
+
+### GET `/tobacco-purchases/{tp_id}`
+Returns a single tobacco purchase including all detail lines.
+
+**Auth required:** Yes — `login_system` scope
+
+**Response `200 OK`:** Full `Purchase` object (same shape as create response).
+
+**Errors:** `404` Tobacco purchase not found
+
+---
+
+### PATCH `/tobacco-purchases/{tp_id}`
+Updates a tobacco purchase header and optionally replaces all detail lines.
+
+**Auth required:** Yes — `login_system` scope
+
+**Body (JSON) — all fields optional:**
+```json
+{
+  "vendor": "New Vendor Name",
+  "tp_date": "2026-05-12",
+  "rate": 110,
+  "details": [ /* If provided, ALL existing details are replaced */ ]
+}
+```
+
+**Response `200 OK`:** Updated full `Purchase` object.
+
+**Errors:** `404` Tobacco purchase not found
+
+---
+
+### DELETE `/tobacco-purchases/{tp_id}`
+Deletes a tobacco purchase and all its detail lines (cascade).
+
+**Auth required:** Yes — `login_system` scope
+
+**Response:** `204 No Content`
+
+**Errors:** `404` Tobacco purchase not found
+
+---
+
+## Permission Scopes Reference
+
+| Scope | Description |
+|-------|-------------|
+| `user` | Base scope — included in all tokens |
+| `login_system` | Access to all domain endpoints (sack, weigh, purchase) |
+| `manage_users` | Create users, reset any password |
+| `admin` | Access audit logs |
+
+---
+
+## Status Codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `201` | Created — returned by all POST create endpoints |
+| `204` | Success — no content (DELETE) |
+| `400` | Bad request (validation failure, wrong password, duplicate) |
+| `401` | Unauthorized (missing or invalid token) |
+| `403` | Forbidden (insufficient scope) |
+| `404` | Resource not found |
+| `422` | Unprocessable entity (Pydantic validation error) |
+| `500` | Internal server error |

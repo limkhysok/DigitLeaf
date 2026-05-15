@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Security
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.domains.users.schemas import UserPublic, UserCreate, UserChangePassword, UserAdminResetPassword
@@ -16,45 +17,36 @@ router = APIRouter(route_class=AuditLogRoute)
 @router.post(
     "/",
     response_model=UserPublic,
+    status_code=201,
     responses={
         400: {"description": "Username already exists"},
         404: {"description": "Role not found"},
     },
 )
-def create_user(
+async def create_user(
     request: Request,
     user_in: UserCreate,
-    session: Annotated[Session, Depends(get_session)],
-    # Security dependency STRICTLY requires "manage_users" permission
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
 ):
-    """
-    Create a new user. Only staff/admins with 'manage_users' permission can perform this.
-    """
-    # 1. Check if user already exists
-    existing_user = crud.get_user_by_username(session=session, user_name=user_in.user_name)
+    existing_user = await crud.get_user_by_username(session=session, user_name=user_in.user_name)
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already exists")
 
-    # 2. Find the requested role (e.g., "Farmer")
-    role = session.exec(select(Role).where(Role.name == user_in.role_name)).first()
+    result = await session.execute(select(Role).where(Role.name == user_in.role_name))
+    role = result.scalars().first()
     if not role:
-        raise HTTPException(
-            status_code=404, detail=f"Role '{user_in.role_name}' not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Role '{user_in.role_name}' not found")
 
-    # 3. Create the user object
-    # As requested, temporarily keeping plain-text password logic
     new_user = User(
         user_name=user_in.user_name,
         password=user_in.password,
         role=role,
     )
 
-
     session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
+    await session.commit()
+    await session.refresh(new_user)
 
     return new_user
 
@@ -65,24 +57,19 @@ def create_user(
         400: {"description": "Incorrect current password"},
     },
 )
-def change_my_password(
+async def change_my_password(
     password_data: UserChangePassword,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user)],
 ):
-    """
-    Self-service password change for the currently authenticated user.
-    """
-    # Verify current password (plain-text check)
     if current_user.password != password_data.current_password:
         raise HTTPException(status_code=400, detail="Incorrect current password")
 
-    # Update to new password
     current_user.password = password_data.new_password
-    
+
     session.add(current_user)
-    session.commit()
-    
+    await session.commit()
+
     return {"message": "Password updated successfully"}
 
 
@@ -92,24 +79,18 @@ def change_my_password(
         404: {"description": "User not found"},
     },
 )
-def admin_reset_password(
+async def admin_reset_password(
     user_id: int,
     password_data: UserAdminResetPassword,
-    session: Annotated[Session, Depends(get_session)],
-    # Security dependency STRICTLY requires "manage_users" permission
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
 ):
-    """
-    Admin endpoint to reset a specific user's password. Requires 'manage_users' permission.
-    """
-    user_to_update = crud.get_user_by_id(session=session, user_id=user_id)
+    user_to_update = await crud.get_user_by_id(session=session, user_id=user_id)
     if not user_to_update:
         raise HTTPException(status_code=404, detail="User not found")
 
     user_to_update.password = password_data.new_password
 
     session.add(user_to_update)
-    session.commit()
+    await session.commit()
     return {"message": "Password reset successfully by admin"}
-
-

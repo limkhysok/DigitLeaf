@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
@@ -23,55 +23,54 @@ _LEAF_TYPE_NOT_FOUND = "Leaf type not found"
 
 
 @router.get("/farmers/search", response_model=list[MemberFarmerSearchPublic])
-def search_farmers(
+async def search_farmers(
     q: str,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     limit: int = 10,
 ):
-    return crud.search_farmers(session=session, query=q, limit=limit)
+    return await crud.search_farmers(session=session, query=q, limit=limit)
 
 
-@router.get("/sack-registrations/by-farmer/{farmer_id}", response_model=list[SackRegistrationBriefPublic])
-def get_sack_registrations_by_farmer(
+@router.get("/sack-registrations", response_model=list[SackRegistrationBriefPublic])
+async def get_sack_registrations_by_farmer(
     farmer_id: int,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    return crud.get_sack_registrations_by_farmer(session=session, farmer_id=farmer_id)
+    return await crud.get_sack_registrations_by_farmer(session=session, farmer_id=farmer_id)
 
 
 @router.get("/leaf-types", response_model=list[TobaccoPublic])
-def list_leaf_types(
-    session: Annotated[Session, Depends(get_session)],
+async def list_leaf_types(
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    return crud.get_leaf_types(session=session)
+    return await crud.get_leaf_types(session=session)
 
 
 @router.get("/", response_model=list[WeighLeafPublic])
-def list_weigh_leaves(
-    session: Annotated[Session, Depends(get_session)],
+async def list_weigh_leaves(
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     skip: int = 0,
     limit: int = 100,
 ):
-    return crud.get_all(session=session, skip=skip, limit=limit)
+    return await crud.get_all(session=session, skip=skip, limit=limit)
 
 
 @router.post(
     "/",
     response_model=WeighLeafPublic,
-    responses={
-        404: {"description": f"{_SACK_NOT_FOUND} or {_LEAF_TYPE_NOT_FOUND}"},
-    },
+    status_code=201,
+    responses={404: {"description": f"{_SACK_NOT_FOUND} or {_LEAF_TYPE_NOT_FOUND}"}},
 )
-def create_weigh_leaf(
+async def create_weigh_leaf(
     data: WeighLeafCreate,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record, error = crud.create(
+    record, error = await crud.create(
         session=session,
         data=data,
         current_user_id=current_user.id,
@@ -89,28 +88,28 @@ def create_weigh_leaf(
     response_model=WeighLeafPublic,
     responses={404: {"description": _NOT_FOUND}},
 )
-def update_weigh_leaf(
+async def update_weigh_leaf(
     weigh_id: int,
     data: WeighLeafUpdate,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record = crud.get_by_id(session=session, weigh_id=weigh_id)
+    record = await crud.get_by_id(session=session, weigh_id=weigh_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    updated, error = crud.update(session=session, record=record, data=data)
+    updated, error = await crud.update(session=session, record=record, data=data)
     if error == "leaf_type_not_found":
         raise HTTPException(status_code=404, detail=_LEAF_TYPE_NOT_FOUND)
     return updated
 
 
 @router.delete("/{weigh_id}", status_code=204, responses={404: {"description": _NOT_FOUND}})
-def delete_weigh_leaf(
+async def delete_weigh_leaf(
     weigh_id: int,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record = crud.get_by_id(session=session, weigh_id=weigh_id)
+    record = await crud.get_by_id(session=session, weigh_id=weigh_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    crud.delete(session=session, record=record)
+    await crud.delete(session=session, record=record)

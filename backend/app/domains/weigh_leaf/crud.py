@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration.models import SackRegistration
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
@@ -8,55 +9,62 @@ from app.domains.weigh_leaf.models import WeighLeaf, Tobacco
 from app.domains.weigh_leaf.schemas import WeighLeafCreate, WeighLeafUpdate
 
 
-def search_farmers(session: Session, query: str, limit: int = 10) -> list[MemberFarmer]:
-    return session.exec(
+async def search_farmers(session: AsyncSession, query: str, limit: int = 10) -> list[MemberFarmer]:
+    result = await session.execute(
         select(MemberFarmer)
         .where(
             MemberFarmer.mf_code.ilike(f"%{query}%") | MemberFarmer.name.ilike(f"%{query}%")
         )
         .limit(limit)
-    ).all()
+    )
+    return list(result.scalars().all())
 
 
-def get_sack_registrations_by_farmer(session: Session, farmer_id: int) -> list[SackRegistration]:
-    return session.exec(
+async def get_sack_registrations_by_farmer(session: AsyncSession, farmer_id: int) -> list[SackRegistration]:
+    result = await session.execute(
         select(SackRegistration)
         .where(SackRegistration.member_farmer_id == farmer_id)
         .order_by(SackRegistration.created_at.desc())
-    ).all()
+    )
+    return list(result.scalars().all())
 
 
-def get_leaf_types(session: Session) -> list[Tobacco]:
-    return session.exec(
+async def get_leaf_types(session: AsyncSession) -> list[Tobacco]:
+    result = await session.execute(
         select(Tobacco).where((Tobacco.t_cate == 2) & (Tobacco.discontinue == 0))
-    ).all()
+    )
+    return list(result.scalars().all())
 
 
-def get_all(session: Session, skip: int = 0, limit: int = 100) -> list[WeighLeaf]:
-    return session.exec(
+async def get_all(session: AsyncSession, skip: int = 0, limit: int = 100) -> list[WeighLeaf]:
+    result = await session.execute(
         select(WeighLeaf).order_by(WeighLeaf.created_at.desc()).offset(skip).limit(limit)
-    ).all()
+    )
+    return list(result.scalars().all())
 
 
-def get_by_id(session: Session, weigh_id: int) -> Optional[WeighLeaf]:
-    return session.exec(select(WeighLeaf).where(WeighLeaf.id == weigh_id)).first()
+async def get_by_id(session: AsyncSession, weigh_id: int) -> Optional[WeighLeaf]:
+    result = await session.execute(select(WeighLeaf).where(WeighLeaf.id == weigh_id))
+    return result.scalars().first()
 
 
-def create(
-    session: Session,
+async def create(
+    session: AsyncSession,
     data: WeighLeafCreate,
     current_user_id: int,
     current_user_name: str,
 ) -> tuple[Optional[WeighLeaf], Optional[str]]:
-    sack = session.exec(
+    sack_result = await session.execute(
         select(SackRegistration).where(SackRegistration.id == data.sack_registration_id)
-    ).first()
+    )
+    sack = sack_result.scalars().first()
     if not sack:
         return None, "sack_not_found"
 
-    leaf_type = session.exec(
+    leaf_result = await session.execute(
         select(Tobacco).where(Tobacco.t_id == data.leaf_type_id)
-    ).first()
+    )
+    leaf_type = leaf_result.scalars().first()
     if not leaf_type:
         return None, "leaf_type_not_found"
 
@@ -75,27 +83,27 @@ def create(
     )
     session.add(record)
 
-    # Auto-approve the sack registration
     sack.status = 1
     sack.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(sack)
 
-    session.commit()
-    session.refresh(record)
+    await session.commit()
+    await session.refresh(record)
     return record, None
 
 
-def update(
-    session: Session,
+async def update(
+    session: AsyncSession,
     record: WeighLeaf,
     data: WeighLeafUpdate,
 ) -> tuple[WeighLeaf, Optional[str]]:
     update_data = data.model_dump(exclude_unset=True)
 
     if "leaf_type_id" in update_data:
-        leaf_type = session.exec(
+        leaf_result = await session.execute(
             select(Tobacco).where(Tobacco.t_id == update_data["leaf_type_id"])
-        ).first()
+        )
+        leaf_type = leaf_result.scalars().first()
         if not leaf_type:
             return record, "leaf_type_not_found"
         record.leaf_type_id = leaf_type.t_id
@@ -108,11 +116,11 @@ def update(
     record.total_weight_in_kg = record.total_in_kg - record.remork - record.sack_in_kg
     record.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(record)
-    session.commit()
-    session.refresh(record)
+    await session.commit()
+    await session.refresh(record)
     return record, None
 
 
-def delete(session: Session, record: WeighLeaf) -> None:
+async def delete(session: AsyncSession, record: WeighLeaf) -> None:
     session.delete(record)
-    session.commit()
+    await session.commit()

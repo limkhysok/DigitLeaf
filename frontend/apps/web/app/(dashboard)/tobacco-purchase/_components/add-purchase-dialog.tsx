@@ -227,17 +227,11 @@ export function AddPurchaseDialog({
 
     setIsSubmitting(true)
     try {
-      let parsedRegion: string | number | undefined = undefined
-      if (region) {
-        const num = Number(region)
-        parsedRegion = Number.isNaN(num) ? region : num
-      }
-
       const payload: TobaccoPurchaseCreate = {
         buyer: buyer ? Number.parseInt(buyer, 10) : undefined,
         vendor,
         v_addr,
-        region: parsedRegion,
+        region: region ? Number.parseInt(region, 10) : undefined,
         tp_date: tpDate,
         tp_note: tpNote,
         oven: oven ? Number.parseInt(oven, 10) : undefined,

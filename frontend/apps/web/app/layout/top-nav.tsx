@@ -23,12 +23,19 @@ export function TopNav() {
 
   const pathSegments = pathname.split('/').filter(Boolean)
 
+  const routeLabels = React.useMemo<Record<string, string>>(() => ({
+    'dashboard': t.sidebar.dashboard,
+    'sack-registration': t.sidebar.sackRegistration,
+    'tobacco-purchase': t.sidebar.tobaccoPurchase,
+    'profile': t.profile.title,
+  }), [t])
+
 
   return (
     <header
       className="flex h-14 shrink-0 items-center border-b border-black sticky top-0 z-30 bg-white"
     >
-      <div className="flex h-full w-full items-center gap-2 px-4">
+      <div className="flex h-full w-full items-center gap-2 px-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <SidebarTrigger className="h-8 w-8 hover:bg-black/5 transition-colors text-black" />
           <div className="h-4 w-px bg-black/20 mx-1" />
@@ -47,12 +54,12 @@ export function TopNav() {
                     <BreadcrumbSeparator className="text-black!" />
                     <BreadcrumbItem>
                       {index === pathSegments.length - 1 ? (
-                        <BreadcrumbPage className="capitalize truncate max-w-35 text-sm font-normal text-black!">
-                          {segment.replaceAll('-', ' ')}
+                        <BreadcrumbPage className="truncate max-w-35 text-sm font-normal text-black!">
+                          {routeLabels[segment] ?? segment.replaceAll('-', ' ')}
                         </BreadcrumbPage>
                       ) : (
-                        <BreadcrumbLink href={`/${pathSegments.slice(0, index + 1).join('/')}`} className="capitalize truncate max-w-30 text-xs text-black! font-normal hover:text-[#009640]! transition-colors">
-                          {segment.replaceAll('-', ' ')}
+                        <BreadcrumbLink href={`/${pathSegments.slice(0, index + 1).join('/')}`} className="truncate max-w-30 text-xs text-black! font-normal hover:text-[#009640]! transition-colors">
+                          {routeLabels[segment] ?? segment.replaceAll('-', ' ')}
                         </BreadcrumbLink>
                       )}
                     </BreadcrumbItem>

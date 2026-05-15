@@ -150,10 +150,11 @@ export default function SackRegistrationPage() {
         </div>
         <Button
           onClick={() => setRegisterOpen(true)}
-          className="shrink-0 rounded-md h-9 px-4 text-xs font-bold uppercase tracking-wide gap-2 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
+          className="shrink-0 rounded-full h-9 px-4 text-sm font-medium capitalize tracking-wide gap-2 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
         >
           <IconPlus className="size-4" />
-          New Registration
+          <span className="sm:hidden">New</span>
+          <span className="hidden sm:inline">New Registration</span>
         </Button>
       </div>
 
@@ -343,7 +344,7 @@ export default function SackRegistrationPage() {
           <div className="flex-1" />
 
           {/* Search */}
-          <div className="relative flex items-center h-9 min-w-40 max-w-xs rounded-md border border-slate-200 bg-transparent px-3 gap-2.5 shadow-xs focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
+          <div className="relative flex items-center h-9 min-w-40 max-w-xs rounded-full border border-slate-200 bg-transparent px-3 gap-2.5 shadow-xs focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
             <IconSearch className="size-4 shrink-0 text-slate-400" stroke={1.5} />
             <input
               className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400"

@@ -43,7 +43,7 @@ class Settings(BaseSettings):
         port = data.get("MYSQL_PORT")
         db = data.get("MYSQL_DB")
         
-        return f"mysql+pymysql://{user}:{password}@{host}:{port}/{db}"
+        return f"mysql+aiomysql://{user}:{password}@{host}:{port}/{db}"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

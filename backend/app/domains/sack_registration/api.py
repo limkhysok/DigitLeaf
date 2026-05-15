@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Security
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
@@ -23,62 +23,54 @@ _FARMER_NOT_FOUND = "Member farmer not found"
 
 
 @router.get("/represents", response_model=list[RepresentPublic])
-def list_represents(
-    session: Annotated[Session, Depends(get_session)],
+async def list_represents(
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    """Return all represents for the dropdown."""
-    return crud.get_represents(session=session)
+    return await crud.get_represents(session=session)
 
 
 @router.get(
-    "/member-farmers/search",
-    response_model=MemberFarmerPublic,
-    responses={
-        400: {"description": "No search parameter provided"},
-        404: {"description": _FARMER_NOT_FOUND},
-    },
+    "/member-farmers",
+    response_model=list[MemberFarmerPublic],
+    responses={400: {"description": "No search parameter provided"}},
 )
-def search_member_farmer(
-    session: Annotated[Session, Depends(get_session)],
+async def get_member_farmers(
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    q: Optional[str] = None,
     name: Optional[str] = None,
     identity_card: Optional[str] = None,
-):
-    """Search a member farmer by name or identity card number."""
-    if not name and not identity_card:
-        raise HTTPException(status_code=400, detail="Provide name or identity_card query parameter")
-    farmer = crud.search_member_farmer(session=session, name=name, identity_card=identity_card)
-    if not farmer:
-        raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)
-    return farmer
-
-
-@router.get("/member-farmers/query", response_model=list[MemberFarmerPublic])
-def query_member_farmers(
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    q: str,
     represent_id: Optional[int] = None,
     limit: int = 10,
 ):
-    """Query member farmers by name or identity card, optionally filtered by represent."""
-    return crud.query_member_farmers(session=session, query=q, represent_id=represent_id, limit=limit)
+    """
+    Farmer lookup — two modes:
+    - Fuzzy typeahead: provide `q` (returns up to `limit` results).
+    - Exact lookup: provide `name` and/or `identity_card` (returns 0 or 1 result).
+    """
+    if q is not None:
+        return await crud.query_member_farmers(
+            session=session, query=q, represent_id=represent_id, limit=limit
+        )
+    if name or identity_card:
+        farmer = await crud.search_member_farmer(session=session, name=name, identity_card=identity_card)
+        return [farmer] if farmer else []
+    raise HTTPException(status_code=400, detail="Provide q, name, or identity_card")
 
 
 @router.get("/", response_model=SackRegistrationListResponse)
-def list_registrations(
-    session: Annotated[Session, Depends(get_session)],
+async def list_registrations(
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     skip: int = 0,
     limit: int = 200,
     search: Optional[str] = None,
     status: Optional[int] = None,
     date_from: Optional[date] = None,
-
     date_to: Optional[date] = None,
 ):
-    items, total = crud.get_all(
+    items, total = await crud.get_all(
         session=session,
         skip=skip,
         limit=limit,
@@ -87,7 +79,6 @@ def list_registrations(
         date_from=date_from,
         date_to=date_to,
     )
-
     return SackRegistrationListResponse(
         items=items,
         total=total,
@@ -96,12 +87,12 @@ def list_registrations(
 
 
 @router.get("/{sack_id}", response_model=SackRegistrationPublic, responses={404: {"description": _NOT_FOUND}})
-def get_registration(
+async def get_registration(
     sack_id: int,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record = crud.get_by_id(session=session, sack_id=sack_id)
+    record = await crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
     return record
@@ -110,16 +101,15 @@ def get_registration(
 @router.post(
     "/",
     response_model=SackRegistrationPublic,
-    responses={
-        404: {"description": "Represent or member farmer not found"},
-    },
+    status_code=201,
+    responses={404: {"description": "Represent or member farmer not found"}},
 )
-def create_registration(
+async def create_registration(
     data: SackRegistrationCreate,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record, error = crud.create(
+    record, error = await crud.create(
         session=session,
         data=data,
         current_user_id=current_user.id,
@@ -137,16 +127,16 @@ def create_registration(
     response_model=SackRegistrationPublic,
     responses={404: {"description": _NOT_FOUND}},
 )
-def update_registration(
+async def update_registration(
     sack_id: int,
     data: SackRegistrationUpdate,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record = crud.get_by_id(session=session, sack_id=sack_id)
+    record = await crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    updated, error = crud.update(session=session, record=record, data=data)
+    updated, error = await crud.update(session=session, record=record, data=data)
     if error == "farmer_not_found":
         raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)
     return updated
@@ -157,12 +147,12 @@ def update_registration(
     status_code=204,
     responses={404: {"description": _NOT_FOUND}},
 )
-def delete_registration(
+async def delete_registration(
     sack_id: int,
-    session: Annotated[Session, Depends(get_session)],
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record = crud.get_by_id(session=session, sack_id=sack_id)
+    record = await crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    crud.delete(session=session, record=record)
+    await crud.delete(session=session, record=record)
