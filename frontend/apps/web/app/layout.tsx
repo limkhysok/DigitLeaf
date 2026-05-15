@@ -1,3 +1,4 @@
+import { cookies } from "next/headers"
 import { Geist_Mono, Figtree } from "next/font/google"
 import localFont from "next/font/local"
 
@@ -5,7 +6,8 @@ import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils";
 import { AuthProvider } from "@/hooks/use-auth";
-import { LanguageProvider } from "@/hooks/use-language";
+import { UserManifestProvider } from "@/hooks/use-user-manifest";
+import { LanguageCode } from "@/lib/dictionary";
 
 import { Toaster } from "@workspace/ui/components/sonner"
 
@@ -26,25 +28,30 @@ const kantumruyPro = localFont({
   variable: "--font-khmer",
 })
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const langCookie = cookieStore.get("user_language")
+  const defaultLanguage: LanguageCode =
+    langCookie?.value === "kh" ? "kh" : "en"
+
   return (
     <html
-      lang="en"
+      lang={defaultLanguage}
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable, comicRelief.variable, kantumruyPro.variable)}
     >
       <body className="bg-background">
         <AuthProvider>
-          <LanguageProvider>
+          <UserManifestProvider defaultLanguage={defaultLanguage}>
             <ThemeProvider>
               {children}
               <Toaster richColors position="bottom-right" />
             </ThemeProvider>
-          </LanguageProvider>
+          </UserManifestProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,24 +1,18 @@
-"use client"
+import { cookies } from "next/headers"
+import { DashboardLayoutClient } from "./layout-client"
 
-import * as React from "react"
-import { SidebarProvider, SidebarInset } from "@workspace/ui/components/sidebar"
-import { AppSidebar } from "@/app/layout/app-sidebar"
-import { TopNav } from "@/app/layout/top-nav"
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const sidebarCookie = cookieStore.get("sidebar_state")
+  const defaultOpen = sidebarCookie ? sidebarCookie.value !== "false" : true
+
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="h-svh overflow-y-auto overflow-x-hidden">
-        <TopNav />
-        <div className="flex-1 p-4 md:p-5 lg:p-6">
-          {children}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <DashboardLayoutClient defaultOpen={defaultOpen}>
+      {children}
+    </DashboardLayoutClient>
   )
 }
