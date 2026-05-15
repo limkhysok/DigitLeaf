@@ -48,7 +48,6 @@ import {
   PopoverAnchor,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
-
 import { cn } from "@workspace/ui/lib/utils"
 
 function maskDate(raw: string): string {
@@ -104,7 +103,6 @@ export function AddPurchaseDialog({
   const [isVendorsLoading, setIsVendorsLoading] = React.useState(false)
   const [dateDisplay, setDateDisplay] = React.useState("")
 
-  // Form State
   const [buyer, setBuyer] = React.useState<string>("")
   const [buyerSearch, setBuyerSearch] = React.useState("")
   const [isBuyerOpen, setIsBuyerOpen] = React.useState(false)
@@ -211,9 +209,7 @@ export function AddPurchaseDialog({
     setDetails(prev => {
       const newDetails = [...prev]
       const item = newDetails[index]
-      if (item) {
-        newDetails[index] = { ...item, [field]: val }
-      }
+      if (item) newDetails[index] = { ...item, [field]: val }
       return newDetails
     })
   }, [])
@@ -224,7 +220,6 @@ export function AddPurchaseDialog({
       toast.error("Please fill all required fields")
       return
     }
-
     setIsSubmitting(true)
     try {
       const payload: TobaccoPurchaseCreate = {
@@ -244,7 +239,6 @@ export function AddPurchaseDialog({
           sack_in_kg: Number(d.sack_in_kg) || 0,
         })) as TobaccoPurchaseDetail[]
       }
-
       if (initialData?.tp_id) {
         await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
         toast.success("Purchase updated successfully")
@@ -303,6 +297,15 @@ export function AddPurchaseDialog({
       ))
   }
 
+  // Computed totals for mobile/tablet summary
+  const totalNetWeight = details.reduce((sum, item) => {
+    return sum + Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
+  }, 0)
+  const grandTotal = details.reduce((sum, item) => {
+    const net = Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
+    return sum + net * (Number(item.price) || 0)
+  }, 0)
+
   const { title, description } = getDialogLabels(isReadOnly, initialData)
 
   return (
@@ -311,7 +314,7 @@ export function AddPurchaseDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <DialogTitle className="text-[18px] font-bold text-foreground flex items-center gap-2">
+              <DialogTitle className="text-[18px] font-bold text-foreground flex items-center gap-2 flex-wrap">
                 {title}
                 {tpCode && (
                   <span className="text-[14px] font-mono text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-sm border border-border/60">
@@ -325,10 +328,16 @@ export function AddPurchaseDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="bg-white p-6 rounded-md border border-border/60 space-y-2">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-5">
-              {/* Row 1: Invoice, Buyer, Region */}
-              <div className="md:col-span-1 space-y-1.5">
+
+          {/* ════════════════════════════════════════════════════════════════════
+              FORM FIELDS — shared across all breakpoints
+              grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
+          ════════════════════════════════════════════════════════════════════ */}
+          <div className="bg-white p-4 lg:p-6 rounded-md border border-border/60 space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5">
+
+              {/* Invoice No. */}
+              <div className="lg:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Invoice No.</Label>
                 <Input
                   value={tpCode}
@@ -337,7 +346,8 @@ export function AddPurchaseDialog({
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
+              {/* Buyer */}
+              <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Buyer selection</Label>
                 <Popover open={isBuyerOpen} onOpenChange={(open) => {
                   setIsBuyerOpen(open)
@@ -418,7 +428,8 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              <div className="md:col-span-1 space-y-1.5">
+              {/* Region */}
+              <div className="lg:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Region</Label>
                 <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                   <PopoverAnchor asChild>
@@ -479,8 +490,8 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              {/* Row 2: Vendor, Address, Oven */}
-              <div className="md:col-span-1 space-y-1.5">
+              {/* Vendor */}
+              <div className="lg:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Id)</Label>
                 <Popover open={isVendorOpen} onOpenChange={(open) => {
                   setIsVendorOpen(open)
@@ -522,7 +533,8 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
+              {/* Vendor Address */}
+              <div className="md:col-span-2 lg:col-span-2 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor Address</Label>
                 <Input
                   value={v_addr}
@@ -533,7 +545,8 @@ export function AddPurchaseDialog({
                 />
               </div>
 
-              <div className="md:col-span-1 space-y-1.5">
+              {/* Oven */}
+              <div className="lg:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Oven</Label>
                 <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
                   <PopoverAnchor asChild>
@@ -592,8 +605,8 @@ export function AddPurchaseDialog({
                 </Popover>
               </div>
 
-              {/* Row 3: Rate, Remark, Date */}
-              <div className="md:col-span-1 space-y-1.5">
+              {/* System Rate */}
+              <div className="lg:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">System Rate</Label>
                 <div className="relative group">
                   <Input
@@ -608,8 +621,9 @@ export function AddPurchaseDialog({
                 </div>
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Remark(Optional)</Label>
+              {/* Remark */}
+              <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
+                <Label className="text-[12px] font-bold text-muted-foreground/70">Remark (Optional)</Label>
                 <Input
                   value={tpNote}
                   onChange={(e) => setTpNote(e.target.value)}
@@ -619,7 +633,8 @@ export function AddPurchaseDialog({
                 />
               </div>
 
-              <div className="md:col-span-1 space-y-1.5">
+              {/* Purchase Date */}
+              <div className="lg:col-span-1 space-y-1.5">
                 <Label className="text-[12px] font-bold text-muted-foreground/70">Purchase Date</Label>
                 <Input
                   value={dateDisplay}
@@ -642,140 +657,235 @@ export function AddPurchaseDialog({
                   className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                 />
               </div>
+
             </div>
           </div>
 
-          {/* Details Section - Premium Shadcn Table Style */}
-          <div className="bg-white rounded-none border border-border/80 mt-4 overflow-hidden">
-            <Table className="table-fixed border-collapse">
-              <TableHeader className="bg-slate-50/90 backdrop-blur-sm sticky top-0 z-20 shadow-xs border-t border-b border-border/80">
-                <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="w-12.5 text-[13px] font-bold text-center border-r border-border/60">#</TableHead>
-                  <TableHead className="min-w-62.5 text-[13px] font-bold border-r border-border/60">
-                    <div className="flex items-center gap-2 px-1">
-                      <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
-                      Tobacco Item
-                    </div>
-                  </TableHead>
-                  <TableHead className="w-13 text-[13px] font-bold text-center border-r border-border/60">Image</TableHead>
-                  <TableHead className="w-25.5 text-[13px] font-bold text-center border-r border-border/60">G Weight(Kg)</TableHead>
-                  <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Remork(Kg)</TableHead>
-                  <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Sack(Kg)</TableHead>
-                  <TableHead className="w-30 text-[13px] font-bold text-center bg-primary/3 text-primary/80 border-r border-border/60">Net Weight(Kg)</TableHead>
-                  <TableHead className="w-23.75 text-[13px] font-bold text-center border-r border-border/60">Price Per Kg</TableHead>
-                  <TableHead className="w-32.5 text-[13px] font-bold text-right bg-emerald-500/3 text-emerald-700/80 pr-4">Total Amount</TableHead>
-                </TableRow>
-              </TableHeader>
+          {/* ════════════════════════════════════════════════════════════════════
+              MOBILE ITEMS — (< 768px / below md)
+              Card-per-row, full-width stacked
+          ════════════════════════════════════════════════════════════════════ */}
+          <div className="md:hidden space-y-3">
+            {details.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
+                <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                  <IconPlus className="size-5 text-muted-foreground/20" />
+                </div>
+                <p className="text-[13px] font-bold text-foreground">No items yet</p>
+                <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+                {!isReadOnly && (
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                    className="mt-1 h-9 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                    <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {details.map((detail, idx) => (
+                  <PurchaseDetailCard
+                    key={detail.tempId}
+                    detail={detail}
+                    index={idx}
+                    isReadOnly={isReadOnly}
+                    tobaccoTypes={tobaccoTypes}
+                    onRemove={handleRemoveDetail}
+                    onChange={handleDetailChange}
+                  />
+                ))}
+              </div>
+            )}
+            {!isReadOnly && details.length > 0 && (
+              <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                className="w-full h-9 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
+                <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+              </Button>
+            )}
+            {details.length > 0 && (
+              <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
+                <div>
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
+                  <p className="text-[15px] font-black text-primary tabular-nums">
+                    {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
+                  <p className="text-[16px] font-black text-emerald-700 tabular-nums">
+                    ៛{Math.round(grandTotal).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
 
-              <TableBody className="bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px]">
-                {details.length > 0 ? (
-                  details.map((detail, idx) => (
-                    <PurchaseDetailRow
-                      key={detail.tempId}
-                      detail={detail}
-                      index={idx}
-                      isReadOnly={isReadOnly}
-                      tobaccoTypes={tobaccoTypes}
-                      onRemove={handleRemoveDetail}
-                      onChange={handleDetailChange}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-64 text-center">
-                      <div className="flex flex-col items-center justify-center gap-4 bg-white/80 backdrop-blur-[2px]">
-                        <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-border/60">
-                          <IconPlus className="size-6 text-muted-foreground/20" />
+          {/* ════════════════════════════════════════════════════════════════════
+              TABLET ITEMS — (768px – 1023px / md → lg)
+              2-column card grid
+          ════════════════════════════════════════════════════════════════════ */}
+          <div className="hidden md:block lg:hidden space-y-3">
+            {details.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
+                <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                  <IconPlus className="size-5 text-muted-foreground/20" />
+                </div>
+                <p className="text-[13px] font-bold text-foreground">No items yet</p>
+                <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+                {!isReadOnly && (
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                    className="mt-1 h-9 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                    <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {details.map((detail, idx) => (
+                  <PurchaseDetailCard
+                    key={detail.tempId}
+                    detail={detail}
+                    index={idx}
+                    isReadOnly={isReadOnly}
+                    tobaccoTypes={tobaccoTypes}
+                    onRemove={handleRemoveDetail}
+                    onChange={handleDetailChange}
+                  />
+                ))}
+              </div>
+            )}
+            {!isReadOnly && details.length > 0 && (
+              <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                className="w-full h-9 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
+                <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+              </Button>
+            )}
+            {details.length > 0 && (
+              <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
+                <div>
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
+                  <p className="text-[15px] font-black text-primary tabular-nums">
+                    {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
+                  <p className="text-[16px] font-black text-emerald-700 tabular-nums">
+                    ៛{Math.round(grandTotal).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ════════════════════════════════════════════════════════════════════
+              DESKTOP ITEMS — (≥ 1024px / lg and above)
+              Full 9-column table, horizontally scrollable
+          ════════════════════════════════════════════════════════════════════ */}
+          <div className="hidden lg:block">
+            <div className="bg-white rounded-none border border-border/80 mt-4 overflow-x-auto">
+              <Table className="table-fixed border-collapse">
+                <TableHeader className="bg-slate-50/90 backdrop-blur-sm sticky top-0 z-20 shadow-xs border-t border-b border-border/80">
+                  <TableRow className="hover:bg-transparent border-none">
+                    <TableHead className="w-12.5 text-[13px] font-bold text-center border-r border-border/60">#</TableHead>
+                    <TableHead className="min-w-62.5 text-[13px] font-bold border-r border-border/60">
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
+                        Tobacco Item
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-13 text-[13px] font-bold text-center border-r border-border/60">Image</TableHead>
+                    <TableHead className="w-25.5 text-[13px] font-bold text-center border-r border-border/60">G Weight(Kg)</TableHead>
+                    <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Remork(Kg)</TableHead>
+                    <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Sack(Kg)</TableHead>
+                    <TableHead className="w-30 text-[13px] font-bold text-center bg-primary/3 text-primary/80 border-r border-border/60">Net Weight(Kg)</TableHead>
+                    <TableHead className="w-23.75 text-[13px] font-bold text-center border-r border-border/60">Price Per Kg</TableHead>
+                    <TableHead className="w-32.5 text-[13px] font-bold text-right bg-emerald-500/3 text-emerald-700/80 pr-4">Total Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody className="bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px]">
+                  {details.length > 0 ? (
+                    details.map((detail, idx) => (
+                      <PurchaseDetailRow
+                        key={detail.tempId}
+                        detail={detail}
+                        index={idx}
+                        isReadOnly={isReadOnly}
+                        tobaccoTypes={tobaccoTypes}
+                        onRemove={handleRemoveDetail}
+                        onChange={handleDetailChange}
+                      />
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-64 text-center">
+                        <div className="flex flex-col items-center justify-center gap-4 bg-white/80 backdrop-blur-[2px]">
+                          <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-border/60">
+                            <IconPlus className="size-6 text-muted-foreground/20" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[14px] font-bold text-foreground">No items recorded yet</p>
+                            <p className="text-[12px] text-muted-foreground/60 max-w-60">Start building your purchase invoice by adding tobacco items.</p>
+                          </div>
+                          {!isReadOnly && (
+                            <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                              className="mt-2 h-9 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs">
+                              <IconPlus className="mr-2 size-3.5" /> Add First Item
+                            </Button>
+                          )}
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-[14px] font-bold text-foreground">No items recorded yet</p>
-                          <p className="text-[12px] text-muted-foreground/60 max-w-60">Start building your purchase invoice by adding tobacco items.</p>
-                        </div>
-                        {!isReadOnly && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAddDetail}
-                            className="mt-2 h-9 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs"
-                          >
-                            <IconPlus className="mr-2 size-3.5" /> Add First Item
-                          </Button>
-                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+
+                <TableFooter className="bg-slate-50/80 border-t-2 border-border/80">
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={5} className="text-left text-[11px] font-bold text-muted-foreground uppercase pl-4">Total Summary</TableCell>
+                    <TableCell colSpan={2} className="p-2 bg-primary/4 border-x border-border/60">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[11px] font-bold uppercase text-muted-foreground/50">Total Weight</span>
+                        <span className="text-[14px] font-black text-primary tabular-nums">
+                          {totalNetWeight.toFixed(2)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell colSpan={2} className="p-2 bg-emerald-500/4">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total</span>
+                        <span className="text-[16px] font-black text-emerald-700 tabular-nums">
+                          ៛{Math.round(grandTotal).toLocaleString()}
+                        </span>
                       </div>
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter className="bg-slate-50/80 border-t-2 border-border/80">
-                <TableRow className="hover:bg-transparent">
-                  {/* cols 1–5: #, Tobacco, Image, Qty, Remork */}
-                  <TableCell colSpan={5} className="text-left text-[11px] font-bold text-muted-foreground uppercase pl-4">Total Summary</TableCell>
-                  {/* cols 6–7: Sack + Net Weight */}
-                  <TableCell colSpan={2} className="p-2 bg-primary/4 border-x border-border/60">
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-[11px] font-bold uppercase text-muted-foreground/50">Total Weight</span>
-                      <span className="text-[14px] font-black text-primary tabular-nums">
-                        {details.reduce((sum, item) => {
-                          const netQty = Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
-                          return sum + netQty
-                        }, 0).toFixed(2)}
-                      </span>
-                    </div>
-                  </TableCell>
-                  {/* cols 8–9: Price + Grand Total */}
-                  <TableCell colSpan={2} className="p-2 bg-emerald-500/4">
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total</span>
-                      <span className="text-[16px] font-black text-emerald-700 tabular-nums">
-                        ៛{Math.round(details.reduce((sum, item) => {
-                          const netQty = Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
-                          return sum + (netQty * (Number(item.price) || 0))
-                        }, 0)).toLocaleString()}
-                      </span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableFooter>
+              </Table>
 
-            {/* Table Action Footer */}
-            <div className="bg-slate-50/50 border-t border-border/80 p-3 flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-3">
-                {!isReadOnly && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddDetail}
-                    className="h-9 px-5 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs transition-all active:scale-95"
-                  >
-                    <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-                  </Button>
-                )}
-                <span className="text-[11px] font-medium text-muted-foreground italic">
-                  Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
-                </span>
+              <div className="bg-slate-50/50 border-t border-border/80 p-3 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {!isReadOnly && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                      className="h-9 px-5 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs transition-all active:scale-95">
+                      <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+                    </Button>
+                  )}
+                  <span className="text-[11px] font-medium text-muted-foreground italic">
+                    Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           <DialogFooter className="pt-5 border-t border-border/40 mt-4">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="h-9 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
-            >
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
+              className="h-9 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="h-9 px-6 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
-              >
+              <Button type="submit" disabled={isSubmitting}
+                className="h-9 px-6 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
                 {isSubmitting ? (
                   <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
@@ -790,6 +900,176 @@ export function AddPurchaseDialog({
     </Dialog>
   )
 }
+
+// ─── PurchaseDetailCard — mobile & tablet card layout ────────────────────────
+
+const PurchaseDetailCard = React.memo(({
+  detail, index, isReadOnly, tobaccoTypes, onRemove, onChange
+}: {
+  detail: Partial<TobaccoPurchaseDetail> & { tempId: string }
+  index: number
+  isReadOnly?: boolean
+  tobaccoTypes: TobaccoItem[]
+  onRemove: (idx: number) => void
+  onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+}) => {
+  const [open, setOpen] = React.useState(false)
+  const [search, setSearch] = React.useState(() => {
+    const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
+    return t ? `${t.t_name} | ${t.t_name_kh || ""}` : ""
+  })
+  const [prevTobaccoId, setPrevTobaccoId] = React.useState(detail.tobacco_name)
+  if (detail.tobacco_name !== prevTobaccoId) {
+    setPrevTobaccoId(detail.tobacco_name)
+    const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
+    setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+  }
+
+  const netWeight = Math.max(0,
+    (Number(detail.gross_weight) || 0) -
+    (Number(detail.remork_in_kg) || 0) -
+    (Number(detail.sack_in_kg) || 0)
+  )
+  const total = Math.round(netWeight * (Number(detail.price) || 0))
+
+  return (
+    <div className="rounded-md border border-border/60 bg-white overflow-hidden">
+
+      {/* Card header: item number + delete */}
+      <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-border/40">
+        <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">
+          Item #{index + 1}
+        </span>
+        {!isReadOnly && (
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="p-1 rounded hover:bg-red-50 text-muted-foreground/30 hover:text-red-500 transition-colors"
+          >
+            <IconX className="size-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Tobacco item selector */}
+      <div className="px-3 pt-3 pb-3 border-b border-border/30">
+        <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Tobacco Item</Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <div className="relative mt-1.5">
+              <Input
+                placeholder="Search item..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+                onFocus={() => { setSearch(""); setOpen(true) }}
+                onClick={() => { setSearch(""); setOpen(true) }}
+                disabled={isReadOnly}
+                className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+              />
+              <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none" />
+            </div>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+            align="start"
+            sideOffset={4}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <div className="max-h-62.5 overflow-y-auto p-1">
+              {tobaccoTypes.length === 0 ? (
+                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
+              ) : tobaccoTypes
+                  .filter(t => {
+                    const s = search.toLowerCase()
+                    return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                  })
+                  .map((t) => (
+                    <button
+                      key={t.t_id}
+                      type="button"
+                      className={cn(
+                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
+                        detail.tobacco_name === t.t_id && "bg-accent"
+                      )}
+                      onClick={() => {
+                        onChange(index, "tobacco_name", t.t_id)
+                        setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
+                        setOpen(false)
+                      }}
+                    >
+                      <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                      <div className="flex flex-col items-start">
+                        <span className="font-bold">{t.t_name}</span>
+                        <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                      </div>
+                    </button>
+                  ))
+              }
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Weight row: G.Weight | Remork | Sack */}
+      <div className="grid grid-cols-3 divide-x divide-border/30 border-b border-border/30">
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
+          <Input type="number" step="1"
+            className="h-8 text-[13px] font-bold bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            value={detail.gross_weight ?? ""} disabled={isReadOnly}
+            onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          />
+        </div>
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
+          <Input type="number" step="1"
+            className="h-8 text-[13px] bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
+            onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          />
+        </div>
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack</Label>
+          <Input type="number" step="1"
+            className="h-8 text-[13px] bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
+            onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          />
+        </div>
+      </div>
+
+      {/* Footer row: Net Weight | Price | Total */}
+      <div className="grid grid-cols-3 divide-x divide-border/30">
+        <div className="px-3 py-2.5 space-y-0.5 bg-primary/2">
+          <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">Net (Kg)</Label>
+          <p className="text-[13px] font-black text-primary tabular-nums">{netWeight.toFixed(2)}</p>
+        </div>
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
+          <div className="relative">
+            <Input type="number"
+              className="h-8 text-[13px] font-bold bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2 pr-5"
+              value={detail.price ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
+          </div>
+        </div>
+        <div className="px-3 py-2.5 space-y-0.5 bg-emerald-50/40">
+          <Label className="text-[10px] font-bold text-emerald-700/60 uppercase tracking-wider">Total</Label>
+          <p className="text-[13px] font-black text-emerald-700 tabular-nums">
+            ៛{total.toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+    </div>
+  )
+})
+
+PurchaseDetailCard.displayName = "PurchaseDetailCard"
+
+// ─── PurchaseDetailRow — desktop table row (unchanged) ───────────────────────
 
 const PurchaseDetailRow = React.memo(({
   detail, index, isReadOnly, tobaccoTypes, onRemove, onChange
@@ -821,14 +1101,10 @@ const PurchaseDetailRow = React.memo(({
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30",
       "hover:bg-primary/1"
     )}>
-      {/* Column 1: No. */}
       <TableCell className="p-1 w-12.5 border-r border-border/60 text-center align-middle">
-        <div className="text-[12px] font-bold text-muted-foreground/60 tabular-nums">
-          {index + 1}
-        </div>
+        <div className="text-[12px] font-bold text-muted-foreground/60 tabular-nums">{index + 1}</div>
       </TableCell>
 
-      {/* Column 2: Tobacco Item */}
       <TableCell className="p-0 min-w-62.5 border-r border-border/60 align-middle">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -836,18 +1112,9 @@ const PurchaseDetailRow = React.memo(({
               <Input
                 placeholder="Search item..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  if (!open) setOpen(true)
-                }}
-                onFocus={() => {
-                  setSearch("")
-                  setOpen(true)
-                }}
-                onClick={() => {
-                  setSearch("")
-                  setOpen(true)
-                }}
+                onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+                onFocus={() => { setSearch(""); setOpen(true) }}
+                onClick={() => { setSearch(""); setOpen(true) }}
                 disabled={isReadOnly}
                 className="h-9 text-[12px] bg-transparent border-none shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3 cursor-pointer"
               />
@@ -856,30 +1123,19 @@ const PurchaseDetailRow = React.memo(({
           <PopoverContent className="w-75 p-0 shadow-2xl border-border/50 z-100" align="start" sideOffset={4} onOpenAutoFocus={(e) => e.preventDefault()}>
             <div className="max-h-62.5 overflow-y-auto p-1">
               {tobaccoTypes.length === 0 ? (
-                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
-                  No tobacco items found
-                </div>
+                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
               ) : (
                 tobaccoTypes
                   .filter(t => {
                     const s = search.toLowerCase()
-                    return (t.t_name?.toLowerCase().includes(s) || 
-                            t.t_name_kh?.toLowerCase().includes(s))
+                    return (t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s))
                   })
-
                   .map((t) => (
-                    <button 
-                      key={t.t_id} 
-                      type="button" 
-                      className={cn(
-                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent", 
-                        detail.tobacco_name === t.t_id && "bg-accent"
-                      )}
-                      onClick={() => { 
-                        onChange(index, "tobacco_name", t.t_id)
-                        setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
-                        setOpen(false) 
-                      }}
+                    <button
+                      key={t.t_id}
+                      type="button"
+                      className={cn("relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent", detail.tobacco_name === t.t_id && "bg-accent")}
+                      onClick={() => { onChange(index, "tobacco_name", t.t_id); setSearch(`${t.t_name} | ${t.t_name_kh || ""}`); setOpen(false) }}
                     >
                       <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
                       <div className="flex flex-col items-start">
@@ -894,8 +1150,6 @@ const PurchaseDetailRow = React.memo(({
         </Popover>
       </TableCell>
 
-
-      {/* Column 3: Image */}
       <TableCell className="p-1 w-15 border-r border-border/60 align-middle">
         <div className="flex justify-center">
           <div className="w-8 aspect-square bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img">
@@ -904,39 +1158,36 @@ const PurchaseDetailRow = React.memo(({
         </div>
       </TableCell>
 
-      {/* Column 4: Qty (KG) */}
       <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="1" className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" value={detail.gross_weight ?? ""}
+        <Input type="number" step="1" className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          value={detail.gross_weight ?? ""}
           onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           disabled={isReadOnly} />
       </TableCell>
 
-      {/* Column 5: Remork */}
       <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" value={detail.remork_in_kg ?? ""}
+        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          value={detail.remork_in_kg ?? ""}
           onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           disabled={isReadOnly} />
       </TableCell>
 
-      {/* Column 6: Sack */}
       <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0" value={detail.sack_in_kg ?? ""}
+        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          value={detail.sack_in_kg ?? ""}
           onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           disabled={isReadOnly} />
       </TableCell>
 
-      {/* Column 7: Net Weight */}
       <TableCell className="p-1 w-21.25 border-r border-border/60 text-center align-middle bg-primary/1">
         <span className="text-[12px] font-bold text-primary tabular-nums leading-none">
           {Math.max(0, (Number(detail.gross_weight) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)).toFixed(2)}
         </span>
       </TableCell>
 
-      {/* Column 8: Price */}
       <TableCell className="p-1 w-23.75 border-r border-border/60 text-center align-middle">
         <div className="relative w-full text-center">
-          <Input
-            type="number"
+          <Input type="number"
             className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
             value={detail.price ?? ""}
             onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
@@ -946,22 +1197,14 @@ const PurchaseDetailRow = React.memo(({
         </div>
       </TableCell>
 
-      {/* Column 9: Grand Total */}
       <TableCell className="p-1 w-32.5 text-right align-middle bg-emerald-50/20 pr-4">
         <span className="text-[12px] font-bold text-emerald-700 tabular-nums leading-none">
           ៛{Math.round(Math.max(0, (Number(detail.gross_weight) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)) * (Number(detail.price) || 0)).toLocaleString()}
         </span>
-
-        {/* Absolute delete button - visible on row hover */}
         <div className="absolute top-1/2 -translate-y-1/2 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           {!isReadOnly && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => onRemove(index)}
-              className="h-6 w-6 text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-            >
+            <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(index)}
+              className="h-6 w-6 text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
               <IconX className="size-3" />
             </Button>
           )}

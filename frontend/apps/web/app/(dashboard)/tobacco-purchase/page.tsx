@@ -12,14 +12,14 @@ import {
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import {
-  IconEdit, IconEye, IconLayoutGrid, IconLayoutList,
-  IconLoader2, IconPlus, IconSearch, IconTrash,
-  IconCalendar, IconUser, IconFlame, IconMapPin
+  IconEdit, IconEye, IconLoader2, IconTrash,
 } from "@tabler/icons-react"
-import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
 import { AddPurchaseDialog } from "./_components/add-purchase-dialog"
+import { TobaccoPurchaseCard } from "./_components/tobacco-purchase-card"
+import { FilterBar } from "./_components/filter-bar"
+import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +50,6 @@ export default function TobaccoPurchasePage() {
   const [searchInput, setSearchInput] = React.useState("")
   const [search, setSearch] = React.useState("")
 
-  // Lookups for mapping IDs to names
   const [purchasers, setPurchasers] = React.useState<PurchaserItem[]>([])
   const [regions, setRegions] = React.useState<RegionItem[]>([])
   const [ovens, setOvens] = React.useState<OvenItem[]>([])
@@ -85,9 +84,7 @@ export default function TobaccoPurchasePage() {
 
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
-    const timer = setTimeout(() => {
-      fetchRecords()
-    }, 0)
+    const timer = setTimeout(() => { fetchRecords() }, 0)
     return () => clearTimeout(timer)
   }, [isAuthLoading, tokens, fetchRecords])
 
@@ -140,111 +137,217 @@ export default function TobaccoPurchasePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          HEADER — shared across all breakpoints
+      ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="text-xl font-medium text-foreground whitespace-nowrap">Tobacco Purchase</h1>
-          <span className="text-muted-foreground/40 hidden sm:inline">/</span>
-          <p className="text-sm text-muted-foreground truncate hidden sm:block">Manage tobacco purchase records and details.</p>
-        </div>
-        <Button
-          onClick={handleAddNew}
-          className="shrink-0 rounded-full h-9 px-4 text-xs font-bold uppercase tracking-wide gap-2 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
-        >
-          <IconPlus className="size-4" />
-          New Purchase
-        </Button>
-      </div>
-
-      {/* Filter bar */}
-      <div className="flex items-center gap-2">
-        {/* Search */}
-        <div className="relative flex items-center h-9 flex-1 max-w-sm rounded-full border border-slate-200 bg-transparent px-3 gap-2.5 shadow-xs focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all">
-          <IconSearch className="size-4 shrink-0 text-slate-400" stroke={1.5} />
-          <input
-            className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400"
-            placeholder="Search invoice, vendor, buyer..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-          {searchInput && (
-            <button onClick={() => setSearchInput("")} className="text-slate-400 hover:text-slate-600 text-xs p-1">✕</button>
-          )}
-        </div>
-
-        <div className="flex-1" />
-
-        {/* View toggle */}
-        <div className="flex items-center rounded-md border border-input p-1 gap-1 bg-background shadow-sm">
-          <button
-            onClick={() => setView("list")}
-            className={cn("flex items-center justify-center h-7 px-2 rounded-sm transition-all duration-200 gap-1.5 text-xs font-medium", view === "list" ? "bg-secondary text-secondary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground hover:bg-muted/50")}
-          >
-            <IconLayoutList className="size-3.5" />
-            <span>List</span>
-          </button>
-          <button
-            onClick={() => setView("grid")}
-            className={cn("flex items-center justify-center h-7 px-2 rounded-sm transition-all duration-200 gap-1.5 text-xs font-medium", view === "grid" ? "bg-secondary text-secondary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground hover:bg-muted/50")}
-          >
-            <IconLayoutGrid className="size-3.5" />
-            <span>Grid</span>
-          </button>
+          <p className="text-sm text-muted-foreground truncate hidden sm:block">
+            Manage tobacco purchase records and details.
+          </p>
         </div>
       </div>
 
-      {/* Loading */}
+      {/* ════════════════════════════════════════════════════════════════════
+          MOBILE FILTER BAR — (< 768px / below md)
+      ════════════════════════════════════════════════════════════════════ */}
+      <MobileFilterBar
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onAdd={handleAddNew}
+      />
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TABLET FILTER BAR — (768px – 1023px / md → lg)
+      ════════════════════════════════════════════════════════════════════ */}
+      <FilterBar
+        className="hidden md:flex lg:hidden"
+        searchClassName="min-w-36 max-w-56"
+        view={view}
+        setView={setView}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onAdd={handleAddNew}
+      />
+
+      {/* ════════════════════════════════════════════════════════════════════
+          DESKTOP FILTER BAR — (≥ 1024px / lg and above)
+      ════════════════════════════════════════════════════════════════════ */}
+      <FilterBar
+        className="hidden lg:flex"
+        searchClassName="min-w-40 max-w-xs"
+        view={view}
+        setView={setView}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onAdd={handleAddNew}
+      />
+
+      {/* ════════════════════════════════════════════════════════════════════
+          LOADING / EMPTY STATES — shared
+      ════════════════════════════════════════════════════════════════════ */}
       {isLoading && (
         <div className="flex items-center justify-center h-40">
           <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
-
-      {/* Empty */}
       {!isLoading && filteredRecords.length === 0 && (
         <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
           {search ? "No records match your search." : "No records found."}
         </div>
       )}
 
-      {/* List View */}
-      {!isLoading && filteredRecords.length > 0 && view === "list" && (
-        <Card>
-          <CardContent className="p-0">
-            <TobaccoPurchaseTable
-              records={filteredRecords}
-              purchasers={purchasers}
-              regions={regions}
-              ovens={ovens}
+      {/* ════════════════════════════════════════════════════════════════════
+          MOBILE CONTENT — (< 768px / below md)
+      ════════════════════════════════════════════════════════════════════ */}
+      {!isLoading && filteredRecords.length > 0 && (
+        <div className="grid md:hidden grid-cols-1 gap-3">
+          {filteredRecords.map((rec, index) => (
+            <TobaccoPurchaseCard
+              key={rec.tp_id}
+              rec={rec}
+              index={index}
+              purchaser={purchasers.find(p => p.p_id === rec.buyer)}
+              region={regions.find(r => r.reg_id === rec.region)}
+              oven={ovens.find(o => o.id === rec.oven)}
               onEdit={handleEdit}
               onView={handleView}
-              onDelete={(id: number) => setDeleteId(id)}
+              onDelete={(id) => setDeleteId(id)}
             />
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       )}
 
-      {/* Grid View */}
-      {!isLoading && filteredRecords.length > 0 && view === "grid" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filteredRecords.map((rec, index) => {
-            const purchaser = purchasers.find(p => p.p_id === rec.buyer)
-            const region = regions.find(r => r.reg_id === rec.region)
-            const oven = ovens.find(o => o.id === rec.oven)
-            return (
-              <TobaccoPurchaseCard
-                key={rec.tp_id}
-                rec={rec}
-                index={index}
-                purchaser={purchaser}
-                region={region}
-                oven={oven}
-                onEdit={handleEdit}
-                onView={handleView}
-                onDelete={(id) => setDeleteId(id)}
-              />
-            )
-          })}
+      {/* ════════════════════════════════════════════════════════════════════
+          TABLET CONTENT — (768px – 1023px / md → lg)
+      ════════════════════════════════════════════════════════════════════ */}
+      {!isLoading && filteredRecords.length > 0 && (
+        <div className="hidden md:grid lg:hidden grid-cols-2 gap-3">
+          {filteredRecords.map((rec, index) => (
+            <TobaccoPurchaseCard
+              key={rec.tp_id}
+              rec={rec}
+              index={index}
+              purchaser={purchasers.find(p => p.p_id === rec.buyer)}
+              region={regions.find(r => r.reg_id === rec.region)}
+              oven={ovens.find(o => o.id === rec.oven)}
+              onEdit={handleEdit}
+              onView={handleView}
+              onDelete={(id) => setDeleteId(id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          DESKTOP CONTENT — (≥ 1024px / lg and above)
+      ════════════════════════════════════════════════════════════════════ */}
+      {!isLoading && filteredRecords.length > 0 && (
+        <div className="hidden lg:block">
+          {view === "list" ? (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-[#F9FAFB] border-gray-200">
+                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">No.</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Invoice</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Date</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Buyer</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Vendor</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Region</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Oven</th>
+                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Items</th>
+                        <th className="px-4 py-3 text-right font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Net Weight</th>
+                        <th className="px-4 py-3 text-right font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Grand Total</th>
+                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRecords.map((rec, index) => {
+                        const purchaser = purchasers.find(p => p.p_id === rec.buyer)
+                        const region = regions.find(r => r.reg_id === rec.region)
+                        const oven = ovens.find(o => o.id === rec.oven)
+                        return (
+                          <tr
+                            key={rec.tp_id}
+                            className={cn(
+                              "group/row border-b border-gray-200 last:border-0 hover:bg-[#F9FAFB] transition-colors",
+                              index % 2 === 1 && "bg-[#F9FAFB]/60"
+                            )}
+                          >
+                            <td className="px-4 py-3 text-center text-[#9CA3AF] text-xs">{index + 1}</td>
+                            <td className="px-4 py-3 font-mono text-[13px] font-semibold text-[#111827]">{rec.invoice_num}</td>
+                            <td className="px-4 py-3 text-[13px] text-[#9CA3AF] whitespace-nowrap">{rec.tp_date || "-"}</td>
+                            <td className="px-4 py-3 text-[#111827] font-semibold">{purchaser?.p_name || "-"}</td>
+                            <td className="px-4 py-3 text-[#374151]">{rec.vendor || "-"}</td>
+                            <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{region?.reg_name || "-"}</td>
+                            <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{oven?.name_en || "-"}</td>
+                            <td className="px-4 py-3 text-center">
+                              {rec.tobacco_item_count == null ? (
+                                <span className="text-[#9CA3AF] text-xs">-</span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-[#F3F4F6] text-[#374151] text-[11px] font-bold">
+                                  {rec.tobacco_item_count}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-right text-[13px] font-bold text-[#111827] tabular-nums">
+                              {rec.total_net_weight == null ? "-" : rec.total_net_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td className="px-4 py-3 text-right text-[13px] font-black text-[#009640] tabular-nums">
+                              {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handleView(rec)}
+                                  className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
+                                >
+                                  <IconEye className="size-4" stroke={1.5} />
+                                </button>
+                                <button
+                                  onClick={() => handleEdit(rec)}
+                                  className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
+                                >
+                                  <IconEdit className="size-4" stroke={1.5} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteId(rec.tp_id)}
+                                  className="p-1 rounded-md hover:bg-rose-50 text-[#9CA3AF] hover:text-rose-600 transition-colors"
+                                >
+                                  <IconTrash className="size-4" stroke={1.5} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-3 xl:grid-cols-4 gap-3">
+              {filteredRecords.map((rec, index) => (
+                <TobaccoPurchaseCard
+                  key={rec.tp_id}
+                  rec={rec}
+                  index={index}
+                  purchaser={purchasers.find(p => p.p_id === rec.buyer)}
+                  region={regions.find(r => r.reg_id === rec.region)}
+                  oven={ovens.find(o => o.id === rec.oven)}
+                  onEdit={handleEdit}
+                  onView={handleView}
+                  onDelete={(id) => setDeleteId(id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -291,247 +394,3 @@ export default function TobaccoPurchasePage() {
     </div>
   )
 }
-
-// Grid Card Component
-const TobaccoPurchaseCard = React.memo(({
-  rec, index, purchaser, region, oven, onEdit, onView, onDelete
-}: {
-  rec: TobaccoPurchase,
-  index: number,
-  purchaser?: PurchaserItem,
-  region?: RegionItem,
-  oven?: OvenItem,
-  onEdit: (rec: TobaccoPurchase) => void,
-  onView: (rec: TobaccoPurchase) => void,
-  onDelete: (id: number) => void
-}) => {
-  return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:ring-1 hover:ring-emerald-500/20">
-      {/* Card Header: Invoice & Actions */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border-b border-slate-100">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center size-5 rounded bg-emerald-500 text-white text-[10px] font-bold shadow-xs">
-            {index + 1}
-          </div>
-          <span className="font-mono text-[11px] font-bold text-slate-600 tracking-tight">
-            {rec.invoice_num}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-          <button onClick={() => onView(rec)} className="p-1.5 rounded-md hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 transition-all">
-            <IconEye className="size-3.5" stroke={1.5} />
-          </button>
-          <button onClick={() => onEdit(rec)} className="p-1.5 rounded-md hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all">
-            <IconEdit className="size-3.5" stroke={1.5} />
-          </button>
-          <button onClick={() => onDelete(rec.tp_id)} className="p-1.5 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all">
-            <IconTrash className="size-3.5" stroke={1.5} />
-          </button>
-        </div>
-      </div>
-
-      {/* Card Body: Main Participants */}
-      <div className="p-4 flex flex-col gap-5 flex-1">
-        <div className="space-y-3.5">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <IconUser className="size-3" stroke={1.5} />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Purchaser</span>
-            </div>
-            <p className="text-[13px] font-semibold text-slate-900 leading-tight line-clamp-1 pl-4.5">
-              {purchaser?.p_name || "Direct Sale"}
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <IconCalendar className="size-3" stroke={1.5} />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Vendor & Date</span>
-            </div>
-            <div className="flex items-center gap-2 pl-4.5">
-              <p className="text-[12px] font-medium text-slate-700 truncate">
-                {rec.vendor || "Farmer"}
-              </p>
-              <div className="size-1 rounded-full bg-slate-200" />
-              <p className="text-[12px] font-medium text-slate-500 shrink-0">
-                {rec.tp_date || "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Metadata Grid */}
-        <div className="grid grid-cols-2 gap-4 p-3 rounded-md bg-slate-50 border border-slate-100">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Region</span>
-            <div className="flex items-center gap-1.5">
-              <IconMapPin className="size-3 text-slate-300" stroke={1.5} />
-              <span className="text-[11px] font-medium text-slate-700 truncate">{region?.reg_name || "-"}</span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-0.5 min-w-0 text-right">
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Processing</span>
-            <div className="flex items-center gap-1.5 justify-end">
-              <IconFlame className="size-3 text-slate-300" stroke={1.5} />
-              <span className="text-[11px] font-medium text-slate-700 truncate">{oven?.name_en || "-"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Card Footer: Totals */}
-      <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-100 mt-auto flex items-center justify-between">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Net weight</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-[15px] font-bold text-slate-900 tabular-nums">
-              {rec.total_net_weight?.toLocaleString(undefined, { minimumFractionDigits: 1 }) || "0.0"}
-            </span>
-            <span className="text-[10px] font-bold text-slate-400">KG</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-0.5">
-          <span className="text-[9px] font-black uppercase text-emerald-600/80 tracking-wider">Total amount</span>
-          <div className="flex items-baseline gap-0.5 text-emerald-600">
-            <span className="text-[11px] font-bold">៛</span>
-            <span className="text-[16px] font-black tabular-nums">
-              {Math.round(rec.grand_total || 0).toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Click Overlay */}
-      <button
-        onClick={() => onView(rec)}
-        className="absolute inset-0 z-0 cursor-pointer focus:outline-none"
-        aria-label={`View ${rec.invoice_num}`}
-      />
-    </div>
-  )
-})
-
-TobaccoPurchaseCard.displayName = "TobaccoPurchaseCard"
-
-// Optimized Table Component
-const TobaccoPurchaseTable = React.memo(({
-  records, purchasers, regions, ovens, onEdit, onView, onDelete
-}: {
-  records: TobaccoPurchase[],
-  purchasers: PurchaserItem[],
-  regions: RegionItem[],
-  ovens: OvenItem[],
-  onEdit: (rec: TobaccoPurchase) => void,
-  onView: (rec: TobaccoPurchase) => void,
-  onDelete: (id: number) => void
-}) => {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left">
-        <thead className="bg-slate-50/50 border-b border-slate-100">
-          <tr>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider w-10 text-center">No.</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Invoice</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Date</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Buyer</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Vendor</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Region</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider">Oven</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-center">Items</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-right">Net Weight</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-right">Grand Total</th>
-            <th className="px-4 py-3 font-bold text-slate-400 text-[10px] uppercase tracking-wider text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {records.map((rec, index) => (
-            <TobaccoPurchaseRow
-              key={rec.tp_id}
-              rec={rec}
-              index={index}
-              purchaser={purchasers.find(p => p.p_id === rec.buyer)}
-              region={regions.find(r => r.reg_id === rec.region)}
-              oven={ovens.find(o => o.id === rec.oven)}
-              onEdit={onEdit}
-              onView={onView}
-              onDelete={onDelete}
-            />
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-})
-
-const TobaccoPurchaseRow = React.memo(({
-  rec, index, purchaser, region, oven, onEdit, onView, onDelete
-}: {
-  rec: TobaccoPurchase,
-  index: number,
-  purchaser?: PurchaserItem,
-  region?: RegionItem,
-  oven?: OvenItem,
-  onEdit: (rec: TobaccoPurchase) => void,
-  onView: (rec: TobaccoPurchase) => void,
-  onDelete: (id: number) => void
-}) => {
-  return (
-    <tr className="group/row hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0">
-      <td className="px-4 py-3 text-center text-slate-400 text-xs">{index + 1}</td>
-      <td className="px-4 py-3 font-mono text-[13px] font-semibold text-slate-900">{rec.invoice_num}</td>
-      <td className="px-4 py-3 text-[13px] text-slate-500 whitespace-nowrap">{rec.tp_date || "-"}</td>
-      <td className="px-4 py-3 text-[13px] text-slate-900">{purchaser?.p_name || "-"}</td>
-      <td className="px-4 py-3 text-[13px] font-medium text-slate-700">{rec.vendor || "-"}</td>
-      <td className="px-4 py-3 text-[13px] text-slate-500">{region?.reg_name || "-"}</td>
-      <td className="px-4 py-3 text-[13px] text-slate-500">{oven?.name_en || "-"}</td>
-      <td className="px-4 py-3 text-center">
-        {rec.tobacco_item_count == null ? (
-          <span className="text-slate-300 text-xs">-</span>
-        ) : (
-          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
-            {rec.tobacco_item_count}
-          </span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-right text-[13px] font-bold text-slate-900 tabular-nums">
-        {rec.total_net_weight == null ? "-" : rec.total_net_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-      </td>
-      <td className="px-4 py-3 text-right text-[13px] font-black text-emerald-600 tabular-nums">
-        {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center justify-center gap-1 opacity-60 group-hover/row:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
-            onClick={() => onView(rec)}
-          >
-            <IconEye className="size-3.5" stroke={1.5} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-            onClick={() => onEdit(rec)}
-          >
-            <IconEdit className="size-3.5" stroke={1.5} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50"
-            onClick={() => onDelete(rec.tp_id)}
-          >
-            <IconTrash className="size-3.5" stroke={1.5} />
-          </Button>
-        </div>
-      </td>
-    </tr>
-  )
-})
-
-TobaccoPurchaseTable.displayName = "TobaccoPurchaseTable"
-TobaccoPurchaseRow.displayName = "TobaccoPurchaseRow"
