@@ -20,8 +20,8 @@ from app.domains.rbac.models.role import Role  # noqa: F401
 from app.domains.rbac.models.permission import Permission  # noqa: F401
 from app.domains.rbac.models.role_permission import RolePermissionLink  # noqa: F401
 from app.domains.sack_registration.models.sack_registration import SackRegistration  # noqa: F401
-from app.domains.weigh_leaf.models.weigh_leaf import WeighLeaf  # noqa: F401
-from app.domains.weigh_leaf.models.tobacco import Tobacco  # noqa: F401
+from app.domains.tobacco_purchase.models.purchase import TobaccoPurchase  # noqa: F401
+from app.domains.tobacco_purchase.models.purchase_detail import TobaccoPurchaseDetail  # noqa: F401
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config
@@ -42,7 +42,7 @@ def include_object(object, name, type_, reflected, compare_to):
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = settings.DATABASE_URL
+    url = settings.DATABASE_URL.replace("mysql+aiomysql://", "mysql+pymysql://")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -57,7 +57,8 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = settings.DATABASE_URL
+    sync_url = settings.DATABASE_URL.replace("mysql+aiomysql://", "mysql+pymysql://")
+    configuration["sqlalchemy.url"] = sync_url
     
     connectable = engine_from_config(
         configuration,

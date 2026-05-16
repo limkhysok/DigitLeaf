@@ -52,7 +52,6 @@ async def _sync_purchase_details(
         )
         await db.flush()
 
-    tobacco_item_count = len(details)
     total_net_weight = 0.0
     grand_total = 0.0
     max_sack_kg_val = 0.0
@@ -76,7 +75,6 @@ async def _sync_purchase_details(
             total_amount=total_amount,
         ))
 
-    db_obj.tobacco_item_count = tobacco_item_count
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
 

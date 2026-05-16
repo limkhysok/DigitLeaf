@@ -51,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
       <Sidebar variant="sidebar" collapsible="icon" {...props}>
         <SidebarHeader className="h-10 border-b">
-          <div className="h-full w-full animate-pulse bg-sidebar-accent/50 rounded-lg" />
+          <div className="h-full w-full animate-pulse bg-sidebar-accent/50 rounded-sm" />
         </SidebarHeader>
         <SidebarContent>
           <div className="space-y-4 p-4">

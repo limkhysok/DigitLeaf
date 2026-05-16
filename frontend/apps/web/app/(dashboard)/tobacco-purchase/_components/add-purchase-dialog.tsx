@@ -60,13 +60,13 @@ function maskDate(raw: string): string {
 function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
   if (isReadOnly) {
     return {
-      title: initialData?.invoice_num ? `View Purchase: ${initialData.invoice_num}` : "View Tobacco Purchase",
+      title: "View Tobacco Purchase",
       description: "Viewing purchase details.",
     }
   }
   if (initialData) {
     return {
-      title: initialData.invoice_num ? `Edit Purchase: ${initialData.invoice_num}` : "Edit Tobacco Purchase",
+      title: "Edit Tobacco Purchase",
       description: "Update the purchase information below.",
     }
   }
@@ -314,13 +314,8 @@ export function AddPurchaseDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <DialogTitle className="text-[18px] font-bold text-foreground flex items-center gap-2 flex-wrap">
+              <DialogTitle className="text-[18px] font-bold text-foreground">
                 {title}
-                {tpCode && (
-                  <span className="text-[14px] font-mono text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-sm border border-border/60">
-                    {tpCode}
-                  </span>
-                )}
               </DialogTitle>
               <DialogDescription className="text-[13px] text-muted-foreground/70">{description}</DialogDescription>
             </div>

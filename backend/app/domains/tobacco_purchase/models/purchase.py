@@ -26,7 +26,6 @@ class TobaccoPurchase(SQLModel, table=True):
     edit_user: str = Field(default="", max_length=50)
     edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     edit_ip_address: str = Field(default="")
-    tobacco_item_count: int = Field(default=0)
     total_net_weight: float = Field(default=0.0)
     grand_total: float = Field(default=0.0)
 

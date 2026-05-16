@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import date, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from .constants import ClosingStatus
 
 # ── Vendor (Member Farmer by Buyer) ──────────────────────────────────────
@@ -80,10 +80,14 @@ class Purchase(PurchaseBase):
     tp_id: int
     user: Optional[str] = None
     do_date: datetime
-    tobacco_item_count: Optional[int] = None
     total_net_weight: Optional[float] = None
     grand_total: Optional[float] = None
     details: List[PurchaseDetail] = []
+
+    @computed_field
+    @property
+    def tobacco_item_count(self) -> int:
+        return len(self.details)
 
     class Config:
         from_attributes = True
