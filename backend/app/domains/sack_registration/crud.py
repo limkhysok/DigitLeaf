@@ -214,5 +214,5 @@ async def update(
 
 
 async def delete(session: AsyncSession, record: SackRegistration) -> None:
-    session.delete(record)
+    await session.delete(record)
     await session.commit()

@@ -38,6 +38,23 @@ async def generate_invoice_num(db: AsyncSession) -> str:
     return f"{prefix}{new_seq:05d}"
 
 
+async def _update_sack_registration(db: AsyncSession, vendor: str, net_sack_change: float) -> None:
+    sack_result = await db.execute(
+        select(SackRegistration)
+        .where(SackRegistration.member_farmer_name == vendor)
+        .where(SackRegistration.status == 0)
+        .order_by(SackRegistration.registered_at.desc())
+        .limit(1)
+    )
+    sack_reg = sack_result.scalars().first()
+    if sack_reg:
+        remaining = max(0.0, round((sack_reg.sack_in_kg or 0) - net_sack_change, 3))
+        sack_reg.sack_in_kg = remaining
+        sack_reg.status = 1 if remaining == 0 else 0
+        sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
+        db.add(sack_reg)
+
+
 async def _sync_purchase_details(
     db: AsyncSession,
     db_obj: TobaccoPurchase,
@@ -46,7 +63,18 @@ async def _sync_purchase_details(
     ip_address: str,
     delete_existing: bool = False,
 ) -> None:
+    old_sack_total = 0.0
     if delete_existing:
+        old_result = await db.execute(
+            select(TobaccoPurchaseDetail)
+            .where(TobaccoPurchaseDetail.m_id == db_obj.tp_id)
+        )
+        old_details = old_result.scalars().all()
+        old_sack_total = sum(d.sack_in_kg or 0.0 for d in old_details)
+
+        for d in old_details:
+            db.expunge(d)
+
         await db.execute(
             sa_delete(TobaccoPurchaseDetail).where(TobaccoPurchaseDetail.m_id == db_obj.tp_id)
         )
@@ -54,15 +82,19 @@ async def _sync_purchase_details(
 
     total_net_weight = 0.0
     grand_total = 0.0
-    max_sack_kg_val = 0.0
+    new_sack_total = 0.0
 
     for detail_in in details:
-        net = max(0.0, (detail_in.gross_weight or 0) - (detail_in.remork_in_kg or 0) - (detail_in.sack_in_kg or 0))
+        net = max(0.0,
+            (detail_in.gross_weight or 0)
+            - (detail_in.remork_in_kg or 0)
+            - (detail_in.sack_in_kg or 0)
+        )
         total_amount = round(net * (detail_in.price or 0), 2)
 
         total_net_weight += net
         grand_total += total_amount
-        max_sack_kg_val = max(max_sack_kg_val, detail_in.sack_in_kg or 0)
+        new_sack_total += detail_in.sack_in_kg or 0
 
         db.add(TobaccoPurchaseDetail(
             **detail_in.model_dump(exclude={"invoice_num", "m_id"}, exclude_none=True),
@@ -78,18 +110,9 @@ async def _sync_purchase_details(
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
 
-    if db_obj.vendor and max_sack_kg_val > 0:
-        result = await db.execute(
-            select(SackRegistration)
-            .where(SackRegistration.member_farmer_name == db_obj.vendor)
-            .where(SackRegistration.status == 0)
-            .order_by(SackRegistration.registered_at.desc())
-        )
-        sack_reg = result.scalars().first()
-        if sack_reg:
-            sack_reg.status = 1
-            sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
-            db.add(sack_reg)
+    net_sack_change = new_sack_total - old_sack_total
+    if db_obj.vendor and net_sack_change != 0:
+        await _update_sack_registration(db, db_obj.vendor, net_sack_change)
 
 
 async def create_purchase(
@@ -185,7 +208,7 @@ async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
     db_obj = await get_purchase(db, tp_id)
     if not db_obj:
         return False
-    db.delete(db_obj)
+    await db.delete(db_obj)
     await db.commit()
     return True
 
@@ -228,3 +251,15 @@ async def get_ovens(db: AsyncSession) -> List[Oven]:
 async def get_tobacco_types(db: AsyncSession) -> List[Tobacco]:
     result = await db.execute(select(Tobacco).where(Tobacco.t_cate == 2, Tobacco.discontinue == 0))
     return list(result.scalars().all())
+
+
+async def get_vendor_sack_kg(db: AsyncSession, vendor_name: str) -> Optional[float]:
+    result = await db.execute(
+        select(SackRegistration)
+        .where(SackRegistration.member_farmer_name == vendor_name)
+        .where(SackRegistration.status == 0)
+        .order_by(SackRegistration.registered_at.desc())
+        .limit(1)
+    )
+    sack = result.scalars().first()
+    return sack.sack_in_kg if sack else None

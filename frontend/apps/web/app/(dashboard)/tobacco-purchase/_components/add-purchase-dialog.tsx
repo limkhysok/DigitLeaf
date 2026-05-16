@@ -197,8 +197,18 @@ export function AddPurchaseDialog({
     }
   }, [open, initialData, populateForm, resetForm])
 
+  React.useEffect(() => {
+    if (!vendor || isReadOnly) return
+    apiClient.getVendorSack(accessToken, vendor).then(({ sack_in_kg }) => {
+      setDetails(prev => prev.map((d, i) => ({
+        ...d,
+        sack_in_kg: i === 0 ? (sack_in_kg ?? 0) : 0,
+      })))
+    }).catch(() => {})
+  }, [vendor, accessToken, isReadOnly])
+
   const handleAddDetail = React.useCallback(() => {
-    setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, gross_weight: 0, price: 0 }])
+    setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0 }])
   }, [])
 
   const handleRemoveDetail = React.useCallback((index: number) => {
@@ -237,6 +247,7 @@ export function AddPurchaseDialog({
           price: Number(d.price) || 0,
           remork_in_kg: Number(d.remork_in_kg) || 0,
           sack_in_kg: Number(d.sack_in_kg) || 0,
+          borrowed_leaf_kg: Number(d.borrowed_leaf_kg) || 0,
         })) as TobaccoPurchaseDetail[]
       }
       if (initialData?.tp_id) {
@@ -792,6 +803,7 @@ export function AddPurchaseDialog({
                     <TableHead className="w-25.5 text-[13px] font-bold text-center border-r border-border/60">G Weight(Kg)</TableHead>
                     <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Remork(Kg)</TableHead>
                     <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Sack(Kg)</TableHead>
+                    <TableHead className="w-25 text-[13px] font-bold text-center border-r border-border/60">Borrow Leaf(Kg)</TableHead>
                     <TableHead className="w-30 text-[13px] font-bold text-center bg-primary/3 text-primary/80 border-r border-border/60">Net Weight(Kg)</TableHead>
                     <TableHead className="w-23.75 text-[13px] font-bold text-center border-r border-border/60">Price Per Kg</TableHead>
                     <TableHead className="w-32.5 text-[13px] font-bold text-right bg-emerald-500/3 text-emerald-700/80 pr-4">Total Amount</TableHead>
@@ -813,7 +825,7 @@ export function AddPurchaseDialog({
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-64 text-center">
+                      <TableCell colSpan={10} className="h-64 text-center">
                         <div className="flex flex-col items-center justify-center gap-4 bg-white/80 backdrop-blur-[2px]">
                           <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-border/60">
                             <IconPlus className="size-6 text-muted-foreground/20" />
@@ -836,7 +848,7 @@ export function AddPurchaseDialog({
 
                 <TableFooter className="bg-slate-50/80 border-t-2 border-border/80">
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={5} className="text-left text-[11px] font-bold text-muted-foreground uppercase pl-4">Total Summary</TableCell>
+                    <TableCell colSpan={6} className="text-left text-[11px] font-bold text-muted-foreground uppercase pl-4">Total Summary</TableCell>
                     <TableCell colSpan={2} className="p-2 bg-primary/4 border-x border-border/60">
                       <div className="flex items-center justify-between px-1">
                         <span className="text-[11px] font-bold uppercase text-muted-foreground/50">Total Weight</span>
@@ -1005,9 +1017,9 @@ const PurchaseDetailCard = React.memo(({
         </Popover>
       </div>
 
-      {/* Weight row: G.Weight | Remork | Sack */}
-      <div className="grid grid-cols-3 divide-x divide-border/30 border-b border-border/30">
-        <div className="px-3 py-2.5 space-y-1">
+      {/* Weight row: G.Weight | Remork | Sack | Borrowed Leaf */}
+      <div className="grid grid-cols-4 divide-x divide-border/30 border-b border-border/30">
+        <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
           <Input type="number" step="1"
             className="h-8 text-[13px] font-bold bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
@@ -1015,7 +1027,7 @@ const PurchaseDetailCard = React.memo(({
             onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
         </div>
-        <div className="px-3 py-2.5 space-y-1">
+        <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
           <Input type="number" step="1"
             className="h-8 text-[13px] bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
@@ -1023,12 +1035,21 @@ const PurchaseDetailCard = React.memo(({
             onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
         </div>
-        <div className="px-3 py-2.5 space-y-1">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack</Label>
-          <Input type="number" step="1"
+        <div className="px-2 py-2.5 space-y-1">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
+          <Input type="number" step="0.01"
             className="h-8 text-[13px] bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
             value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          />
+        </div>
+        <div className="px-2 py-2.5 space-y-1">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Borrow(Kg)</Label>
+          <Input type="number" step="0.01"
+            className="h-8 text-[13px] bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            value={detail.borrowed_leaf_kg ?? ""} disabled={isReadOnly}
+            placeholder="opt."
+            onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
         </div>
       </div>
@@ -1168,9 +1189,17 @@ const PurchaseDetailRow = React.memo(({
       </TableCell>
 
       <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        <Input type="number" step="0.01" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
           value={detail.sack_in_kg ?? ""}
           onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+          disabled={isReadOnly} />
+      </TableCell>
+
+      <TableCell className="p-1 w-25 border-r border-border/60 text-center align-middle">
+        <Input type="number" step="0.01" placeholder="opt."
+          className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30"
+          value={detail.borrowed_leaf_kg ?? ""}
+          onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           disabled={isReadOnly} />
       </TableCell>
 

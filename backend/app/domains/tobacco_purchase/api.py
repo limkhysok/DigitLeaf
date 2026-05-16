@@ -44,6 +44,16 @@ async def list_tobacco_types(
     return await crud.get_tobacco_types(db=session)
 
 
+@router.get("/vendor-sack")
+async def get_vendor_sack(
+    vendor_name: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    sack_kg = await crud.get_vendor_sack_kg(db=session, vendor_name=vendor_name)
+    return {"sack_in_kg": sack_kg}
+
+
 @router.get("/vendors", response_model=List[schemas.VendorItem])
 async def list_vendors_by_buyer(
     buyer_id: int,

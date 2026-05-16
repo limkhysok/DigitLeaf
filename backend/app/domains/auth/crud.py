@@ -37,7 +37,7 @@ async def delete_user_token(session: AsyncSession, user_name: str) -> None:
     result = await session.execute(select(UserToken).where(UserToken.user_name == user_name))
     tokens = result.scalars().all()
     for t in tokens:
-        session.delete(t)
+        await session.delete(t)
     await session.commit()
 
 
@@ -45,7 +45,7 @@ async def delete_specific_token(session: AsyncSession, refresh_token: str) -> No
     result = await session.execute(select(UserToken).where(UserToken.refresh_token == refresh_token))
     token = result.scalars().first()
     if token:
-        session.delete(token)
+        await session.delete(token)
         await session.commit()
 
 
