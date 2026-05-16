@@ -30,6 +30,7 @@ export function EditDialog({
   readonly accessToken?: string
 }) {
   const [status, setStatus] = React.useState("0")
+  const [sackInKg, setSackInKg] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [farmerQuery, setFarmerQuery] = React.useState("")
@@ -43,6 +44,7 @@ export function EditDialog({
     if (target) {
       const timer = setTimeout(() => {
         setStatus(String(target.status))
+        setSackInKg(target.sack_in_kg !== null && target.sack_in_kg !== undefined ? String(target.sack_in_kg) : "")
         setNotes(target.notes ?? "")
         setFarmerQuery(target.member_farmer_name)
         setFarmerResult(null)
@@ -93,6 +95,7 @@ export function EditDialog({
       await apiClient.updateSackRegistration(accessToken, target.id, {
         ...(farmerResult ? { member_farmer_identity_card: farmerResult.mf_code } : {}),
         status: Number(status),
+        sack_in_kg: sackInKg ? Number(sackInKg) : null,
         notes: notes.trim() || undefined,
       })
       toast.success("Registration updated")
@@ -192,6 +195,19 @@ export function EditDialog({
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack Weight (kg) <span className="font-normal text-muted-foreground/60">(optional)</span></Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                className="h-9 text-sm"
+                value={sackInKg}
+                onChange={(e) => setSackInKg(e.target.value)}
+                placeholder="e.g. 50.5"
+              />
             </div>
 
             <div className="space-y-1.5">

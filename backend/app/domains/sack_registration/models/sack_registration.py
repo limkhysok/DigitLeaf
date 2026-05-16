@@ -21,6 +21,7 @@ class SackRegistration(SQLModel, table=True):
     ## default is 0 for status which mean pending, 1 for approved, 2 for rejected
     status: int = Field(default=0, index=True)
 
+    sack_in_kg: Optional[float] = Field(default=None)
     notes: Optional[str] = Field(default=None, max_length=500)
     registered_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))

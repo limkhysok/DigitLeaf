@@ -49,6 +49,7 @@ export function RegisterDialog({
     return () => clearTimeout(timer)
   }, [])
   const [registeredAtOpen, setRegisteredAtOpen] = React.useState(false)
+  const [sackInKg, setSackInKg] = React.useState("1")
   const [notes, setNotes] = React.useState("")
 
   const representRef = React.useRef<HTMLDivElement>(null)
@@ -100,19 +101,25 @@ export function RegisterDialog({
     if (!representId) { toast.error("Please select a represent"); return }
     if (!farmerResult) { toast.error("Please search and select a member farmer"); return }
     if (!registeredAt) { toast.error("Please select a date"); return }
+
+    const sackKg = Number.parseFloat(sackInKg)
+    if (Number.isNaN(sackKg) || sackKg < 0) { toast.error("Please enter a valid sack weight (0 or more)"); return }
+
     setIsSubmitting(true)
     try {
       await apiClient.createSackRegistration(accessToken, {
         represent_id: Number(representId),
         member_farmer_identity_card: farmerResult.mf_code,
         registered_at: format(registeredAt, "yyyy-MM-dd"),
+        sack_in_kg: sackKg,
         notes: notes.trim() || undefined,
       })
       toast.success("Sack registered successfully")
       onSuccess()
       onClose()
       // reset
-      setRepresentId(""); setRepresentSearch(""); setFarmerQuery(""); setFarmerResult(null); setNotes(""); setRegisteredAt(new Date())
+      setRepresentId(""); setRepresentSearch(""); setFarmerQuery(""); setFarmerResult(null)
+      setSackInKg("1"); setNotes(""); setRegisteredAt(new Date())
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -224,7 +231,9 @@ export function RegisterDialog({
               <PopoverTrigger asChild>
                 <button type="button" className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 text-sm transition-all duration-200 dark:bg-input/30", registeredAtOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
                   <IconCalendar className="size-4 shrink-0 opacity-50" />
-                  <span className="flex-1 text-left">{registeredAt ? format(registeredAt, "PPP") : "Select date..."}</span>
+                  <span className="flex-1 text-left tabular-nums">
+                    {registeredAt ? format(registeredAt, "dd/MM/yyyy") : "Select date..."}
+                  </span>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -233,6 +242,18 @@ export function RegisterDialog({
             </Popover>
           </div>
 
+          <div className="space-y-1.5">
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack Weight (kg)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              className="h-9 text-sm"
+              value={sackInKg}
+              onChange={(e) => setSackInKg(e.target.value)}
+              placeholder="e.g. 50.5"
+            />
+          </div>
 
           <div className="space-y-1.5">
             <Label className="text-xs capitalize tracking-wide text-muted-foreground">Notes <span className="font-normal text-muted-foreground/60">(optional)</span></Label>

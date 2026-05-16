@@ -179,6 +179,7 @@ async def create(
         dl_user_id=current_user_id,
         dl_user_name=current_user_name,
         status=data.status,
+        sack_in_kg=data.sack_in_kg,
         notes=data.notes,
         **({"registered_at": data.registered_at} if data.registered_at else {}),
     )

@@ -273,6 +273,7 @@ export default function SackRegistrationPage() {
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Represent</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Farmer</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Sack (Kg)</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered By</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered At</th>
                         <th className="px-4 py-3 w-10 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Actions</th>
@@ -290,6 +291,9 @@ export default function SackRegistrationPage() {
                               <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border", status.className)}>
                                 {status.label}
                               </span>
+                            </td>
+                            <td className="px-4 py-3 text-left tabular-nums text-[#374151] text-xs font-medium">
+                              {rec.sack_in_kg ?? <span className="text-[#D1D5DB]">—</span>}
                             </td>
                             <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{rec.dl_user_name}</td>
                             <td className="px-4 py-3 text-[#9CA3AF] text-xs">

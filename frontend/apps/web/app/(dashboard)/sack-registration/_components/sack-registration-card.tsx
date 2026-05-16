@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { SackRegistrationItem } from "@/lib/api-client"
-import { IconClock, IconEye, IconPencil, IconTrash, IconUsers } from "@tabler/icons-react"
+import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { STATUS_MAP } from "./constants"
 
@@ -53,6 +53,15 @@ export const SackRegistrationCard = React.memo(({
           </div>
           <span className="text-[#E5E7EB]">·</span>
           <span className="text-[10px] text-[#9CA3AF] truncate max-w-24">{rec.dl_user_name}</span>
+          {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined && (
+            <>
+              <span className="text-[#E5E7EB]">·</span>
+              <div className="flex items-center gap-1">
+                <IconPackage className="size-3 text-[#D1D5DB]" stroke={1.5} />
+                <span className="text-[10px] text-[#9CA3AF] tabular-nums">{rec.sack_in_kg} kg</span>
+              </div>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <button onClick={(e) => { e.stopPropagation(); onView(rec) }} className="p-1 rounded hover:bg-[#F0FDF4] text-[#C4C9D4] hover:text-[#009640] transition-colors">
