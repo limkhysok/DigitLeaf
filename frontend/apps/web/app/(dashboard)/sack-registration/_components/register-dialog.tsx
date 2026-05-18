@@ -21,6 +21,8 @@ import { format } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
 import { filterRepresents } from "./constants"
 
+import { useLanguage } from "@/hooks/use-language"
+
 export function RegisterDialog({
   open,
   onClose,
@@ -34,6 +36,7 @@ export function RegisterDialog({
   readonly accessToken?: string
   readonly represents: readonly RepresentItem[]
 }) {
+  const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [representId, setRepresentId] = React.useState("")
   const [representOpen, setRepresentOpen] = React.useState(false)
@@ -98,12 +101,12 @@ export function RegisterDialog({
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     if (!accessToken) return
-    if (!representId) { toast.error("Please select a represent"); return }
-    if (!farmerResult) { toast.error("Please search and select a member farmer"); return }
-    if (!registeredAt) { toast.error("Please select a date"); return }
+    if (!representId) { toast.error(t.sackRegistration.dialog.errSelectRep); return }
+    if (!farmerResult) { toast.error(t.sackRegistration.dialog.errSelectFarmer); return }
+    if (!registeredAt) { toast.error(t.sackRegistration.dialog.errSelectDate); return }
 
     const sackKg = Number.parseFloat(sackInKg)
-    if (Number.isNaN(sackKg) || sackKg < 0) { toast.error("Please enter a valid sack weight (0 or more)"); return }
+    if (Number.isNaN(sackKg) || sackKg < 0) { toast.error(t.sackRegistration.dialog.errInvalidWeight); return }
 
     setIsSubmitting(true)
     try {
@@ -114,7 +117,7 @@ export function RegisterDialog({
         sack_in_kg: sackKg,
         notes: notes.trim() || undefined,
       })
-      toast.success("Sack registered successfully")
+      toast.success(t.sackRegistration.dialog.registerSuccessToast)
       onSuccess()
       onClose()
       // reset
@@ -131,18 +134,18 @@ export function RegisterDialog({
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Register Sack</DialogTitle>
-          <DialogDescription>Fill in the details to register a new sack for a farmer.</DialogDescription>
+          <DialogTitle>{t.sackRegistration.dialog.registerTitle}</DialogTitle>
+          <DialogDescription>{t.sackRegistration.dialog.registerSubtitle}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Representative</Label>
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.sackRegistration.dialog.representative}</Label>
             <div ref={representRef} className="relative">
               <div className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30", representOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
                 <IconSearch className="size-4 shrink-0 opacity-50" />
                 <input
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                  placeholder="Search by Name"
+                  placeholder={t.sackRegistration.dialog.searchRepPlaceholder}
                   value={representSearch}
                   onFocus={() => setRepresentOpen(true)}
                   onChange={(e) => {
@@ -155,7 +158,7 @@ export function RegisterDialog({
               </div>
               {representOpen && (
                 <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
-                  {filteredRepresents.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">No results found.</p>}
+                  {filteredRepresents.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">{t.sackRegistration.dialog.noResultsFound}</p>}
                   {filteredRepresents.map((r) => (
                     <button
                       key={r.represent_id}
@@ -172,7 +175,7 @@ export function RegisterDialog({
                       className="relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                     >
                       {representId === String(r.represent_id) && <span className="absolute left-2 flex size-4 items-center justify-center"><IconCheck className="size-3.5" /></span>}
-                      {r.represent_name}<span className="text-muted-foreground text-[13px] ml-1">({r.farmer_count} Members)</span>
+                      {r.represent_name}<span className="text-muted-foreground text-[13px] ml-1">{t.sackRegistration.dialog.membersCount.replace("{count}", String(r.farmer_count))}</span>
                     </button>
                   ))}
                 </div>
@@ -181,13 +184,13 @@ export function RegisterDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Farmer Member</Label>
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.sackRegistration.dialog.farmerMember}</Label>
             <div ref={farmerRef} className="relative">
               <div className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 transition-all duration-200 dark:bg-input/30", farmerOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
                 {isFarmerSearching ? <IconLoader2 className="size-4 shrink-0 animate-spin opacity-50" /> : <IconSearch className="size-4 shrink-0 opacity-50" />}
                 <input
                   className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                  placeholder="Search by Name/ID Card"
+                  placeholder={t.sackRegistration.dialog.searchFarmerPlaceholder}
                   value={farmerQuery}
                   onFocus={() => { setFarmerOpen(true); if (representId && !farmerResult) handleFarmerSearch(farmerQuery) }}
                   onChange={(e) => {
@@ -200,8 +203,8 @@ export function RegisterDialog({
               </div>
               {farmerOpen && (
                 <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg p-1 animate-in fade-in zoom-in-95 duration-100">
-                  {isFarmerSearching && farmerResults.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">Searching...</p>}
-                  {!isFarmerSearching && farmerResults.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">{representId ? "No farmers found." : "Select a representative first."}</p>}
+                  {isFarmerSearching && farmerResults.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">{t.sackRegistration.dialog.searching}</p>}
+                  {!isFarmerSearching && farmerResults.length === 0 && <p className="py-6 text-center text-xs text-muted-foreground">{representId ? t.sackRegistration.dialog.noFarmersFound : t.sackRegistration.dialog.selectRepFirst}</p>}
                   {farmerResults.map((f) => (
                     <button
                       key={f.mf_id}
@@ -219,20 +222,20 @@ export function RegisterDialog({
             </div>
             {farmerResult && !farmerOpen && (
               <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2 text-xs flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
-                <div className="flex flex-col"><span className="font-medium text-green-700 dark:text-green-400">{farmerResult.name}</span><span className="text-muted-foreground">ID Card: {farmerResult.mf_code}</span></div>
+                <div className="flex flex-col"><span className="font-medium text-green-700 dark:text-green-400">{farmerResult.name}</span><span className="text-muted-foreground">{t.sackRegistration.dialog.idCardLabel.replace("{code}", farmerResult.mf_code)}</span></div>
                 <IconCheck className="size-3.5 text-green-500" />
               </div>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Registration Date</Label>
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.sackRegistration.dialog.registrationDate}</Label>
             <Popover open={registeredAtOpen} onOpenChange={setRegisteredAtOpen}>
               <PopoverTrigger asChild>
                 <button type="button" className={cn("flex h-9 w-full items-center rounded-md border border-input bg-input/20 px-3 gap-2 text-sm transition-all duration-200 dark:bg-input/30", registeredAtOpen ? "ring-2 ring-ring border-transparent" : "hover:bg-input/40")}>
                   <IconCalendar className="size-4 shrink-0 opacity-50" />
                   <span className="flex-1 text-left tabular-nums">
-                    {registeredAt ? format(registeredAt, "dd/MM/yyyy") : "Select date..."}
+                    {registeredAt ? format(registeredAt, "dd/MM/yyyy") : t.sackRegistration.dialog.selectDatePlaceholder}
                   </span>
                 </button>
               </PopoverTrigger>
@@ -243,7 +246,7 @@ export function RegisterDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Sack Weight (kg)</Label>
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.sackRegistration.dialog.sackWeightKg}</Label>
             <Input
               type="number"
               min="0"
@@ -251,19 +254,19 @@ export function RegisterDialog({
               className="h-9 text-sm"
               value={sackInKg}
               onChange={(e) => setSackInKg(e.target.value)}
-              placeholder="e.g. 50.5"
+              placeholder={t.sackRegistration.dialog.weightPlaceholder}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs capitalize tracking-wide text-muted-foreground">Notes <span className="font-normal text-muted-foreground/60">(optional)</span></Label>
-            <Input className="h-9 text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." />
+            <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.sackRegistration.dialog.notesOptional}</Label>
+            <Input className="h-9 text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.sackRegistration.dialog.notesPlaceholder} />
           </div>
 
           <DialogFooter className="flex-row items-center justify-end gap-2 sm:justify-end">
-            <Button type="button" variant="outline" className="rounded-full h-9 px-4 text-xs capitalize tracking-wide" onClick={onClose}>Cancel</Button>
+            <Button type="button" variant="outline" className="rounded-full h-9 px-4 text-xs capitalize tracking-wide" onClick={onClose}>{t.sackRegistration.dialog.cancel}</Button>
             <Button type="submit" disabled={isSubmitting} className="rounded-full h-9 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent">
-              {isSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}Register
+              {isSubmitting && <IconLoader2 className="size-3.5 animate-spin" />}{t.sackRegistration.dialog.register}
             </Button>
           </DialogFooter>
         </form>

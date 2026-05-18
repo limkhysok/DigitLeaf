@@ -6,7 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
 import { SackStatusCounts } from "@/lib/api-client"
-import { DATE_PRESETS, STATUS_FILTER_OPTIONS } from "./constants"
+import { useLanguage } from "@/hooks/use-language"
 
 function statusCount(counts: SackStatusCounts, value: number | null): number {
   if (value === null) return counts.all
@@ -40,6 +40,25 @@ export function MobileFilterBar({
   sortSackInKg, setSortSackInKg,
   className,
 }: Readonly<MobileFilterBarProps>) {
+  const { t } = useLanguage()
+
+  const statusFilterOptions = React.useMemo(() => [
+    { label: t.sackRegistration.filters.statusAll, value: null },
+    { label: t.sackRegistration.filters.statusPending, value: 0 },
+    { label: t.sackRegistration.filters.statusApproved, value: 1 },
+    { label: t.sackRegistration.filters.statusRejected, value: 2 },
+  ], [t])
+
+  const datePresets = React.useMemo(() => [
+    { label: t.sackRegistration.filters.today, value: "today" },
+    { label: t.sackRegistration.filters.thisWeek, value: "week" },
+    { label: t.sackRegistration.filters.last30Days, value: "last30" },
+    { label: t.sackRegistration.filters.threeMonths, value: "3m" },
+    { label: t.sackRegistration.filters.sixMonths, value: "6m" },
+    { label: t.sackRegistration.filters.twelveMonths, value: "12m" },
+    { label: t.sackRegistration.filters.allTime, value: "all" },
+  ], [t])
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Popover>
@@ -56,18 +75,18 @@ export function MobileFilterBar({
         <PopoverContent className="w-70 p-4" align="start">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between border-b pb-2">
-              <h3 className="text-sm font-semibold">Filters</h3>
+              <h3 className="text-sm font-semibold">{t.sackRegistration.filters.filterTitle}</h3>
               <button
                 onClick={() => { setStatusFilter(null); setDatePreset("last30"); setSortSackInKg(null); }}
                 className="text-[10px] text-[#009640] font-medium hover:underline"
               >
-                Reset All
+                {t.sackRegistration.filters.resetAll}
               </button>
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Status</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.sackRegistration.filters.status}</span>
               <div className="flex flex-wrap gap-1.5">
-                {STATUS_FILTER_OPTIONS.map((opt) => (
+                {statusFilterOptions.map((opt) => (
                   <button
                     key={String(opt.value)}
                     onClick={() => setStatusFilter(opt.value)}
@@ -89,9 +108,9 @@ export function MobileFilterBar({
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Time Range</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.sackRegistration.filters.timeRange}</span>
               <div className="grid grid-cols-2 gap-1.5">
-                {DATE_PRESETS.map((p) => (
+                {datePresets.map((p) => (
                   <button
                     key={p.value}
                     onClick={() => setDatePreset(p.value)}
@@ -108,7 +127,7 @@ export function MobileFilterBar({
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Sort by Sack Weight</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.sackRegistration.filters.sortByWeight}</span>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => setSortSackInKg("asc")}
@@ -119,7 +138,7 @@ export function MobileFilterBar({
                       : "bg-muted/30 text-muted-foreground border-border"
                   )}
                 >
-                  <IconSortAscending className="size-3.5" /> Smallest
+                  <IconSortAscending className="size-3.5" /> {t.sackRegistration.filters.smallest}
                 </button>
                 <button
                   onClick={() => setSortSackInKg("desc")}
@@ -130,7 +149,7 @@ export function MobileFilterBar({
                       : "bg-muted/30 text-muted-foreground border-border"
                   )}
                 >
-                  <IconSortDescending className="size-3.5" /> Largest
+                  <IconSortDescending className="size-3.5" /> {t.sackRegistration.filters.largest}
                 </button>
               </div>
             </div>
@@ -142,7 +161,7 @@ export function MobileFilterBar({
         <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
         <input
           className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
-          placeholder="Search..."
+          placeholder={t.sackRegistration.filters.searchMobilePlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
@@ -156,7 +175,7 @@ export function MobileFilterBar({
         className="shrink-0 rounded-full h-9 md:px-4 md:w-auto w-9 p-0 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all flex items-center justify-center"
       >
         <IconPlus className="size-4 md:size-3.5" />
-        <span className="hidden md:inline text-xs font-semibold ml-1.5">Add</span>
+        <span className="hidden md:inline text-xs font-semibold ml-1.5">{t.sackRegistration.filters.add}</span>
       </Button>
     </div>
   )

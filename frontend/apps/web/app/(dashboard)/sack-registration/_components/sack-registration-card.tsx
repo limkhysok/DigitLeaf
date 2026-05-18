@@ -5,6 +5,7 @@ import { SackRegistrationItem } from "@/lib/api-client"
 import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { STATUS_MAP } from "./constants"
+import { useLanguage } from "@/hooks/use-language"
 
 // Brand dot colors corresponding to status types for indicators
 const STATUS_DOT_COLORS: Record<number, string> = {
@@ -36,11 +37,21 @@ export const SackRegistrationCard = React.memo(({
   onEdit: (rec: SackRegistrationItem) => void
   onDelete: (rec: SackRegistrationItem) => void
 }) => {
-  const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
+  const { t } = useLanguage()
+  const status = STATUS_MAP[rec.status] ?? { className: "bg-gray-100 text-gray-800" }
+  const getStatusLabel = (statusVal: number) => {
+    switch (statusVal) {
+      case 0: return t.sackRegistration.filters.statusPending
+      case 1: return t.sackRegistration.filters.statusApproved
+      case 2: return t.sackRegistration.filters.statusRejected
+      default: return String(statusVal)
+    }
+  }
+  const statusLabel = getStatusLabel(rec.status)
 
   return (
     <div className="group relative flex flex-col justify-between overflow-hidden rounded-sm border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50/60 transition-all duration-200 hover:border-[#009640]/40 hover:shadow-[0_6px_20px_-4px_rgba(0,150,64,0.1)] hover:-translate-y-0.5 min-h-[110px]">
-      
+
       {/* 1. Dynamic Left-Aligned Vertical Status Gradient Highlight Line */}
       <div className={cn(
         "absolute left-0 top-0 bottom-0 w-[2px] transition-all duration-200 group-hover:w-[3.5px] z-20",
@@ -51,7 +62,7 @@ export const SackRegistrationCard = React.memo(({
       <div className="flex items-center justify-between gap-3 px-3 pt-3 pb-2.5 relative z-10 pl-4.5">
         <div className="flex items-center gap-2 min-w-0">
           {/* Monospace physical ticket stamped serial tag */}
-          <span className="font-mono text-[9px] font-bold text-slate-500 bg-slate-100 border border-slate-250/50 px-1 py-0.5 rounded-sm shrink-0 select-none">
+          <span className="font-mono text-[12px] font-bold text-slate-500 bg-slate-100 border border-slate-250/50 px-1 py-0.5 rounded-sm shrink-0 select-none">
             #{String(index + 1).padStart(2, '0')}
           </span>
           <p className="text-[13px] font-extrabold text-slate-900 leading-tight truncate group-hover:translate-x-0.5 group-hover:text-[#009640] transition-all" title={rec.member_farmer_name}>
@@ -61,7 +72,7 @@ export const SackRegistrationCard = React.memo(({
 
         {/* Dynamic status badge with surrounding live network ping ring */}
         <span className={cn(
-          "shrink-0 inline-flex items-center rounded-sm px-1.5 py-0.5 text-[9px] font-bold border gap-1.5 shadow-2xs",
+          "shrink-0 inline-flex items-center rounded-sm px-1.5 py-0.5 text-[12px] font-bold border gap-1.5 shadow-2xs",
           status.className
         )}>
           <span className="relative flex size-1.5 shrink-0">
@@ -74,7 +85,7 @@ export const SackRegistrationCard = React.memo(({
               STATUS_DOT_COLORS[rec.status] ?? "bg-slate-400"
             )} />
           </span>
-          {status.label}
+          {statusLabel}
         </span>
       </div>
 
@@ -82,23 +93,23 @@ export const SackRegistrationCard = React.memo(({
       <div className="grid grid-cols-2 gap-0 border-y border-slate-100 bg-slate-50/30 divide-x divide-slate-100 relative z-10">
         {/* Left Column: Representative details */}
         <div className="flex flex-col gap-0.5 pl-4.5 pr-3 py-2 min-w-0">
-          <span className="text-slate-400 font-semibold text-[8px] uppercase tracking-wider flex items-center gap-0.5">
+          <span className="text-slate-400 font-semibold text-[12px] uppercase tracking-wider flex items-center gap-0.5">
             <IconUsers className="size-2.5 text-slate-400 shrink-0" stroke={2} />
-            Representative
+            {t.sackRegistration.table.representative}
           </span>
-          <span className="text-slate-700 font-bold text-[11px] truncate" title={rec.represent_name}>
+          <span className="text-slate-700 font-bold text-[12px] truncate" title={rec.represent_name}>
             {rec.represent_name}
           </span>
         </div>
 
         {/* Right Column: Sack Weight with inline Progress Scale */}
         <div className="flex flex-col gap-0.5 px-3 py-2 min-w-0">
-          <span className="text-slate-400 font-semibold text-[8px] uppercase tracking-wider flex items-center gap-0.5">
+          <span className="text-slate-400 font-semibold text-[12px] uppercase tracking-wider flex items-center gap-0.5">
             <IconPackage className="size-2.5 text-slate-400 shrink-0" stroke={2} />
-            Sack Weight
+            {t.sackRegistration.table.sackWeight}
           </span>
           <div className="flex flex-col justify-center">
-            <span className="text-slate-700 font-bold text-[11px]">
+            <span className="text-slate-700 font-bold text-[12px]">
               {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined ? (
                 <span className="text-[#009640] font-extrabold tabular-nums">
                   {rec.sack_in_kg} kg
@@ -107,13 +118,13 @@ export const SackRegistrationCard = React.memo(({
                 <span className="text-slate-350 font-normal">—</span>
               )}
             </span>
-            
+
             {/* Visual mini-progress weight scale bar (Max standard capacity: 60kg) */}
             {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined && (
               <div className="w-full bg-slate-200/50 rounded-full h-[3px] mt-1 overflow-hidden border border-slate-200/10">
-                <div 
-                  className="bg-gradient-to-r from-emerald-400 to-[#009640] h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min((rec.sack_in_kg / 60) * 100, 100)}%` }} 
+                <div
+                  className="bg-gradient-to-r from-emerald-400 to-[#009640] h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((rec.sack_in_kg / 60) * 100, 100)}%` }}
                 />
               </div>
             )}
@@ -125,33 +136,33 @@ export const SackRegistrationCard = React.memo(({
       <div className="flex items-center justify-between px-3 py-2 bg-slate-50/15 mt-auto relative z-10 pl-4.5">
         <div className="flex items-center gap-1.5 text-slate-400 text-[10px] min-w-0">
           <IconClock className="size-3 shrink-0 text-slate-350" stroke={1.5} />
-          <span className="font-semibold tabular-nums shrink-0">
+          <span className="font-bold font-[12px] tabular-nums shrink-0">
             {new Date(rec.registered_at).toLocaleDateString()}
           </span>
           <span className="text-slate-200 shrink-0 select-none">|</span>
-          <span className="font-semibold truncate max-w-20 text-slate-500 shrink-0" title={rec.dl_user_name}>
+          <span className="font-bold text-[12px] truncate max-w-20 text-slate-500 shrink-0" title={rec.dl_user_name}>
             {rec.dl_user_name}
           </span>
         </div>
 
         {/* Sliding & Fading Actions Control Deck Toolbar */}
         <div className="flex items-center gap-0.5 opacity-60 md:opacity-0 md:translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 shrink-0">
-          <button 
-            onClick={(e) => { e.stopPropagation(); onView(rec) }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); onView(rec) }}
             className="p-1 rounded-sm border border-slate-200 bg-white hover:border-[#009640]/30 hover:bg-emerald-50 text-slate-400 hover:text-[#009640] shadow-2xs transition-colors"
             title="View Details"
           >
             <IconEye className="size-3.5" stroke={1.5} />
           </button>
-          <button 
-            onClick={(e) => { e.stopPropagation(); onEdit(rec) }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(rec) }}
             className="p-1 rounded-sm border border-slate-200 bg-white hover:border-[#009640]/30 hover:bg-emerald-50 text-slate-400 hover:text-[#009640] shadow-2xs transition-colors"
             title="Edit"
           >
             <IconPencil className="size-3.5" stroke={1.5} />
           </button>
-          <button 
-            onClick={(e) => { e.stopPropagation(); onDelete(rec) }} 
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(rec) }}
             className="p-1 rounded-sm border border-slate-200 bg-white hover:border-rose-200 hover:bg-rose-50 text-slate-400 hover:text-rose-600 shadow-2xs transition-colors"
             title="Delete"
           >

@@ -10,7 +10,8 @@ import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
 import { SackStatusCounts } from "@/lib/api-client"
-import { DATE_PRESETS, STATUS_FILTER_OPTIONS, STATUS_MAP } from "./constants"
+import { STATUS_MAP } from "./constants"
+import { useLanguage } from "@/hooks/use-language"
 
 function statusCount(counts: SackStatusCounts, value: number | null): number {
   if (value === null) return counts.all
@@ -47,8 +48,26 @@ export function FilterBar({
   onRegister,
   sortSackInKg, setSortSackInKg,
 }: Readonly<FilterBarProps>) {
+  const { t } = useLanguage()
   const [statusFilterOpen, setStatusFilterOpen] = React.useState(false)
   const [datePresetOpen, setDatePresetOpen] = React.useState(false)
+
+  const statusFilterOptions = React.useMemo(() => [
+    { label: t.sackRegistration.filters.statusAll, value: null },
+    { label: t.sackRegistration.filters.statusPending, value: 0 },
+    { label: t.sackRegistration.filters.statusApproved, value: 1 },
+    { label: t.sackRegistration.filters.statusRejected, value: 2 },
+  ], [t])
+
+  const datePresets = React.useMemo(() => [
+    { label: t.sackRegistration.filters.today, value: "today" },
+    { label: t.sackRegistration.filters.thisWeek, value: "week" },
+    { label: t.sackRegistration.filters.last30Days, value: "last30" },
+    { label: t.sackRegistration.filters.threeMonths, value: "3m" },
+    { label: t.sackRegistration.filters.sixMonths, value: "6m" },
+    { label: t.sackRegistration.filters.twelveMonths, value: "12m" },
+    { label: t.sackRegistration.filters.allTime, value: "all" },
+  ], [t])
 
   return (
     <div className={cn("flex-wrap items-center gap-2", className)}>
@@ -60,12 +79,12 @@ export function FilterBar({
               ? "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               : cn(STATUS_MAP[statusFilter]?.className, "border-transparent font-medium")
           )}>
-            {STATUS_FILTER_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "All"}
+            {statusFilterOptions.find((o) => o.value === statusFilter)?.label ?? t.sackRegistration.filters.statusAll}
             <IconChevronDown className={cn("size-3.5 transition-transform duration-200", statusFilterOpen && "rotate-180")} />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-40 p-1" align="start">
-          {STATUS_FILTER_OPTIONS.map((opt) => (
+          {statusFilterOptions.map((opt) => (
             <button
               key={String(opt.value)}
               onClick={() => { setStatusFilter(opt.value); setStatusFilterOpen(false) }}
@@ -94,12 +113,12 @@ export function FilterBar({
               : "border-[#009640]/30 bg-[#009640]/10 text-[#009640] font-medium"
           )}>
             <IconCalendar className="size-3.5" />
-            {DATE_PRESETS.find((p) => p.value === datePreset)?.label ?? "Last 30 Days"}
+            {datePresets.find((p) => p.value === datePreset)?.label ?? t.sackRegistration.filters.last30Days}
             <IconChevronDown className={cn("size-3.5 transition-transform duration-200", datePresetOpen && "rotate-180")} />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-36 p-1" align="start">
-          {DATE_PRESETS.map((p) => (
+          {datePresets.map((p) => (
             <button
               key={p.value}
               onClick={() => { setDatePreset(p.value); setDatePresetOpen(false) }}
@@ -128,7 +147,7 @@ export function FilterBar({
         )}
       >
         <div className="flex items-center gap-1">
-          Sack (Kg)
+          {t.sackRegistration.filters.sackWeight}
           {sortSackInKg === "asc" && <IconSortAscending className="size-3.5" />}
           {sortSackInKg === "desc" && <IconSortDescending className="size-3.5" />}
           {!sortSackInKg && <IconArrowsSort className="size-3.5 opacity-50" />}
@@ -140,7 +159,7 @@ export function FilterBar({
           onClick={() => { setStatusFilter(null); setDatePreset("last30"); setSortSackInKg(null); }}
           className="text-xs text-muted-foreground hover:text-[#009640] font-medium transition-colors ml-1"
         >
-          Reset All
+          {t.sackRegistration.filters.resetAll}
         </button>
       )}
 
@@ -165,7 +184,7 @@ export function FilterBar({
         <IconSearch className="size-4 shrink-0 text-slate-400" stroke={1.5} />
         <input
           className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400 placeholder:text-[12px]"
-          placeholder="Representative/Farmer.."
+          placeholder={t.sackRegistration.filters.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
@@ -179,7 +198,7 @@ export function FilterBar({
         className="shrink-0 rounded-full h-9 px-4 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
       >
         <IconPlus className="size-3.5" />
-        Add
+        {t.sackRegistration.filters.add}
       </Button>
     </div>
   )

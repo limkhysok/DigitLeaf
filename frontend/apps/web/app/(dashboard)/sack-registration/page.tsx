@@ -3,6 +3,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/hooks/use-language"
 import {
   apiClient,
   RepresentItem,
@@ -42,6 +43,7 @@ export default function SackRegistrationPage() {
   }, [])
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
+  const { t } = useLanguage()
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [records, setRecords] = React.useState<SackRegistrationItem[]>([])
@@ -154,9 +156,9 @@ export default function SackRegistrationPage() {
       ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-xl font-medium text-foreground whitespace-nowrap">Sack Registration</h1>
+          <h1 className="text-xl font-medium text-foreground whitespace-nowrap">{t.sackRegistration.title}</h1>
           <p className="text-sm text-muted-foreground truncate hidden sm:block">
-            Register and manage sacks for tobacco processing.
+            {t.sackRegistration.subtitle}
           </p>
         </div>
       </div>
@@ -211,7 +213,7 @@ export default function SackRegistrationPage() {
       )}
       {!isLoading && records.length === 0 && (
         <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-          No registrations found.
+          {t.sackRegistration.table.noRecords}
         </div>
       )}
 
@@ -263,12 +265,12 @@ export default function SackRegistrationPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-[#F9FAFB] border-gray-200">
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">No.</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Representative</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Farmer</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider w-10">{t.sackRegistration.table.no}</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider">{t.sackRegistration.table.representative}</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider">{t.sackRegistration.table.farmer}</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider">{t.sackRegistration.table.status}</th>
                         <th
-                          className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider cursor-pointer group select-none"
+                          className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider cursor-pointer group select-none"
                           onClick={() => setSortSackInKg(prev => {
                             if (prev === "asc") return "desc";
                             if (prev === "desc") return null;
@@ -276,28 +278,37 @@ export default function SackRegistrationPage() {
                           })}
                         >
                           <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                            Sack (Kg)
+                            {t.sackRegistration.table.sackWeight}
                             {sortSackInKg === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
                             {sortSackInKg === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
                             {!sortSackInKg && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
                           </div>
                         </th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered By</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered At</th>
-                        <th className="px-4 py-3 w-10 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Actions</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider">{t.sackRegistration.table.registeredBy}</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider">{t.sackRegistration.table.registeredAt}</th>
+                        <th className="px-4 py-3 w-10 text-center font-bold text-[#9CA3AF] text-[13px] uppercase tracking-wider">{t.sackRegistration.table.actions}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {records.map((rec, idx) => {
-                        const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
+                        const status = STATUS_MAP[rec.status] ?? { className: "bg-gray-100 text-gray-800" }
+                        const getStatusLabel = (statusVal: number) => {
+                          switch (statusVal) {
+                            case 0: return t.sackRegistration.filters.statusPending
+                            case 1: return t.sackRegistration.filters.statusApproved
+                            case 2: return t.sackRegistration.filters.statusRejected
+                            default: return String(statusVal)
+                          }
+                        }
+                        const statusLabel = getStatusLabel(rec.status)
                         return (
                           <tr key={rec.id} className={cn("group/row border-b border-gray-200 last:border-0 hover:bg-[#F9FAFB] transition-colors", idx % 2 === 1 && "bg-[#F9FAFB]/60")}>
                             <td className="px-4 py-3 text-[#9CA3AF] text-xs">{total - idx}</td>
                             <td className="px-4 py-3 text-[#111827] font-semibold">{rec.represent_name}</td>
                             <td className="px-4 py-3 text-[#374151]">{rec.member_farmer_name}</td>
                             <td className="px-4 py-3">
-                              <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border", status.className)}>
-                                {status.label}
+                              <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-bold border", status.className)}>
+                                {statusLabel}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-left tabular-nums text-[#374151] text-xs font-medium">

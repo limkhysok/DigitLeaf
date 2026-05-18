@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@workspace/ui/components/dialog"
+import { useLanguage } from "@/hooks/use-language"
 import { RegistrationDetail } from "./registration-detail"
 
 export function ViewDialog({
@@ -25,13 +26,14 @@ export function ViewDialog({
   readonly onEdit: (rec: SackRegistrationItem) => void
   readonly onDelete: (rec: SackRegistrationItem) => void
 }) {
+  const { t } = useLanguage()
   return (
     <Dialog open={!!target} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Registration Detail</DialogTitle>
+          <DialogTitle>{t.sackRegistration.dialog.viewTitle}</DialogTitle>
           <DialogDescription>
-            Full details for this sack registration record.
+            {t.sackRegistration.dialog.viewSubtitle}
           </DialogDescription>
         </DialogHeader>
         {target && <RegistrationDetail target={target} />}
@@ -41,7 +43,7 @@ export function ViewDialog({
             onClick={() => { if (target) { onClose(); onEdit(target) } }}
           >
             <IconPencil className="size-3.5" />
-            Edit
+            {t.sackRegistration.dialog.edit}
           </Button>
           <Button
             variant="destructive"
@@ -49,9 +51,9 @@ export function ViewDialog({
             onClick={() => { if (target) { onClose(); onDelete(target) } }}
           >
             <IconTrash className="size-3.5" />
-            Delete
+            {t.sackRegistration.dialog.delete}
           </Button>
-          <Button variant="outline" className="rounded-full h-9 px-4 text-xs capitalize tracking-wide" onClick={onClose}>Close</Button>
+          <Button variant="outline" className="rounded-full h-9 px-4 text-xs capitalize tracking-wide" onClick={onClose}>{t.sackRegistration.dialog.close}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

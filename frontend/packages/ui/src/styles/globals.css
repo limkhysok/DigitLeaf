@@ -62,7 +62,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0f172a; /* Slate-900 */
+  --foreground: #0f172a;
+  /* Slate-900 */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
@@ -72,7 +73,8 @@
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.97 0.001 106.424);
-  --muted-foreground: #64748b; /* Slate-500 */
+  --muted-foreground: #64748b;
+  /* Slate-500 */
   --accent: oklch(0.97 0.001 106.424);
   --accent-foreground: oklch(0.216 0.006 56.043);
   --destructive: oklch(0.577 0.245 27.325);
@@ -364,4 +366,14 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/10 rounded-full hover:bg-muted-foreground/20 transition-colors;
   }
+}
+
+/* Enhance Khmer readability by scaling small text dynamically */
+html[lang="kh"] {
+  font-size: 108%;
+}
+
+html[lang="kh"] input::placeholder,
+html[lang="kh"] textarea::placeholder {
+  font-size: 0.9em;
 }
