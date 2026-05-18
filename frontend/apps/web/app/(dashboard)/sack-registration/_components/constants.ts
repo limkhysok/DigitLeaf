@@ -51,11 +51,13 @@ export function buildFetchParams(
   skip: number,
   search: string,
   statusFilter: number | null,
-  datePreset: string
+  datePreset: string,
+  sortSackInKg: string | null = null
 ): SackRegistrationListParams {
   const params: SackRegistrationListParams = { skip, limit: 200 }
   if (search.trim()) params.search = search.trim()
   if (statusFilter !== null) params.status = statusFilter
+  if (sortSackInKg) params.sort_sack_in_kg = sortSackInKg
   return { ...params, ...getDateRange(datePreset) }
 }
 

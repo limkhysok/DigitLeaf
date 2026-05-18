@@ -70,6 +70,7 @@ async def list_registrations(
     status: Optional[int] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    sort_sack_in_kg: Optional[str] = None,
 ):
     items, total = await crud.get_all(
         session=session,
@@ -79,6 +80,7 @@ async def list_registrations(
         status=status,
         date_from=date_from,
         date_to=date_to,
+        sort_sack_in_kg=sort_sack_in_kg,
     )
     return SackRegistrationListResponse(
         items=items,  # type: ignore[arg-type]

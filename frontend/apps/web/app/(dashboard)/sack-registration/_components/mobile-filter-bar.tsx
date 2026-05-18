@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconFilter, IconPlus, IconSearch } from "@tabler/icons-react"
+import { IconFilter, IconPlus, IconSearch, IconSortAscending, IconSortDescending } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
@@ -25,6 +25,9 @@ interface MobileFilterBarProps {
   hasActiveFilters: boolean
   statusCounts: SackStatusCounts | null
   onRegister: () => void
+  sortSackInKg: "asc" | "desc" | null
+  setSortSackInKg: (v: "asc" | "desc" | null) => void
+  className?: string
 }
 
 export function MobileFilterBar({
@@ -34,9 +37,11 @@ export function MobileFilterBar({
   hasActiveFilters,
   statusCounts,
   onRegister,
+  sortSackInKg, setSortSackInKg,
+  className,
 }: Readonly<MobileFilterBarProps>) {
   return (
-    <div className="flex md:hidden items-center gap-2">
+    <div className={cn("flex items-center gap-2", className)}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -53,7 +58,7 @@ export function MobileFilterBar({
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="text-sm font-semibold">Filters</h3>
               <button
-                onClick={() => { setStatusFilter(null); setDatePreset("last30") }}
+                onClick={() => { setStatusFilter(null); setDatePreset("last30"); setSortSackInKg(null); }}
                 className="text-[10px] text-[#009640] font-medium hover:underline"
               >
                 Reset All
@@ -102,6 +107,33 @@ export function MobileFilterBar({
                 ))}
               </div>
             </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Sort by Sack Weight</span>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => setSortSackInKg("asc")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
+                    sortSackInKg === "asc"
+                      ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
+                      : "bg-muted/30 text-muted-foreground border-border"
+                  )}
+                >
+                  <IconSortAscending className="size-3.5" /> Smallest
+                </button>
+                <button
+                  onClick={() => setSortSackInKg("desc")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
+                    sortSackInKg === "desc"
+                      ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
+                      : "bg-muted/30 text-muted-foreground border-border"
+                  )}
+                >
+                  <IconSortDescending className="size-3.5" /> Largest
+                </button>
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
@@ -121,9 +153,10 @@ export function MobileFilterBar({
 
       <Button
         onClick={onRegister}
-        className="shrink-0 sm:hidden rounded-full h-9 w-9 p-0 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
+        className="shrink-0 rounded-full h-9 md:px-4 md:w-auto w-9 p-0 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all flex items-center justify-center"
       >
-        <IconPlus className="size-4" />
+        <IconPlus className="size-4 md:size-3.5" />
+        <span className="hidden md:inline text-xs font-semibold ml-1.5">Add</span>
       </Button>
     </div>
   )

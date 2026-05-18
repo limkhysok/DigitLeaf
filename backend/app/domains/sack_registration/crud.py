@@ -81,6 +81,7 @@ async def get_all(
     status: Optional[int] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    sort_sack_in_kg: Optional[str] = None,
 ) -> tuple[list[SackRegistration], int]:
     stmt = select(SackRegistration)
     count_stmt = select(func.count()).select_from(SackRegistration)
@@ -106,7 +107,12 @@ async def get_all(
         stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
         count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
 
-    stmt = stmt.order_by(col(SackRegistration.created_at).desc())
+    if sort_sack_in_kg == "asc":
+        stmt = stmt.order_by(col(SackRegistration.sack_in_kg).is_(None), col(SackRegistration.sack_in_kg).asc(), col(SackRegistration.created_at).desc())
+    elif sort_sack_in_kg == "desc":
+        stmt = stmt.order_by(col(SackRegistration.sack_in_kg).is_(None), col(SackRegistration.sack_in_kg).desc(), col(SackRegistration.created_at).desc())
+    else:
+        stmt = stmt.order_by(col(SackRegistration.created_at).desc())
 
     total = (await session.scalar(count_stmt)) or 0
     result = await session.execute(stmt.offset(skip).limit(limit))

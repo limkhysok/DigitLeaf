@@ -11,7 +11,8 @@ import {
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import {
-  IconEye, IconLoader2, IconPencil, IconTrash
+  IconEye, IconLoader2, IconPencil, IconTrash,
+  IconSortAscending, IconSortDescending, IconArrowsSort
 } from "@tabler/icons-react"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
@@ -29,8 +30,8 @@ import { SackRegistrationCard } from "./_components/sack-registration-card"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { FilterBar } from "./_components/filter-bar"
 
-function checkHasActiveFilters(statusFilter: number | null, datePreset: string) {
-  return statusFilter !== null || datePreset !== "last30"
+function checkHasActiveFilters(statusFilter: number | null, datePreset: string, sortSackInKg: string | null) {
+  return statusFilter !== null || datePreset !== "last30" || sortSackInKg !== null
 }
 
 export default function SackRegistrationPage() {
@@ -65,6 +66,7 @@ export default function SackRegistrationPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
   const [statusCounts, setStatusCounts] = React.useState<SackStatusCounts | null>(null)
+  const [sortSackInKg, setSortSackInKg] = React.useState<"asc" | "desc" | null>(null)
 
   // ── Search debounce ───────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -96,7 +98,7 @@ export default function SackRegistrationPage() {
     if (isAuthLoading || !tokens?.access_token) return
     let cancelled = false
     const timer = setTimeout(() => setIsLoading(true), 0)
-    const params = buildFetchParams(0, search, statusFilter, datePreset)
+    const params = buildFetchParams(0, search, statusFilter, datePreset, sortSackInKg)
     apiClient.getSackRegistrations(tokens.access_token, params)
       .then((res) => {
         if (cancelled) return
@@ -108,14 +110,14 @@ export default function SackRegistrationPage() {
       .catch((err) => { toast.error((err as Error).message) })
       .finally(() => { if (!cancelled) setIsLoading(false) })
     return () => { cancelled = true; clearTimeout(timer) }
-  }, [isAuthLoading, tokens, search, statusFilter, datePreset, refetchKey])
+  }, [isAuthLoading, tokens, search, statusFilter, datePreset, refetchKey, sortSackInKg])
 
   // ── Load more ─────────────────────────────────────────────────────────────
   const loadMore = React.useCallback(async () => {
     if (!tokens?.access_token || !hasMore || isLoadingMore || isLoading) return
     setIsLoadingMore(true)
     const currentSkip = skip
-    const params = buildFetchParams(currentSkip, search, statusFilter, datePreset)
+    const params = buildFetchParams(currentSkip, search, statusFilter, datePreset, sortSackInKg)
     try {
       const res = await apiClient.getSackRegistrations(tokens.access_token, params)
       setRecords((prev) => [...prev, ...res.items])
@@ -126,7 +128,7 @@ export default function SackRegistrationPage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, statusFilter, datePreset])
+  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, statusFilter, datePreset, sortSackInKg])
 
   // ── IntersectionObserver ──────────────────────────────────────────────────
   React.useEffect(() => {
@@ -142,7 +144,7 @@ export default function SackRegistrationPage() {
 
   if (!mounted) return null
 
-  const hasActiveFilters = checkHasActiveFilters(statusFilter, datePreset)
+  const hasActiveFilters = checkHasActiveFilters(statusFilter, datePreset, sortSackInKg)
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,9 +162,10 @@ export default function SackRegistrationPage() {
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════
-          MOBILE FILTER BAR — (< 768px / below md)
+          MOBILE & TABLET FILTER BAR — (< 1024px / below lg)
       ════════════════════════════════════════════════════════════════════ */}
       <MobileFilterBar
+        className="flex lg:hidden"
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         datePreset={datePreset}
@@ -172,25 +175,11 @@ export default function SackRegistrationPage() {
         hasActiveFilters={hasActiveFilters}
         statusCounts={statusCounts}
         onRegister={() => setRegisterOpen(true)}
+        sortSackInKg={sortSackInKg}
+        setSortSackInKg={setSortSackInKg}
       />
 
-      {/* ════════════════════════════════════════════════════════════════════
-          TABLET FILTER BAR — (768px – 1023px / md → lg)
-      ════════════════════════════════════════════════════════════════════ */}
-      <FilterBar
-        className="hidden md:flex lg:hidden"
-        searchClassName="min-w-36 max-w-56"
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        datePreset={datePreset}
-        setDatePreset={setDatePreset}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        view={view}
-        setView={setView}
-        statusCounts={statusCounts}
-        onRegister={() => setRegisterOpen(true)}
-      />
+
 
       {/* ════════════════════════════════════════════════════════════════════
           DESKTOP FILTER BAR — (≥ 1024px / lg and above)
@@ -208,6 +197,8 @@ export default function SackRegistrationPage() {
         setView={setView}
         statusCounts={statusCounts}
         onRegister={() => setRegisterOpen(true)}
+        sortSackInKg={sortSackInKg}
+        setSortSackInKg={setSortSackInKg}
       />
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -276,7 +267,21 @@ export default function SackRegistrationPage() {
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Represent</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Farmer</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Status</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Sack (Kg)</th>
+                        <th 
+                          className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider cursor-pointer group select-none"
+                          onClick={() => setSortSackInKg(prev => {
+                            if (prev === "asc") return "desc";
+                            if (prev === "desc") return null;
+                            return "asc";
+                          })}
+                        >
+                          <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                            Sack (Kg)
+                            {sortSackInKg === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
+                            {sortSackInKg === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
+                            {!sortSackInKg && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                          </div>
+                        </th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered By</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Registered At</th>
                         <th className="px-4 py-3 w-10 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Actions</th>

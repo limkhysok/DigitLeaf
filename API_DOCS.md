@@ -408,6 +408,7 @@ Returns a paginated, filterable list of sack registrations.
 | `status` | int | — | `0`=pending `1`=approved `2`=rejected |
 | `date_from` | date | — | `YYYY-MM-DD` |
 | `date_to` | date | — | `YYYY-MM-DD` |
+| `sort_sack_in_kg` | string | — | `asc`=smallest to largest `desc`=largest to smallest |
 
 **Response `200 OK`:**
 ```json

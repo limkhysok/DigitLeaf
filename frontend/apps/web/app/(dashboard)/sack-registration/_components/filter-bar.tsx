@@ -3,7 +3,8 @@
 import * as React from "react"
 import {
   IconCalendar, IconChevronDown,
-  IconLayoutGrid, IconLayoutList, IconPlus, IconSearch
+  IconLayoutGrid, IconLayoutList, IconPlus, IconSearch,
+  IconSortAscending, IconSortDescending, IconArrowsSort
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
@@ -31,6 +32,8 @@ interface FilterBarProps {
   setView: (v: "list" | "grid") => void
   statusCounts: SackStatusCounts | null
   onRegister: () => void
+  sortSackInKg: "asc" | "desc" | null
+  setSortSackInKg: (v: "asc" | "desc" | null) => void
 }
 
 export function FilterBar({
@@ -42,6 +45,7 @@ export function FilterBar({
   view, setView,
   statusCounts,
   onRegister,
+  sortSackInKg, setSortSackInKg,
 }: Readonly<FilterBarProps>) {
   const [statusFilterOpen, setStatusFilterOpen] = React.useState(false)
   const [datePresetOpen, setDatePresetOpen] = React.useState(false)
@@ -84,8 +88,10 @@ export function FilterBar({
       <Popover open={datePresetOpen} onOpenChange={setDatePresetOpen}>
         <PopoverTrigger asChild>
           <button className={cn(
-            "flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs transition-colors",
-            datePreset === "last30" ? "text-muted-foreground hover:text-foreground hover:bg-muted/30" : "font-medium text-foreground bg-muted/50"
+            "flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors",
+            datePreset === "last30" 
+              ? "border-border text-muted-foreground hover:text-foreground hover:bg-muted/30" 
+              : "border-[#009640]/30 bg-[#009640]/10 text-[#009640] font-medium"
           )}>
             <IconCalendar className="size-3.5" />
             {DATE_PRESETS.find((p) => p.value === datePreset)?.label ?? "Last 30 Days"}
@@ -108,9 +114,39 @@ export function FilterBar({
         </PopoverContent>
       </Popover>
 
+      <button
+        onClick={() => {
+          if (sortSackInKg === "asc") setSortSackInKg("desc");
+          else if (sortSackInKg === "desc") setSortSackInKg(null);
+          else setSortSackInKg("asc");
+        }}
+        className={cn(
+          "flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors",
+          sortSackInKg === null
+            ? "border-border text-muted-foreground hover:text-foreground hover:bg-muted/30"
+            : "border-[#009640]/30 bg-[#009640]/10 text-[#009640] font-medium"
+        )}
+      >
+        <div className="flex items-center gap-1">
+          Sack (Kg)
+          {sortSackInKg === "asc" && <IconSortAscending className="size-3.5" />}
+          {sortSackInKg === "desc" && <IconSortDescending className="size-3.5" />}
+          {!sortSackInKg && <IconArrowsSort className="size-3.5 opacity-50" />}
+        </div>
+      </button>
+
+      {(statusFilter !== null || datePreset !== "last30" || sortSackInKg !== null) && (
+        <button
+          onClick={() => { setStatusFilter(null); setDatePreset("last30"); setSortSackInKg(null); }}
+          className="text-xs text-muted-foreground hover:text-[#009640] font-medium transition-colors ml-1"
+        >
+          Reset All
+        </button>
+      )}
+
       <div className="flex-1" />
 
-      <div className="flex items-center rounded-full border border-border p-0.5 gap-0.5">
+      <div className="hidden lg:flex items-center rounded-full border border-border p-0.5 gap-0.5">
         <button
           onClick={() => setView("list")}
           className={cn("flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200", view === "list" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground")}
