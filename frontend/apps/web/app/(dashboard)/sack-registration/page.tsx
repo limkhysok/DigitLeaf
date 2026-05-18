@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { format } from "date-fns"
 import { useAuth } from "@/hooks/use-auth"
 import {
   apiClient,
@@ -47,6 +48,7 @@ export default function SackRegistrationPage() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [isLoadingMore, setIsLoadingMore] = React.useState(false)
   const [hasMore, setHasMore] = React.useState(false)
+  const [total, setTotal] = React.useState(0)
   const [skip, setSkip] = React.useState(0)
   const [refetchKey, setRefetchKey] = React.useState(0)
   const refetch = React.useCallback(() => setRefetchKey((k) => k + 1), [])
@@ -100,6 +102,7 @@ export default function SackRegistrationPage() {
         if (cancelled) return
         setRecords(res.items)
         setHasMore(res.has_more)
+        setTotal(res.total)
         setSkip(res.items.length)
       })
       .catch((err) => { toast.error((err as Error).message) })
@@ -230,10 +233,10 @@ export default function SackRegistrationPage() {
             <SackRegistrationCard
               key={rec.id}
               rec={rec}
-              index={idx}
+              index={total - idx - 1}
               onView={setViewTarget}
               onEdit={setEditTarget}
-              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: idx + 1 })}
+              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - idx })}
             />
           ))}
         </div>
@@ -248,10 +251,10 @@ export default function SackRegistrationPage() {
             <SackRegistrationCard
               key={rec.id}
               rec={rec}
-              index={idx}
+              index={total - idx - 1}
               onView={setViewTarget}
               onEdit={setEditTarget}
-              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: idx + 1 })}
+              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - idx })}
             />
           ))}
         </div>
@@ -284,7 +287,7 @@ export default function SackRegistrationPage() {
                         const status = STATUS_MAP[rec.status] ?? { label: String(rec.status), className: "bg-gray-100 text-gray-800" }
                         return (
                           <tr key={rec.id} className={cn("group/row border-b border-gray-200 last:border-0 hover:bg-[#F9FAFB] transition-colors", idx % 2 === 1 && "bg-[#F9FAFB]/60")}>
-                            <td className="px-4 py-3 text-[#9CA3AF] text-xs">{idx + 1}</td>
+                            <td className="px-4 py-3 text-[#9CA3AF] text-xs">{total - idx}</td>
                             <td className="px-4 py-3 text-[#111827] font-semibold">{rec.represent_name}</td>
                             <td className="px-4 py-3 text-[#374151]">{rec.member_farmer_name}</td>
                             <td className="px-4 py-3">
@@ -297,7 +300,7 @@ export default function SackRegistrationPage() {
                             </td>
                             <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{rec.dl_user_name}</td>
                             <td className="px-4 py-3 text-[#9CA3AF] text-xs">
-                              {new Date(rec.registered_at).toLocaleDateString()}
+                              {format(new Date(rec.registered_at), "dd/MM/yyyy 'at' h:mm a")}
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center justify-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
@@ -314,7 +317,7 @@ export default function SackRegistrationPage() {
                                   <IconPencil className="size-4" stroke={1.5} />
                                 </button>
                                 <button
-                                  onClick={() => setDeleteTarget({ id: rec.id, no: idx + 1 })}
+                                  onClick={() => setDeleteTarget({ id: rec.id, no: total - idx })}
                                   className="p-1 rounded-md hover:bg-rose-50 text-[#9CA3AF] hover:text-rose-600 transition-colors"
                                 >
                                   <IconTrash className="size-4" stroke={1.5} />
@@ -335,10 +338,10 @@ export default function SackRegistrationPage() {
                 <SackRegistrationCard
                   key={rec.id}
                   rec={rec}
-                  index={idx}
+                  index={total - idx - 1}
                   onView={setViewTarget}
                   onEdit={setEditTarget}
-                  onDelete={(rec) => setDeleteTarget({ id: rec.id, no: idx + 1 })}
+                  onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - idx })}
                 />
               ))}
             </div>
@@ -360,7 +363,7 @@ export default function SackRegistrationPage() {
         target={viewTarget}
         onClose={() => setViewTarget(null)}
         onEdit={setEditTarget}
-        onDelete={(rec) => setDeleteTarget({ id: rec.id, no: records.findIndex(r => r.id === rec.id) + 1 })}
+        onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - records.findIndex(r => r.id === rec.id) })}
       />
       <RegisterDialog open={registerOpen} onClose={() => setRegisterOpen(false)} onSuccess={refetch} accessToken={tokens?.access_token} represents={represents} />
     </div>

@@ -110,7 +110,7 @@ export function RegisterDialog({
       await apiClient.createSackRegistration(accessToken, {
         represent_id: Number(representId),
         member_farmer_identity_card: farmerResult.mf_code,
-        registered_at: format(registeredAt, "yyyy-MM-dd"),
+        registered_at: format(registeredAt, "yyyy-MM-dd'T'HH:mm:ss"),
         sack_in_kg: sackKg,
         notes: notes.trim() || undefined,
       })
@@ -237,7 +237,7 @@ export function RegisterDialog({
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={registeredAt ?? undefined} onSelect={(date) => { if (date) { setRegisteredAt(date); setRegisteredAtOpen(false) } }} autoFocus />
+                <Calendar mode="single" selected={registeredAt ?? undefined} onSelect={(date) => { if (date) { const now = new Date(); date.setHours(now.getHours(), now.getMinutes(), now.getSeconds()); setRegisteredAt(date); setRegisteredAtOpen(false) } }} autoFocus />
               </PopoverContent>
             </Popover>
           </div>
