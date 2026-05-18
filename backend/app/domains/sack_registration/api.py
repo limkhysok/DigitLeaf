@@ -81,7 +81,7 @@ async def list_registrations(
         date_to=date_to,
     )
     return SackRegistrationListResponse(
-        items=items,
+        items=items,  # type: ignore[arg-type]
         total=total,
         has_more=(skip + len(items)) < total,
     )
@@ -126,6 +126,7 @@ async def create_registration(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
+    assert current_user.id is not None
     record, error = await crud.create(
         session=session,
         data=data,

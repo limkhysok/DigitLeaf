@@ -33,6 +33,7 @@ async def login_access_token(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect username or password",
         )
+    assert user.id is not None
 
     if user.mfa and user.mfa.totp_enabled:
         return Token(
@@ -93,6 +94,7 @@ async def request_otp(
     user = await crud_user.get_user_by_username(session, request.user_name)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    assert user.id is not None
 
     if not user.mfa:
         user.mfa = UserMFA(user_id=user.id)
@@ -116,6 +118,7 @@ async def verify_otp(
     user = await crud_user.get_user_by_username(session, request_data.user_name)
     if not user or not user.mfa or user.mfa.otp_code != request_data.otp_code:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or OTP")
+    assert user.id is not None
 
     if user.mfa.otp_expiry and user.mfa.otp_expiry < datetime.now(CAMBODIA_TZ):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP has expired")
@@ -163,6 +166,7 @@ async def setup_totp(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="TOTP is already enabled")
 
     if not current_user.mfa:
+        assert current_user.id is not None
         current_user.mfa = UserMFA(user_id=current_user.id)
 
     secret = security.generate_totp_secret()
@@ -232,6 +236,7 @@ async def verify_totp_login(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="TOTP is not enabled for this user",
         )
+    assert user.id is not None
 
     if not security.verify_totp(user.mfa.totp_secret, request_data.totp_code):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=INVALID_TOTP_MSG)
@@ -287,6 +292,7 @@ async def refresh_token(
         )
 
     username = payload.get("sub")
+    assert username is not None
 
     db_token = await crud_token.get_by_refresh_token(session, refresh_request.refresh_token)
     if not db_token or db_token.user_name != username:
@@ -295,6 +301,7 @@ async def refresh_token(
     user = await crud_user.get_user_by_username(session, username)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
+    assert user.id is not None
 
     allowed_scopes_set = {"user"}
     if user.role:

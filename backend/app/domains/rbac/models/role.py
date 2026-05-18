@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from app.domains.users.models.user import User
 
 class Role(SQLModel, table=True):
-    __tablename__ = "dl_role"
+    __tablename__ = "dl_role" # type: ignore[assignment]
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, index=True)
     description: Optional[str] = None

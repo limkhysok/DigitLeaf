@@ -2,26 +2,26 @@ from typing import Optional
 from datetime import datetime, date
 from sqlalchemy import cast, Date, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlmodel import select, col
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
 from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate, RepresentPublic
 
 _ACTIVE_YEAR = 2026
-_ACTIVE_JOIN = (MfConYear.mf_id == MemberFarmer.mf_id) & (MfConYear.year == _ACTIVE_YEAR)
+_ACTIVE_JOIN = (col(MfConYear.mf_id) == col(MemberFarmer.mf_id)) & (MfConYear.year == _ACTIVE_YEAR)
 
 
 async def get_represents(session: AsyncSession) -> list[RepresentPublic]:
     result = await session.execute(
         select(
-            Represent.represent_id,
+            col(Represent.represent_id),
             Represent.represent_name,
-            func.count(MemberFarmer.mf_id).label("farmer_count"),
+            func.count(col(MemberFarmer.mf_id)).label("farmer_count"),
         )
-        .join(MemberFarmer, MemberFarmer.represent == Represent.represent_id)
+        .join(MemberFarmer, col(MemberFarmer.represent) == col(Represent.represent_id))
         .join(MfConYear, _ACTIVE_JOIN)
         .where(Represent.do_not_show == 0)
-        .group_by(Represent.represent_id, Represent.represent_name)
+        .group_by(col(Represent.represent_id), Represent.represent_name)
         .order_by(Represent.represent_name)
     )
     rows = result.all()
@@ -58,7 +58,7 @@ async def query_member_farmers(
         select(MemberFarmer)
         .join(MfConYear, _ACTIVE_JOIN)
         .where(
-            (MemberFarmer.name.ilike(f"%{query}%")) | (MemberFarmer.mf_code.ilike(f"%{query}%"))
+            col(MemberFarmer.name).ilike(f"%{query}%") | col(MemberFarmer.mf_code).ilike(f"%{query}%")
         )
         .distinct()
     )
@@ -88,8 +88,8 @@ async def get_all(
     if search:
         pattern = f"%{search}%"
         cond = (
-            SackRegistration.member_farmer_name.ilike(pattern)
-            | SackRegistration.represent_name.ilike(pattern)
+            col(SackRegistration.member_farmer_name).ilike(pattern)
+            | col(SackRegistration.represent_name).ilike(pattern)
         )
         stmt = stmt.where(cond)
         count_stmt = count_stmt.where(cond)
@@ -106,9 +106,9 @@ async def get_all(
         stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
         count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
 
-    stmt = stmt.order_by(SackRegistration.created_at.desc())
+    stmt = stmt.order_by(col(SackRegistration.created_at).desc())
 
-    total: int = await session.scalar(count_stmt)
+    total = (await session.scalar(count_stmt)) or 0
     result = await session.execute(stmt.offset(skip).limit(limit))
     items = list(result.scalars().all())
     return items, total
@@ -119,14 +119,14 @@ async def get_status_counts(
     search: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-) -> dict:
+) -> dict[str, int]:
     stmt = select(SackRegistration.status, func.count().label("cnt")).select_from(SackRegistration)
 
     if search:
         pattern = f"%{search}%"
         cond = (
-            SackRegistration.member_farmer_name.ilike(pattern)
-            | SackRegistration.represent_name.ilike(pattern)
+            col(SackRegistration.member_farmer_name).ilike(pattern)
+            | col(SackRegistration.represent_name).ilike(pattern)
         )
         stmt = stmt.where(cond)
 
@@ -136,13 +136,13 @@ async def get_status_counts(
     if date_to is not None:
         stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
 
-    stmt = stmt.group_by(SackRegistration.status)
+    stmt = stmt.group_by(col(SackRegistration.status))
     result = await session.execute(stmt)
     rows = result.all()
 
-    counts = {0: 0, 1: 0, 2: 0}
-    for status, cnt in rows:
-        counts[status] = cnt
+    counts: dict[int, int] = {0: 0, 1: 0, 2: 0}
+    for row in rows:
+        counts[row[0]] = row[1]  # type: ignore[index, assignment]
 
     return {
         "all": sum(counts.values()),
@@ -162,6 +162,7 @@ async def create(
     represent = result.scalars().first()
     if not represent:
         return None, "represent_not_found"
+    assert represent.represent_id is not None
 
     farmer = await search_member_farmer(
         session,
@@ -170,6 +171,7 @@ async def create(
     )
     if not farmer:
         return None, "farmer_not_found"
+    assert farmer.mf_id is not None
 
     record = SackRegistration(
         represent_id=represent.represent_id,
@@ -181,8 +183,9 @@ async def create(
         status=data.status,
         sack_in_kg=data.sack_in_kg,
         notes=data.notes,
-        **({"registered_at": data.registered_at} if data.registered_at else {}),
     )
+    if data.registered_at:
+        record.registered_at = data.registered_at
     session.add(record)
     await session.commit()
     await session.refresh(record)
@@ -200,6 +203,7 @@ async def update(
         farmer = await search_member_farmer(session, identity_card=update_data.pop("member_farmer_identity_card"))
         if not farmer:
             return record, "farmer_not_found"
+        assert farmer.mf_id is not None
         record.member_farmer_id = farmer.mf_id
         record.member_farmer_name = farmer.name
 

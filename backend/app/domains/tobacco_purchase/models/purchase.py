@@ -6,7 +6,7 @@ from .purchase_detail import TobaccoPurchaseDetail
 from ..constants import ClosingStatus
 
 class TobaccoPurchase(SQLModel, table=True):
-    __tablename__ = "tobacco_purchase"
+    __tablename__ = "tobacco_purchase" # type: ignore[assignment]
 
     tp_id: Optional[int] = Field(default=None, primary_key=True)
     invoice_num: str = Field(max_length=255, index=True)

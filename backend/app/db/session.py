@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlmodel import SQLModel
 from app.core.config import settings
 
+assert settings.DATABASE_URL is not None, "DATABASE_URL must be set"
 engine = create_async_engine(settings.DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

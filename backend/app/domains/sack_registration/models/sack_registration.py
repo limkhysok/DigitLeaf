@@ -5,7 +5,7 @@ from app.core.config import CAMBODIA_TZ
 
 
 class SackRegistration(SQLModel, table=True):
-    __tablename__ = "dl_sack_registration"
+    __tablename__ = "dl_sack_registration"  # type: ignore[assignment]
 
     id: Optional[int] = Field(default=None, primary_key=True)
     # Represents table

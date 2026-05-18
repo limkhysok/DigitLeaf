@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from app.domains.rbac.models.role import Role
 
 class Permission(SQLModel, table=True):
-    __tablename__ = "dl_permission"
+    __tablename__ = "dl_permission" # type: ignore[assignment]
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, index=True)
     description: Optional[str] = None

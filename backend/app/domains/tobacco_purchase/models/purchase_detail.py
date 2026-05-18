@@ -5,7 +5,7 @@ from app.core.config import CAMBODIA_TZ
 from ..constants import ClosingStatus
 
 class TobaccoPurchaseDetail(SQLModel, table=True):
-    __tablename__ = "tobacco_purchase_detail"
+    __tablename__ = "tobacco_purchase_detail" # type: ignore[assignment]
 
     tpd_id: Optional[int] = Field(default=None, primary_key=True)
     invoice_num: str = Field(max_length=255, index=True)

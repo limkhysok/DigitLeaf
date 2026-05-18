@@ -1,6 +1,7 @@
 import sys
 from os import path
 from logging.config import fileConfig
+from typing import Any
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -12,16 +13,23 @@ from alembic import context
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from app.core.config import settings
-from app.domains.users.models.user import User  # noqa: F401
-from app.domains.auth.models.mfa import UserMFA  # noqa: F401
-from app.domains.auth.models.token import UserToken  # noqa: F401
-from app.domains.audit.models.audit_log import AuditLog  # noqa: F401
-from app.domains.rbac.models.role import Role  # noqa: F401
-from app.domains.rbac.models.permission import Permission  # noqa: F401
-from app.domains.rbac.models.role_permission import RolePermissionLink  # noqa: F401
-from app.domains.sack_registration.models.sack_registration import SackRegistration  # noqa: F401
-from app.domains.tobacco_purchase.models.purchase import TobaccoPurchase  # noqa: F401
-from app.domains.tobacco_purchase.models.purchase_detail import TobaccoPurchaseDetail  # noqa: F401
+from app.domains.users.models.user import User
+from app.domains.auth.models.mfa import UserMFA
+from app.domains.auth.models.token import UserToken
+from app.domains.audit.models.audit_log import AuditLog
+from app.domains.rbac.models.role import Role
+from app.domains.rbac.models.permission import Permission
+from app.domains.rbac.models.role_permission import RolePermissionLink
+from app.domains.sack_registration.models.sack_registration import SackRegistration
+from app.domains.tobacco_purchase.models.purchase import TobaccoPurchase
+from app.domains.tobacco_purchase.models.purchase_detail import TobaccoPurchaseDetail
+
+# Referenced here so Pylance sees them as used; their import registers
+# each table with SQLModel.metadata for Alembic autogenerate.
+_register_models = (
+    User, UserMFA, UserToken, AuditLog, Role, Permission,
+    RolePermissionLink, SackRegistration, TobaccoPurchase, TobaccoPurchaseDetail,
+)
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config
@@ -34,14 +42,20 @@ if config.config_file_name is not None:
 # add your model's MetaData object here for 'autogenerate' support
 target_metadata = SQLModel.metadata
 
-def include_object(object, name, type_, reflected, compare_to):
+def include_object(
+    _object: Any,
+    name: str | None,
+    type_: str,
+    _reflected: bool,
+    _compare_to: Any,
+) -> bool:
     if type_ == "table":
-        # Only include tables starting with 'dl_' or the alembic version table
-        return name.startswith("dl_") or name == "alembic_version"
+        return bool(name and (name.startswith("dl_") or name == "alembic_version"))
     return True
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
+    assert settings.DATABASE_URL is not None
     url = settings.DATABASE_URL.replace("mysql+aiomysql://", "mysql+pymysql://")
     context.configure(
         url=url,
@@ -56,10 +70,12 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    assert settings.DATABASE_URL is not None
     configuration = config.get_section(config.config_ini_section)
+    assert configuration is not None
     sync_url = settings.DATABASE_URL.replace("mysql+aiomysql://", "mysql+pymysql://")
     configuration["sqlalchemy.url"] = sync_url
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
@@ -68,7 +84,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             include_object=include_object,
         )

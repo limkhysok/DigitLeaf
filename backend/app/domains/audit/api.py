@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlmodel import select, col
 from app.db.session import get_session
 from app.domains.audit.models import AuditLog
 from app.domains.users.models import User
@@ -20,6 +20,6 @@ async def read_audit_logs(
     limit: int = 100,
 ) -> list[AuditLog]:
     result = await session.execute(
-        select(AuditLog).order_by(AuditLog.created_at.desc()).offset(skip).limit(limit)
+        select(AuditLog).order_by(col(AuditLog.created_at).desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all())

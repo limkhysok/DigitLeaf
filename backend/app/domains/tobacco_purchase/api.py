@@ -89,7 +89,7 @@ async def list_purchases(
     search: Optional[str] = None,
 ):
     items, total = await crud.get_purchases(db=session, skip=skip, limit=limit, search=search)
-    return schemas.PurchaseList(items=items, total=total)
+    return schemas.PurchaseList(items=items, total=total)  # type: ignore[arg-type]
 
 
 @router.get("/{tp_id}", response_model=schemas.Purchase, responses={404: {"description": _NOT_FOUND}})

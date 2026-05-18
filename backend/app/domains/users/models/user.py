@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class User(SQLModel, table=True):
-    __tablename__ = "dl_user"
+    __tablename__ = "dl_user" # type: ignore[assignment]
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_name: str = Field(max_length=255, unique=True, index=True)

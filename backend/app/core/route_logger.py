@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Awaitable, Callable
 from fastapi import Request, Response
 from fastapi.routing import APIRoute
 from loguru import logger
@@ -7,17 +7,6 @@ from app.db.session import async_session_maker
 from app.domains.audit.crud import create_audit_log
 from app.core import security
 
-
-def _extract_body(body_bytes: bytes | None) -> str | None:
-    if not body_bytes:
-        return None
-    try:
-        body_str = body_bytes.decode("utf-8")
-        if "password" in body_str.lower():
-            return "<redacted for security>"
-        return body_str
-    except Exception:
-        return "<binary data>"
 
 
 def _extract_user_info(auth_header: str | None) -> tuple[str | None, int | None]:
@@ -52,7 +41,7 @@ async def _log_to_db(
 
 
 class AuditLogRoute(APIRoute):
-    def get_route_handler(self) -> Callable:
+    def get_route_handler(self) -> Callable[[Request], Awaitable[Response]]:
         original_route_handler = super().get_route_handler()
 
         async def custom_route_handler(request: Request) -> Response:

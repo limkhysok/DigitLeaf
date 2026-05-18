@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from app.domains.users.models.user import User
 
 class UserMFA(SQLModel, table=True):
-    __tablename__ = "dl_user_mfa"
+    __tablename__ = "dl_user_mfa"  # type: ignore[assignment]
     
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="dl_user.id", unique=True, index=True)

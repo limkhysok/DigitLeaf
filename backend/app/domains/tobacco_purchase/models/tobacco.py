@@ -3,7 +3,7 @@ from sqlmodel import Field, SQLModel
 
 
 class Tobacco(SQLModel, table=True):
-    __tablename__ = "tobacco"
+    __tablename__ = "tobacco" # type: ignore[assignment]
 
     t_id: Optional[int] = Field(default=None, primary_key=True)
     t_name: str = Field(max_length=255)

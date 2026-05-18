@@ -16,8 +16,8 @@ async def create_user_token(
     user_name: str,
     refresh_token: str,
     expires_at: datetime,
-    ip_address: str = None,
-    user_agent: str = None,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None,
 ) -> UserToken:
     db_token = UserToken(
         user_id=user_id,

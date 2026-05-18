@@ -2,7 +2,7 @@ from typing import Optional
 from sqlmodel import Field, SQLModel
 
 class Purchaser(SQLModel, table=True):
-    __tablename__ = "purchaser"
+    __tablename__ = "purchaser" # type: ignore[assignment]
 
     p_id: Optional[int] = Field(default=None, primary_key=True)
     p_name: str = Field(max_length=255)

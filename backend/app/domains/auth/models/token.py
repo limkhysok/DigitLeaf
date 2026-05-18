@@ -4,7 +4,7 @@ from datetime import datetime
 from app.core.config import CAMBODIA_TZ
 
 class UserToken(SQLModel, table=True):
-    __tablename__ = "dl_user_token"
+    __tablename__ = "dl_user_token" # type: ignore[arg-type]
     
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="dl_user.id", index=True)

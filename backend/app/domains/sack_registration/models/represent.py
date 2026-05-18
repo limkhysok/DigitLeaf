@@ -3,7 +3,7 @@ from sqlmodel import Field, SQLModel
 
 
 class Represent(SQLModel, table=True):
-    __tablename__ = "represent"
+    __tablename__ = "represent" # type: ignore[assignment]
 
     represent_id: Optional[int] = Field(default=None, primary_key=True)
     represent_name: str = Field(max_length=255)
