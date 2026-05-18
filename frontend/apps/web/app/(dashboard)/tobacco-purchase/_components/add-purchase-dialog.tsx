@@ -73,6 +73,16 @@ function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | n
   return { title: "New Tobacco Purchase", description: "Enter purchase details and item breakdown." }
 }
 
+function updateDetailsSackWeight(
+  prevDetails: (Partial<TobaccoPurchaseDetail> & { tempId: string })[],
+  sackInKg: number
+) {
+  return prevDetails.map((d, i) => ({
+    ...d,
+    sack_in_kg: i === 0 ? sackInKg : 0,
+  }))
+}
+
 interface AddPurchaseDialogProps {
   open: boolean
   onClose: () => void
@@ -145,7 +155,7 @@ export function AddPurchaseDialog({
     setDetails([{ tempId: "initial-0", tobacco_name: undefined, gross_weight: 0, price: 0 }])
   }, [ovens])
 
-  const populateForm = React.useCallback((data: TobaccoPurchase) => {
+  const populateForm = React.useCallback(async (data: TobaccoPurchase) => {
     setBuyer(data.buyer?.toString() || "")
     setVendor(data.vendor || "")
     setVendorSearch(data.vendor || "")
@@ -173,14 +183,16 @@ export function AddPurchaseDialog({
 
     if (data.buyer) {
       setIsVendorsLoading(true)
-      apiClient.getVendorsByBuyer(accessToken, data.buyer)
-        .then(v => {
-          setVendors(v)
-          const match = v.find(item => item.name === data.vendor)
-          if (match) setVendorSearch(`${match.name} | ${match.mf_code}`)
-        })
-        .catch(() => setVendors([]))
-        .finally(() => setIsVendorsLoading(false))
+      try {
+        const v = await apiClient.getVendorsByBuyer(accessToken, data.buyer)
+        setVendors(v)
+        const match = v.find(item => item.name === data.vendor)
+        if (match) setVendorSearch(`${match.name} | ${match.mf_code}`)
+      } catch {
+        setVendors([])
+      } finally {
+        setIsVendorsLoading(false)
+      }
     }
   }, [purchasers, regions, ovens, accessToken])
 
@@ -199,12 +211,23 @@ export function AddPurchaseDialog({
 
   React.useEffect(() => {
     if (!vendor || isReadOnly) return
-    apiClient.getVendorSack(accessToken, vendor).then(({ sack_in_kg }) => {
-      setDetails(prev => prev.map((d, i) => ({
-        ...d,
-        sack_in_kg: i === 0 ? (sack_in_kg ?? 0) : 0,
-      })))
-    }).catch(() => {})
+
+    let active = true
+    async function fetchSackWeight() {
+      try {
+        const { sack_in_kg } = await apiClient.getVendorSack(accessToken, vendor)
+        if (active) {
+          setDetails(prev => updateDetailsSackWeight(prev, sack_in_kg ?? 0))
+        }
+      } catch {
+        // ignore error
+      }
+    }
+
+    fetchSackWeight()
+    return () => {
+      active = false
+    }
   }, [vendor, accessToken, isReadOnly])
 
   const handleAddDetail = React.useCallback(() => {
@@ -223,6 +246,34 @@ export function AddPurchaseDialog({
       return newDetails
     })
   }, [])
+
+  const handleBuyerSelect = React.useCallback(async (pId: number) => {
+    setBuyer(pId.toString())
+    const p = purchasers.find(item => item.p_id === pId)
+    setBuyerSearch(p ? `${p.p_name} | ${p.p_name_kh || ""}` : "")
+    setIsBuyerOpen(false)
+
+    if (p) {
+      const r = regions.find(reg => reg.reg_id === p.region)
+      if (r) {
+        setRegion(r.reg_id.toString())
+        setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
+      }
+    }
+
+    setVendor("")
+    setVendorSearch("")
+    setVendors([])
+    setIsVendorsLoading(true)
+    try {
+      const v = await apiClient.getVendorsByBuyer(accessToken, pId)
+      setVendors(v)
+    } catch {
+      setVendors([])
+    } finally {
+      setIsVendorsLoading(false)
+    }
+  }, [purchasers, regions, accessToken])
 
   const handleSubmit = async (e: React.BaseSyntheticEvent) => {
     e.preventDefault()
@@ -406,24 +457,7 @@ export function AddPurchaseDialog({
                               "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
                               buyer === p.p_id.toString() && "bg-accent"
                             )}
-                            onClick={() => {
-                              setBuyer(p.p_id.toString())
-                              setBuyerSearch(`${p.p_name} | ${p.p_name_kh || ""}`)
-                              setIsBuyerOpen(false)
-                              const r = regions.find(reg => reg.reg_id === p.region)
-                              if (r) {
-                                setRegion(r.reg_id.toString())
-                                setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
-                              }
-                              setVendor("")
-                              setVendorSearch("")
-                              setVendors([])
-                              setIsVendorsLoading(true)
-                              apiClient.getVendorsByBuyer(accessToken, p.p_id)
-                                .then(setVendors)
-                                .catch(() => setVendors([]))
-                                .finally(() => setIsVendorsLoading(false))
-                            }}
+                            onClick={() => handleBuyerSelect(p.p_id)}
                           >
                             <IconCheck className={cn("mr-2 h-3.5 w-3.5", buyer === p.p_id.toString() ? "opacity-100" : "opacity-0")} />
                             {p.p_name} | {p.p_name_kh || "-"}
