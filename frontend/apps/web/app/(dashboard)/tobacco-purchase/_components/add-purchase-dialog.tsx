@@ -57,6 +57,16 @@ function maskDate(raw: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
 }
 
+function getPictureUrl(picture?: string | null): string {
+  if (!picture) return ""
+  if (picture.startsWith("data:") || picture.startsWith("blob:")) {
+    return picture
+  }
+  const apiRoot = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1"
+  const backendBase = apiRoot.replace("/api/v1", "")
+  return `${backendBase}/uploads/${picture}`
+}
+
 function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
   if (isReadOnly) {
     return {
@@ -299,6 +309,7 @@ export function AddPurchaseDialog({
           remork_in_kg: Number(d.remork_in_kg) || 0,
           sack_in_kg: Number(d.sack_in_kg) || 0,
           borrowed_leaf_kg: Number(d.borrowed_leaf_kg) || 0,
+          picture: d.picture || null,
         })) as TobaccoPurchaseDetail[]
       }
       if (initialData?.tp_id) {
@@ -992,63 +1003,93 @@ const PurchaseDetailCard = React.memo(({
         )}
       </div>
 
-      {/* Tobacco item selector */}
-      <div className="px-3 pt-3 pb-3 border-b border-border/30">
-        <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Tobacco Item</Label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <div className="relative mt-1.5">
-              <Input
-                placeholder="Search item..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
-                onFocus={() => { setSearch(""); setOpen(true) }}
-                onClick={() => { setSearch(""); setOpen(true) }}
-                disabled={isReadOnly}
-                className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+      {/* Tobacco item selector & Image */}
+      <div className="px-3 pt-3 pb-3 border-b border-border/30 flex gap-3 items-end">
+        <div className="flex-1 min-w-0">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Tobacco Item</Label>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <div className="relative mt-1.5">
+                <Input
+                  placeholder="Search item..."
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+                  onFocus={() => { setSearch(""); setOpen(true) }}
+                  onClick={() => { setSearch(""); setOpen(true) }}
+                  disabled={isReadOnly}
+                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+                />
+                <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none" />
+              </div>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+              align="start"
+              sideOffset={4}
+              onOpenAutoFocus={(e) => e.preventDefault()}
+            >
+              <div className="max-h-62.5 overflow-y-auto p-1">
+                {tobaccoTypes.length === 0 ? (
+                  <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
+                ) : tobaccoTypes
+                    .filter(t => {
+                      const s = search.toLowerCase()
+                      return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                    })
+                    .map((t) => (
+                      <button
+                        key={t.t_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
+                          detail.tobacco_name === t.t_id && "bg-accent"
+                        )}
+                        onClick={() => {
+                          onChange(index, "tobacco_name", t.t_id)
+                          setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
+                          setOpen(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                        <div className="flex flex-col items-start">
+                          <span className="font-bold">{t.t_name}</span>
+                          <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                        </div>
+                      </button>
+                    ))
+                }
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex-shrink-0">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5 text-center">Image</Label>
+          <label className="w-9 h-9 bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
+            {detail.picture ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={getPictureUrl(detail.picture)} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <IconPlus className="size-3.5 text-muted-foreground/20 group-hover/img:text-primary/40" />
+            )}
+            {!isReadOnly && (
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const reader = new FileReader()
+                    reader.onloadend = () => {
+                      onChange(index, "picture", reader.result as string)
+                    }
+                    reader.readAsDataURL(file)
+                  }
+                }}
               />
-              <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none" />
-            </div>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
-            align="start"
-            sideOffset={4}
-            onOpenAutoFocus={(e) => e.preventDefault()}
-          >
-            <div className="max-h-62.5 overflow-y-auto p-1">
-              {tobaccoTypes.length === 0 ? (
-                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
-              ) : tobaccoTypes
-                  .filter(t => {
-                    const s = search.toLowerCase()
-                    return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
-                  })
-                  .map((t) => (
-                    <button
-                      key={t.t_id}
-                      type="button"
-                      className={cn(
-                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
-                        detail.tobacco_name === t.t_id && "bg-accent"
-                      )}
-                      onClick={() => {
-                        onChange(index, "tobacco_name", t.t_id)
-                        setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
-                        setOpen(false)
-                      }}
-                    >
-                      <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                      <div className="flex flex-col items-start">
-                        <span className="font-bold">{t.t_name}</span>
-                        <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
-                      </div>
-                    </button>
-                  ))
-              }
-            </div>
-          </PopoverContent>
-        </Popover>
+            )}
+          </label>
+        </div>
       </div>
 
       {/* Weight row: G.Weight | Remork | Sack | Borrowed Leaf */}
@@ -1202,9 +1243,31 @@ const PurchaseDetailRow = React.memo(({
 
       <TableCell className="p-1 w-15 border-r border-border/60 align-middle">
         <div className="flex justify-center">
-          <div className="w-8 aspect-square bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img">
-            <IconPlus className="size-2 text-muted-foreground/20 group-hover/img:text-primary/40" />
-          </div>
+          <label className="w-8 aspect-square bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
+            {detail.picture ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={getPictureUrl(detail.picture)} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <IconPlus className="size-3 text-muted-foreground/20 group-hover/img:text-primary/40" />
+            )}
+            {!isReadOnly && (
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const reader = new FileReader()
+                    reader.onloadend = () => {
+                      onChange(index, "picture", reader.result as string)
+                    }
+                    reader.readAsDataURL(file)
+                  }
+                }}
+              />
+            )}
+          </label>
         </div>
       </TableCell>
 

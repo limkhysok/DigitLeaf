@@ -1,9 +1,11 @@
 import sys
+import os
 from contextlib import asynccontextmanager
 from loguru import logger
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from app.api.v1.api import api_router
 from app.core.config import settings
 from sqladmin import Admin
@@ -90,6 +92,9 @@ if settings.BACKEND_CORS_ORIGINS:
 # ── Routers ────────────────────────────────────────────────────────────────
 
 app.include_router(api_router, prefix="/api/v1")
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/")

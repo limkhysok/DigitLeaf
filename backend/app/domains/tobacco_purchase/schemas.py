@@ -34,6 +34,7 @@ class PurchaseDetailBase(BaseModel):
     oven: int = 0
     region: int = 0
     m_id: Optional[int] = None
+    picture: Optional[str] = None
 
 class PurchaseDetailCreate(PurchaseDetailBase):
     pass

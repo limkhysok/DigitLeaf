@@ -98,8 +98,35 @@ async def _sync_purchase_details(
         grand_total += total_amount
         new_sack_total += detail_in.sack_in_kg or 0
 
+        picture_val = None
+        if detail_in.picture:
+            if detail_in.picture.startswith("data:image/"):
+                import base64
+                import uuid
+                import os
+                try:
+                    header, data_str = detail_in.picture.split(";base64,")
+                    ext = header.split("/")[-1]
+                    if ";" in ext:
+                        ext = ext.split(";")[0]
+                    file_data = base64.b64decode(data_str)
+                    filename = f"tobacco_detail_{uuid.uuid4().hex}.{ext}"
+                    filepath = os.path.join("uploads", filename)
+                    with open(filepath, "wb") as f:
+                        f.write(file_data)
+                    picture_val = filename
+                except Exception:
+                    picture_val = None
+            else:
+                import os
+                picture_val = os.path.basename(detail_in.picture)
+
+        detail_data = detail_in.model_dump(exclude={"invoice_num", "m_id", "picture"}, exclude_none=True)
+        if picture_val:
+            detail_data["picture"] = picture_val
+
         db.add(TobaccoPurchaseDetail(
-            **detail_in.model_dump(exclude={"invoice_num", "m_id"}, exclude_none=True),
+            **detail_data,
             invoice_num=db_obj.invoice_num,
             m_id=db_obj.tp_id,
             qty=round(net, 3),
