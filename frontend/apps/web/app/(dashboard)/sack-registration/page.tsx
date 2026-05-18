@@ -77,7 +77,7 @@ export default function SackRegistrationPage() {
   // ── Fetch represents once ─────────────────────────────────────────────────
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
-    apiClient.getRepresents(tokens.access_token).then(setRepresents).catch(() => {})
+    apiClient.getRepresents(tokens.access_token).then(setRepresents).catch(() => { })
   }, [isAuthLoading, tokens])
 
   // ── Fetch status counts (no status param — shows all buckets) ─────────────
@@ -90,7 +90,7 @@ export default function SackRegistrationPage() {
     }
     apiClient.getSackStatusCounts(tokens.access_token, params)
       .then(setStatusCounts)
-      .catch(() => {})
+      .catch(() => { })
   }, [isAuthLoading, tokens, search, datePreset, refetchKey])
 
   // ── Fetch records ─────────────────────────────────────────────────────────
@@ -264,10 +264,10 @@ export default function SackRegistrationPage() {
                     <thead>
                       <tr className="border-b bg-[#F9FAFB] border-gray-200">
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">No.</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Represent</th>
+                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Representative</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Farmer</th>
                         <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Status</th>
-                        <th 
+                        <th
                           className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider cursor-pointer group select-none"
                           onClick={() => setSortSackInKg(prev => {
                             if (prev === "asc") return "desc";

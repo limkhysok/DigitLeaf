@@ -89,8 +89,8 @@ export function FilterBar({
         <PopoverTrigger asChild>
           <button className={cn(
             "flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors",
-            datePreset === "last30" 
-              ? "border-border text-muted-foreground hover:text-foreground hover:bg-muted/30" 
+            datePreset === "last30"
+              ? "border-border text-muted-foreground hover:text-foreground hover:bg-muted/30"
               : "border-[#009640]/30 bg-[#009640]/10 text-[#009640] font-medium"
           )}>
             <IconCalendar className="size-3.5" />
@@ -164,8 +164,8 @@ export function FilterBar({
       <div className={cn("relative flex items-center h-9 rounded-full border border-slate-200 bg-transparent px-3 gap-2.5 shadow-xs focus-within:ring-1 focus-within:ring-emerald-500 focus-within:border-emerald-500 transition-all", searchClassName)}>
         <IconSearch className="size-4 shrink-0 text-slate-400" stroke={1.5} />
         <input
-          className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400"
-          placeholder="Search..."
+          className="flex-1 bg-transparent text-sm outline-none text-slate-900 placeholder:text-slate-400 placeholder:text-[12px]"
+          placeholder="Representative/Farmer.."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
