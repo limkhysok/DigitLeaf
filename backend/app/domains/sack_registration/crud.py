@@ -73,6 +73,24 @@ async def get_by_id(session: AsyncSession, sack_id: int) -> Optional[SackRegistr
     return result.scalars().first()
 
 
+async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict]:
+    stmt = (
+        select(SackRegistration, Represent.represent_name, MemberFarmer.name)
+        .join(Represent, SackRegistration.represent_id == Represent.represent_id)
+        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .where(SackRegistration.id == sack_id)
+    )
+    result = await session.execute(stmt)
+    row = result.first()
+    if not row:
+        return None
+    sack, r_name, f_name = row
+    data = sack.model_dump()
+    data["represent_name"] = r_name
+    data["member_farmer_name"] = f_name
+    return data
+
+
 async def get_all(
     session: AsyncSession,
     skip: int = 0,
@@ -82,18 +100,27 @@ async def get_all(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     sort_sack_in_kg: Optional[str] = None,
-) -> tuple[list[SackRegistration], int]:
-    stmt = select(SackRegistration)
+) -> tuple[list[dict], int]:
+    stmt = (
+        select(SackRegistration, Represent.represent_name, MemberFarmer.name)
+        .join(Represent, SackRegistration.represent_id == Represent.represent_id)
+        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+    )
     count_stmt = select(func.count()).select_from(SackRegistration)
 
     if search:
         pattern = f"%{search}%"
         cond = (
-            col(SackRegistration.member_farmer_name).ilike(pattern)
-            | col(SackRegistration.represent_name).ilike(pattern)
+            col(MemberFarmer.name).ilike(pattern)
+            | col(Represent.represent_name).ilike(pattern)
         )
         stmt = stmt.where(cond)
-        count_stmt = count_stmt.where(cond)
+        count_stmt = (
+            count_stmt
+            .join(Represent, SackRegistration.represent_id == Represent.represent_id)
+            .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+            .where(cond)
+        )
 
     if status is not None:
         stmt = stmt.where(SackRegistration.status == status)
@@ -116,7 +143,15 @@ async def get_all(
 
     total = (await session.scalar(count_stmt)) or 0
     result = await session.execute(stmt.offset(skip).limit(limit))
-    items = list(result.scalars().all())
+    
+    items = []
+    for row in result.all():
+        sack, r_name, f_name = row
+        data = sack.model_dump()
+        data["represent_name"] = r_name
+        data["member_farmer_name"] = f_name
+        items.append(data)
+        
     return items, total
 
 
@@ -131,10 +166,15 @@ async def get_status_counts(
     if search:
         pattern = f"%{search}%"
         cond = (
-            col(SackRegistration.member_farmer_name).ilike(pattern)
-            | col(SackRegistration.represent_name).ilike(pattern)
+            col(MemberFarmer.name).ilike(pattern)
+            | col(Represent.represent_name).ilike(pattern)
         )
-        stmt = stmt.where(cond)
+        stmt = (
+            stmt
+            .join(Represent, SackRegistration.represent_id == Represent.represent_id)
+            .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+            .where(cond)
+        )
 
     if date_from is not None:
         stmt = stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
@@ -163,7 +203,7 @@ async def create(
     data: SackRegistrationCreate,
     current_user_id: int,
     current_user_name: str,
-) -> tuple[Optional[SackRegistration], Optional[str]]:
+) -> tuple[Optional[dict], Optional[str]]:
     result = await session.execute(select(Represent).where(Represent.represent_id == data.represent_id))
     represent = result.scalars().first()
     if not represent:
@@ -181,9 +221,7 @@ async def create(
 
     record = SackRegistration(
         represent_id=represent.represent_id,
-        represent_name=represent.represent_name,
         member_farmer_id=farmer.mf_id,
-        member_farmer_name=farmer.name,
         dl_user_id=current_user_id,
         dl_user_name=current_user_name,
         status=data.status,
@@ -195,23 +233,25 @@ async def create(
     session.add(record)
     await session.commit()
     await session.refresh(record)
-    return record, None
+    
+    assert record.id is not None
+    details = await get_details(session, record.id)
+    return details, None
 
 
 async def update(
     session: AsyncSession,
     record: SackRegistration,
     data: SackRegistrationUpdate,
-) -> tuple[SackRegistration, Optional[str]]:
+) -> tuple[Optional[dict], Optional[str]]:
     update_data = data.model_dump(exclude_unset=True)
 
     if "member_farmer_identity_card" in update_data:
         farmer = await search_member_farmer(session, identity_card=update_data.pop("member_farmer_identity_card"))
         if not farmer:
-            return record, "farmer_not_found"
+            return None, "farmer_not_found"
         assert farmer.mf_id is not None
         record.member_farmer_id = farmer.mf_id
-        record.member_farmer_name = farmer.name
 
     for key, value in update_data.items():
         setattr(record, key, value)
@@ -219,8 +259,10 @@ async def update(
     record.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(record)
     await session.commit()
-    await session.refresh(record)
-    return record, None
+    
+    assert record.id is not None
+    details = await get_details(session, record.id)
+    return details, None
 
 
 async def delete(session: AsyncSession, record: SackRegistration) -> None:

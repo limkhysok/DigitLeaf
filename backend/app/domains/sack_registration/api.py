@@ -111,7 +111,7 @@ async def get_registration(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    record = await crud.get_by_id(session=session, sack_id=sack_id)
+    record = await crud.get_details(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
     return record

@@ -41,7 +41,8 @@ async def generate_invoice_num(db: AsyncSession) -> str:
 async def _update_sack_registration(db: AsyncSession, vendor: str, net_sack_change: float) -> None:
     sack_result = await db.execute(
         select(SackRegistration)
-        .where(SackRegistration.member_farmer_name == vendor)
+        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .where(MemberFarmer.name == vendor)
         .where(SackRegistration.status == 0)
         .order_by(col(SackRegistration.registered_at).desc())
         .limit(1)
@@ -259,7 +260,8 @@ async def get_tobacco_types(db: AsyncSession) -> List[Tobacco]:
 async def get_vendor_sack_kg(db: AsyncSession, vendor_name: str) -> Optional[float]:
     result = await db.execute(
         select(SackRegistration)
-        .where(SackRegistration.member_farmer_name == vendor_name)
+        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .where(MemberFarmer.name == vendor_name)
         .where(SackRegistration.status == 0)
         .order_by(col(SackRegistration.registered_at).desc())
         .limit(1)

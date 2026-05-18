@@ -10,10 +10,8 @@ class SackRegistration(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     # Represents table
     represent_id: int = Field(index=True)
-    represent_name: str = Field(max_length=255)
     # farmer table
     member_farmer_id: int = Field(index=True)
-    member_farmer_name: str = Field(max_length=255)
     # user table
     dl_user_id: int = Field(foreign_key="dl_user.id", index=True)
     dl_user_name: str = Field(max_length=255)
