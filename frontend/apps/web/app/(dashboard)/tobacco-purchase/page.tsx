@@ -213,7 +213,6 @@ export default function TobaccoPurchasePage() {
               region={regions.find(r => r.reg_id === rec.region)}
               oven={ovens.find(o => o.id === rec.oven)}
               onEdit={handleEdit}
-              onView={handleView}
               onDelete={(id) => setDeleteId(id)}
             />
           ))}
@@ -234,7 +233,6 @@ export default function TobaccoPurchasePage() {
               region={regions.find(r => r.reg_id === rec.region)}
               oven={ovens.find(o => o.id === rec.oven)}
               onEdit={handleEdit}
-              onView={handleView}
               onDelete={(id) => setDeleteId(id)}
             />
           ))}
@@ -342,7 +340,6 @@ export default function TobaccoPurchasePage() {
                   region={regions.find(r => r.reg_id === rec.region)}
                   oven={ovens.find(o => o.id === rec.oven)}
                   onEdit={handleEdit}
-                  onView={handleView}
                   onDelete={(id) => setDeleteId(id)}
                 />
               ))}

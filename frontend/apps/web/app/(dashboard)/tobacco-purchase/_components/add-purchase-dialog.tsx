@@ -1158,7 +1158,7 @@ const PurchaseDetailCard = React.memo(({
       </div>
 
       {/* Weight row: G.Weight | Remork | Sack | Borrowed Leaf */}
-      <div className="grid grid-cols-4 divide-x divide-border/30 border-b border-border/30">
+      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-border/30">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
           <Input type="number" step="1"
@@ -1175,6 +1175,8 @@ const PurchaseDetailCard = React.memo(({
             onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
         </div>
+      </div>
+      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-border/30 bg-slate-50/30">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
           <Input type="number" step="0.01"

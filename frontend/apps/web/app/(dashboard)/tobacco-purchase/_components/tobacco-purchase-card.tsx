@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import {
-  IconEdit, IconEye, IconFlame, IconMapPin, IconTrash, IconUser,
+  IconFlame, IconMapPin, IconTrash, IconUser,
 } from "@tabler/icons-react"
 import { TobaccoPurchase, PurchaserItem, RegionItem, OvenItem } from "@/lib/api-client"
 
@@ -13,12 +13,11 @@ interface TobaccoPurchaseCardProps {
   region?: RegionItem
   oven?: OvenItem
   onEdit: (rec: TobaccoPurchase) => void
-  onView: (rec: TobaccoPurchase) => void
   onDelete: (id: number) => void
 }
 
 export const TobaccoPurchaseCard = React.memo(({
-  rec, index, purchaser, region, oven, onEdit, onView, onDelete
+  rec, index, purchaser, region, oven, onEdit, onDelete
 }: TobaccoPurchaseCardProps) => {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-sm border border-gray-200 bg-white transition-all duration-200 hover:shadow-md hover:border-[#009640]/30">
@@ -72,24 +71,13 @@ export const TobaccoPurchaseCard = React.memo(({
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.stopPropagation(); onView(rec) }}
-            className="p-1 rounded hover:bg-[#F0FDF4] text-[#C4C9D4] hover:text-[#009640] transition-colors"
-          >
-            <IconEye className="size-3.5" stroke={1.5} />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(rec) }}
-            className="p-1 rounded hover:bg-[#F0FDF4] text-[#C4C9D4] hover:text-[#009640] transition-colors"
-          >
-            <IconEdit className="size-3.5" stroke={1.5} />
-          </button>
+        <div className="flex items-center gap-0.5 relative z-10 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(rec.tp_id) }}
-            className="p-1 rounded hover:bg-rose-50 text-[#C4C9D4] hover:text-rose-500 transition-colors"
+            className="p-1 rounded hover:bg-rose-50 text-rose-400 hover:text-rose-600 transition-colors"
+            aria-label="Delete record"
           >
-            <IconTrash className="size-3.5" stroke={1.5} />
+            <IconTrash className="size-4" stroke={1.5} />
           </button>
         </div>
 
@@ -106,9 +94,9 @@ export const TobaccoPurchaseCard = React.memo(({
 
       {/* Click overlay */}
       <button
-        onClick={() => onView(rec)}
+        onClick={() => onEdit(rec)}
         className="absolute inset-0 z-0 cursor-pointer focus:outline-none"
-        aria-label={`View ${rec.invoice_num}`}
+        aria-label={`Edit ${rec.invoice_num}`}
       />
     </div>
   )
