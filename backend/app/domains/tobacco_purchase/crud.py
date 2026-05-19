@@ -38,22 +38,67 @@ async def generate_invoice_num(db: AsyncSession) -> str:
     return f"{prefix}{new_seq:05d}"
 
 
-async def _update_sack_registration(db: AsyncSession, vendor: str, net_sack_change: float) -> None:
+async def get_vendor_total_active_sack_kg(db: AsyncSession, vendor_name: str) -> float:
+    result = await db.execute(
+        select(func.sum(SackRegistration.sack_in_kg))
+        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .where(MemberFarmer.name == vendor_name)
+        .where(SackRegistration.status == 0)
+    )
+    total = result.scalar()
+    return float(total or 0.0)
+
+
+async def _deduct_sacks(db: AsyncSession, vendor: str, to_deduct: float) -> None:
     sack_result = await db.execute(
         select(SackRegistration)
         .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
         .where(MemberFarmer.name == vendor)
         .where(SackRegistration.status == 0)
+        .order_by(col(SackRegistration.registered_at).asc())
+    )
+    active_sacks = sack_result.scalars().all()
+    for sack_reg in active_sacks:
+        if to_deduct <= 0:
+            break
+        current_weight = sack_reg.sack_in_kg or 0.0
+        if current_weight >= to_deduct:
+            # Deduct all remaining from this single registration
+            sack_reg.sack_in_kg = round(current_weight - to_deduct, 3)
+            sack_reg.status = 1 if sack_reg.sack_in_kg == 0 else 0
+            sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
+            db.add(sack_reg)
+            to_deduct = 0.0
+        else:
+            # Deplete this registration completely and carry over the remainder
+            to_deduct = round(to_deduct - current_weight, 3)
+            sack_reg.sack_in_kg = 0.0
+            sack_reg.status = 1
+            sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
+            db.add(sack_reg)
+
+
+async def _refund_sacks(db: AsyncSession, vendor: str, to_refund: float) -> None:
+    sack_result = await db.execute(
+        select(SackRegistration)
+        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .where(MemberFarmer.name == vendor)
         .order_by(col(SackRegistration.registered_at).desc())
         .limit(1)
     )
     sack_reg = sack_result.scalars().first()
     if sack_reg:
-        remaining = max(0.0, round((sack_reg.sack_in_kg or 0) - net_sack_change, 3))
-        sack_reg.sack_in_kg = remaining
-        sack_reg.status = 1 if remaining == 0 else 0
+        sack_reg.sack_in_kg = round((sack_reg.sack_in_kg or 0.0) + to_refund, 3)
+        sack_reg.status = 0  # Re-activate registration
         sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
         db.add(sack_reg)
+
+
+async def _update_sack_registration(db: AsyncSession, vendor: str, net_sack_change: float) -> None:
+    if net_sack_change > 0:
+        await _deduct_sacks(db, vendor, net_sack_change)
+    elif net_sack_change < 0:
+        await _refund_sacks(db, vendor, abs(net_sack_change))
 
 
 async def _clear_existing_details(db: AsyncSession, tp_id: int) -> float:
@@ -180,6 +225,14 @@ async def _sync_purchase_details(
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
 
+    if db_obj.vendor:
+        active_registered = await get_vendor_total_active_sack_kg(db, db_obj.vendor)
+        total_available = active_registered + old_sack_total
+        if new_sack_total > total_available:
+            raise ValueError(
+                f"Total purchase sack weight ({new_sack_total} Kg) cannot exceed the farmer's total registered sack balance ({round(total_available, 3)} Kg)"
+            )
+
     net_sack_change = new_sack_total - old_sack_total
     if db_obj.vendor and net_sack_change != 0:
         await _update_sack_registration(db, db_obj.vendor, net_sack_change)
@@ -280,6 +333,12 @@ async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
     db_obj = await get_purchase(db, tp_id)
     if not db_obj:
         return False
+
+    # Refund consumed sacks
+    total_sack_to_refund = sum(d.sack_in_kg or 0.0 for d in db_obj.details)
+    if db_obj.vendor and total_sack_to_refund > 0:
+        await _update_sack_registration(db, db_obj.vendor, -total_sack_to_refund)
+
     await db.delete(db_obj)
     await db.commit()
     return True
@@ -331,7 +390,7 @@ async def get_vendor_sack_kg(db: AsyncSession, vendor_name: str) -> Optional[flo
         .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
         .where(MemberFarmer.name == vendor_name)
         .where(SackRegistration.status == 0)
-        .order_by(col(SackRegistration.registered_at).desc())
+        .order_by(col(SackRegistration.registered_at).asc())
         .limit(1)
     )
     sack = result.scalars().first()

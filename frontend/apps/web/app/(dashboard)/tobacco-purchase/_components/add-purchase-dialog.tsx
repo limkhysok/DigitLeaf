@@ -133,6 +133,13 @@ export function AddPurchaseDialog({
   const [oven, setOven] = React.useState<string>("")
   const [rate, setRate] = React.useState("4000")
   const [tpCode, setTpCode] = React.useState("")
+  const [totalSackRegistered, setTotalSackRegistered] = React.useState<number>(0)
+
+  const initialSackTotal = React.useMemo(() => {
+    if (!initialData?.details) return 0
+    return initialData.details.reduce((sum, d) => sum + (d.sack_in_kg || 0), 0)
+  }, [initialData])
+
   const [details, setDetails] = React.useState<(Partial<TobaccoPurchaseDetail> & { tempId: string })[]>([])
 
   const initialized = React.useRef(false)
@@ -155,6 +162,7 @@ export function AddPurchaseDialog({
     setOvenSearch(defaultOven ? `${defaultOven.name_en} | ${defaultOven.name_kh || ""}` : "")
     setRate("4000")
     setTpCode(`${format(new Date(), "yyyyMMdd")}-TEMP`)
+    setTotalSackRegistered(0)
     setDetails([{ tempId: "initial-0", tobacco_name: undefined, gross_weight: 0, price: 0 }])
   }, [ovens])
 
@@ -218,9 +226,10 @@ export function AddPurchaseDialog({
     let active = true
     async function fetchSackWeight() {
       try {
-        const { sack_in_kg } = await apiClient.getVendorSack(accessToken, vendor)
+        const { sack_in_kg, total_sack_in_kg } = await apiClient.getVendorSack(accessToken, vendor)
         if (active) {
           setDetails(prev => updateDetailsSackWeight(prev, sack_in_kg ?? 0))
+          setTotalSackRegistered(total_sack_in_kg ?? 0)
         }
       } catch {
         // ignore error
@@ -302,6 +311,13 @@ export function AddPurchaseDialog({
     }
     if (details.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
       toast.error("Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg")
+      return
+    }
+
+    const formSackTotal = details.reduce((sum, d) => sum + (Number(d.sack_in_kg) || 0), 0)
+    const allowedSackTotal = totalSackRegistered + initialSackTotal
+    if (formSackTotal > allowedSackTotal) {
+      toast.error(`Total sack weight (${formSackTotal.toFixed(2)} Kg) cannot exceed the farmer's total registered sack balance (${allowedSackTotal.toFixed(2)} Kg)`)
       return
     }
     setIsSubmitting(true)

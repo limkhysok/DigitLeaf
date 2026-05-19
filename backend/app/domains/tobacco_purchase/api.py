@@ -51,7 +51,8 @@ async def get_vendor_sack(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     sack_kg = await crud.get_vendor_sack_kg(db=session, vendor_name=vendor_name)
-    return {"sack_in_kg": sack_kg}
+    total_sack_kg = await crud.get_vendor_total_active_sack_kg(db=session, vendor_name=vendor_name)
+    return {"sack_in_kg": sack_kg, "total_sack_in_kg": total_sack_kg}
 
 
 @router.get("/vendors", response_model=List[schemas.VendorItem])
@@ -71,13 +72,16 @@ async def create_purchase(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     ip_address = request.client.host if request.client else "unknown"
-    purchase = await crud.create_purchase(
-        db=session,
-        obj_in=data,
-        user_name=current_user.user_name,
-        ip_address=ip_address,
-    )
-    return purchase
+    try:
+        purchase = await crud.create_purchase(
+            db=session,
+            obj_in=data,
+            user_name=current_user.user_name,
+            ip_address=ip_address,
+        )
+        return purchase
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/", response_model=schemas.PurchaseList)
@@ -117,13 +121,16 @@ async def update_purchase(
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
 
     ip_address = request.client.host if request.client else "unknown"
-    return await crud.update_purchase(
-        db=session,
-        db_obj=db_obj,
-        obj_in=data,
-        user_name=current_user.user_name,
-        ip_address=ip_address,
-    )
+    try:
+        return await crud.update_purchase(
+            db=session,
+            db_obj=db_obj,
+            obj_in=data,
+            user_name=current_user.user_name,
+            ip_address=ip_address,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/{tp_id}", status_code=204, responses={404: {"description": _NOT_FOUND}})
