@@ -32,15 +32,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+
 import { Label } from "@workspace/ui/components/label"
 import {
   Popover,
@@ -288,8 +280,28 @@ export function AddPurchaseDialog({
 
   const handleSubmit = async (e: React.BaseSyntheticEvent) => {
     e.preventDefault()
-    if (!rate || details.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
-      toast.error("Please fill all required fields")
+    if (!buyer) {
+      toast.error("Please select a Buyer")
+      return
+    }
+    if (!vendor) {
+      toast.error("Please select a Vendor")
+      return
+    }
+    if (!region) {
+      toast.error("Please select a Region")
+      return
+    }
+    if (!rate) {
+      toast.error("Please enter a valid exchange rate")
+      return
+    }
+    if (details.length === 0) {
+      toast.error("Please add at least one tobacco purchase item")
+      return
+    }
+    if (details.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
+      toast.error("Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg")
       return
     }
     setIsSubmitting(true)
@@ -385,599 +397,570 @@ export function AddPurchaseDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <DialogTitle className="text-[18px] font-bold text-foreground">
-                {title}
-              </DialogTitle>
-              <DialogDescription className="text-[13px] text-muted-foreground/70">{description}</DialogDescription>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <DialogTitle className="text-[18px] font-bold text-foreground">
+                  {title}
+                </DialogTitle>
+                <DialogDescription className="text-[13px] text-muted-foreground/70">{description}</DialogDescription>
+              </div>
             </div>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* ════════════════════════════════════════════════════════════════════
+            {/* ════════════════════════════════════════════════════════════════════
               FORM FIELDS — shared across all breakpoints
               grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
           ════════════════════════════════════════════════════════════════════ */}
-          <div className="bg-white p-4 lg:p-6 rounded-md border border-border/60 space-y-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5">
+            <div className="bg-white p-4 lg:p-6 rounded-md border border-border/60 space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5">
 
-              {/* Invoice No. */}
-              <div className="lg:col-span-1 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Invoice No.</Label>
-                <Input
-                  value={tpCode}
-                  readOnly
-                  className="h-9 text-[13px] font-bold bg-slate-50 border-border/60 text-muted-foreground shadow-none cursor-default"
-                />
-              </div>
-
-              {/* Buyer */}
-              <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Buyer selection</Label>
-                <Popover open={isBuyerOpen} onOpenChange={(open) => {
-                  setIsBuyerOpen(open)
-                  if (!open) {
-                    const b = purchasers.find(p => p.p_id.toString() === buyer)
-                    setBuyerSearch(b ? `${b.p_name} | ${b.p_name_kh || ""}` : "")
-                  }
-                }}>
-                  <PopoverAnchor asChild>
-                    <div className="relative group">
-                      <Input
-                        placeholder="Search buyer..."
-                        value={buyerSearch}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          setBuyerSearch(val)
-                          setBuyer(val)
-                          if (!isBuyerOpen) setIsBuyerOpen(true)
-                        }}
-                        onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
-                        onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
-                        disabled={isReadOnly}
-                        className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                      />
-                      <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
-                    </div>
-                  </PopoverAnchor>
-                  <PopoverContent
-                    className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
-                    align="start"
-                    sideOffset={4}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => {
-                      const target = e.target as HTMLElement
-                      if (target.closest('.group')) e.preventDefault()
-                    }}
-                  >
-                    <div className="max-h-75 overflow-y-auto p-1">
-                      {purchasers
-                        .filter(p =>
-                          p.p_name.toLowerCase().includes(buyerSearch.toLowerCase()) ||
-                          p.p_name_kh?.includes(buyerSearch)
-                        )
-                        .map((p) => (
-                          <button
-                            key={p.p_id}
-                            type="button"
-                            className={cn(
-                              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
-                              buyer === p.p_id.toString() && "bg-accent"
-                            )}
-                            onClick={() => handleBuyerSelect(p.p_id)}
-                          >
-                            <IconCheck className={cn("mr-2 h-3.5 w-3.5", buyer === p.p_id.toString() ? "opacity-100" : "opacity-0")} />
-                            {p.p_name} | {p.p_name_kh || "-"}
-                          </button>
-                        ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Region */}
-              <div className="lg:col-span-1 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Region</Label>
-                <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
-                  <PopoverAnchor asChild>
-                    <div className="relative group">
-                      <Input
-                        placeholder="Region..."
-                        value={regionSearch}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          setRegionSearch(val)
-                          setRegion(val)
-                          if (!isRegionOpen) setIsRegionOpen(true)
-                        }}
-                        onFocus={() => setIsRegionOpen(true)}
-                        onClick={() => setIsRegionOpen(true)}
-                        disabled={isReadOnly}
-                        className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                      />
-                      <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
-                    </div>
-                  </PopoverAnchor>
-                  <PopoverContent
-                    className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
-                    align="start"
-                    sideOffset={4}
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => {
-                      const target = e.target as HTMLElement
-                      if (target.closest('.group')) e.preventDefault()
-                    }}
-                  >
-                    <div className="max-h-75 overflow-y-auto p-1">
-                      {regions
-                        .filter(r =>
-                          r.reg_name.toLowerCase().includes(regionSearch.toLowerCase()) ||
-                          r.reg_name_kh?.includes(regionSearch)
-                        )
-                        .map((r) => (
-                          <button
-                            key={r.reg_id}
-                            type="button"
-                            className={cn(
-                              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
-                              region === r.reg_id.toString() && "bg-accent"
-                            )}
-                            onClick={() => {
-                              setRegion(r.reg_id.toString())
-                              setRegionSearch(`${r?.reg_name} | ${r?.reg_name_kh || ""}`)
-                              setIsRegionOpen(false)
-                            }}
-                          >
-                            <IconCheck className={cn("mr-2 h-3.5 w-3.5", region === r.reg_id.toString() ? "opacity-100" : "opacity-0")} />
-                            {r.reg_name} | {r.reg_name_kh || "-"}
-                          </button>
-                        ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Vendor */}
-              <div className="lg:col-span-1 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Id)</Label>
-                <Popover open={isVendorOpen} onOpenChange={(open) => {
-                  setIsVendorOpen(open)
-                  if (!open) setVendorSearch(vendor)
-                }}>
-                  <PopoverAnchor asChild>
-                    <div className="relative group">
-                      <Input
-                        placeholder="Search vendor..."
-                        value={vendorSearch}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          setVendorSearch(val)
-                          if (!isVendorOpen) setIsVendorOpen(true)
-                        }}
-                        onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
-                        onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
-                        disabled={isReadOnly || !isBuyerSelected}
-                        className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                      />
-                      <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
-                    </div>
-                  </PopoverAnchor>
-                  <PopoverContent
-                    className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
-                    align="start"
-                    sideOffset={4}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => {
-                      const target = e.target as HTMLElement
-                      if (target.closest('.group')) e.preventDefault()
-                    }}
-                  >
-                    <div className="max-h-75 overflow-y-auto p-1">
-                      {vendorListContent}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Vendor Address */}
-              <div className="md:col-span-2 lg:col-span-2 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor Address</Label>
-                <Input
-                  value={v_addr}
-                  onChange={(e) => setVAddr(e.target.value)}
-                  disabled={isReadOnly || !isBuyerSelected}
-                  placeholder="Enter address..."
-                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                />
-              </div>
-
-              {/* Oven */}
-              <div className="lg:col-span-1 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Oven</Label>
-                <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
-                  <PopoverAnchor asChild>
-                    <div className="relative group">
-                      <Input
-                        placeholder="Oven..."
-                        value={ovenSearch}
-                        onChange={(e) => {
-                          setOvenSearch(e.target.value)
-                          if (!isOvenOpen) setIsOvenOpen(true)
-                        }}
-                        onFocus={() => setIsOvenOpen(true)}
-                        onClick={() => setIsOvenOpen(true)}
-                        disabled={isReadOnly}
-                        className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                      />
-                      <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
-                    </div>
-                  </PopoverAnchor>
-                  <PopoverContent
-                    className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
-                    align="start"
-                    sideOffset={4}
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                    onInteractOutside={(e) => {
-                      const target = e.target as HTMLElement
-                      if (target.closest('.group')) e.preventDefault()
-                    }}
-                  >
-                    <div className="max-h-75 overflow-y-auto p-1">
-                      {ovens
-                        .filter(o =>
-                          o.name_en.toLowerCase().includes(ovenSearch.toLowerCase()) ||
-                          o.name_kh?.includes(ovenSearch)
-                        )
-                        .map((o) => (
-                          <button
-                            key={o.id}
-                            type="button"
-                            className={cn(
-                              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
-                              oven === o.id.toString() && "bg-accent"
-                            )}
-                            onClick={() => {
-                              setOven(o.id.toString())
-                              setOvenSearch(`${o?.name_en} | ${o?.name_kh || ""}`)
-                              setIsOvenOpen(false)
-                            }}
-                          >
-                            <IconCheck className={cn("mr-2 h-3.5 w-3.5", oven === o.id.toString() ? "opacity-100" : "opacity-0")} />
-                            {o.name_en} | {o.name_kh || "-"}
-                          </button>
-                        ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* System Rate */}
-              <div className="lg:col-span-1 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">System Rate</Label>
-                <div className="relative group">
+                {/* Invoice No. */}
+                <div className="lg:col-span-1 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Invoice No.</Label>
                   <Input
-                    type="number"
-                    value={rate}
-                    onChange={(e) => setRate(e.target.value)}
-                    required
-                    disabled={isReadOnly}
-                    className="h-9 text-[13px] font-bold bg-white border border-border/60 text-black shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    value={tpCode}
+                    readOnly
+                    className="h-9 text-[13px] font-bold bg-slate-50 border-border/60 text-muted-foreground shadow-none cursor-default"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                 </div>
-              </div>
 
-              {/* Remark */}
-              <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Remark (Optional)</Label>
-                <Input
-                  value={tpNote}
-                  onChange={(e) => setTpNote(e.target.value)}
-                  placeholder="Type notes here..."
-                  disabled={isReadOnly}
-                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                />
-              </div>
-
-              {/* Purchase Date */}
-              <div className="lg:col-span-1 space-y-1.5">
-                <Label className="text-[12px] font-bold text-muted-foreground/70">Purchase Date</Label>
-                <Input
-                  value={dateDisplay}
-                  onChange={(e) => {
-                    const masked = maskDate(e.target.value)
-                    setDateDisplay(masked)
-                    const digits = masked.replaceAll(/\D/g, "")
-                    if (digits.length === 8) {
-                      const d = digits.slice(0, 2)
-                      const m = digits.slice(2, 4)
-                      const y = digits.slice(4, 8)
-                      setTpDate(`${y}-${m}-${d}`)
-                    } else {
-                      setTpDate("")
+                {/* Buyer */}
+                <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Buyer selection</Label>
+                  <Popover open={isBuyerOpen} onOpenChange={(open) => {
+                    setIsBuyerOpen(open)
+                    if (!open) {
+                      const b = purchasers.find(p => p.p_id.toString() === buyer)
+                      setBuyerSearch(b ? `${b.p_name} | ${b.p_name_kh || ""}` : "")
                     }
-                  }}
-                  placeholder="DD/MM/YYYY"
-                  maxLength={10}
-                  disabled={isReadOnly}
-                  className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
-                />
+                  }}>
+                    <PopoverAnchor asChild>
+                      <div className="relative group">
+                        <Input
+                          placeholder="Search buyer..."
+                          value={buyerSearch}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setBuyerSearch(val)
+                            setBuyer(val)
+                            if (!isBuyerOpen) setIsBuyerOpen(true)
+                          }}
+                          onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
+                          onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
+                          disabled={isReadOnly}
+                          className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                        />
+                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
+                      </div>
+                    </PopoverAnchor>
+                    <PopoverContent
+                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      align="start"
+                      sideOffset={4}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                      onInteractOutside={(e) => {
+                        const target = e.target as HTMLElement
+                        if (target.closest('.group')) e.preventDefault()
+                      }}
+                    >
+                      <div className="max-h-75 overflow-y-auto p-1">
+                        {purchasers
+                          .filter(p =>
+                            p.p_name.toLowerCase().includes(buyerSearch.toLowerCase()) ||
+                            p.p_name_kh?.includes(buyerSearch)
+                          )
+                          .map((p) => (
+                            <button
+                              key={p.p_id}
+                              type="button"
+                              className={cn(
+                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+                                buyer === p.p_id.toString() && "bg-accent"
+                              )}
+                              onClick={() => handleBuyerSelect(p.p_id)}
+                            >
+                              <IconCheck className={cn("mr-2 h-3.5 w-3.5", buyer === p.p_id.toString() ? "opacity-100" : "opacity-0")} />
+                              {p.p_name} | {p.p_name_kh || "-"}
+                            </button>
+                          ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Region */}
+                <div className="lg:col-span-1 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Region</Label>
+                  <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
+                    <PopoverAnchor asChild>
+                      <div className="relative group">
+                        <Input
+                          placeholder="Region..."
+                          value={regionSearch}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setRegionSearch(val)
+                            setRegion(val)
+                            if (!isRegionOpen) setIsRegionOpen(true)
+                          }}
+                          onFocus={() => setIsRegionOpen(true)}
+                          onClick={() => setIsRegionOpen(true)}
+                          disabled={isReadOnly}
+                          className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                        />
+                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
+                      </div>
+                    </PopoverAnchor>
+                    <PopoverContent
+                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      align="start"
+                      sideOffset={4}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                      onInteractOutside={(e) => {
+                        const target = e.target as HTMLElement
+                        if (target.closest('.group')) e.preventDefault()
+                      }}
+                    >
+                      <div className="max-h-75 overflow-y-auto p-1">
+                        {regions
+                          .filter(r =>
+                            r.reg_name.toLowerCase().includes(regionSearch.toLowerCase()) ||
+                            r.reg_name_kh?.includes(regionSearch)
+                          )
+                          .map((r) => (
+                            <button
+                              key={r.reg_id}
+                              type="button"
+                              className={cn(
+                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+                                region === r.reg_id.toString() && "bg-accent"
+                              )}
+                              onClick={() => {
+                                setRegion(r.reg_id.toString())
+                                setRegionSearch(`${r?.reg_name} | ${r?.reg_name_kh || ""}`)
+                                setIsRegionOpen(false)
+                              }}
+                            >
+                              <IconCheck className={cn("mr-2 h-3.5 w-3.5", region === r.reg_id.toString() ? "opacity-100" : "opacity-0")} />
+                              {r.reg_name} | {r.reg_name_kh || "-"}
+                            </button>
+                          ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Vendor */}
+                <div className="lg:col-span-1 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Id)</Label>
+                  <Popover open={isVendorOpen} onOpenChange={(open) => {
+                    setIsVendorOpen(open)
+                    if (!open) setVendorSearch(vendor)
+                  }}>
+                    <PopoverAnchor asChild>
+                      <div className="relative group">
+                        <Input
+                          placeholder="Search vendor..."
+                          value={vendorSearch}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setVendorSearch(val)
+                            if (!isVendorOpen) setIsVendorOpen(true)
+                          }}
+                          onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
+                          onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
+                          disabled={isReadOnly || !isBuyerSelected}
+                          className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                        />
+                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
+                      </div>
+                    </PopoverAnchor>
+                    <PopoverContent
+                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      align="start"
+                      sideOffset={4}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                      onInteractOutside={(e) => {
+                        const target = e.target as HTMLElement
+                        if (target.closest('.group')) e.preventDefault()
+                      }}
+                    >
+                      <div className="max-h-75 overflow-y-auto p-1">
+                        {vendorListContent}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Vendor Address */}
+                <div className="md:col-span-2 lg:col-span-2 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor Address</Label>
+                  <Input
+                    value={v_addr}
+                    onChange={(e) => setVAddr(e.target.value)}
+                    disabled={isReadOnly || !isBuyerSelected}
+                    placeholder="Enter address..."
+                    className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                  />
+                </div>
+
+                {/* Oven */}
+                <div className="lg:col-span-1 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Oven</Label>
+                  <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
+                    <PopoverAnchor asChild>
+                      <div className="relative group">
+                        <Input
+                          placeholder="Oven..."
+                          value={ovenSearch}
+                          onChange={(e) => {
+                            setOvenSearch(e.target.value)
+                            if (!isOvenOpen) setIsOvenOpen(true)
+                          }}
+                          onFocus={() => setIsOvenOpen(true)}
+                          onClick={() => setIsOvenOpen(true)}
+                          disabled={isReadOnly}
+                          className="pr-10 h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                        />
+                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
+                      </div>
+                    </PopoverAnchor>
+                    <PopoverContent
+                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      align="start"
+                      sideOffset={4}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                      onInteractOutside={(e) => {
+                        const target = e.target as HTMLElement
+                        if (target.closest('.group')) e.preventDefault()
+                      }}
+                    >
+                      <div className="max-h-75 overflow-y-auto p-1">
+                        {ovens
+                          .filter(o =>
+                            o.name_en.toLowerCase().includes(ovenSearch.toLowerCase()) ||
+                            o.name_kh?.includes(ovenSearch)
+                          )
+                          .map((o) => (
+                            <button
+                              key={o.id}
+                              type="button"
+                              className={cn(
+                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+                                oven === o.id.toString() && "bg-accent"
+                              )}
+                              onClick={() => {
+                                setOven(o.id.toString())
+                                setOvenSearch(`${o?.name_en} | ${o?.name_kh || ""}`)
+                                setIsOvenOpen(false)
+                              }}
+                            >
+                              <IconCheck className={cn("mr-2 h-3.5 w-3.5", oven === o.id.toString() ? "opacity-100" : "opacity-0")} />
+                              {o.name_en} | {o.name_kh || "-"}
+                            </button>
+                          ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* System Rate */}
+                <div className="lg:col-span-1 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">System Rate</Label>
+                  <div className="relative group">
+                    <Input
+                      type="number"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value)}
+                      required
+                      disabled={isReadOnly}
+                      className="h-9 text-[13px] font-bold bg-white border border-border/60 text-black shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
+                  </div>
+                </div>
+
+                {/* Remark */}
+                <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Remark (Optional)</Label>
+                  <Input
+                    value={tpNote}
+                    onChange={(e) => setTpNote(e.target.value)}
+                    placeholder="Type notes here..."
+                    disabled={isReadOnly}
+                    className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                  />
+                </div>
+
+                {/* Purchase Date */}
+                <div className="lg:col-span-1 space-y-1.5">
+                  <Label className="text-[12px] font-bold text-muted-foreground/70">Purchase Date</Label>
+                  <Input
+                    value={dateDisplay}
+                    onChange={(e) => {
+                      const masked = maskDate(e.target.value)
+                      setDateDisplay(masked)
+                      const digits = masked.replaceAll(/\D/g, "")
+                      if (digits.length === 8) {
+                        const d = digits.slice(0, 2)
+                        const m = digits.slice(2, 4)
+                        const y = digits.slice(4, 8)
+                        setTpDate(`${y}-${m}-${d}`)
+                      } else {
+                        setTpDate("")
+                      }
+                    }}
+                    placeholder="DD/MM/YYYY"
+                    maxLength={10}
+                    disabled={isReadOnly}
+                    className="h-9 text-[13px] bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                  />
+                </div>
+
               </div>
-
             </div>
-          </div>
 
-          {/* ════════════════════════════════════════════════════════════════════
+            {/* ════════════════════════════════════════════════════════════════════
               MOBILE ITEMS — (< 768px / below md)
               Card-per-row, full-width stacked
           ════════════════════════════════════════════════════════════════════ */}
-          <div className="md:hidden space-y-3">
-            {details.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
-                <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
-                  <IconPlus className="size-5 text-muted-foreground/20" />
+            <div className="md:hidden space-y-3">
+              {details.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
+                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                    <IconPlus className="size-5 text-muted-foreground/20" />
+                  </div>
+                  <p className="text-[13px] font-bold text-foreground">No items yet</p>
+                  <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+                  {!isReadOnly && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                      className="mt-1 h-9 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                      <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+                    </Button>
+                  )}
                 </div>
-                <p className="text-[13px] font-bold text-foreground">No items yet</p>
-                <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
-                {!isReadOnly && (
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="mt-1 h-9 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
-                    <IconPlus className="mr-1.5 size-3.5" /> Add First Item
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3">
-                {details.map((detail, idx) => (
-                  <PurchaseDetailCard
-                    key={detail.tempId}
-                    detail={detail}
-                    index={idx}
-                    isReadOnly={isReadOnly}
-                    tobaccoTypes={tobaccoTypes}
-                    onRemove={handleRemoveDetail}
-                    onChange={handleDetailChange}
-                    onPreviewImage={setPreviewImage}
-                  />
-                ))}
-              </div>
-            )}
-            {!isReadOnly && details.length > 0 && (
-              <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                className="w-full h-9 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
-                <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-              </Button>
-            )}
-            {details.length > 0 && (
-              <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
-                <div>
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
-                  <p className="text-[15px] font-black text-primary tabular-nums">
-                    {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
-                  </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {details.map((detail, idx) => (
+                    <PurchaseDetailCard
+                      key={detail.tempId}
+                      detail={detail}
+                      index={idx}
+                      isReadOnly={isReadOnly}
+                      tobaccoTypes={tobaccoTypes}
+                      onRemove={handleRemoveDetail}
+                      onChange={handleDetailChange}
+                      onPreviewImage={setPreviewImage}
+                    />
+                  ))}
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
-                  <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                    ៛{Math.round(grandTotal).toLocaleString()}
-                  </p>
+              )}
+              {!isReadOnly && details.length > 0 && (
+                <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                  className="w-full h-9 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
+                  <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+                </Button>
+              )}
+              {details.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
+                    <p className="text-[15px] font-black text-primary tabular-nums">
+                      {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
+                    <p className="text-[16px] font-black text-emerald-700 tabular-nums">
+                      ៛{Math.round(grandTotal).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* ════════════════════════════════════════════════════════════════════
+            {/* ════════════════════════════════════════════════════════════════════
               TABLET ITEMS — (768px – 1023px / md → lg)
               2-column card grid
           ════════════════════════════════════════════════════════════════════ */}
-          <div className="hidden md:block lg:hidden space-y-3">
-            {details.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
-                <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
-                  <IconPlus className="size-5 text-muted-foreground/20" />
+            <div className="hidden md:block lg:hidden space-y-3">
+              {details.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
+                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                    <IconPlus className="size-5 text-muted-foreground/20" />
+                  </div>
+                  <p className="text-[13px] font-bold text-foreground">No items yet</p>
+                  <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+                  {!isReadOnly && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                      className="mt-1 h-9 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                      <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+                    </Button>
+                  )}
                 </div>
-                <p className="text-[13px] font-bold text-foreground">No items yet</p>
-                <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
-                {!isReadOnly && (
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="mt-1 h-9 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
-                    <IconPlus className="mr-1.5 size-3.5" /> Add First Item
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {details.map((detail, idx) => (
-                  <PurchaseDetailCard
-                    key={detail.tempId}
-                    detail={detail}
-                    index={idx}
-                    isReadOnly={isReadOnly}
-                    tobaccoTypes={tobaccoTypes}
-                    onRemove={handleRemoveDetail}
-                    onChange={handleDetailChange}
-                    onPreviewImage={setPreviewImage}
-                  />
-                ))}
-              </div>
-            )}
-            {!isReadOnly && details.length > 0 && (
-              <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                className="w-full h-9 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
-                <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-              </Button>
-            )}
-            {details.length > 0 && (
-              <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
-                <div>
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
-                  <p className="text-[15px] font-black text-primary tabular-nums">
-                    {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
-                  </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {details.map((detail, idx) => (
+                    <PurchaseDetailCard
+                      key={detail.tempId}
+                      detail={detail}
+                      index={idx}
+                      isReadOnly={isReadOnly}
+                      tobaccoTypes={tobaccoTypes}
+                      onRemove={handleRemoveDetail}
+                      onChange={handleDetailChange}
+                      onPreviewImage={setPreviewImage}
+                    />
+                  ))}
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
-                  <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                    ៛{Math.round(grandTotal).toLocaleString()}
-                  </p>
+              )}
+              {!isReadOnly && details.length > 0 && (
+                <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                  className="w-full h-9 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
+                  <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+                </Button>
+              )}
+              {details.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
+                    <p className="text-[15px] font-black text-primary tabular-nums">
+                      {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
+                    <p className="text-[16px] font-black text-emerald-700 tabular-nums">
+                      ៛{Math.round(grandTotal).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* ════════════════════════════════════════════════════════════════════
+            {/* ════════════════════════════════════════════════════════════════════
               DESKTOP ITEMS — (≥ 1024px / lg and above)
               Full 9-column table, horizontally scrollable
           ════════════════════════════════════════════════════════════════════ */}
-          <div className="hidden lg:block">
-            <div className="bg-white rounded-none border border-border/80 mt-4 overflow-x-auto">
-              <Table className="table-fixed border-collapse">
-                <TableHeader className="bg-slate-50/90 backdrop-blur-sm sticky top-0 z-20 shadow-xs border-t border-b border-border/80">
-                  <TableRow className="hover:bg-transparent border-none">
-                    <TableHead className="w-12.5 text-[13px] font-bold text-center border-r border-border/60">#</TableHead>
-                    <TableHead className="min-w-62.5 text-[13px] font-bold border-r border-border/60">
-                      <div className="flex items-center gap-2 px-1">
-                        <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
-                        Tobacco Item
-                      </div>
-                    </TableHead>
-                    <TableHead className="w-17 text-[13px] font-bold text-center border-r border-border/60">Image</TableHead>
-                    <TableHead className="w-25.5 text-[13px] font-bold text-center border-r border-border/60">G Weight(Kg)</TableHead>
-                    <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Remork(Kg)</TableHead>
-                    <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Sack(Kg)</TableHead>
-                    <TableHead className="w-25 text-[13px] font-bold text-center border-r border-border/60">Borrow Leaf(Kg)</TableHead>
-                    <TableHead className="w-30 text-[13px] font-bold text-center bg-primary/3 text-primary/80 border-r border-border/60">Net Weight(Kg)</TableHead>
-                    <TableHead className="w-23.75 text-[13px] font-bold text-center border-r border-border/60">Price Per Kg</TableHead>
-                    <TableHead className="w-32.5 text-[13px] font-bold text-right bg-emerald-500/3 text-emerald-700/80 pr-4">Total Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody className="bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px]">
-                  {details.length > 0 ? (
-                    details.map((detail, idx) => (
-                      <PurchaseDetailRow
-                        key={detail.tempId}
-                        detail={detail}
-                        index={idx}
-                        isReadOnly={isReadOnly}
-                        tobaccoTypes={tobaccoTypes}
-                        onRemove={handleRemoveDetail}
-                        onChange={handleDetailChange}
-                        onPreviewImage={setPreviewImage}
-                      />
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={10} className="h-64 text-center">
-                        <div className="flex flex-col items-center justify-center gap-4 bg-white/80 backdrop-blur-[2px]">
-                          <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center border border-dashed border-border/60">
-                            <IconPlus className="size-6 text-muted-foreground/20" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[14px] font-bold text-foreground">No items recorded yet</p>
-                            <p className="text-[12px] text-muted-foreground/60 max-w-60">Start building your purchase invoice by adding tobacco items.</p>
-                          </div>
-                          {!isReadOnly && (
-                            <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                              className="mt-2 h-9 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs">
-                              <IconPlus className="mr-2 size-3.5" /> Add First Item
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+            <div className="hidden lg:block">
+              {details.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-md border border-dashed border-border/60 bg-slate-50/50 mt-4">
+                  <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60 shadow-xs">
+                    <IconPlus className="size-6 text-muted-foreground/20" />
+                  </div>
+                  <div className="space-y-1 text-center">
+                    <p className="text-[14px] font-bold text-foreground">No tobacco items recorded yet</p>
+                    <p className="text-[12px] text-muted-foreground/60 max-w-64">Start building your purchase invoice by adding tobacco items.</p>
+                  </div>
+                  {!isReadOnly && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                      className="mt-2 h-9 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs">
+                      <IconPlus className="mr-2 size-3.5" /> Add First Item
+                    </Button>
                   )}
-                </TableBody>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-3">
+                  {details.map((detail, idx) => (
+                    <PurchaseDetailDesktopCard
+                      key={detail.tempId}
+                      detail={detail}
+                      index={idx}
+                      isReadOnly={isReadOnly}
+                      tobaccoTypes={tobaccoTypes}
+                      onRemove={handleRemoveDetail}
+                      onChange={handleDetailChange}
+                      onPreviewImage={setPreviewImage}
+                    />
+                  ))}
 
-                <TableFooter className="bg-slate-50/80 border-t-2 border-border/80">
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={6} className="text-left text-[11px] font-bold text-muted-foreground uppercase pl-4">Total Summary</TableCell>
-                    <TableCell colSpan={2} className="p-2 bg-primary/4 border-x border-border/60">
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-[11px] font-bold uppercase text-muted-foreground/50">Total Weight</span>
-                        <span className="text-[14px] font-black text-primary tabular-nums">
-                          {totalNetWeight.toFixed(2)}
+                  {/* Desktop Summary Bar */}
+                  <div className="bg-slate-100/80 backdrop-blur-sm border border-border/80 rounded-md p-3 flex flex-row justify-between items-center mt-4">
+                    <span className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">
+                      Total Summary ({details.length} Items)
+                    </span>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-[11px] font-bold uppercase text-slate-400">Total Weight:</span>
+                        <span className="text-[18px] font-black text-primary tabular-nums">
+                          {totalNetWeight.toFixed(2)} <span className="text-[11px] font-bold text-primary/50">Kg</span>
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell colSpan={2} className="p-2 bg-emerald-500/4">
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total</span>
-                        <span className="text-[16px] font-black text-emerald-700 tabular-nums">
+                      <div className="h-6 w-px bg-border" />
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total:</span>
+                        <span className="text-[20px] font-black text-emerald-700 tabular-nums">
                           ៛{Math.round(grandTotal).toLocaleString()}
                         </span>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
+                    </div>
+                  </div>
 
-              <div className="bg-slate-50/50 border-t border-border/80 p-3 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-3">
-                  {!isReadOnly && (
-                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                      className="h-9 px-5 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs transition-all active:scale-95">
-                      <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-                    </Button>
-                  )}
-                  <span className="text-[11px] font-medium text-muted-foreground italic">
-                    Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
-                  </span>
+                  {/* Add Row Button Row */}
+                  <div className="flex flex-row justify-between items-center mt-3 px-1">
+                    {!isReadOnly && (
+                      <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                        className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs transition-all active:scale-95">
+                        <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
+                      </Button>
+                    )}
+                    <span className="text-[11px] font-medium text-muted-foreground italic">
+                      Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          </div>
 
-          <DialogFooter className="pt-5 border-t border-border/40 mt-4">
-            <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
-              className="h-9 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
-              {isReadOnly ? "Close" : "Cancel"}
-            </Button>
-            {!isReadOnly && (
-              <Button type="submit" disabled={isSubmitting}
-                className="h-9 px-6 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
-                {isSubmitting ? (
-                  <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <IconCheck className="h-3.5 w-3.5" />
-                )}
-                {initialData ? "Update Purchase" : "Save Purchase"}
+            <DialogFooter className="pt-3.5 border-t border-border/40 mt-3">
+              <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
+                className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
+                {isReadOnly ? "Close" : "Cancel"}
               </Button>
-            )}
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-    {previewImage && (
-      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-        <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-2xl flex items-center justify-center z-120">
-          <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
-          <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
-          <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-lg bg-black/90 p-1.5 flex items-center justify-center group/preview">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewImage}
-              alt="Tobacco Purchase Detail"
-              className="max-h-[80vh] max-w-full object-contain rounded-md select-none"
-            />
-            <button
-              type="button"
-              onClick={() => setPreviewImage(null)}
-              className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 hover:scale-105 active:scale-95 transition-all animate-in fade-in duration-200"
-            >
-              <IconX className="size-5" />
-            </button>
-          </div>
+              {!isReadOnly && (
+                <Button type="submit" disabled={isSubmitting}
+                  className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
+                  {isSubmitting ? (
+                    <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <IconCheck className="h-3.5 w-3.5" />
+                  )}
+                  {initialData ? "Update Purchase" : "Save Purchase"}
+                </Button>
+              )}
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
-    )}
+      {previewImage && (
+        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+          <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-2xl flex items-center justify-center z-120">
+            <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
+            <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
+            <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-lg bg-black/90 p-1.5 flex items-center justify-center group/preview">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewImage}
+                alt="Tobacco Purchase Detail"
+                className="max-h-[80vh] max-w-full object-contain rounded-md select-none"
+              />
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 hover:scale-105 active:scale-95 transition-all animate-in fade-in duration-200"
+              >
+                <IconX className="size-5" />
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }
@@ -1037,7 +1020,13 @@ const PurchaseDetailCard = React.memo(({
       <div className="px-3 pt-3 pb-3 border-b border-border/30 flex gap-3 items-end">
         <div className="flex-1 min-w-0">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Tobacco Item</Label>
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={(isOpen) => {
+            setOpen(isOpen)
+            if (!isOpen) {
+              const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
+              setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+            }
+          }}>
             <PopoverTrigger asChild>
               <div className="relative mt-1.5">
                 <Input
@@ -1062,31 +1051,31 @@ const PurchaseDetailCard = React.memo(({
                 {tobaccoTypes.length === 0 ? (
                   <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
                 ) : tobaccoTypes
-                    .filter(t => {
-                      const s = search.toLowerCase()
-                      return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
-                    })
-                    .map((t) => (
-                      <button
-                        key={t.t_id}
-                        type="button"
-                        className={cn(
-                          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
-                          detail.tobacco_name === t.t_id && "bg-accent"
-                        )}
-                        onClick={() => {
-                          onChange(index, "tobacco_name", t.t_id)
-                          setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
-                          setOpen(false)
-                        }}
-                      >
-                        <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                        <div className="flex flex-col items-start">
-                          <span className="font-bold">{t.t_name}</span>
-                          <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
-                        </div>
-                      </button>
-                    ))
+                  .filter(t => {
+                    const s = search.toLowerCase()
+                    return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                  })
+                  .map((t) => (
+                    <button
+                      key={t.t_id}
+                      type="button"
+                      className={cn(
+                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
+                        detail.tobacco_name === t.t_id && "bg-accent"
+                      )}
+                      onClick={() => {
+                        onChange(index, "tobacco_name", t.t_id)
+                        setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
+                        setOpen(false)
+                      }}
+                    >
+                      <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                      <div className="flex flex-col items-start">
+                        <span className="font-bold">{t.t_name}</span>
+                        <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                      </div>
+                    </button>
+                  ))
                 }
               </div>
             </PopoverContent>
@@ -1220,17 +1209,17 @@ const PurchaseDetailCard = React.memo(({
 
 PurchaseDetailCard.displayName = "PurchaseDetailCard"
 
-// ─── PurchaseDetailRow — desktop table row ───────────────────────────────────
+// ─── PurchaseDetailDesktopCard — desktop spacious horizontal card layout ───
 
-const PurchaseDetailRow = React.memo(({
+const PurchaseDetailDesktopCard = React.memo(({
   detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
 }: {
-  detail: Partial<TobaccoPurchaseDetail>,
-  index: number,
-  isReadOnly?: boolean,
-  tobaccoTypes: TobaccoItem[],
-  onRemove: (idx: number) => void,
-  onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void,
+  detail: Partial<TobaccoPurchaseDetail> & { tempId: string }
+  index: number
+  isReadOnly?: boolean
+  tobaccoTypes: TobaccoItem[]
+  onRemove: (idx: number) => void
+  onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
   onPreviewImage: (url: string) => void
 }) => {
   const [open, setOpen] = React.useState(false)
@@ -1246,79 +1235,58 @@ const PurchaseDetailRow = React.memo(({
     setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
   }
 
+  const netWeight = Math.max(0,
+    (Number(detail.gross_weight) || 0) -
+    (Number(detail.remork_in_kg) || 0) -
+    (Number(detail.sack_in_kg) || 0)
+  )
+  const total = Math.round(netWeight * (Number(detail.price) || 0))
+
   return (
-    <TableRow className={cn(
-      "group transition-all duration-200 relative border-b border-border/60",
-      "focus-within:bg-emerald-50/40",
-      index % 2 === 0 ? "bg-white" : "bg-slate-50/30",
-      "hover:bg-primary/1"
+    <div className={cn(
+      "relative bg-white border border-border/85 hover:border-primary/45 hover:-translate-y-0.5 rounded-lg shadow-xs hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 p-3.5 mt-3.5",
+      "focus-within:border-primary/30 focus-within:shadow-[0_8px_30px_rgba(0,0,0,0.04)]",
+      index % 2 === 0 ? "bg-white" : "bg-slate-50/10"
     )}>
-      <TableCell className="p-1 w-12.5 border-r border-border/60 text-center align-middle">
-        <div className="text-[12px] font-bold text-muted-foreground/60 tabular-nums">{index + 1}</div>
-      </TableCell>
+      {/* Top bar: Item Index and Delete Action */}
+      <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-border/35 mb-2">
+        <span className="text-[11.5px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md uppercase tracking-wider">
+          Item #{index + 1}
+        </span>
+        {!isReadOnly && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(index)}
+            className="text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 h-6.5 px-2 rounded-md transition-colors text-[11px]"
+          >
+            <IconX className="size-3 mr-1" /> Remove Item
+          </Button>
+        )}
+      </div>
 
-      <TableCell className="p-0 min-w-62.5 border-r border-border/60 align-middle">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <div className="relative group/type">
-              <Input
-                placeholder="Search item..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
-                onFocus={() => { setSearch(""); setOpen(true) }}
-                onClick={() => { setSearch(""); setOpen(true) }}
-                disabled={isReadOnly}
-                className="h-9 text-[12px] bg-transparent border-none shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3 cursor-pointer"
-              />
-            </div>
-          </PopoverTrigger>
-          <PopoverContent className="w-75 p-0 shadow-2xl border-border/50 z-100" align="start" sideOffset={4} onOpenAutoFocus={(e) => e.preventDefault()}>
-            <div className="max-h-62.5 overflow-y-auto p-1">
-              {tobaccoTypes.length === 0 ? (
-                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
-              ) : (
-                tobaccoTypes
-                  .filter(t => {
-                    const s = search.toLowerCase()
-                    return (t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s))
-                  })
-                  .map((t) => (
-                    <button
-                      key={t.t_id}
-                      type="button"
-                      className={cn("relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent", detail.tobacco_name === t.t_id && "bg-accent")}
-                      onClick={() => { onChange(index, "tobacco_name", t.t_id); setSearch(`${t.t_name} | ${t.t_name_kh || ""}`); setOpen(false) }}
-                    >
-                      <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                      <div className="flex flex-col items-start">
-                        <span className="font-bold text-[12px]">{t.t_name}</span>
-                        <span className="text-[12px] text-muted-foreground">{t.t_name_kh || "-"}</span>
-                      </div>
-                    </button>
-                  ))
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-      </TableCell>
-
-      <TableCell className="p-1 w-17 border-r border-border/60 align-middle">
-        <div className="flex justify-center">
+      {/* Main content body: Image on the Left, Spacious form fields on the Right */}
+      <div className="flex flex-row gap-4 items-start">
+        {/* Left Side: Enlarged Image upload / preview box (w-[189px] h-[189px] for perfect 1:1 alignment) */}
+        <div className="flex-shrink-0">
           {detail.picture ? (
-            <button
-              type="button"
-              onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
-              className="w-12 h-12 bg-white rounded border border-border/60 overflow-hidden group/img relative flex items-center justify-center shadow-xs p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getPictureUrl(detail.picture)}
-                alt="Tobacco item detail"
-                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-200"
-              />
+            <div className="w-[189px] h-[189px] bg-white rounded-md border border-border/80 overflow-hidden group/img relative flex items-center justify-center shadow-xs">
+              <button
+                type="button"
+                onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
+                className="w-full h-full p-0 border-none outline-none bg-transparent cursor-zoom-in outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getPictureUrl(detail.picture)}
+                  alt="Tobacco item detail"
+                  className="w-full h-full object-cover hover:scale-105 transition-all duration-200"
+                />
+              </button>
               {!isReadOnly && (
                 <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
-                  <IconPlus className="size-4.5 text-white" />
+                  <IconPlus className="size-10 text-white" />
                   <input
                     type="file"
                     accept="image/*"
@@ -1336,10 +1304,10 @@ const PurchaseDetailRow = React.memo(({
                   />
                 </label>
               )}
-            </button>
+            </div>
           ) : (
-            <label className="w-12 h-12 bg-slate-50/50 rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
-              <IconPlus className="size-4 text-muted-foreground/20 group-hover/img:text-primary/40" />
+            <label className="w-[189px] h-[189px] bg-slate-50/50 rounded-md border border-dashed border-border/80 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
+              <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
               {!isReadOnly && (
                 <input
                   type="file"
@@ -1360,70 +1328,153 @@ const PurchaseDetailRow = React.memo(({
             </label>
           )}
         </div>
-      </TableCell>
 
-      <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="1" className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          value={detail.gross_weight ?? ""}
-          onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          disabled={isReadOnly} />
-      </TableCell>
+        {/* Right Side: Spacious Form fields */}
+        <div className="flex-1 space-y-3">
+          {/* Row 1: Tobacco Item Search Popover (2 columns) & Borrow Leaf (1 column) */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2 space-y-1">
+              <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Tobacco Item</Label>
+              <Popover open={open} onOpenChange={(isOpen) => {
+                setOpen(isOpen)
+                if (!isOpen) {
+                  const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
+                  setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+                }
+              }}>
+                <PopoverTrigger asChild>
+                  <div className="relative">
+                    <Input
+                      placeholder="Search and select tobacco item..."
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+                      onFocus={() => { setSearch(""); setOpen(true) }}
+                      onClick={() => { setSearch(""); setOpen(true) }}
+                      disabled={isReadOnly}
+                      className="h-9 text-[13px] bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+                    />
+                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-96 p-0 shadow-2xl border-border/50 z-100"
+                  align="start"
+                  sideOffset={4}
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <div className="max-h-62.5 overflow-y-auto p-1">
+                    {tobaccoTypes.length === 0 ? (
+                      <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
+                    ) : tobaccoTypes
+                      .filter(t => {
+                        const s = search.toLowerCase()
+                        return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                      })
+                      .map((t) => (
+                        <button
+                          key={t.t_id}
+                          type="button"
+                          className={cn(
+                            "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
+                            detail.tobacco_name === t.t_id && "bg-accent"
+                          )}
+                          onClick={() => {
+                            onChange(index, "tobacco_name", t.t_id)
+                            setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
+                            setOpen(false)
+                          }}
+                        >
+                          <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                          <div className="flex flex-col items-start">
+                            <span className="font-bold">{t.t_name}</span>
+                            <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                          </div>
+                        </button>
+                      ))
+                    }
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-      <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="1" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          value={detail.remork_in_kg ?? ""}
-          onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          disabled={isReadOnly} />
-      </TableCell>
+            <div className="col-span-1 space-y-1">
+              <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Borrow Leaf (Kg)</Label>
+              <Input type="number" step="0.01"
+                className="h-9 text-[13px] font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 placeholder:text-muted-foreground/20"
+                value={detail.borrowed_leaf_kg ?? ""} disabled={isReadOnly}
+                placeholder="Optional"
+                onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
+          </div>
 
-      <TableCell className="p-1 w-22.5 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="0.01" className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          value={detail.sack_in_kg ?? ""}
-          onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          disabled={isReadOnly} />
-      </TableCell>
+          {/* Row 2: Weights Inputs (3 equal columns) */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Gross Weight (Kg)</Label>
+              <Input type="number" step="1"
+                className="h-9 text-[13px] font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                value={detail.gross_weight ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork (Kg)</Label>
+              <Input type="number" step="1"
+                className="h-9 text-[13px] font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack Weight (Kg)</Label>
+              <Input type="number" step="0.01"
+                className="h-9 text-[13px] font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
+          </div>
 
-      <TableCell className="p-1 w-25 border-r border-border/60 text-center align-middle">
-        <Input type="number" step="0.01" placeholder="opt."
-          className="h-9 text-[12px] bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30"
-          value={detail.borrowed_leaf_kg ?? ""}
-          onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          disabled={isReadOnly} />
-      </TableCell>
+          {/* Row 3: Net Weight, Price, and Total Amount (3 equal columns representing Net Weight x Price = Total Amount) */}
+          <div className="grid grid-cols-3 gap-3 items-end">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-primary/70 uppercase tracking-wider">Net Weight(Kg)</Label>
+              <div className="h-9 bg-primary/5 border border-primary/20 rounded-md px-2.5 flex items-center justify-between shadow-xs">
+                <span className="text-[13.5px] font-black text-primary tabular-nums">
+                  {netWeight.toFixed(2)}
+                </span>
+                <span className="text-[9px] font-bold text-primary/50">Kg</span>
+              </div>
+            </div>
 
-      <TableCell className="p-1 w-21.25 border-r border-border/60 text-center align-middle bg-primary/1">
-        <span className="text-[12px] font-bold text-primary tabular-nums leading-none">
-          {Math.max(0, (Number(detail.gross_weight) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)).toFixed(2)}
-        </span>
-      </TableCell>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
+              <div className="relative">
+                <Input type="number"
+                  className="h-9 text-[13px] font-bold bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 pr-7"
+                  value={detail.price ?? ""} disabled={isReadOnly}
+                  onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+                />
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">៛</span>
+              </div>
+            </div>
 
-      <TableCell className="p-1 w-23.75 border-r border-border/60 text-center align-middle">
-        <div className="relative w-full text-center">
-          <Input type="number"
-            className="h-9 text-[12px] font-bold bg-transparent border-none text-center p-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
-            value={detail.price ?? ""}
-            onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-            disabled={isReadOnly}
-          />
-          <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-20">៛</span>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-emerald-700/70 uppercase tracking-wider">Total Amount</Label>
+              <div className="h-9 bg-emerald-50/50 border border-emerald-100 rounded-md px-3 flex items-center justify-between shadow-xs">
+                <span className="text-[12px] font-bold text-emerald-700/50">៛</span>
+                <span className="text-[15px] font-black text-emerald-700 tabular-nums">
+                  {total.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
         </div>
-      </TableCell>
-
-      <TableCell className="p-1 w-32.5 text-right align-middle bg-emerald-50/20 pr-4">
-        <span className="text-[12px] font-bold text-emerald-700 tabular-nums leading-none">
-          ៛{Math.round(Math.max(0, (Number(detail.gross_weight) || 0) - (Number(detail.remork_in_kg) || 0) - (Number(detail.sack_in_kg) || 0)) * (Number(detail.price) || 0)).toLocaleString()}
-        </span>
-        <div className="absolute top-1/2 -translate-y-1/2 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          {!isReadOnly && (
-            <Button type="button" variant="ghost" size="icon" onClick={() => onRemove(index)}
-              className="h-6 w-6 text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
-              <IconX className="size-3" />
-            </Button>
-          )}
-        </div>
-      </TableCell>
-    </TableRow>
+      </div>
+    </div>
   )
 })
 
-PurchaseDetailRow.displayName = "PurchaseDetailRow"
+PurchaseDetailDesktopCard.displayName = "PurchaseDetailDesktopCard"
