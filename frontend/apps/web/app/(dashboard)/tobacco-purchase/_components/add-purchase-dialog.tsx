@@ -20,6 +20,8 @@ import {
   IconSearch,
   IconCheck,
   IconX,
+  IconCamera,
+  IconPhoto,
 } from "@tabler/icons-react"
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
@@ -1033,9 +1035,85 @@ const PurchaseDetailCard = React.memo(({
       </div>
 
       {/* Tobacco item selector & Image */}
-      <div className="px-3 pt-3 pb-3 border-b border-border/30 flex gap-3 items-end">
-        <div className="flex-1 min-w-0">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Tobacco Item</Label>
+      <div className="flex flex-col border-b border-border/30">
+        <div className="flex flex-col items-center justify-center px-3 pt-4 pb-3 border-b border-border/10">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-2 text-center">Item Image</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              {detail.picture ? (
+                <button
+                  type="button"
+                  className="w-32 h-32 bg-white rounded-lg border border-border/60 overflow-hidden group/img relative flex items-center justify-center shadow-xs p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getPictureUrl(detail.picture)}
+                    alt="Tobacco item detail"
+                    className="w-full h-full object-cover group-hover/img:scale-105 transition-all duration-200"
+                  />
+                  {!isReadOnly && (
+                    <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                      <IconPlus className="size-8 text-white" />
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <button type="button" disabled={isReadOnly} className="w-32 h-32 bg-slate-50/50 rounded-lg border border-dashed border-border/60 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
+                  <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
+                </button>
+              )}
+            </PopoverTrigger>
+            <PopoverContent className="w-52 p-1 shadow-2xl border-border/50 z-100" align="center" sideOffset={8}>
+              <div className="flex flex-col">
+                {detail.picture && (
+                  <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
+                    <IconSearch className="size-4" /> View Full Image
+                  </button>
+                )}
+                {!isReadOnly && (
+                  <>
+                    <label className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded cursor-pointer font-medium outline-none focus-within:ring-1 focus-within:ring-primary">
+                      <IconCamera className="size-4 text-primary" /> Take Camera Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onloadend = () => onChange(index, "picture", reader.result as string)
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                      />
+                    </label>
+                    <label className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded cursor-pointer font-medium outline-none focus-within:ring-1 focus-within:ring-primary">
+                      <IconPhoto className="size-4 text-emerald-600" /> Upload Existing
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onloadend = () => onChange(index, "picture", reader.result as string)
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                      />
+                    </label>
+                  </>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        
+        <div className="px-3 pt-3 pb-3">
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5">Tobacco Item</Label>
           <Popover open={open} onOpenChange={(isOpen) => {
             setOpen(isOpen)
             if (!isOpen) {
@@ -1044,7 +1122,7 @@ const PurchaseDetailCard = React.memo(({
             }
           }}>
             <PopoverTrigger asChild>
-              <div className="relative mt-1.5">
+              <div className="relative">
                 <Input
                   placeholder="Search item..."
                   value={search}
@@ -1097,64 +1175,6 @@ const PurchaseDetailCard = React.memo(({
             </PopoverContent>
           </Popover>
         </div>
-        <div className="flex-shrink-0">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5 text-center">Image</Label>
-          {detail.picture ? (
-            <button
-              type="button"
-              onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
-              className="w-12 h-12 bg-white rounded border border-border/60 overflow-hidden group/img relative flex items-center justify-center shadow-xs p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getPictureUrl(detail.picture)}
-                alt="Tobacco item detail"
-                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-200"
-              />
-              {!isReadOnly && (
-                <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
-                  <IconPlus className="size-4.5 text-white" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onloadend = () => {
-                          onChange(index, "picture", reader.result as string)
-                        }
-                        reader.readAsDataURL(file)
-                      }
-                    }}
-                  />
-                </label>
-              )}
-            </button>
-          ) : (
-            <label className="w-12 h-12 bg-slate-50/50 rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
-              <IconPlus className="size-4 text-muted-foreground/20 group-hover/img:text-primary/40" />
-              {!isReadOnly && (
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        onChange(index, "picture", reader.result as string)
-                      }
-                      reader.readAsDataURL(file)
-                    }
-                  }}
-                />
-              )}
-            </label>
-          )}
-        </div>
       </div>
 
       {/* Weight row: G.Weight | Remork | Sack | Borrowed Leaf */}
@@ -1196,12 +1216,8 @@ const PurchaseDetailCard = React.memo(({
         </div>
       </div>
 
-      {/* Footer row: Net Weight | Price | Total */}
+      {/* Footer row: Price | Net Weight | Total */}
       <div className="grid grid-cols-3 divide-x divide-border/30">
-        <div className="px-3 py-2.5 space-y-0.5 bg-primary/2">
-          <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">Net (Kg)</Label>
-          <p className="text-[13px] font-black text-primary tabular-nums">{netWeight.toFixed(2)}</p>
-        </div>
         <div className="px-3 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
           <div className="relative">
@@ -1212,6 +1228,10 @@ const PurchaseDetailCard = React.memo(({
             />
             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
           </div>
+        </div>
+        <div className="px-3 py-2.5 space-y-0.5 bg-primary/2">
+          <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">Net (Kg)</Label>
+          <p className="text-[13px] font-black text-primary tabular-nums">{netWeight.toFixed(2)}</p>
         </div>
         <div className="px-3 py-2.5 space-y-0.5 bg-emerald-50/40">
           <Label className="text-[10px] font-bold text-emerald-700/60 uppercase tracking-wider">Total</Label>
@@ -1454,18 +1474,8 @@ const PurchaseDetailDesktopCard = React.memo(({
             </div>
           </div>
 
-          {/* Row 3: Net Weight, Price, and Total Amount (3 equal columns representing Net Weight x Price = Total Amount) */}
+          {/* Row 3: Price, Net Weight, and Total Amount (3 equal columns representing Price x Net Weight = Total Amount) */}
           <div className="grid grid-cols-3 gap-3 items-end">
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-primary/70 uppercase tracking-wider">Net Weight(Kg)</Label>
-              <div className="h-9 bg-primary/5 border border-primary/20 rounded-md px-2.5 flex items-center justify-between shadow-xs">
-                <span className="text-[13.5px] font-black text-primary tabular-nums">
-                  {netWeight.toFixed(2)}
-                </span>
-                <span className="text-[9px] font-bold text-primary/50">Kg</span>
-              </div>
-            </div>
-
             <div className="space-y-1">
               <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
               <div className="relative">
@@ -1475,6 +1485,16 @@ const PurchaseDetailDesktopCard = React.memo(({
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">៛</span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-primary/70 uppercase tracking-wider">Net Weight(Kg)</Label>
+              <div className="h-9 bg-primary/5 border border-primary/20 rounded-md px-2.5 flex items-center justify-between shadow-xs">
+                <span className="text-[13.5px] font-black text-primary tabular-nums">
+                  {netWeight.toFixed(2)}
+                </span>
+                <span className="text-[9px] font-bold text-primary/50">Kg</span>
               </div>
             </div>
 
