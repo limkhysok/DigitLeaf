@@ -56,6 +56,81 @@ async def _update_sack_registration(db: AsyncSession, vendor: str, net_sack_chan
         db.add(sack_reg)
 
 
+async def _clear_existing_details(db: AsyncSession, tp_id: int) -> float:
+    """Clear existing purchase details and return the total sack weight from those deleted details."""
+    old_result = await db.execute(
+        select(TobaccoPurchaseDetail)
+        .where(TobaccoPurchaseDetail.m_id == tp_id)
+    )
+    old_details = old_result.scalars().all()
+    old_sack_total = sum(d.sack_in_kg or 0.0 for d in old_details)
+
+    for d in old_details:
+        db.expunge(d)
+
+    await db.execute(
+        sa_delete(TobaccoPurchaseDetail).where(col(TobaccoPurchaseDetail.m_id) == tp_id)
+    )
+    await db.flush()
+    return old_sack_total
+
+
+def _process_detail_picture(picture: Optional[str]) -> Optional[str]:
+    """Process detail picture: decode/compress Base64 into WebP, or extract path from existing URLs."""
+    if not picture:
+        return None
+
+    if picture.startswith("data:image/"):
+        import base64
+        import uuid
+        import os
+        import io
+        from PIL import Image
+        from loguru import logger
+        try:
+            _, data_str = picture.split(";base64,")
+            file_data = base64.b64decode(data_str)
+            
+            # Open the image using Pillow
+            img = Image.open(io.BytesIO(file_data))
+            
+            # Convert to RGB color space if it is in RGBA/palette modes
+            if img.mode in ("RGBA", "LA", "P"):
+                img = img.convert("RGB")
+            
+            # Resize/downscale to a max dimension of 1024px while preserving aspect ratio
+            max_dim = 1024
+            if img.width > max_dim or img.height > max_dim:
+                img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+            
+            # Get year and month based on Cambodia TZ to partition subdirectories
+            now = datetime.now(CAMBODIA_TZ)
+            year_str = now.strftime("%Y")
+            month_str = now.strftime("%m")
+            
+            # Ensure subdirectory structure exists (e.g. uploads/2026/05)
+            subfolder_path = os.path.join("uploads", year_str, month_str)
+            os.makedirs(subfolder_path, exist_ok=True)
+            
+            # Save as WebP with 85% quality and compression optimization
+            filename = f"tobacco_detail_{uuid.uuid4().hex}.webp"
+            filepath = os.path.join(subfolder_path, filename)
+            img.save(filepath, "WEBP", quality=85, optimize=True)
+            
+            # Database stores the relative path from the uploads directory
+            return f"{year_str}/{month_str}/{filename}"
+        except Exception as e:
+            logger.error(f"Failed to process and compress uploaded image: {e}")
+            return None
+    else:
+        # If it's an existing image, extract the relative path starting after "uploads/"
+        # to support both flat legacy filenames and partitioned subdirectory paths
+        if "/uploads/" in picture:
+            return picture.split("/uploads/")[-1]
+        else:
+            return picture
+
+
 async def _sync_purchase_details(
     db: AsyncSession,
     db_obj: TobaccoPurchase,
@@ -66,20 +141,7 @@ async def _sync_purchase_details(
 ) -> None:
     old_sack_total = 0.0
     if delete_existing:
-        old_result = await db.execute(
-            select(TobaccoPurchaseDetail)
-            .where(TobaccoPurchaseDetail.m_id == db_obj.tp_id)
-        )
-        old_details = old_result.scalars().all()
-        old_sack_total = sum(d.sack_in_kg or 0.0 for d in old_details)
-
-        for d in old_details:
-            db.expunge(d)
-
-        await db.execute(
-            sa_delete(TobaccoPurchaseDetail).where(col(TobaccoPurchaseDetail.m_id) == db_obj.tp_id)
-        )
-        await db.flush()
+        old_sack_total = await _clear_existing_details(db, db_obj.tp_id)
 
     total_net_weight = 0.0
     grand_total = 0.0
@@ -98,28 +160,7 @@ async def _sync_purchase_details(
         grand_total += total_amount
         new_sack_total += detail_in.sack_in_kg or 0
 
-        picture_val = None
-        if detail_in.picture:
-            if detail_in.picture.startswith("data:image/"):
-                import base64
-                import uuid
-                import os
-                try:
-                    header, data_str = detail_in.picture.split(";base64,")
-                    ext = header.split("/")[-1]
-                    if ";" in ext:
-                        ext = ext.split(";")[0]
-                    file_data = base64.b64decode(data_str)
-                    filename = f"tobacco_detail_{uuid.uuid4().hex}.{ext}"
-                    filepath = os.path.join("uploads", filename)
-                    with open(filepath, "wb") as f:
-                        f.write(file_data)
-                    picture_val = filename
-                except Exception:
-                    picture_val = None
-            else:
-                import os
-                picture_val = os.path.basename(detail_in.picture)
+        picture_val = _process_detail_picture(detail_in.picture)
 
         detail_data = detail_in.model_dump(exclude={"invoice_num", "m_id", "picture"}, exclude_none=True)
         if picture_val:
