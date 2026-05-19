@@ -130,7 +130,7 @@ def _process_detail_picture(picture: Optional[str]) -> Optional[str]:
         import uuid
         import os
         import io
-        from PIL import Image
+        from PIL import Image, ImageOps
         from loguru import logger
         try:
             _, data_str = picture.split(";base64,")
@@ -139,14 +139,17 @@ def _process_detail_picture(picture: Optional[str]) -> Optional[str]:
             # Open the image using Pillow
             img = Image.open(io.BytesIO(file_data))
             
+            # Fix EXIF orientation (auto-rotation from mobile cameras)
+            img = ImageOps.exif_transpose(img)
+            
             # Convert to RGB color space if it is in RGBA/palette modes
             if img.mode in ("RGBA", "LA", "P"):
                 img = img.convert("RGB")
             
-            # Resize/downscale to a max dimension of 1024px while preserving aspect ratio
+            # Crop to a perfect 1:1 square, scaling down if it exceeds 1024px
             max_dim = 1024
-            if img.width > max_dim or img.height > max_dim:
-                img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+            size = min(img.width, img.height, max_dim)
+            img = ImageOps.fit(img, (size, size), Image.Resampling.LANCZOS)
             
             # Get year and month based on Cambodia TZ to partition subdirectories
             now = datetime.now(CAMBODIA_TZ)
@@ -225,13 +228,6 @@ async def _sync_purchase_details(
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
 
-    if db_obj.vendor:
-        active_registered = await get_vendor_total_active_sack_kg(db, db_obj.vendor)
-        total_available = active_registered + old_sack_total
-        if new_sack_total > total_available:
-            raise ValueError(
-                f"Total purchase sack weight ({new_sack_total} Kg) cannot exceed the farmer's total registered sack balance ({round(total_available, 3)} Kg)"
-            )
 
     net_sack_change = new_sack_total - old_sack_total
     if db_obj.vendor and net_sack_change != 0:
