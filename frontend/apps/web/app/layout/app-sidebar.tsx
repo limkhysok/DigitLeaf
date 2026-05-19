@@ -6,6 +6,7 @@ import {
   IconLayoutDashboard,
   IconReceipt,
   IconPackage,
+  IconFileText,
 } from "@tabler/icons-react"
 
 import {
@@ -38,6 +39,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: t.sidebar.tobaccoPurchase,
       url: "/tobacco-purchase",
       icon: IconReceipt,
+    },
+    {
+      title: t.sidebar.farmerContrast,
+      url: "/farmer-contrast",
+      icon: IconFileText,
     },
   ], [t])
 

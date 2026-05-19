@@ -535,6 +535,34 @@ Deletes a sack registration and all associated weigh leaf records.
 
 ---
 
+### GET `/sack-registrations/farmer-contrast`
+Returns a list of member farmers who have a signed contract in the specified year.
+
+**Auth required:** Yes — `login_system` scope
+
+**Query Parameters:**
+| Param | Type | Default | Notes |
+|-------|------|---------|-------|
+| `year` | int | `2026` | Query contracts specifically for this year |
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "mf_con_id": 15,
+    "mf_id": 4,
+    "year": 2026,
+    "name": "Sok Chan",
+    "mf_code": "KP-001",
+    "land": 2.5,
+    "tobac_num": 12000,
+    "expected_yield": 9600.0
+  }
+]
+```
+
+---
+
 ## Tobacco Purchase
 
 ### GET `/tobacco-purchases/purchasers`
@@ -580,7 +608,7 @@ Returns all active tobacco types (category 2, not discontinued).
 ---
 
 ### GET `/tobacco-purchases/vendor-sack`
-Returns the latest pending sack registration balance for a vendor (farmer) by name. Used to auto-populate the sack weight in the purchase dialog.
+Returns the oldest active sack registration weight balance (FIFO) and the total sum of all active registered sack weights for a vendor (farmer) by name. Used to validate and auto-populate weights in the tobacco purchase dialog.
 
 **Auth required:** Yes — `login_system` scope
 
@@ -591,9 +619,13 @@ Returns the latest pending sack registration balance for a vendor (farmer) by na
 
 **Response `200 OK`:**
 ```json
-{ "sack_in_kg": 20.0 }
+{
+  "sack_in_kg": 20.0,
+  "total_sack_in_kg": 50.0
+}
 ```
-`sack_in_kg` is `null` if the farmer has no pending sack registration.
+* `sack_in_kg`: Oldest active pending sack weight registered (FIFO balance, `null` if none).
+* `total_sack_in_kg`: Combined sum of all active pending sack registration weights for this farmer.
 
 ---
 
@@ -644,7 +676,8 @@ Creates a new tobacco purchase header with all line item details in a single tra
       "closing": "NO",
       "buyer": 1,
       "oven": 1,
-      "region": 2
+      "region": 2,
+      "picture": "temp_picture_path.jpg"
     }
   ]
 }
@@ -656,7 +689,8 @@ Creates a new tobacco purchase header with all line item details in a single tra
 - `rate` is required
 - Per detail: `net = gross_weight - remork_in_kg - sack_in_kg`, `total_amount = net × price`
 - `borrowed_leaf_kg` per detail is optional (default `0`) — tracked separately, does not affect net weight
-- `sack_in_kg` is NOT stored per detail in the DB; it is used only for net weight calculation and to update the farmer's sack registration balance
+- `sack_in_kg` is stored per detail in the database, representing the individual empty sack weight deduction consumed by this item line.
+- `picture` is an optional string field to associate a photo or upload reference with the item line.
 - **Sack registration deduction**: after saving, the total `sack_in_kg` across all details is summed and deducted from the farmer's pending sack registration balance. If the remaining balance reaches `0`, the registration status becomes `1` (Approved). If balance is still positive, status stays `0` (Pending). On update, the old sack values are restored first before applying the new deduction.
 
 **Response `200 OK`:**
@@ -694,6 +728,8 @@ Creates a new tobacco purchase header with all line item details in a single tra
       "region": 2,
       "m_id": 1,
       "total_amount": 102000.0,
+      "sack_in_kg": 2.0,
+      "picture": "temp_picture_path.jpg",
       "user": "johndoe",
       "do_date": "2026-05-11T08:00:00+07:00"
     }

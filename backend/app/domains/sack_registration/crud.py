@@ -268,3 +268,35 @@ async def update(
 async def delete(session: AsyncSession, record: SackRegistration) -> None:
     await session.delete(record)
     await session.commit()
+
+
+async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[dict]:
+    stmt = (
+        select(
+            col(MfConYear.mf_con_id),
+            col(MfConYear.mf_id),
+            col(MfConYear.year),
+            col(MemberFarmer.name),
+            col(MemberFarmer.mf_code),
+            col(MfConYear.land),
+            col(MfConYear.tobac_num),
+        )
+        .join(MemberFarmer, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
+        .where(col(MfConYear.year) == year)
+        .order_by(col(MfConYear.mf_con_id).desc())
+    )
+    result = await session.execute(stmt)
+    rows = result.all()
+    return [
+        {
+            "mf_con_id": r[0],
+            "mf_id": r[1],
+            "year": r[2],
+            "name": r[3],
+            "mf_code": r[4],
+            "land": r[5],
+            "tobac_num": r[6],
+            "expected_yield": round(r[6] * 0.8, 2) if r[6] is not None else None,
+        }
+        for r in rows
+    ]

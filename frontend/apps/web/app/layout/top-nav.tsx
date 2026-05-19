@@ -27,6 +27,7 @@ export function TopNav() {
     'dashboard': t.sidebar.dashboard,
     'sack-registration': t.sidebar.sackRegistration,
     'tobacco-purchase': t.sidebar.tobaccoPurchase,
+    'farmer-contrast': t.sidebar.farmerContrast,
     'profile': t.profile.title,
   }), [t])
 
