@@ -119,6 +119,7 @@ export function AddPurchaseDialog({
   tobaccoTypes,
 }: Readonly<AddPurchaseDialogProps>) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [previewImage, setPreviewImage] = React.useState<string | null>(null)
   const [vendors, setVendors] = React.useState<MemberFarmerItem[]>([])
   const [isVendorsLoading, setIsVendorsLoading] = React.useState(false)
   const [dateDisplay, setDateDisplay] = React.useState("")
@@ -382,7 +383,8 @@ export function AddPurchaseDialog({
   const { title, description } = getDialogLabels(isReadOnly, initialData)
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <>
+      <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -742,6 +744,7 @@ export function AddPurchaseDialog({
                     tobaccoTypes={tobaccoTypes}
                     onRemove={handleRemoveDetail}
                     onChange={handleDetailChange}
+                    onPreviewImage={setPreviewImage}
                   />
                 ))}
               </div>
@@ -800,6 +803,7 @@ export function AddPurchaseDialog({
                     tobaccoTypes={tobaccoTypes}
                     onRemove={handleRemoveDetail}
                     onChange={handleDetailChange}
+                    onPreviewImage={setPreviewImage}
                   />
                 ))}
               </div>
@@ -844,7 +848,7 @@ export function AddPurchaseDialog({
                         Tobacco Item
                       </div>
                     </TableHead>
-                    <TableHead className="w-13 text-[13px] font-bold text-center border-r border-border/60">Image</TableHead>
+                    <TableHead className="w-17 text-[13px] font-bold text-center border-r border-border/60">Image</TableHead>
                     <TableHead className="w-25.5 text-[13px] font-bold text-center border-r border-border/60">G Weight(Kg)</TableHead>
                     <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Remork(Kg)</TableHead>
                     <TableHead className="w-22.5 text-[13px] font-bold text-center border-r border-border/60">Sack(Kg)</TableHead>
@@ -866,6 +870,7 @@ export function AddPurchaseDialog({
                         tobaccoTypes={tobaccoTypes}
                         onRemove={handleRemoveDetail}
                         onChange={handleDetailChange}
+                        onPreviewImage={setPreviewImage}
                       />
                     ))
                   ) : (
@@ -950,13 +955,37 @@ export function AddPurchaseDialog({
         </form>
       </DialogContent>
     </Dialog>
+    {previewImage && (
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-2xl flex items-center justify-center z-120">
+          <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
+          <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
+          <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-lg bg-black/90 p-1.5 flex items-center justify-center group/preview">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewImage}
+              alt="Tobacco Purchase Detail"
+              className="max-h-[80vh] max-w-full object-contain rounded-md select-none"
+            />
+            <button
+              type="button"
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 hover:scale-105 active:scale-95 transition-all animate-in fade-in duration-200"
+            >
+              <IconX className="size-5" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   )
 }
 
 // ─── PurchaseDetailCard — mobile & tablet card layout ────────────────────────
 
 const PurchaseDetailCard = React.memo(({
-  detail, index, isReadOnly, tobaccoTypes, onRemove, onChange
+  detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
 }: {
   detail: Partial<TobaccoPurchaseDetail> & { tempId: string }
   index: number
@@ -964,6 +993,7 @@ const PurchaseDetailCard = React.memo(({
   tobaccoTypes: TobaccoItem[]
   onRemove: (idx: number) => void
   onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+  onPreviewImage: (url: string) => void
 }) => {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState(() => {
@@ -1064,31 +1094,61 @@ const PurchaseDetailCard = React.memo(({
         </div>
         <div className="flex-shrink-0">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5 text-center">Image</Label>
-          <label className="w-9 h-9 bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
-            {detail.picture ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={getPictureUrl(detail.picture)} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <IconPlus className="size-3.5 text-muted-foreground/20 group-hover/img:text-primary/40" />
-            )}
-            {!isReadOnly && (
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    const reader = new FileReader()
-                    reader.onloadend = () => {
-                      onChange(index, "picture", reader.result as string)
-                    }
-                    reader.readAsDataURL(file)
-                  }
-                }}
+          {detail.picture ? (
+            <button
+              type="button"
+              onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
+              className="w-12 h-12 bg-white rounded border border-border/60 overflow-hidden group/img relative flex items-center justify-center shadow-xs p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getPictureUrl(detail.picture)}
+                alt="Tobacco item detail"
+                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-200"
               />
-            )}
-          </label>
+              {!isReadOnly && (
+                <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
+                  <IconPlus className="size-4.5 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const reader = new FileReader()
+                        reader.onloadend = () => {
+                          onChange(index, "picture", reader.result as string)
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }}
+                  />
+                </label>
+              )}
+            </button>
+          ) : (
+            <label className="w-12 h-12 bg-slate-50/50 rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
+              <IconPlus className="size-4 text-muted-foreground/20 group-hover/img:text-primary/40" />
+              {!isReadOnly && (
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onloadend = () => {
+                        onChange(index, "picture", reader.result as string)
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                  }}
+                />
+              )}
+            </label>
+          )}
         </div>
       </div>
 
@@ -1160,17 +1220,18 @@ const PurchaseDetailCard = React.memo(({
 
 PurchaseDetailCard.displayName = "PurchaseDetailCard"
 
-// ─── PurchaseDetailRow — desktop table row (unchanged) ───────────────────────
+// ─── PurchaseDetailRow — desktop table row ───────────────────────────────────
 
 const PurchaseDetailRow = React.memo(({
-  detail, index, isReadOnly, tobaccoTypes, onRemove, onChange
+  detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
 }: {
   detail: Partial<TobaccoPurchaseDetail>,
   index: number,
   isReadOnly?: boolean,
   tobaccoTypes: TobaccoItem[],
   onRemove: (idx: number) => void,
-  onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+  onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void,
+  onPreviewImage: (url: string) => void
 }) => {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState(() => {
@@ -1241,33 +1302,63 @@ const PurchaseDetailRow = React.memo(({
         </Popover>
       </TableCell>
 
-      <TableCell className="p-1 w-15 border-r border-border/60 align-middle">
+      <TableCell className="p-1 w-17 border-r border-border/60 align-middle">
         <div className="flex justify-center">
-          <label className="w-8 aspect-square bg-white rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
-            {detail.picture ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={getPictureUrl(detail.picture)} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <IconPlus className="size-3 text-muted-foreground/20 group-hover/img:text-primary/40" />
-            )}
-            {!isReadOnly && (
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    const reader = new FileReader()
-                    reader.onloadend = () => {
-                      onChange(index, "picture", reader.result as string)
-                    }
-                    reader.readAsDataURL(file)
-                  }
-                }}
+          {detail.picture ? (
+            <button
+              type="button"
+              onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
+              className="w-12 h-12 bg-white rounded border border-border/60 overflow-hidden group/img relative flex items-center justify-center shadow-xs p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getPictureUrl(detail.picture)}
+                alt="Tobacco item detail"
+                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-200"
               />
-            )}
-          </label>
+              {!isReadOnly && (
+                <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
+                  <IconPlus className="size-4.5 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const reader = new FileReader()
+                        reader.onloadend = () => {
+                          onChange(index, "picture", reader.result as string)
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }}
+                  />
+                </label>
+              )}
+            </button>
+          ) : (
+            <label className="w-12 h-12 bg-slate-50/50 rounded border border-dashed border-border/60 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
+              <IconPlus className="size-4 text-muted-foreground/20 group-hover/img:text-primary/40" />
+              {!isReadOnly && (
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onloadend = () => {
+                        onChange(index, "picture", reader.result as string)
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                  }}
+                />
+              )}
+            </label>
+          )}
         </div>
       </TableCell>
 
