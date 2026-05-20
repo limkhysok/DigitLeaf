@@ -1,4 +1,5 @@
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Literal, Optional
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Security, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
@@ -89,10 +90,27 @@ async def list_purchases(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 50,
     search: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    buyer: Optional[int] = None,
+    region: Optional[int] = None,
+    sort_grand_total: Optional[Literal["asc", "desc"]] = None,
+    sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ):
-    items, total = await crud.get_purchases(db=session, skip=skip, limit=limit, search=search)
+    items, total = await crud.get_purchases(
+        db=session,
+        skip=skip,
+        limit=limit,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
+        buyer=buyer,
+        region=region,
+        sort_grand_total=sort_grand_total,
+        sort_net_weight=sort_net_weight,
+    )
     return schemas.PurchaseList(items=items, total=total)  # type: ignore[arg-type]
 
 

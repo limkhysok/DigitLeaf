@@ -1,4 +1,5 @@
-from typing import List, Optional, Tuple
+from typing import List, Literal, Optional, Tuple
+from datetime import date
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -279,19 +280,45 @@ async def get_purchases(
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    buyer: Optional[int] = None,
+    region: Optional[int] = None,
+    sort_grand_total: Optional[Literal["asc", "desc"]] = None,
+    sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ) -> Tuple[List[TobaccoPurchase], int]:
     base = select(TobaccoPurchase)
     if search:
         base = base.where(
             col(TobaccoPurchase.invoice_num).contains(search) | col(TobaccoPurchase.vendor).contains(search)
         )
+    if date_from is not None:
+        base = base.where(col(TobaccoPurchase.tp_date) >= date_from)
+    if date_to is not None:
+        base = base.where(col(TobaccoPurchase.tp_date) <= date_to)
+    if buyer is not None:
+        base = base.where(col(TobaccoPurchase.buyer) == buyer)
+    if region is not None:
+        base = base.where(col(TobaccoPurchase.region) == region)
 
     count_statement = select(func.count()).select_from(base.subquery())
     total = await db.scalar(count_statement)
 
+    # Determine ordering
+    if sort_grand_total == "asc":
+        order_col = col(TobaccoPurchase.grand_total).asc()
+    elif sort_grand_total == "desc":
+        order_col = col(TobaccoPurchase.grand_total).desc()
+    elif sort_net_weight == "asc":
+        order_col = col(TobaccoPurchase.total_net_weight).asc()
+    elif sort_net_weight == "desc":
+        order_col = col(TobaccoPurchase.total_net_weight).desc()
+    else:
+        order_col = col(TobaccoPurchase.tp_id).desc()
+
     fetch_statement = (
         base.options(selectinload(TobaccoPurchase.details))  # type: ignore[arg-type]
-        .order_by(col(TobaccoPurchase.tp_id).desc())
+        .order_by(order_col)
         .offset(skip)
         .limit(limit)
     )
@@ -299,6 +326,7 @@ async def get_purchases(
     items = list(result.scalars().all())
 
     return items, total or 0
+
 
 
 async def update_purchase(

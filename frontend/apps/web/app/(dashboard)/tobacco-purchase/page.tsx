@@ -11,15 +11,14 @@ import {
   TobaccoItem,
 } from "@/lib/api-client"
 import { toast } from "sonner"
-import {
-  IconEdit, IconEye, IconLoader2, IconTrash,
-} from "@tabler/icons-react"
-import { Card, CardContent } from "@workspace/ui/components/card"
+import { IconLoader2 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { AddPurchaseDialog } from "./_components/add-purchase-dialog"
-import { TobaccoPurchaseCard } from "./_components/tobacco-purchase-card"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
+import { MobileView } from "./_components/mobile-view"
+import { TabletView } from "./_components/tablet-view"
+import { DesktopView } from "./_components/desktop-view"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +30,25 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 
+const PAGE_SIZE = 50
+
+type SortDir = "asc" | "desc" | null
+
+function nextSortDir(prev: SortDir): SortDir {
+  if (prev === "desc") return "asc"
+  if (prev === "asc") return null
+  return "desc"
+}
+
+function getPageNumbers(totalPages: number, page: number): number[] {
+  const count = Math.min(totalPages, 5)
+  return Array.from({ length: count }, (_, i) => {
+    if (totalPages <= 5 || page < 3) return i
+    if (page > totalPages - 4) return totalPages - 5 + i
+    return page - 2 + i
+  })
+}
+
 export default function TobaccoPurchasePage() {
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => {
@@ -40,6 +58,7 @@ export default function TobaccoPurchasePage() {
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const [records, setRecords] = React.useState<TobaccoPurchase[]>([])
+  const [total, setTotal] = React.useState(0)
   const [isLoading, setIsLoading] = React.useState(true)
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedRecord, setSelectedRecord] = React.useState<TobaccoPurchase | null>(null)
@@ -47,40 +66,94 @@ export default function TobaccoPurchasePage() {
   const [deleteId, setDeleteId] = React.useState<number | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [view, setView] = React.useState<"list" | "grid">("list")
+
+  // ── Search ──────────────────────────────────────────────────────────────────
   const [searchInput, setSearchInput] = React.useState("")
   const [search, setSearch] = React.useState("")
+  React.useEffect(() => {
+    const t = setTimeout(() => { setSearch(searchInput); setPage(0) }, 400)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
+  // ── Filters ─────────────────────────────────────────────────────────────────
+  const [dateFrom, setDateFrom] = React.useState("")
+  const [dateTo, setDateTo] = React.useState("")
+  const [buyerFilter, setBuyerFilter] = React.useState<number | null>(null)
+  const [regionFilter, setRegionFilter] = React.useState<number | null>(null)
+  const [ovenFilter, setOvenFilter] = React.useState<number | null>(null) // client-side only
+
+  // ── Sort ────────────────────────────────────────────────────────────────────
+  const [sortGrandTotal, setSortGrandTotal] = React.useState<SortDir>(null)
+  const [sortNetWeight, setSortNetWeight] = React.useState<SortDir>(null)
+
+  const handleToggleSort = (col: "grand_total" | "net_weight") => {
+    if (col === "grand_total") {
+      setSortGrandTotal(prev => nextSortDir(prev))
+      setSortNetWeight(null)
+    } else {
+      setSortNetWeight(prev => nextSortDir(prev))
+      setSortGrandTotal(null)
+    }
+    setPage(0)
+  }
+
+  // ── Pagination ──────────────────────────────────────────────────────────────
+  const [page, setPage] = React.useState(0)
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  // ── Lookup data ─────────────────────────────────────────────────────────────
   const [purchasers, setPurchasers] = React.useState<PurchaserItem[]>([])
   const [regions, setRegions] = React.useState<RegionItem[]>([])
   const [ovens, setOvens] = React.useState<OvenItem[]>([])
   const [tobaccoTypes, setTobaccoTypes] = React.useState<TobaccoItem[]>([])
+  const lookupsLoaded = React.useRef(false)
 
-  React.useEffect(() => {
-    const t = setTimeout(() => setSearch(searchInput), 300)
-    return () => clearTimeout(t)
-  }, [searchInput])
-
+  // ── Fetch ────────────────────────────────────────────────────────────────────
   const fetchRecords = React.useCallback(async () => {
     if (!tokens?.access_token) return
+    setIsLoading(true)
     try {
-      const [pData, rData, oData, tData, recData] = await Promise.all([
-        apiClient.getPurchasers(tokens.access_token),
-        apiClient.getRegions(tokens.access_token),
-        apiClient.getOvens(tokens.access_token),
-        apiClient.getTobaccoTypes(tokens.access_token),
-        apiClient.getTobaccoPurchases(tokens.access_token)
-      ])
-      setPurchasers(pData)
-      setRegions(rData)
-      setOvens(oData)
-      setTobaccoTypes(tData)
+      const promises: Promise<unknown>[] = [
+        apiClient.getTobaccoPurchases(tokens.access_token, {
+          skip: page * PAGE_SIZE,
+          limit: PAGE_SIZE,
+          search: search || undefined,
+          date_from: dateFrom || undefined,
+          date_to: dateTo || undefined,
+          buyer: buyerFilter ?? undefined,
+          region: regionFilter ?? undefined,
+          sort_grand_total: sortGrandTotal ?? undefined,
+          sort_net_weight: sortNetWeight ?? undefined,
+        }),
+      ]
+
+      if (!lookupsLoaded.current) {
+        promises.push(
+          apiClient.getPurchasers(tokens.access_token),
+          apiClient.getRegions(tokens.access_token),
+          apiClient.getOvens(tokens.access_token),
+          apiClient.getTobaccoTypes(tokens.access_token),
+        )
+      }
+
+      const results = await Promise.all(promises)
+      const recData = results[0] as Awaited<ReturnType<typeof apiClient.getTobaccoPurchases>>
       setRecords(recData.items)
+      setTotal(recData.total)
+
+      if (!lookupsLoaded.current) {
+        setPurchasers(results[1] as PurchaserItem[])
+        setRegions(results[2] as RegionItem[])
+        setOvens(results[3] as OvenItem[])
+        setTobaccoTypes(results[4] as TobaccoItem[])
+        lookupsLoaded.current = true
+      }
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
       setIsLoading(false)
     }
-  }, [tokens])
+  }, [tokens, page, search, dateFrom, dateTo, buyerFilter, regionFilter, sortGrandTotal, sortNetWeight])
 
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
@@ -88,6 +161,7 @@ export default function TobaccoPurchasePage() {
     return () => clearTimeout(timer)
   }, [isAuthLoading, tokens, fetchRecords])
 
+  // ── Actions ──────────────────────────────────────────────────────────────────
   const openRecord = React.useCallback(async (record: TobaccoPurchase, viewOnly: boolean) => {
     if (!tokens?.access_token) return
     try {
@@ -126,21 +200,34 @@ export default function TobaccoPurchasePage() {
 
   if (!mounted) return null
 
-  const q = search.toLowerCase()
-  const filteredRecords = search
-    ? records.filter(r =>
-      (r.invoice_num?.toLowerCase().includes(q)) ||
-      (r.vendor?.toLowerCase().includes(q)) ||
-      (purchasers.find(p => p.p_id === r.buyer)?.p_name?.toLowerCase().includes(q))
-    )
-    : records
+  // ── Derived state ─────────────────────────────────────────────────────────────
+  const filteredRecords = ovenFilter === null
+    ? records
+    : records.filter(r => r.oven === ovenFilter)
+
+  const pageNumbers = getPageNumbers(totalPages, page)
+
+  // ── Shared props ──────────────────────────────────────────────────────────────
+  const sharedFilterProps = {
+    purchasers, regions, ovens,
+    buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v); setPage(0) },
+    regionFilter, setRegionFilter: (v: number | null) => { setRegionFilter(v); setPage(0) },
+    ovenFilter, setOvenFilter,
+    dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(0) },
+    dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(0) },
+  }
+
+  const sharedCardProps = {
+    records: filteredRecords,
+    purchasers, ovens,
+    onEdit: handleEdit,
+    onDelete: (id: number) => setDeleteId(id),
+  }
 
   return (
     <div className="flex flex-col gap-4">
 
-      {/* ════════════════════════════════════════════════════════════════════
-          HEADER — shared across all breakpoints
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="text-xl font-medium text-foreground whitespace-nowrap">Tobacco Purchase</h1>
@@ -150,18 +237,16 @@ export default function TobaccoPurchasePage() {
         </div>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          MOBILE FILTER BAR — (< 768px / below md)
-      ════════════════════════════════════════════════════════════════════ */}
+
+      {/* ── Mobile filter bar (<md) ── */}
       <MobileFilterBar
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         onAdd={handleAddNew}
+        {...sharedFilterProps}
       />
 
-      {/* ════════════════════════════════════════════════════════════════════
-          TABLET FILTER BAR — (768px – 1023px / md → lg)
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Tablet filter bar (md→lg) ── */}
       <FilterBar
         className="hidden md:flex lg:hidden"
         searchClassName="min-w-36 max-w-56"
@@ -170,11 +255,10 @@ export default function TobaccoPurchasePage() {
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         onAdd={handleAddNew}
+        {...sharedFilterProps}
       />
 
-      {/* ════════════════════════════════════════════════════════════════════
-          DESKTOP FILTER BAR — (≥ 1024px / lg and above)
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Desktop filter bar (≥lg) ── */}
       <FilterBar
         className="hidden lg:flex"
         searchClassName="min-w-40 max-w-xs"
@@ -183,171 +267,86 @@ export default function TobaccoPurchasePage() {
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         onAdd={handleAddNew}
+        {...sharedFilterProps}
       />
 
-      {/* ════════════════════════════════════════════════════════════════════
-          LOADING / EMPTY STATES — shared
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Loading ── */}
       {isLoading && (
         <div className="flex items-center justify-center h-40">
           <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
+
+      {/* ── Empty state ── */}
       {!isLoading && filteredRecords.length === 0 && (
         <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-          {search ? "No records match your search." : "No records found."}
+          No records match your filters.
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          MOBILE CONTENT — (< 768px / below md)
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Mobile view (<md) ── */}
       {!isLoading && filteredRecords.length > 0 && (
-        <div className="grid md:hidden grid-cols-1 gap-3">
-          {filteredRecords.map((rec, index) => (
-            <TobaccoPurchaseCard
-              key={rec.tp_id}
-              rec={rec}
-              index={index}
-              purchaser={purchasers.find(p => p.p_id === rec.buyer)}
-              region={regions.find(r => r.reg_id === rec.region)}
-              oven={ovens.find(o => o.id === rec.oven)}
-              onEdit={handleEdit}
-              onDelete={(id) => setDeleteId(id)}
-            />
-          ))}
-        </div>
+        <MobileView {...sharedCardProps} />
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          TABLET CONTENT — (768px – 1023px / md → lg)
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Tablet view (md→lg) ── */}
       {!isLoading && filteredRecords.length > 0 && (
-        <div className="hidden md:grid lg:hidden grid-cols-2 gap-3">
-          {filteredRecords.map((rec, index) => (
-            <TobaccoPurchaseCard
-              key={rec.tp_id}
-              rec={rec}
-              index={index}
-              purchaser={purchasers.find(p => p.p_id === rec.buyer)}
-              region={regions.find(r => r.reg_id === rec.region)}
-              oven={ovens.find(o => o.id === rec.oven)}
-              onEdit={handleEdit}
-              onDelete={(id) => setDeleteId(id)}
-            />
-          ))}
-        </div>
+        <TabletView {...sharedCardProps} />
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          DESKTOP CONTENT — (≥ 1024px / lg and above)
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* ── Desktop view (≥lg) ── */}
       {!isLoading && filteredRecords.length > 0 && (
-        <div className="hidden lg:block">
-          {view === "list" ? (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-[#F9FAFB] border-gray-200">
-                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">No.</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Invoice</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Date</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Buyer</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Vendor</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Region</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Oven</th>
-                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Items</th>
-                        <th className="px-4 py-3 text-right font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Net Weight</th>
-                        <th className="px-4 py-3 text-right font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Grand Total</th>
-                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-10">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRecords.map((rec, index) => {
-                        const purchaser = purchasers.find(p => p.p_id === rec.buyer)
-                        const region = regions.find(r => r.reg_id === rec.region)
-                        const oven = ovens.find(o => o.id === rec.oven)
-                        return (
-                          <tr
-                            key={rec.tp_id}
-                            className={cn(
-                              "group/row border-b border-gray-200 last:border-0 hover:bg-[#F9FAFB] transition-colors",
-                              index % 2 === 1 && "bg-[#F9FAFB]/60"
-                            )}
-                          >
-                            <td className="px-4 py-3 text-center text-[#9CA3AF] text-xs">{index + 1}</td>
-                            <td className="px-4 py-3 font-mono text-[13px] font-semibold text-[#111827]">{rec.invoice_num}</td>
-                            <td className="px-4 py-3 text-[13px] text-[#9CA3AF] whitespace-nowrap">{rec.tp_date || "-"}</td>
-                            <td className="px-4 py-3 text-[#111827] font-semibold">{purchaser?.p_name || "-"}</td>
-                            <td className="px-4 py-3 text-[#374151]">{rec.vendor || "-"}</td>
-                            <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{region?.reg_name || "-"}</td>
-                            <td className="px-4 py-3 text-[#6B7280] text-xs font-medium">{oven?.name_en || "-"}</td>
-                            <td className="px-4 py-3 text-center">
-                              {rec.tobacco_item_count == null ? (
-                                <span className="text-[#9CA3AF] text-xs">-</span>
-                              ) : (
-                                <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-[#F3F4F6] text-[#374151] text-[11px] font-bold">
-                                  {rec.tobacco_item_count}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-right text-[13px] font-bold text-[#111827] tabular-nums">
-                              {rec.total_net_weight == null ? "-" : rec.total_net_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </td>
-                            <td className="px-4 py-3 text-right text-[13px] font-black text-[#009640] tabular-nums">
-                              {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center justify-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                                <button
-                                  onClick={() => handleView(rec)}
-                                  className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
-                                >
-                                  <IconEye className="size-4" stroke={1.5} />
-                                </button>
-                                <button
-                                  onClick={() => handleEdit(rec)}
-                                  className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
-                                >
-                                  <IconEdit className="size-4" stroke={1.5} />
-                                </button>
-                                <button
-                                  onClick={() => setDeleteId(rec.tp_id)}
-                                  className="p-1 rounded-md hover:bg-rose-50 text-[#9CA3AF] hover:text-rose-600 transition-colors"
-                                >
-                                  <IconTrash className="size-4" stroke={1.5} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-3 xl:grid-cols-4 gap-3">
-              {filteredRecords.map((rec, index) => (
-                <TobaccoPurchaseCard
-                  key={rec.tp_id}
-                  rec={rec}
-                  index={index}
-                  purchaser={purchasers.find(p => p.p_id === rec.buyer)}
-                  region={regions.find(r => r.reg_id === rec.region)}
-                  oven={ovens.find(o => o.id === rec.oven)}
-                  onEdit={handleEdit}
-                  onDelete={(id) => setDeleteId(id)}
-                />
-              ))}
-            </div>
-          )}
+        <DesktopView
+          {...sharedCardProps}
+          view={view}
+          page={page}
+          sortGrandTotal={sortGrandTotal}
+          sortNetWeight={sortNetWeight}
+          onToggleSort={handleToggleSort}
+          onView={handleView}
+        />
+      )}
+
+      {/* ── Pagination ── */}
+      {!isLoading && total > PAGE_SIZE && (
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <p className="text-xs text-muted-foreground">
+            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total.toLocaleString()}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              disabled={page === 0}
+              onClick={() => setPage(p => p - 1)}
+              className="h-8 px-3 rounded-full border border-border text-xs font-medium transition-all disabled:opacity-40 hover:bg-muted"
+            >
+              ← Prev
+            </button>
+            {pageNumbers.map(pageNum => (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={cn(
+                  "h-8 w-8 rounded-full border text-xs font-medium transition-all",
+                  page === pageNum
+                    ? "border-[#009640] bg-[#009640] text-white"
+                    : "border-border hover:bg-muted"
+                )}
+              >
+                {pageNum + 1}
+              </button>
+            ))}
+            <button
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage(p => p + 1)}
+              className="h-8 px-3 rounded-full border border-border text-xs font-medium transition-all disabled:opacity-40 hover:bg-muted"
+            >
+              Next →
+            </button>
+          </div>
         </div>
       )}
 
+      {/* ── Dialogs ── */}
       <AddPurchaseDialog
         open={dialogOpen}
         onClose={() => {

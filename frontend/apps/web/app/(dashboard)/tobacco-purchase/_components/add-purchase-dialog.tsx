@@ -204,21 +204,27 @@ export function AddPurchaseDialog({
     }
   }, [purchasers, regions, ovens, accessToken])
 
+  // Populate or reset whenever the dialog opens or the record being edited changes.
+  // Using initialData directly as the dependency (not a ref guard) so switching
+  // from record A → record B always re-populates correctly.
   React.useEffect(() => {
-    if (open && !initialized.current) {
-      const timer = setTimeout(() => {
-        if (initialData) populateForm(initialData)
-        else resetForm()
-      }, 0)
-      initialized.current = true
-      return () => clearTimeout(timer)
-    } else if (!open) {
+    if (!open) {
       initialized.current = false
+      return
+    }
+    if (initialized.current) return
+    initialized.current = true
+    if (initialData) {
+      populateForm(initialData)
+    } else {
+      resetForm()
     }
   }, [open, initialData, populateForm, resetForm])
 
+  // Auto-fetch sack weight only when creating a NEW record (no initialData).
+  // Skip this for edit mode — we must preserve the sack_in_kg values from the DB.
   React.useEffect(() => {
-    if (!vendor || isReadOnly) return
+    if (!vendor || isReadOnly || initialData) return
 
     let active = true
     async function fetchSackWeight() {
@@ -226,18 +232,15 @@ export function AddPurchaseDialog({
         const { sack_in_kg } = await apiClient.getVendorSack(accessToken, vendor)
         if (active) {
           setDetails(prev => updateDetailsSackWeight(prev, sack_in_kg ?? 0))
-
         }
       } catch {
-        // ignore error
+        // ignore
       }
     }
 
     fetchSackWeight()
-    return () => {
-      active = false
-    }
-  }, [vendor, accessToken, isReadOnly])
+    return () => { active = false }
+  }, [vendor, accessToken, isReadOnly, initialData])
 
   const handleAddDetail = React.useCallback(() => {
     setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0 }])
