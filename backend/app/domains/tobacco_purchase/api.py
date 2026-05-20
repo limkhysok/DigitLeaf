@@ -85,6 +85,7 @@ async def create_purchase(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+
 @router.get("/", response_model=schemas.PurchaseList)
 async def list_purchases(
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -95,7 +96,6 @@ async def list_purchases(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     buyer: Optional[int] = None,
-    region: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ):
@@ -107,7 +107,6 @@ async def list_purchases(
         date_from=date_from,
         date_to=date_to,
         buyer=buyer,
-        region=region,
         sort_grand_total=sort_grand_total,
         sort_net_weight=sort_net_weight,
     )

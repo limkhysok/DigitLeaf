@@ -7,26 +7,29 @@ import {
   IconTrash,
   IconUser,
   IconBuildingStore,
-  IconFileText
+  IconFileText,
+  IconFlame
 } from "@tabler/icons-react"
-import { TobaccoPurchase, PurchaserItem } from "@/lib/api-client"
+import { TobaccoPurchase, PurchaserItem, OvenItem } from "@/lib/api-client"
+import { formatPurchaseDate } from "./utils"
 
 interface TobaccoPurchaseCardProps {
   rec: TobaccoPurchase
   index: number
   purchaser?: PurchaserItem
+  oven?: OvenItem
   onEdit: (rec: TobaccoPurchase) => void
   onDelete: (id: number) => void
 }
 
 export const TobaccoPurchaseCard = React.memo(({
-  rec, index, purchaser, onEdit, onDelete
+  rec, index, purchaser, oven, onEdit, onDelete
 }: TobaccoPurchaseCardProps) => {
   return (
     <div className="group relative flex flex-col justify-between rounded-xl bg-white border border-slate-200 hover:border-emerald-500 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden p-4">
       
       {/* Top Header section */}
-      <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="flex items-center justify-between gap-3 mb-1.5">
         {/* Invoice ID */}
         <div className="flex items-center gap-1.5 min-w-0">
           <IconFileText className="size-4.5 text-emerald-600 shrink-0" stroke={2} />
@@ -50,6 +53,14 @@ export const TobaccoPurchaseCard = React.memo(({
             <IconTrash className="size-4" stroke={1.5} />
           </button>
         </div>
+      </div>
+
+      {/* Date display under header */}
+      <div className="flex items-center gap-1.5 mb-2.5 px-2 py-0.5 rounded bg-slate-50 border border-slate-200/60 text-slate-600 w-fit">
+        <IconCalendar className="size-3.5 text-blue-500 shrink-0" stroke={2} />
+        <span className="text-[10.5px] font-bold tracking-wide">
+          {formatPurchaseDate(rec.tp_date, rec.do_date)}
+        </span>
       </div>
 
       {/* Optimized Content Body: 2 Columns Side-by-Side to reduce height */}
@@ -78,24 +89,24 @@ export const TobaccoPurchaseCard = React.memo(({
           </div>
         </div>
 
-        {/* Right Column: Date & Items */}
+        {/* Right Column: Items & Oven */}
         <div className="space-y-2 min-w-0 border-l border-slate-100 pl-3">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <IconCalendar className="size-4 text-blue-500 shrink-0" stroke={2} />
-            <div className="min-w-0">
-              <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">Date</span>
-              <span className="text-xs font-medium text-slate-755 truncate block mt-0.5">
-                {rec.tp_date ? String(rec.tp_date) : "—"}
-              </span>
-            </div>
-          </div>
-
           <div className="flex items-center gap-1.5 min-w-0">
             <IconPackage className="size-4 text-emerald-500 shrink-0" stroke={2} />
             <div className="min-w-0">
               <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">Items</span>
               <span className="text-xs font-bold text-slate-755 block mt-0.5">
                 {rec.tobacco_item_count ?? 0} Items
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 min-w-0">
+            <IconFlame className="size-4 text-orange-500 shrink-0" stroke={2} />
+            <div className="min-w-0">
+              <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">Oven</span>
+              <span className="text-xs font-medium text-slate-700 truncate block mt-0.5">
+                {oven?.name_en || "—"}
               </span>
             </div>
           </div>

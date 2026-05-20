@@ -23,6 +23,7 @@ export function MobileView({
           rec={rec}
           index={index}
           purchaser={purchasers.find(p => p.p_id === rec.buyer)}
+          oven={ovens.find(o => o.id === rec.oven)}
           onEdit={onEdit}
           onDelete={onDelete}
         />

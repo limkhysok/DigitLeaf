@@ -7,7 +7,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
-import type { PurchaserItem, RegionItem, OvenItem } from "@/lib/api-client"
+import type { PurchaserItem } from "@/lib/api-client"
 
 function buildDateLabel(dateFrom: string, dateTo: string): string {
   if (dateFrom && dateTo) return `${dateFrom} → ${dateTo}`
@@ -20,14 +20,8 @@ interface MobileFilterBarProps {
   setSearchInput: (v: string) => void
   onAdd: () => void
   purchasers: PurchaserItem[]
-  regions: RegionItem[]
-  ovens: OvenItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
-  regionFilter: number | null
-  setRegionFilter: (v: number | null) => void
-  ovenFilter: number | null
-  setOvenFilter: (v: number | null) => void
   dateFrom: string
   setDateFrom: (v: string) => void
   dateTo: string
@@ -36,10 +30,8 @@ interface MobileFilterBarProps {
 
 export function MobileFilterBar({
   searchInput, setSearchInput, onAdd,
-  purchasers, regions, ovens,
+  purchasers,
   buyerFilter, setBuyerFilter,
-  regionFilter, setRegionFilter,
-  ovenFilter, setOvenFilter,
   dateFrom, setDateFrom,
   dateTo, setDateTo,
 }: Readonly<MobileFilterBarProps>) {
@@ -47,15 +39,11 @@ export function MobileFilterBar({
 
   const activeCount = [
     buyerFilter !== null,
-    regionFilter !== null,
-    ovenFilter !== null,
     !!(dateFrom || dateTo),
   ].filter(Boolean).length
 
   const clearAll = () => {
     setBuyerFilter(null)
-    setRegionFilter(null)
-    setOvenFilter(null)
     setDateFrom("")
     setDateTo("")
   }
@@ -116,12 +104,6 @@ export function MobileFilterBar({
           {buyerFilter !== null && (
             <Chip label={purchasers.find(p => p.p_id === buyerFilter)?.p_name ?? "Buyer"} onRemove={() => setBuyerFilter(null)} />
           )}
-          {regionFilter !== null && (
-            <Chip label={regions.find(r => r.reg_id === regionFilter)?.reg_name ?? "Region"} onRemove={() => setRegionFilter(null)} />
-          )}
-          {ovenFilter !== null && (
-            <Chip label={ovens.find(o => o.id === ovenFilter)?.name_en ?? "Oven"} onRemove={() => setOvenFilter(null)} />
-          )}
           {(dateFrom || dateTo) && (
             <Chip
               label={buildDateLabel(dateFrom, dateTo)}
@@ -180,28 +162,6 @@ export function MobileFilterBar({
                 <PillButton active={buyerFilter === null} onClick={() => setBuyerFilter(null)}>All</PillButton>
                 {purchasers.map(p => (
                   <PillButton key={p.p_id} active={buyerFilter === p.p_id} onClick={() => setBuyerFilter(p.p_id)}>{p.p_name}</PillButton>
-                ))}
-              </div>
-            </div>
-
-            {/* Region */}
-            <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Region</p>
-              <div className="flex flex-wrap gap-1.5">
-                <PillButton active={regionFilter === null} onClick={() => setRegionFilter(null)}>All</PillButton>
-                {regions.map(r => (
-                  <PillButton key={r.reg_id} active={regionFilter === r.reg_id} onClick={() => setRegionFilter(r.reg_id)}>{r.reg_name}</PillButton>
-                ))}
-              </div>
-            </div>
-
-            {/* Oven */}
-            <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Oven</p>
-              <div className="flex flex-wrap gap-1.5">
-                <PillButton active={ovenFilter === null} onClick={() => setOvenFilter(null)}>All</PillButton>
-                {ovens.map(o => (
-                  <PillButton key={o.id} active={ovenFilter === o.id} onClick={() => setOvenFilter(o.id)}>{o.name_en}</PillButton>
                 ))}
               </div>
             </div>

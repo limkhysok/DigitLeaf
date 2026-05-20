@@ -283,7 +283,6 @@ async def get_purchases(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     buyer: Optional[int] = None,
-    region: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ) -> Tuple[List[TobaccoPurchase], int]:
@@ -298,8 +297,6 @@ async def get_purchases(
         base = base.where(col(TobaccoPurchase.tp_date) <= date_to)
     if buyer is not None:
         base = base.where(col(TobaccoPurchase.buyer) == buyer)
-    if region is not None:
-        base = base.where(col(TobaccoPurchase.region) == region)
 
     count_statement = select(func.count()).select_from(base.subquery())
     total = await db.scalar(count_statement)

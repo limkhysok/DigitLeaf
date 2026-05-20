@@ -9,6 +9,7 @@ import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
 import { TobaccoPurchase, PurchaserItem, OvenItem } from "@/lib/api-client"
 import { TobaccoPurchaseCard } from "./tobacco-purchase-card"
+import { formatPurchaseDate } from "./utils"
 
 type SortDir = "asc" | "desc" | null
 
@@ -54,6 +55,7 @@ export function DesktopView({
             rec={rec}
             index={index}
             purchaser={purchasers.find(p => p.p_id === rec.buyer)}
+            oven={ovens.find(o => o.id === rec.oven)}
             onEdit={onEdit}
             onDelete={onDelete}
           />
@@ -112,7 +114,7 @@ export function DesktopView({
                       <td className="px-4 py-3 font-mono text-[13px] font-semibold text-[#111827]">{rec.invoice_num}</td>
                       <td className="px-4 py-3 text-[#111827] font-semibold">{purchaser?.p_name || "-"}</td>
                       <td className="px-4 py-3 text-[#374151]">{rec.vendor || "-"}</td>
-                      <td className="px-4 py-3 text-[13px] text-[#9CA3AF] whitespace-nowrap">{rec.tp_date ? String(rec.tp_date) : "-"}</td>
+                      <td className="px-4 py-3 text-[13px] text-[#9CA3AF] whitespace-nowrap">{formatPurchaseDate(rec.tp_date, rec.do_date)}</td>
                       <td className="px-4 py-3 text-center">
                         {rec.tobacco_item_count == null ? (
                           <span className="text-[#9CA3AF] text-xs">-</span>

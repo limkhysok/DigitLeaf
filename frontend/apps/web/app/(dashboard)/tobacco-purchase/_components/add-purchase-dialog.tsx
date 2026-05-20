@@ -951,7 +951,7 @@ export function AddPurchaseDialog({
       </Dialog>
       {previewImage && (
         <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-          <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-2xl flex items-center justify-center z-120">
+          <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-2xl flex items-center justify-center z-120 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 [&>button]:hidden">
             <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
             <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
             <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-lg bg-black/90 p-1.5 flex items-center justify-center group/preview">

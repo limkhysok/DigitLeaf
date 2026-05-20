@@ -10,7 +10,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import type { PurchaserItem, RegionItem, OvenItem } from "@/lib/api-client"
+import type { PurchaserItem } from "@/lib/api-client"
 
 // ── Reusable filter dropdown ───────────────────────────────────────────────────
 interface FilterDropdownOption { id: number; label: string }
@@ -71,23 +71,14 @@ interface ChipItem { label: string; onRemove: () => void }
 
 interface BuildChipsOptions {
   purchasers: PurchaserItem[]; buyerFilter: number | null; setBuyerFilter: (v: number | null) => void
-  regions: RegionItem[]; regionFilter: number | null; setRegionFilter: (v: number | null) => void
-  ovens: OvenItem[]; ovenFilter: number | null; setOvenFilter: (v: number | null) => void
   dateFrom: string; dateTo: string; setDateFrom: (v: string) => void; setDateTo: (v: string) => void
 }
 
 function buildActiveChips(opts: BuildChipsOptions): ChipItem[] {
-  const { purchasers, buyerFilter, setBuyerFilter, regions, regionFilter, setRegionFilter,
-          ovens, ovenFilter, setOvenFilter, dateFrom, dateTo, setDateFrom, setDateTo } = opts
+  const { purchasers, buyerFilter, setBuyerFilter, dateFrom, dateTo, setDateFrom, setDateTo } = opts
   const chips: ChipItem[] = []
   if (buyerFilter !== null) {
     chips.push({ label: purchasers.find(p => p.p_id === buyerFilter)?.p_name ?? "Buyer", onRemove: () => setBuyerFilter(null) })
-  }
-  if (regionFilter !== null) {
-    chips.push({ label: regions.find(r => r.reg_id === regionFilter)?.reg_name ?? "Region", onRemove: () => setRegionFilter(null) })
-  }
-  if (ovenFilter !== null) {
-    chips.push({ label: ovens.find(o => o.id === ovenFilter)?.name_en ?? "Oven", onRemove: () => setOvenFilter(null) })
   }
   if (dateFrom || dateTo) {
     chips.push({ label: buildDateLabel(dateFrom, dateTo), onRemove: () => { setDateFrom(""); setDateTo("") } })
@@ -105,14 +96,8 @@ interface FilterBarProps {
   setSearchInput: (v: string) => void
   onAdd: () => void
   purchasers: PurchaserItem[]
-  regions: RegionItem[]
-  ovens: OvenItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
-  regionFilter: number | null
-  setRegionFilter: (v: number | null) => void
-  ovenFilter: number | null
-  setOvenFilter: (v: number | null) => void
   dateFrom: string
   setDateFrom: (v: string) => void
   dateTo: string
@@ -124,22 +109,18 @@ export function FilterBar({
   view, setView,
   searchInput, setSearchInput,
   onAdd,
-  purchasers, regions, ovens,
+  purchasers,
   buyerFilter, setBuyerFilter,
-  regionFilter, setRegionFilter,
-  ovenFilter, setOvenFilter,
   dateFrom, setDateFrom,
   dateTo, setDateTo,
 }: Readonly<FilterBarProps>) {
 
   const activeChips = buildActiveChips({
     purchasers, buyerFilter, setBuyerFilter,
-    regions, regionFilter, setRegionFilter,
-    ovens, ovenFilter, setOvenFilter,
     dateFrom, dateTo, setDateFrom, setDateTo,
   })
   const hasFilters = activeChips.length > 0
-  const clearAll = () => { setBuyerFilter(null); setRegionFilter(null); setOvenFilter(null); setDateFrom(""); setDateTo("") }
+  const clearAll = () => { setBuyerFilter(null); setDateFrom(""); setDateTo("") }
   const clearDates = () => { setDateFrom(""); setDateTo("") }
 
   return (
@@ -180,27 +161,6 @@ export function FilterBar({
           onSelect={setBuyerFilter}
         />
 
-        {/* Region */}
-        <FilterDropdown
-          label="Region"
-          active={regionFilter !== null}
-          width="w-44"
-          allLabel="All Regions"
-          options={regions.map(r => ({ id: r.reg_id, label: r.reg_name }))}
-          selected={regionFilter}
-          onSelect={setRegionFilter}
-        />
-
-        {/* Oven */}
-        <FilterDropdown
-          label="Oven"
-          active={ovenFilter !== null}
-          width="w-44"
-          allLabel="All Ovens"
-          options={ovens.map(o => ({ id: o.id, label: o.name_en }))}
-          selected={ovenFilter}
-          onSelect={setOvenFilter}
-        />
 
         {/* Date range */}
         <Popover>

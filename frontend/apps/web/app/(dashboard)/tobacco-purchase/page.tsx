@@ -79,8 +79,6 @@ export default function TobaccoPurchasePage() {
   const [dateFrom, setDateFrom] = React.useState("")
   const [dateTo, setDateTo] = React.useState("")
   const [buyerFilter, setBuyerFilter] = React.useState<number | null>(null)
-  const [regionFilter, setRegionFilter] = React.useState<number | null>(null)
-  const [ovenFilter, setOvenFilter] = React.useState<number | null>(null) // client-side only
 
   // ── Sort ────────────────────────────────────────────────────────────────────
   const [sortGrandTotal, setSortGrandTotal] = React.useState<SortDir>(null)
@@ -121,7 +119,6 @@ export default function TobaccoPurchasePage() {
           date_from: dateFrom || undefined,
           date_to: dateTo || undefined,
           buyer: buyerFilter ?? undefined,
-          region: regionFilter ?? undefined,
           sort_grand_total: sortGrandTotal ?? undefined,
           sort_net_weight: sortNetWeight ?? undefined,
         }),
@@ -153,7 +150,7 @@ export default function TobaccoPurchasePage() {
     } finally {
       setIsLoading(false)
     }
-  }, [tokens, page, search, dateFrom, dateTo, buyerFilter, regionFilter, sortGrandTotal, sortNetWeight])
+  }, [tokens, page, search, dateFrom, dateTo, buyerFilter, sortGrandTotal, sortNetWeight])
 
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
@@ -201,25 +198,22 @@ export default function TobaccoPurchasePage() {
   if (!mounted) return null
 
   // ── Derived state ─────────────────────────────────────────────────────────────
-  const filteredRecords = ovenFilter === null
-    ? records
-    : records.filter(r => r.oven === ovenFilter)
+  const filteredRecords = records
 
   const pageNumbers = getPageNumbers(totalPages, page)
 
   // ── Shared props ──────────────────────────────────────────────────────────────
   const sharedFilterProps = {
-    purchasers, regions, ovens,
+    purchasers,
     buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v); setPage(0) },
-    regionFilter, setRegionFilter: (v: number | null) => { setRegionFilter(v); setPage(0) },
-    ovenFilter, setOvenFilter,
     dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(0) },
     dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(0) },
   }
 
   const sharedCardProps = {
     records: filteredRecords,
-    purchasers, ovens,
+    purchasers,
+    ovens,
     onEdit: handleEdit,
     onDelete: (id: number) => setDeleteId(id),
   }
