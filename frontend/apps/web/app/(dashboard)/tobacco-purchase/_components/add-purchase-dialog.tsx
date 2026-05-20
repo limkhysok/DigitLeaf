@@ -65,16 +65,22 @@ function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | n
   if (isReadOnly) {
     return {
       title: "View Tobacco Purchase",
+      mobileTitle: "View",
       description: "Viewing purchase details.",
     }
   }
   if (initialData) {
     return {
       title: "Edit Tobacco Purchase",
+      mobileTitle: "Edit",
       description: "Update the purchase information below.",
     }
   }
-  return { title: "New Tobacco Purchase", description: "Enter purchase details and item breakdown." }
+  return {
+    title: "New Tobacco Purchase",
+    mobileTitle: "Create",
+    description: "Enter purchase details and item breakdown.",
+  }
 }
 
 function updateDetailsSackWeight(
@@ -85,6 +91,40 @@ function updateDetailsSackWeight(
     ...d,
     sack_in_kg: i === 0 ? sackInKg : 0,
   }))
+}
+
+function validatePurchaseForm(
+  buyer: string,
+  vendor: string,
+  region: string,
+  rate: string,
+  details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[]
+): boolean {
+  if (!buyer) {
+    toast.error("Please select a Buyer")
+    return false
+  }
+  if (!vendor) {
+    toast.error("Please select a Vendor")
+    return false
+  }
+  if (!region) {
+    toast.error("Please select a Region")
+    return false
+  }
+  if (!rate) {
+    toast.error("Please enter a valid exchange rate")
+    return false
+  }
+  if (details.length === 0) {
+    toast.error("Please add at least one tobacco purchase item")
+    return false
+  }
+  if (details.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
+    toast.error("Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg")
+    return false
+  }
+  return true
 }
 
 interface AddPurchaseDialogProps {
@@ -289,28 +329,7 @@ export function AddPurchaseDialog({
 
   const handleSubmit = async (e: React.BaseSyntheticEvent) => {
     e.preventDefault()
-    if (!buyer) {
-      toast.error("Please select a Buyer")
-      return
-    }
-    if (!vendor) {
-      toast.error("Please select a Vendor")
-      return
-    }
-    if (!region) {
-      toast.error("Please select a Region")
-      return
-    }
-    if (!rate) {
-      toast.error("Please enter a valid exchange rate")
-      return
-    }
-    if (details.length === 0) {
-      toast.error("Please add at least one tobacco purchase item")
-      return
-    }
-    if (details.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
-      toast.error("Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg")
+    if (!validatePurchaseForm(buyer, vendor, region, rate, details)) {
       return
     }
 
@@ -403,20 +422,45 @@ export function AddPurchaseDialog({
     return sum + net * (Number(item.price) || 0)
   }, 0)
 
-  const { title, description } = getDialogLabels(isReadOnly, initialData)
+  const { title, mobileTitle, description } = getDialogLabels(isReadOnly, initialData)
+
+  const selectedVendorItem = vendors.find((v) => v.name === vendor)
+  const displayTobacNum =
+    selectedVendorItem?.tobac_num !== undefined &&
+    selectedVendorItem?.tobac_num !== null
+      ? selectedVendorItem.tobac_num * 0.8
+      : null
+
+  const displayPurchasedWeight = selectedVendorItem?.purchased_weight ?? 0
+  const displayRemainingQuota = typeof displayTobacNum === "number"
+    ? displayTobacNum - displayPurchasedWeight
+    : null
 
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
           <DialogHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
               <div className="space-y-1">
                 <DialogTitle className="text-[18px] font-bold text-foreground">
-                  {title}
+                  <span className="md:hidden">{mobileTitle}</span>
+                  <span className="hidden md:inline">{title}</span>
                 </DialogTitle>
-                <DialogDescription className="text-[13px] text-muted-foreground/70">{description}</DialogDescription>
+                <DialogDescription className="hidden md:block text-[13px] text-muted-foreground/70">{description}</DialogDescription>
               </div>
+
+              {displayRemainingQuota !== null && (
+                <div className="text-right bg-slate-50 border border-slate-200/60 rounded-md px-3 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] mr-8 shrink-0">
+                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Tobacco Quota</span>
+                  <div className="flex items-baseline gap-0.5 mt-1">
+                    <span className="text-sm font-black text-slate-800 font-mono">
+                      {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 ml-0.5 font-sans">kg</span>
+                  </div>
+                </div>
+              )}
             </div>
           </DialogHeader>
 

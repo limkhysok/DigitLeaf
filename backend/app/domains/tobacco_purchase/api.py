@@ -91,7 +91,7 @@ async def list_purchases(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 100,
     search: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,

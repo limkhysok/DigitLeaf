@@ -10,6 +10,8 @@ class VendorItem(BaseModel):
     name: str
     mf_code: str
     address: Optional[str] = None
+    tobac_num: Optional[int] = None
+    purchased_weight: Optional[float] = None
 
 class TobaccoItem(BaseModel):
     t_id: int

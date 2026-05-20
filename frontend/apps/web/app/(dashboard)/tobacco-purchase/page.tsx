@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 
-const PAGE_SIZE = 50
+const PAGE_SIZE = 100
 
 type SortDir = "asc" | "desc" | null
 

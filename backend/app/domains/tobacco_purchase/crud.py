@@ -367,18 +367,46 @@ async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
 
 async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorItem]:
     current_year = datetime.now(CAMBODIA_TZ).year
+    start_date = date(current_year, 1, 1)
+    end_date = date(current_year, 12, 31)
+
+    weight_subquery = (
+        select(
+            TobaccoPurchase.vendor.label("vendor_name"),
+            func.sum(TobaccoPurchase.total_net_weight).label("total_weight")
+        )
+        .where(TobaccoPurchase.tp_date >= start_date)
+        .where(TobaccoPurchase.tp_date <= end_date)
+        .group_by(TobaccoPurchase.vendor)
+    ).subquery()
+
     statement = (
-        select(MemberFarmer)
+        select(
+            MemberFarmer,
+            MfConYear.tobac_num,
+            func.coalesce(weight_subquery.c.total_weight, 0.0)
+        )
         .join(Represent, col(MemberFarmer.represent) == col(Represent.represent_id))
         .join(MfConYear, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
+        .outerjoin(weight_subquery, col(MemberFarmer.name) == weight_subquery.c.vendor_name)
         .where(Represent.p_id == buyer_id)
         .where(Represent.do_not_show == 0)
         .where(MemberFarmer.active == "YES")
         .where(MfConYear.year == current_year)
     )
     result = await db.execute(statement)
-    rows = result.scalars().all()
-    return [VendorItem(mf_id=r.mf_id, name=r.name, mf_code=r.mf_code, address=r.address) for r in rows]  # type: ignore[arg-type]
+    rows = result.all()
+    return [
+        VendorItem(
+            mf_id=r[0].mf_id,
+            name=r[0].name,
+            mf_code=r[0].mf_code,
+            address=r[0].address,
+            tobac_num=r[1],
+            purchased_weight=r[2],
+        )
+        for r in rows
+    ]
 
 
 async def get_purchasers(db: AsyncSession) -> List[Purchaser]:
