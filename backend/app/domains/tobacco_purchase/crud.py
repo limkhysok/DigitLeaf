@@ -16,18 +16,20 @@ from app.core.config import CAMBODIA_TZ
 
 
 async def generate_invoice_num(db: AsyncSession) -> str:
-    today_str = datetime.now(CAMBODIA_TZ).strftime("%Y%m%d")
+    # Format: DDMMYY (e.g. 210526 for 21 May 2026)
+    today_str = datetime.now(CAMBODIA_TZ).strftime("%d%m%y")
     prefix = f"{today_str}-"
 
+    # Fetch the absolute latest invoice created to get the last sequence
+    # Since the sequence continues across days, we order by ID descending
     statement = (
         select(TobaccoPurchase.invoice_num)
-        .where(col(TobaccoPurchase.invoice_num).like(f"{prefix}%"))
-        .order_by(col(TobaccoPurchase.invoice_num).desc())
+        .order_by(col(TobaccoPurchase.tp_id).desc())
         .limit(1)
     )
     last_invoice = await db.scalar(statement)
 
-    if last_invoice:
+    if last_invoice and "-" in last_invoice:
         try:
             last_seq = int(last_invoice.split("-")[-1])
             new_seq = last_seq + 1
@@ -36,7 +38,7 @@ async def generate_invoice_num(db: AsyncSession) -> str:
     else:
         new_seq = 0
 
-    return f"{prefix}{new_seq:05d}"
+    return f"{prefix}{new_seq:04d}"
 
 
 async def get_vendor_total_active_sack_kg(db: AsyncSession, vendor_name: str) -> float:

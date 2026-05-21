@@ -12,7 +12,6 @@ import {
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import { IconLoader2 } from "@tabler/icons-react"
-import { cn } from "@workspace/ui/lib/utils"
 import { AddPurchaseDialog } from "./_components/add-purchase-dialog"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
@@ -40,14 +39,7 @@ function nextSortDir(prev: SortDir): SortDir {
   return "desc"
 }
 
-function getPageNumbers(totalPages: number, page: number): number[] {
-  const count = Math.min(totalPages, 5)
-  return Array.from({ length: count }, (_, i) => {
-    if (totalPages <= 5 || page < 3) return i
-    if (page > totalPages - 4) return totalPages - 5 + i
-    return page - 2 + i
-  })
-}
+
 
 export default function TobaccoPurchasePage() {
   const [mounted, setMounted] = React.useState(false)
@@ -58,7 +50,6 @@ export default function TobaccoPurchasePage() {
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const [records, setRecords] = React.useState<TobaccoPurchase[]>([])
-  const [total, setTotal] = React.useState(0)
   const [isLoading, setIsLoading] = React.useState(true)
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedRecord, setSelectedRecord] = React.useState<TobaccoPurchase | null>(null)
@@ -71,7 +62,7 @@ export default function TobaccoPurchasePage() {
   const [searchInput, setSearchInput] = React.useState("")
   const [search, setSearch] = React.useState("")
   React.useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(0) }, 400)
+    const t = setTimeout(() => { setSearch(searchInput) }, 400)
     return () => clearTimeout(t)
   }, [searchInput])
 
@@ -92,12 +83,13 @@ export default function TobaccoPurchasePage() {
       setSortNetWeight(prev => nextSortDir(prev))
       setSortGrandTotal(null)
     }
-    setPage(0)
   }
 
-  // ── Pagination ──────────────────────────────────────────────────────────────
-  const [page, setPage] = React.useState(0)
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  // ── Infinite Scroll ─────────────────────────────────────────────────────────
+  const [skip, setSkip] = React.useState(0)
+  const [hasMore, setHasMore] = React.useState(false)
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false)
+  const sentinelRef = React.useRef<HTMLDivElement>(null)
 
   // ── Lookup data ─────────────────────────────────────────────────────────────
   const [purchasers, setPurchasers] = React.useState<PurchaserItem[]>([])
@@ -113,7 +105,7 @@ export default function TobaccoPurchasePage() {
     try {
       const promises: Promise<unknown>[] = [
         apiClient.getTobaccoPurchases(tokens.access_token, {
-          skip: page * PAGE_SIZE,
+          skip: 0,
           limit: PAGE_SIZE,
           search: search || undefined,
           date_from: dateFrom || undefined,
@@ -136,7 +128,8 @@ export default function TobaccoPurchasePage() {
       const results = await Promise.all(promises)
       const recData = results[0] as Awaited<ReturnType<typeof apiClient.getTobaccoPurchases>>
       setRecords(recData.items)
-      setTotal(recData.total)
+      setSkip(recData.items.length)
+      setHasMore(recData.items.length < recData.total)
 
       if (!lookupsLoaded.current) {
         setPurchasers(results[1] as PurchaserItem[])
@@ -150,13 +143,51 @@ export default function TobaccoPurchasePage() {
     } finally {
       setIsLoading(false)
     }
-  }, [tokens, page, search, dateFrom, dateTo, buyerFilter, sortGrandTotal, sortNetWeight])
+  }, [tokens, search, dateFrom, dateTo, buyerFilter, sortGrandTotal, sortNetWeight])
 
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
     const timer = setTimeout(() => { fetchRecords() }, 0)
     return () => clearTimeout(timer)
   }, [isAuthLoading, tokens, fetchRecords])
+
+  // ── Load more ─────────────────────────────────────────────────────────────
+  const loadMore = React.useCallback(async () => {
+    if (!tokens?.access_token || !hasMore || isLoadingMore || isLoading) return
+    setIsLoadingMore(true)
+    const currentSkip = skip
+    try {
+      const recData = await apiClient.getTobaccoPurchases(tokens.access_token, {
+        skip: currentSkip,
+        limit: PAGE_SIZE,
+        search: search || undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
+        buyer: buyerFilter ?? undefined,
+        sort_grand_total: sortGrandTotal ?? undefined,
+        sort_net_weight: sortNetWeight ?? undefined,
+      })
+      setRecords(prev => [...prev, ...recData.items])
+      setSkip(currentSkip + recData.items.length)
+      setHasMore(currentSkip + recData.items.length < recData.total)
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, dateFrom, dateTo, buyerFilter, sortGrandTotal, sortNetWeight])
+
+  // ── IntersectionObserver ──────────────────────────────────────────────────
+  React.useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) loadMore() },
+      { rootMargin: "100px" }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [loadMore])
 
   // ── Actions ──────────────────────────────────────────────────────────────────
   const openRecord = React.useCallback(async (record: TobaccoPurchase, viewOnly: boolean) => {
@@ -200,14 +231,12 @@ export default function TobaccoPurchasePage() {
   // ── Derived state ─────────────────────────────────────────────────────────────
   const filteredRecords = records
 
-  const pageNumbers = getPageNumbers(totalPages, page)
-
   // ── Shared props ──────────────────────────────────────────────────────────────
   const sharedFilterProps = {
     purchasers,
-    buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v); setPage(0) },
-    dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(0) },
-    dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(0) },
+    buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v) },
+    dateFrom, setDateFrom: (v: string) => { setDateFrom(v) },
+    dateTo, setDateTo: (v: string) => { setDateTo(v) },
   }
 
   const sharedCardProps = {
@@ -232,20 +261,9 @@ export default function TobaccoPurchasePage() {
       </div>
 
 
-      {/* ── Mobile filter bar (<md) ── */}
+      {/* ── Mobile & Tablet filter bar (<lg) ── */}
       <MobileFilterBar
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        onAdd={handleAddNew}
-        {...sharedFilterProps}
-      />
-
-      {/* ── Tablet filter bar (md→lg) ── */}
-      <FilterBar
-        className="hidden md:flex lg:hidden"
-        searchClassName="min-w-36 max-w-56"
-        view={view}
-        setView={setView}
+        className="flex lg:hidden"
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         onAdd={handleAddNew}
@@ -293,7 +311,6 @@ export default function TobaccoPurchasePage() {
         <DesktopView
           {...sharedCardProps}
           view={view}
-          page={page}
           sortGrandTotal={sortGrandTotal}
           sortNetWeight={sortNetWeight}
           onToggleSort={handleToggleSort}
@@ -301,42 +318,11 @@ export default function TobaccoPurchasePage() {
         />
       )}
 
-      {/* ── Pagination ── */}
-      {!isLoading && total > PAGE_SIZE && (
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <p className="text-xs text-muted-foreground">
-            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total.toLocaleString()}
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              disabled={page === 0}
-              onClick={() => setPage(p => p - 1)}
-              className="h-8 px-3 rounded-full border border-border text-xs font-medium transition-all disabled:opacity-40 hover:bg-muted"
-            >
-              ← Prev
-            </button>
-            {pageNumbers.map(pageNum => (
-              <button
-                key={pageNum}
-                onClick={() => setPage(pageNum)}
-                className={cn(
-                  "h-8 w-8 rounded-full border text-xs font-medium transition-all",
-                  page === pageNum
-                    ? "border-[#009640] bg-[#009640] text-white"
-                    : "border-border hover:bg-muted"
-                )}
-              >
-                {pageNum + 1}
-              </button>
-            ))}
-            <button
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => p + 1)}
-              className="h-8 px-3 rounded-full border border-border text-xs font-medium transition-all disabled:opacity-40 hover:bg-muted"
-            >
-              Next →
-            </button>
-          </div>
+      {/* ── Infinite scroll sentinel ─────────────────────────────────────── */}
+      <div ref={sentinelRef} className="h-1" />
+      {isLoadingMore && (
+        <div className="flex items-center justify-center py-4">
+          <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
 
@@ -366,8 +352,8 @@ export default function TobaccoPurchasePage() {
               and all its associated details.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex flex-row justify-end gap-2 sm:space-x-0">
+            <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()

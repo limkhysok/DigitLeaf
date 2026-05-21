@@ -31,7 +31,6 @@ interface DesktopViewProps {
   purchasers: PurchaserItem[]
   ovens: OvenItem[]
   view: "list" | "grid"
-  page: number
   sortGrandTotal: SortDir
   sortNetWeight: SortDir
   onToggleSort: (col: "grand_total" | "net_weight") => void
@@ -42,7 +41,7 @@ interface DesktopViewProps {
 
 export function DesktopView({
   records, purchasers, ovens,
-  view, page,
+  view,
   sortGrandTotal, sortNetWeight, onToggleSort,
   onEdit, onView, onDelete,
 }: Readonly<DesktopViewProps>) {
@@ -110,7 +109,7 @@ export function DesktopView({
                         index % 2 === 1 && "bg-[#F9FAFB]/60"
                       )}
                     >
-                      <td className="px-4 py-3 text-center text-[#9CA3AF] text-xs">{page * PAGE_SIZE + index + 1}</td>
+                      <td className="px-4 py-3 text-center text-[#9CA3AF] text-xs">{index + 1}</td>
                       <td className="px-4 py-3 font-mono text-[13px] font-semibold text-[#111827]">{rec.invoice_num}</td>
                       <td className="px-4 py-3 text-[#111827] font-semibold">{purchaser?.p_name || "-"}</td>
                       <td className="px-4 py-3 text-[#374151]">{rec.vendor || "-"}</td>

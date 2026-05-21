@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import date, datetime
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, field_validator
 from .constants import ClosingStatus
 
 # ── Vendor (Member Farmer by Buyer) ──────────────────────────────────────
@@ -46,7 +46,14 @@ class PurchaseDetail(PurchaseDetailBase):
     invoice_num: str
     total_amount: Optional[float] = None
     user: Optional[str] = None
-    do_date: datetime
+    do_date: Optional[datetime] = None
+
+    @field_validator("do_date", mode="before")
+    @classmethod
+    def parse_zero_date(cls, v):
+        if str(v) == "0000-00-00 00:00:00":
+            return None
+        return v
 
     class Config:
         from_attributes = True
@@ -83,10 +90,17 @@ class PurchaseUpdate(BaseModel):
 class Purchase(PurchaseBase):
     tp_id: int
     user: Optional[str] = None
-    do_date: datetime
+    do_date: Optional[datetime] = None
     total_net_weight: Optional[float] = None
     grand_total: Optional[float] = None
     details: List[PurchaseDetail] = []
+
+    @field_validator("do_date", mode="before")
+    @classmethod
+    def parse_zero_date(cls, v):
+        if str(v) == "0000-00-00 00:00:00":
+            return None
+        return v
 
     @computed_field
     @property

@@ -61,6 +61,30 @@ function getPictureUrl(picture?: string | null): string {
   return `${backendBase}/uploads/${picture}`
 }
 
+function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
+  if (displayRemainingQuota === null) return null;
+  return (
+    <div className="text-right bg-slate-50 border border-slate-200/60 rounded-md px-3 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] mr-8 shrink-0">
+      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Tobacco Quota</span>
+      <div className="flex items-baseline gap-0.5 mt-1">
+        <span className={cn(
+          "text-sm font-black font-mono",
+          displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
+        )}>
+          {displayRemainingQuota >= 0 ? "+" : ""}
+          {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+        <span className={cn(
+          "text-[10px] font-bold ml-0.5 font-sans",
+          displayRemainingQuota >= 0 ? "text-green-600/70" : "text-red-600/70"
+        )}>
+          kg
+        </span>
+      </div>
+    </div>
+  )
+}
+
 function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
   if (isReadOnly) {
     return {
@@ -78,7 +102,7 @@ function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | n
   }
   return {
     title: "New Tobacco Purchase",
-    mobileTitle: "Create",
+    mobileTitle: "Add",
     description: "Enter purchase details and item breakdown.",
   }
 }
@@ -138,6 +162,71 @@ interface AddPurchaseDialogProps {
   regions: RegionItem[]
   ovens: OvenItem[]
   tobaccoTypes: TobaccoItem[]
+}
+
+function VendorListContent({
+  isVendorsLoading,
+  vendors,
+  buyer,
+  vendorSearch,
+  vendor,
+  setVendor,
+  setVendorSearch,
+  setVAddr,
+  setIsVendorOpen
+}: Readonly<{
+  isVendorsLoading: boolean;
+  vendors: MemberFarmerItem[];
+  buyer: string;
+  vendorSearch: string;
+  vendor: string;
+  setVendor: (v: string) => void;
+  setVendorSearch: (v: string) => void;
+  setVAddr: (v: string) => void;
+  setIsVendorOpen: (open: boolean) => void;
+}>) {
+  if (isVendorsLoading) {
+    return (
+      <div className="flex items-center justify-center py-4">
+        <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+  if (vendors.length === 0) {
+    return (
+      <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
+        {buyer ? "No vendors found for this buyer" : "Select a buyer first"}
+      </div>
+    )
+  }
+  return (
+    <>
+      {vendors
+        .filter(f =>
+          f.name.toLowerCase().includes(vendorSearch.toLowerCase()) ||
+          f.mf_code.toLowerCase().includes(vendorSearch.toLowerCase())
+        )
+        .map((f) => (
+          <button
+            key={f.mf_id}
+            type="button"
+            className={cn(
+              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+              vendor === f.name && "bg-accent"
+            )}
+            onClick={() => {
+              setVendor(f.name)
+              setVendorSearch(`${f.name} | ${f.mf_code}`)
+              setVAddr(f.address || "")
+              setIsVendorOpen(false)
+            }}
+          >
+            <IconCheck className={cn("mr-2 h-3.5 w-3.5", vendor === f.name ? "opacity-100" : "opacity-0")} />
+            {f.name} | {f.mf_code}
+          </button>
+        ))}
+    </>
+  )
 }
 
 export function AddPurchaseDialog({
@@ -373,45 +462,7 @@ export function AddPurchaseDialog({
 
   const isBuyerSelected = purchasers.some(p => p.p_id.toString() === buyer)
 
-  let vendorListContent: React.ReactNode
-  if (isVendorsLoading) {
-    vendorListContent = (
-      <div className="flex items-center justify-center py-4">
-        <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-      </div>
-    )
-  } else if (vendors.length === 0) {
-    vendorListContent = (
-      <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
-        {buyer ? "No vendors found for this buyer" : "Select a buyer first"}
-      </div>
-    )
-  } else {
-    vendorListContent = vendors
-      .filter(f =>
-        f.name.toLowerCase().includes(vendorSearch.toLowerCase()) ||
-        f.mf_code.toLowerCase().includes(vendorSearch.toLowerCase())
-      )
-      .map((f) => (
-        <button
-          key={f.mf_id}
-          type="button"
-          className={cn(
-            "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
-            vendor === f.name && "bg-accent"
-          )}
-          onClick={() => {
-            setVendor(f.name)
-            setVendorSearch(`${f.name} | ${f.mf_code}`)
-            setVAddr(f.address || "")
-            setIsVendorOpen(false)
-          }}
-        >
-          <IconCheck className={cn("mr-2 h-3.5 w-3.5", vendor === f.name ? "opacity-100" : "opacity-0")} />
-          {f.name} | {f.mf_code}
-        </button>
-      ))
-  }
+
 
   // Computed totals for mobile/tablet summary
   const totalNetWeight = details.reduce((sum, item) => {
@@ -427,7 +478,7 @@ export function AddPurchaseDialog({
   const selectedVendorItem = vendors.find((v) => v.name === vendor)
   const displayTobacNum =
     selectedVendorItem?.tobac_num !== undefined &&
-    selectedVendorItem?.tobac_num !== null
+      selectedVendorItem?.tobac_num !== null
       ? selectedVendorItem.tobac_num * 0.8
       : null
 
@@ -450,17 +501,7 @@ export function AddPurchaseDialog({
                 <DialogDescription className="hidden md:block text-[13px] text-muted-foreground/70">{description}</DialogDescription>
               </div>
 
-              {displayRemainingQuota !== null && (
-                <div className="text-right bg-slate-50 border border-slate-200/60 rounded-md px-3 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] mr-8 shrink-0">
-                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Tobacco Quota</span>
-                  <div className="flex items-baseline gap-0.5 mt-1">
-                    <span className="text-sm font-black text-slate-800 font-mono">
-                      {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 ml-0.5 font-sans">kg</span>
-                  </div>
-                </div>
-              )}
+              <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
             </div>
           </DialogHeader>
 
@@ -647,7 +688,17 @@ export function AddPurchaseDialog({
                       }}
                     >
                       <div className="max-h-75 overflow-y-auto p-1">
-                        {vendorListContent}
+                        <VendorListContent
+                          isVendorsLoading={isVendorsLoading}
+                          vendors={vendors}
+                          buyer={buyer}
+                          vendorSearch={vendorSearch}
+                          vendor={vendor}
+                          setVendor={setVendor}
+                          setVendorSearch={setVendorSearch}
+                          setVAddr={setVAddr}
+                          setIsVendorOpen={setIsVendorOpen}
+                        />
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -973,7 +1024,7 @@ export function AddPurchaseDialog({
               )}
             </div>
 
-            <DialogFooter className="pt-3.5 border-t border-border/40 mt-3">
+            <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 border-t border-border/40 mt-3 sm:space-x-0">
               <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
                 className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                 {isReadOnly ? "Close" : "Cancel"}
@@ -1148,7 +1199,7 @@ const PurchaseDetailCard = React.memo(({
             </PopoverContent>
           </Popover>
         </div>
-        
+
         <div className="px-3 pt-3 pb-3">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5">Tobacco Item</Label>
           <Popover open={open} onOpenChange={(isOpen) => {

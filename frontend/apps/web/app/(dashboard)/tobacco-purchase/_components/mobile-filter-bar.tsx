@@ -3,9 +3,7 @@
 import * as React from "react"
 import { IconFilter, IconPlus, IconSearch, IconX } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@workspace/ui/components/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
 import type { PurchaserItem } from "@/lib/api-client"
 
@@ -26,6 +24,7 @@ interface MobileFilterBarProps {
   setDateFrom: (v: string) => void
   dateTo: string
   setDateTo: (v: string) => void
+  className?: string
 }
 
 export function MobileFilterBar({
@@ -34,9 +33,8 @@ export function MobileFilterBar({
   buyerFilter, setBuyerFilter,
   dateFrom, setDateFrom,
   dateTo, setDateTo,
+  className,
 }: Readonly<MobileFilterBarProps>) {
-  const [filterOpen, setFilterOpen] = React.useState(false)
-
   const activeCount = [
     buyerFilter !== null,
     !!(dateFrom || dateTo),
@@ -49,9 +47,85 @@ export function MobileFilterBar({
   }
 
   return (
-    <div className="flex md:hidden flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", className || "flex lg:hidden")}>
       {/* Search + action row */}
       <div className="flex items-center gap-2">
+        {/* Filter button as Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-9 w-9 p-0 rounded-full border transition-all relative",
+                activeCount > 0
+                  ? "border-[#009640] bg-[#009640]/10 text-[#009640] hover:bg-[#009640]/20 hover:text-[#009640]"
+                  : "border-border bg-background hover:bg-muted/30 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <IconFilter className="size-4" stroke={1.5} />
+              {activeCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[#009640] text-white text-[9px] font-bold flex items-center justify-center">
+                  {activeCount}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-4" align="start">
+            <div className="flex flex-col gap-5">
+              <div className="flex items-center justify-between border-b pb-2">
+                <h3 className="text-sm font-semibold">Filters</h3>
+                {activeCount > 0 && (
+                  <button onClick={clearAll} className="text-xs text-rose-500 hover:text-rose-700 underline underline-offset-2 transition-colors">
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-5 pb-2">
+                {/* Date Range */}
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Date Range</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label htmlFor="mob-date-from" className="text-[11px] text-muted-foreground mb-1 block">From</label>
+                      <input
+                        id="mob-date-from"
+                        type="date"
+                        value={dateFrom}
+                        onChange={e => setDateFrom(e.target.value)}
+                        className="w-full h-9 rounded-lg border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-[#009640] focus:border-[#009640] transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="mob-date-to" className="text-[11px] text-muted-foreground mb-1 block">To</label>
+                      <input
+                        id="mob-date-to"
+                        type="date"
+                        value={dateTo}
+                        onChange={e => setDateTo(e.target.value)}
+                        className="w-full h-9 rounded-lg border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-[#009640] focus:border-[#009640] transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Buyer */}
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Buyer</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <PillButton active={buyerFilter === null} onClick={() => setBuyerFilter(null)}>All</PillButton>
+                    {purchasers.map(p => (
+                      <PillButton key={p.p_id} active={buyerFilter === p.p_id} onClick={() => setBuyerFilter(p.p_id)}>{p.p_name}</PillButton>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Search bar */}
         <div className="relative flex-1 flex items-center h-9 rounded-full border border-border bg-muted/30 px-3 gap-2 focus-within:ring-2 focus-within:ring-[#009640]/20 focus-within:border-[#009640] transition-all">
           <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
           <input
@@ -65,24 +139,7 @@ export function MobileFilterBar({
           )}
         </div>
 
-        {/* Filter button */}
-        <button
-          onClick={() => setFilterOpen(true)}
-          className={cn(
-            "relative flex items-center justify-center h-9 w-9 rounded-full border transition-all",
-            activeCount > 0
-              ? "border-[#009640] bg-[#009640]/10 text-[#009640]"
-              : "border-border text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <IconFilter className="size-4" stroke={1.5} />
-          {activeCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[#009640] text-white text-[9px] font-bold flex items-center justify-center">
-              {activeCount}
-            </span>
-          )}
-        </button>
-
+        {/* Add button */}
         <Button
           onClick={onAdd}
           className="shrink-0 sm:hidden rounded-full h-9 w-9 p-0 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
@@ -112,62 +169,6 @@ export function MobileFilterBar({
           )}
         </div>
       )}
-
-      {/* Filter dialog */}
-      <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
-        <DialogContent className="sm:max-w-sm max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-base font-semibold">Filters</DialogTitle>
-              {activeCount > 0 && (
-                <button onClick={clearAll} className="text-xs text-rose-500 hover:text-rose-700 underline underline-offset-2 transition-colors">
-                  Clear all
-                </button>
-              )}
-            </div>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-5 pb-2">
-            {/* Date Range */}
-            <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Date Range</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label htmlFor="mob-date-from" className="text-[11px] text-muted-foreground mb-1 block">From</label>
-                  <input
-                    id="mob-date-from"
-                    type="date"
-                    value={dateFrom}
-                    onChange={e => setDateFrom(e.target.value)}
-                    className="w-full h-9 rounded-lg border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-[#009640] focus:border-[#009640] transition-all"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="mob-date-to" className="text-[11px] text-muted-foreground mb-1 block">To</label>
-                  <input
-                    id="mob-date-to"
-                    type="date"
-                    value={dateTo}
-                    onChange={e => setDateTo(e.target.value)}
-                    className="w-full h-9 rounded-lg border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-[#009640] focus:border-[#009640] transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Buyer */}
-            <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Buyer</p>
-              <div className="flex flex-wrap gap-1.5">
-                <PillButton active={buyerFilter === null} onClick={() => setBuyerFilter(null)}>All</PillButton>
-                {purchasers.map(p => (
-                  <PillButton key={p.p_id} active={buyerFilter === p.p_id} onClick={() => setBuyerFilter(p.p_id)}>{p.p_name}</PillButton>
-                ))}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

@@ -26,8 +26,8 @@ export const TobaccoPurchaseCard = React.memo(({
   rec, index, purchaser, oven, onEdit, onDelete
 }: TobaccoPurchaseCardProps) => {
   return (
-    <div className="group relative flex flex-col justify-between rounded-xl bg-white border border-slate-200/80 hover:border-slate-350 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)] transition-all duration-200 overflow-hidden p-4">
-      
+    <div className="group relative flex flex-col justify-between rounded-md bg-white border border-slate-200/80 hover:border-slate-350 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)] transition-all duration-200 overflow-hidden p-4">
+
       {/* Top Header section */}
       <div className="flex items-start justify-between gap-3 mb-2.5">
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -68,7 +68,7 @@ export const TobaccoPurchaseCard = React.memo(({
 
       {/* Optimized Content Body: 2 Columns Side-by-Side to reduce height */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 border-t border-b border-slate-100 py-2.5 mb-3">
-        
+
         {/* Left Column: Buyer & Vendor */}
         <div className="space-y-2 min-w-0">
           <div className="flex items-start gap-2 min-w-0">

@@ -128,27 +128,7 @@ export function FilterBar({
       {/* ── Main toolbar row ── */}
       <div className="flex flex-wrap items-center gap-2">
 
-        {/* View toggle */}
-        <div className="flex items-center rounded-full border border-border p-0.5 gap-0.5">
-          <button
-            onClick={() => setView("list")}
-            className={cn(
-              "flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200",
-              view === "list" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <IconLayoutList className="size-3.5" />
-          </button>
-          <button
-            onClick={() => setView("grid")}
-            className={cn(
-              "flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200",
-              view === "grid" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <IconLayoutGrid className="size-3.5" />
-          </button>
-        </div>
+
 
         {/* Buyer */}
         <FilterDropdown
@@ -210,6 +190,28 @@ export function FilterBar({
         </Popover>
 
         <div className="flex-1" />
+
+        {/* View toggle */}
+        <div className="flex items-center rounded-full border border-border p-0.5 gap-0.5">
+          <button
+            onClick={() => setView("list")}
+            className={cn(
+              "flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200",
+              view === "list" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <IconLayoutList className="size-3.5" />
+          </button>
+          <button
+            onClick={() => setView("grid")}
+            className={cn(
+              "flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200",
+              view === "grid" ? "bg-[#009640] text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <IconLayoutGrid className="size-3.5" />
+          </button>
+        </div>
 
         {/* Search */}
         <div className={cn(
