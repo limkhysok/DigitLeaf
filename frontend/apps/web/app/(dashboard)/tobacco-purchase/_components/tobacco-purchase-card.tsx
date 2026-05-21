@@ -8,7 +8,8 @@ import {
   IconUser,
   IconBuildingStore,
   IconFileText,
-  IconFlame
+  IconFlame,
+  IconLeaf
 } from "@tabler/icons-react"
 import { TobaccoPurchase, PurchaserItem, OvenItem } from "@/lib/api-client"
 import { formatPurchaseDate } from "./utils"
@@ -26,7 +27,15 @@ export const TobaccoPurchaseCard = React.memo(({
   rec, index, purchaser, oven, onEdit, onDelete
 }: TobaccoPurchaseCardProps) => {
   return (
-    <div className="group relative flex flex-col justify-between rounded-md bg-white border border-slate-200/80 hover:border-slate-350 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)] transition-all duration-200 overflow-hidden p-4">
+    <div className="group relative flex flex-col justify-between rounded-sm bg-white border border-slate-200/70 hover:border-emerald-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)] transition-all duration-300 overflow-hidden p-4">
+
+      {/* Left bar accent */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 group-hover:bg-emerald-500 rounded-l-xl transition-colors duration-300" />
+
+      {/* Background Leaf Watermark */}
+      <div className="absolute -bottom-6 -right-6 z-0 text-emerald-500/[0.06] group-hover:text-emerald-500/[0.12] group-hover:-translate-y-2 transition-all duration-500 pointer-events-none -rotate-12">
+        <IconLeaf size={160} stroke={1} />
+      </div>
 
       {/* Top Header section */}
       <div className="flex items-start justify-between gap-3 mb-2.5">
