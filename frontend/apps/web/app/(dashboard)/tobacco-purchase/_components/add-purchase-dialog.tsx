@@ -22,7 +22,9 @@ import {
   IconX,
   IconCamera,
   IconPhoto,
+  IconPrinter,
 } from "@tabler/icons-react"
+import { printInvoice } from "./invoice-print"
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -155,6 +157,7 @@ interface AddPurchaseDialogProps {
   open: boolean
   onClose: () => void
   onSuccess: () => void
+  onPrint?: (record: TobaccoPurchase) => void
   accessToken: string
   initialData?: TobaccoPurchase | null
   isReadOnly?: boolean
@@ -233,6 +236,7 @@ export function AddPurchaseDialog({
   open,
   onClose,
   onSuccess,
+  onPrint,
   accessToken,
   initialData,
   isReadOnly,
@@ -242,6 +246,7 @@ export function AddPurchaseDialog({
   tobaccoTypes,
 }: Readonly<AddPurchaseDialogProps>) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [printAfterSave, setPrintAfterSave] = React.useState(false)
   const [previewImage, setPreviewImage] = React.useState<string | null>(null)
   const [vendors, setVendors] = React.useState<MemberFarmerItem[]>([])
   const [isVendorsLoading, setIsVendorsLoading] = React.useState(false)
@@ -416,12 +421,11 @@ export function AddPurchaseDialog({
     }
   }, [purchasers, regions, accessToken])
 
-  const handleSubmit = async (e: React.BaseSyntheticEvent) => {
+  const handleSubmit = async (e: React.BaseSyntheticEvent, shouldPrint = false) => {
     e.preventDefault()
     if (!validatePurchaseForm(buyer, vendor, region, rate, details)) {
       return
     }
-
 
     setIsSubmitting(true)
     try {
@@ -444,19 +448,29 @@ export function AddPurchaseDialog({
           picture: d.picture || null,
         })) as TobaccoPurchaseDetail[]
       }
+      let savedRecord: TobaccoPurchase | null = null
       if (initialData?.tp_id) {
-        await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
+        savedRecord = await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
         toast.success("Purchase updated successfully")
       } else {
-        await apiClient.createTobaccoPurchase(accessToken, payload)
+        savedRecord = await apiClient.createTobaccoPurchase(accessToken, payload)
         toast.success("Purchase recorded successfully")
       }
       onSuccess()
       onClose()
+      // Trigger print after dialog closes if requested
+      if ((shouldPrint || printAfterSave) && savedRecord) {
+        if (onPrint) {
+          onPrint(savedRecord)
+        } else {
+          await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes })
+        }
+      }
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
       setIsSubmitting(false)
+      setPrintAfterSave(false)
     }
   }
 
@@ -1030,15 +1044,36 @@ export function AddPurchaseDialog({
                 {isReadOnly ? "Close" : "Cancel"}
               </Button>
               {!isReadOnly && (
-                <Button type="submit" disabled={isSubmitting}
-                  className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
-                  {isSubmitting ? (
-                    <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <IconCheck className="h-3.5 w-3.5" />
+                <>
+                  {/* Save & Print button — only for new records */}
+                  {!initialData && (
+                    <Button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={(e) => {
+                        setPrintAfterSave(true)
+                        handleSubmit(e, true)
+                      }}
+                      className="h-8.5 px-4 bg-white border border-[#009640]/40 hover:bg-[#f0fdf4] text-[#009640] shadow-xs rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
+                    >
+                      {isSubmitting && printAfterSave ? (
+                        <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <IconPrinter className="h-3.5 w-3.5" />
+                      )}
+                      Save &amp; Print
+                    </Button>
                   )}
-                  {initialData ? "Update Purchase" : "Save Purchase"}
-                </Button>
+                  <Button type="submit" disabled={isSubmitting}
+                    className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
+                    {isSubmitting && !printAfterSave ? (
+                      <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <IconCheck className="h-3.5 w-3.5" />
+                    )}
+                    {initialData ? "Update Purchase" : "Save Purchase"}
+                  </Button>
+                </>
               )}
             </DialogFooter>
           </form>

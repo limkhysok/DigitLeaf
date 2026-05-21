@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "@tabler/icons-react": "^3.41.1",
     "@workspace/ui": "*",
     "next": "16.1.6",

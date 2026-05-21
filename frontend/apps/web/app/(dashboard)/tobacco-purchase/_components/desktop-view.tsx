@@ -3,7 +3,7 @@
 import * as React from "react"
 import {
   IconChevronDown, IconChevronUp,
-  IconEdit, IconEye, IconTrash,
+  IconEdit, IconEye, IconTrash, IconPrinter,
 } from "@tabler/icons-react"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
@@ -37,13 +37,14 @@ interface DesktopViewProps {
   onEdit: (rec: TobaccoPurchase) => void
   onView: (rec: TobaccoPurchase) => void
   onDelete: (id: number) => void
+  onPrint: (rec: TobaccoPurchase) => void
 }
 
 export function DesktopView({
   records, purchasers, ovens,
   view,
   sortGrandTotal, sortNetWeight, onToggleSort,
-  onEdit, onView, onDelete,
+  onEdit, onView, onDelete, onPrint,
 }: Readonly<DesktopViewProps>) {
   if (view === "grid") {
     return (
@@ -132,22 +133,32 @@ export function DesktopView({
                         {rec.grand_total == null ? "-" : `៛${Math.round(rec.grand_total).toLocaleString()}`}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
                           <button
                             onClick={() => onView(rec)}
                             className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
+                            title="View"
                           >
                             <IconEye className="size-4" stroke={1.5} />
                           </button>
                           <button
                             onClick={() => onEdit(rec)}
                             className="p-1 rounded-md hover:bg-[#F0FDF4] text-[#9CA3AF] hover:text-[#009640] transition-colors"
+                            title="Edit"
                           >
                             <IconEdit className="size-4" stroke={1.5} />
                           </button>
                           <button
+                            onClick={() => onPrint(rec)}
+                            className="p-1 rounded-md hover:bg-sky-50 text-[#9CA3AF] hover:text-sky-600 transition-colors"
+                            title="Print Invoice"
+                          >
+                            <IconPrinter className="size-4" stroke={1.5} />
+                          </button>
+                          <button
                             onClick={() => onDelete(rec.tp_id)}
                             className="p-1 rounded-md hover:bg-rose-50 text-[#9CA3AF] hover:text-rose-600 transition-colors"
+                            title="Delete"
                           >
                             <IconTrash className="size-4" stroke={1.5} />
                           </button>

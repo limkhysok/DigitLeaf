@@ -18,6 +18,7 @@ import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { MobileView } from "./_components/mobile-view"
 import { TabletView } from "./_components/tablet-view"
 import { DesktopView } from "./_components/desktop-view"
+import { printInvoice } from "./_components/invoice-print"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -226,6 +227,25 @@ export default function TobaccoPurchasePage() {
     setDialogOpen(true)
   }
 
+  const handlePrint = React.useCallback(async (record: TobaccoPurchase) => {
+    if (!tokens?.access_token) return
+    try {
+      // Fetch full record with details if not already loaded
+      const full = record.details && record.details.length > 0
+        ? record
+        : await apiClient.getTobaccoPurchase(tokens.access_token, record.tp_id)
+      await printInvoice({
+        record: full,
+        purchasers,
+        regions,
+        ovens,
+        tobaccoTypes,
+      })
+    } catch {
+      toast.error("Failed to load purchase details for printing")
+    }
+  }, [tokens, purchasers, regions, ovens, tobaccoTypes])
+
   if (!mounted) return null
 
   // ── Derived state ─────────────────────────────────────────────────────────────
@@ -315,6 +335,7 @@ export default function TobaccoPurchasePage() {
           sortNetWeight={sortNetWeight}
           onToggleSort={handleToggleSort}
           onView={handleView}
+          onPrint={handlePrint}
         />
       )}
 
@@ -334,6 +355,7 @@ export default function TobaccoPurchasePage() {
           setSelectedRecord(null)
         }}
         onSuccess={fetchRecords}
+        onPrint={handlePrint}
         accessToken={tokens?.access_token || ""}
         initialData={selectedRecord}
         isReadOnly={isViewOnly}
