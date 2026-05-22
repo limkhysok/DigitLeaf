@@ -463,7 +463,8 @@ export function AddPurchaseDialog({
         if (onPrint) {
           onPrint(savedRecord)
         } else {
-          await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes })
+          const selectedV = vendors.find(v => v.name === savedRecord?.vendor);
+          await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes, mfCode: selectedV?.mf_code })
         }
       }
     } catch (err) {

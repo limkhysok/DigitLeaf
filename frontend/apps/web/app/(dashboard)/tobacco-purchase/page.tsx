@@ -234,12 +234,25 @@ export default function TobaccoPurchasePage() {
       const full = record.details && record.details.length > 0
         ? record
         : await apiClient.getTobaccoPurchase(tokens.access_token, record.tp_id)
+
+      let mfCode: string | undefined = undefined;
+      if (full.buyer && full.vendor) {
+        try {
+          const vendorsList = await apiClient.getVendorsByBuyer(tokens.access_token, full.buyer);
+          const vItem = vendorsList.find(v => v.name === full.vendor);
+          if (vItem) mfCode = vItem.mf_code;
+        } catch {
+          // ignore
+        }
+      }
+
       await printInvoice({
         record: full,
         purchasers,
         regions,
         ovens,
         tobaccoTypes,
+        mfCode,
       })
     } catch {
       toast.error("Failed to load purchase details for printing")

@@ -80,32 +80,33 @@ const s = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    borderBottomWidth: 2,
-    borderBottomColor: C.green,
+    alignItems: "flex-end",
+    borderBottomWidth: 1,
+    borderBottomColor: C.navy,
     paddingBottom: 8,
     marginBottom: 10,
   },
   companyName: {
     fontSize: 15,
+    fontWeight: "bold",
     fontFamily: "Kantumruy Pro",
-    color: C.green,
+    color: C.navy,
     letterSpacing: -0.2,
   },
   invoiceTitleBlock: {
     alignItems: "flex-end",
   },
   invoiceTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "Kantumruy Pro",
-    color: C.dark,
+    color: C.navy,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   invoiceNum: {
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
-    color: C.green,
+    color: C.navy,
     marginTop: 2,
   },
 
@@ -114,7 +115,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     backgroundColor: C.bg,
-    borderWidth: 1,
+    borderWidth: 0.2,
     borderColor: C.border,
     borderRadius: 4,
     paddingHorizontal: 10,
@@ -130,9 +131,9 @@ const s = StyleSheet.create({
   metaLabel: {
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
-    color: C.light,
+    color: C.navy,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   metaValue: {
     fontSize: 10,
@@ -154,7 +155,7 @@ const s = StyleSheet.create({
   vendorLabel: {
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
-    color: C.greenText,
+    color: C.navy,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 2,
@@ -171,13 +172,16 @@ const s = StyleSheet.create({
   },
 
   // ── Table ──
+  tableWrapper: {
+    borderWidth: 1,
+    borderColor: C.dark,
+    marginTop: 4,
+    marginBottom: 8,
+  },
   tableHeader: {
     flexDirection: "row",
-    borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: C.dark,
-    paddingVertical: 4,
-    paddingHorizontal: 4,
   },
   tableHeaderCell: {
     fontSize: 10,
@@ -186,6 +190,8 @@ const s = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.3,
     textAlign: "right",
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   tableHeaderCellLeft: {
     fontSize: 10,
@@ -194,96 +200,68 @@ const s = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.3,
     textAlign: "left",
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 3,
-    paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: C.bg,
+    borderBottomColor: C.dark,
   },
   tableRowAlt: {
     backgroundColor: C.bg,
   },
+  tableRowLast: {
+    borderBottomWidth: 0,
+  },
   tableCell: {
     fontSize: 10,
-    color: C.mid,
+    color: C.dark,
     textAlign: "right",
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   tableCellLeft: {
     fontSize: 10,
-    color: C.mid,
+    color: C.dark,
     fontFamily: "Kantumruy Pro",
     textAlign: "left",
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   tableCellGreen: {
     fontSize: 10,
-    color: C.green,
+    color: C.dark,
     fontFamily: "Kantumruy Pro",
     textAlign: "right",
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   tableCellDarkGreen: {
     fontSize: 10,
-    color: C.greenDark,
+    color: C.dark,
     fontFamily: "Kantumruy Pro",
     textAlign: "right",
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   tableCellNum: {
     fontSize: 10,
-    color: C.light,
-    textAlign: "center",
-  },
-
-  // Column widths (sum must be 100%)
-  colNum: { width: "5%" },
-  colName: { width: "23%" },
-  colGross: { width: "10%" },
-  colRemork: { width: "9%" },
-  colSack: { width: "9%" },
-  colNet: { width: "12%" },
-  colPrice: { width: "12%" },
-  colTotal: { width: "20%" },
-
-  // ── Summary Bar ──
-  summaryBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: C.white,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginTop: 6,
-    marginBottom: 8,
-  },
-  summaryBlock: {
-    alignItems: "center",
-  },
-  summaryLabel: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.muted,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  summaryValue: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
     color: C.dark,
+    textAlign: "center",
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
-  summaryValueGreen: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.greenDark,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 22,
-    backgroundColor: C.border,
-  },
+
+  // Column widths with borders
+  colNum: { width: "5%", borderRightWidth: 1, borderColor: C.dark },
+  colName: { width: "23%", borderRightWidth: 1, borderColor: C.dark },
+  colGross: { width: "10%", borderRightWidth: 1, borderColor: C.dark },
+  colRemork: { width: "9%", borderRightWidth: 1, borderColor: C.dark },
+  colSack: { width: "9%", borderRightWidth: 1, borderColor: C.dark },
+  colNet: { width: "12%", borderRightWidth: 1, borderColor: C.dark },
+  colPrice: { width: "12%", borderRightWidth: 1, borderColor: C.dark },
+  colTotal: { width: "20%" },
 
   // ── Rate chip ──
   rateRow: {
@@ -341,10 +319,6 @@ const s = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 16,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
-    borderTopStyle: "dashed",
   },
   sigBox: {
     alignItems: "center",
@@ -353,7 +327,7 @@ const s = StyleSheet.create({
   sigLabel: {
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
-    color: C.light,
+    color: C.navy,
     textTransform: "uppercase",
     letterSpacing: 0.4,
     marginBottom: 12,
@@ -364,7 +338,7 @@ const s = StyleSheet.create({
   },
   sigName: {
     fontSize: 10,
-    color: C.muted,
+    color: C.navy,
   },
   noItems: {
     paddingVertical: 10,
@@ -382,6 +356,7 @@ export interface InvoiceData {
   regions: RegionItem[]
   ovens: OvenItem[]
   tobaccoTypes: TobaccoItem[]
+  mfCode?: string
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -404,18 +379,17 @@ function TableRow({ d, i, tobaccoTypes }: Readonly<{
   const total = Math.round(net * (item.price ?? 0))
   const isAlt = i % 2 === 1
 
-  const tobaccoKh = tobaccoType?.t_name_kh ? ` / ${tobaccoType.t_name_kh}` : ""
-  const tobaccoLabel = tobaccoType ? `${tobaccoType.t_name}${tobaccoKh}` : "\u2014"
+  const tobaccoLabel = tobaccoType?.t_name_kh || tobaccoType?.t_name || "\u2014"
 
   return (
     <View style={[s.tableRow, isAlt ? s.tableRowAlt : {}]}>
       <Text style={[s.tableCellNum, s.colNum]}>{i + 1}</Text>
       <Text style={[s.tableCellLeft, s.colName]}>{tobaccoLabel}</Text>
-      <Text style={[s.tableCell, s.colGross]}>{fmt2(item.gross_weight)}</Text>
-      <Text style={[s.tableCell, s.colRemork]}>{fmt2(item.remork_in_kg ?? 0)}</Text>
-      <Text style={[s.tableCell, s.colSack]}>{fmt2(item.sack_in_kg ?? 0)}</Text>
-      <Text style={[s.tableCellGreen, s.colNet]}>{fmt2(net)}</Text>
-      <Text style={[s.tableCell, s.colPrice]}>{item.price?.toLocaleString("en-US") ?? "\u2014"}</Text>
+      <Text style={[s.tableCell, s.colGross, { textAlign: "center" }]}>{fmt2(item.gross_weight)}</Text>
+      <Text style={[s.tableCell, s.colRemork, { textAlign: "center" }]}>{fmt2(item.remork_in_kg ?? 0)}</Text>
+      <Text style={[s.tableCell, s.colSack, { textAlign: "center" }]}>{fmt2(item.sack_in_kg ?? 0)}</Text>
+      <Text style={[s.tableCell, s.colPrice, { textAlign: "center" }]}>{item.price?.toLocaleString("en-US") ?? "\u2014"}</Text>
+      <Text style={[s.tableCellGreen, s.colNet, { textAlign: "center" }]}>{fmt2(net)}</Text>
       <Text style={[s.tableCellDarkGreen, s.colTotal]}>{"\u17db"}{total.toLocaleString("en-US")}</Text>
     </View>
   )
@@ -423,10 +397,9 @@ function TableRow({ d, i, tobaccoTypes }: Readonly<{
 
 // ── Main PDF Document component ───────────────────────────────────────────────
 
-function InvoiceDocument({ record, purchasers, regions, ovens, tobaccoTypes }: Readonly<InvoiceData>) {
+function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: Readonly<InvoiceData>) {
   const purchaser = purchasers.find(p => p.p_id === record.buyer)
   const region = regions.find(r => r.reg_id === record.region)
-  const oven = ovens.find(o => o.id === record.oven)
   const details = record.details ?? []
 
   const totalNetWeight = details.reduce((sum, d) => {
@@ -442,14 +415,8 @@ function InvoiceDocument({ record, purchasers, regions, ovens, tobaccoTypes }: R
     return sum + net * (d.price ?? 0)
   }, 0)
 
-  const purchaserKh = purchaser?.p_name_kh ? ` / ${purchaser.p_name_kh}` : ""
-  const purchaserLabel = purchaser ? `${purchaser.p_name}${purchaserKh}` : "\u2014"
-
-  const regionKh = region?.reg_name_kh ? ` / ${region.reg_name_kh}` : ""
-  const regionLabel = region ? `${region.reg_name}${regionKh}` : "\u2014"
-
-  const ovenKh = oven?.name_kh ? ` / ${oven.name_kh}` : ""
-  const ovenLabel = oven ? `${oven.name_en}${ovenKh}` : "\u2014"
+  const purchaserLabel = purchaser?.p_name_kh || purchaser?.p_name || "\u2014"
+  const regionLabel = region?.reg_name_kh || region?.reg_name || "\u2014"
   return (
     <Document title={`Invoice ${record.invoice_num}`} author="DigitLeaf">
       {/* Set PDF to A4 Portrait, placing the A5 landscape design on the top half! */}
@@ -459,108 +426,80 @@ function InvoiceDocument({ record, purchasers, regions, ovens, tobaccoTypes }: R
 
           {/* ── Header ── */}
           <View style={s.header}>
-            <View>
-              <Text style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</Text>            </View>
-            <View style={s.invoiceTitleBlock}>
+            <View style={{ width: "30%" }} /> {/* Spacer */}
+            <View style={{ width: "40%", alignItems: "center" }}>
+              <Text style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</Text>
+            </View>
+            <View style={[s.invoiceTitleBlock, { width: "30%", alignItems: "flex-end" }]}>
               <Text style={s.invoiceTitle}>លេខវិក័យប័ត្រ {record.invoice_num}</Text>
             </View>
           </View>
 
           {/* ── Top Info Section (Horizontal) ── */}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-            {/* Meta Grid Left */}
-            <View style={[s.metaGrid, { width: "55%", marginBottom: 0 }]}>
-              <View style={s.metaItem}>
-                <Text style={s.metaLabel}>កាលបរិច្ឆេទ</Text>
-                <Text style={s.metaValue}>{fmtDate(record.tp_date)}</Text>
-              </View>
-              <View style={s.metaItem}>
-                <Text style={s.metaLabel}>អ្នកទិញ</Text>
-                <Text style={s.metaValue}>{purchaserLabel}</Text>
-              </View>
-              <View style={s.metaItem}>
-                <Text style={s.metaLabel}>តំបន់</Text>
-                <Text style={s.metaValue}>{regionLabel}</Text>
-              </View>
-              <View style={s.metaItem}>
-                <Text style={s.metaLabel}>ឡ</Text>
-                <Text style={s.metaValue}>{ovenLabel}</Text>
-              </View>
+          <View style={[s.metaGrid, { flexDirection: "row", flexWrap: "nowrap", justifyContent: "space-between", marginBottom: 8, width: "100%" }]}>
+            <View style={[s.metaItem, { width: "24%" }]}>
+              <Text style={s.metaLabel}>កាលបរិច្ឆេទ</Text>
+              <Text style={s.metaValue}>{fmtDate(record.tp_date)}</Text>
             </View>
-
-            {/* Vendor Box Right */}
-            <View style={[s.vendorBox, { width: "43%", marginBottom: 0, flexDirection: "column" }]}>
-              <Text style={s.vendorLabel}>អ្នកលក់ / កសិករ</Text>
-              <Text style={s.vendorName}>{record.vendor ?? "\u2014"}</Text>
-              {record.v_addr ? <Text style={s.vendorAddr}>{record.v_addr}</Text> : null}
+            <View style={[s.metaItem, { width: "24%" }]}>
+              <Text style={[s.metaLabel, { textAlign: "center" }]}>តំបន់</Text>
+              <Text style={[s.metaValue, { textAlign: "center" }]}>{regionLabel}</Text>
+            </View>
+            <View style={[s.metaItem, { width: "24%" }]}>
+              <Text style={[s.metaLabel, { textAlign: "center" }]}>ឈ្មោះកសិករ </Text>
+              <Text style={[s.metaValue, { textAlign: "center" }]}>{record.vendor ?? "\u2014"} {mfCode ? `(${mfCode})` : ""}</Text>
+            </View>
+            <View style={[s.metaItem, { width: "24%" }]}>
+              <Text style={[s.metaLabel, { textAlign: "right" }]}>អត្រាប្តូរប្រាក់</Text>
+              <Text style={[s.metaValue, { textAlign: "right" }]}>{"\u17db"}{record.rate?.toLocaleString("en-US") ?? "\u2014"}រៀល </Text>
             </View>
           </View>
 
           {/* ── Items Table ── */}
-          {/* Header row */}
-          <View style={s.tableHeader}>
-            <Text style={[s.tableHeaderCell, s.colNum, { textAlign: "center" }]}>ល.រ</Text>
-            <Text style={[s.tableHeaderCellLeft, s.colName]}>ប្រភេទថ្នាំជក់</Text>
-            <Text style={[s.tableHeaderCell, s.colGross]}>ទម្ងន់សរុប</Text>
-            <Text style={[s.tableHeaderCell, s.colRemork]}>ទម្ងន់រ៉ឺម៉ក</Text>
-            <Text style={[s.tableHeaderCell, s.colSack]}>ទម្ងន់សាក់</Text>
-            <Text style={[s.tableHeaderCell, s.colNet]}>ទម្ងន់សុទ្ធ (Kg)</Text>
-            <Text style={[s.tableHeaderCell, s.colPrice]}>តម្លៃ/គីឡូ</Text>
-            <Text style={[s.tableHeaderCell, s.colTotal]}>សរុបទឹកប្រាក់</Text>
-          </View>
-
-          {/* Detail rows */}
-          {details.length === 0 ? (
-            <Text style={s.noItems}>មិនមានទិន្នន័យ</Text>
-          ) : (
-            details.map((d, i) => (
-              <TableRow
-                key={d.tpd_id ?? i}
-                d={d}
-                i={i}
-                tobaccoTypes={tobaccoTypes}
-              />
-            ))
-          )}
-
-          {/* ── Summary & Rate (Horizontal) ── */}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 4, marginBottom: 8 }}>
-
-            {/* Rate row */}
-            <View style={[s.rateRow, { marginBottom: 0 }]}>
-              <View style={s.rateChip}>
-                <Text style={s.rateChipLabel}>អត្រាប្តូរប្រាក់</Text>
-                <Text style={s.rateChipValue}>{"\u17db"}{record.rate?.toLocaleString("en-US") ?? "\u2014"} / ដុល្លារ</Text>
-              </View>
+          <View style={s.tableWrapper}>
+            {/* Header row */}
+            <View style={s.tableHeader}>
+              <Text style={[s.tableHeaderCell, s.colNum, { textAlign: "center" }]}>ល.រ</Text>
+              <Text style={[s.tableHeaderCellLeft, s.colName]}>ប្រភេទសន្លឹកថ្នាំ</Text>
+              <Text style={[s.tableHeaderCell, s.colGross, { textAlign: "center" }]}>ទម្ងន់សរុប</Text>
+              <Text style={[s.tableHeaderCell, s.colRemork, { textAlign: "center" }]}>ទម្ងន់រ៉ឺម៉ក</Text>
+              <Text style={[s.tableHeaderCell, s.colSack, { textAlign: "center" }]}>ទម្ងន់បាវ</Text>
+              <Text style={[s.tableHeaderCell, s.colPrice, { textAlign: "center" }]}>តម្លៃ</Text>
+              <Text style={[s.tableHeaderCell, s.colNet, { textAlign: "center" }]}>ទម្ងន់សុទ្ធ</Text>
+              <Text style={[s.tableHeaderCell, s.colTotal]}>សរុបទឹកប្រាក់</Text>
             </View>
 
-            {/* Summary Bar */}
-            <View style={[s.summaryBar, { width: "65%", marginTop: 0, marginBottom: 0 }]}>
-              <View style={s.summaryBlock}>
-                <Text style={s.summaryLabel}>សរុបចំនួនមុខ</Text>
-                <Text style={s.summaryValue}>{details.length}</Text>
+            {/* Detail rows */}
+            {details.length === 0 ? (
+              <View style={[s.tableRow, { justifyContent: "center", paddingVertical: 10 }]}>
+                <Text style={s.noItems}>មិនមានទិន្នន័យ</Text>
               </View>
-              <View style={s.summaryDivider} />
-              <View style={s.summaryBlock}>
-                <Text style={s.summaryLabel}>ទម្ងន់សុទ្ធសរុប</Text>
-                <Text style={s.summaryValue}>{fmt2(totalNetWeight)} Kg</Text>
+            ) : (
+              details.map((d, i) => (
+                <TableRow
+                  key={d.tpd_id ?? i}
+                  d={d}
+                  i={i}
+                  tobaccoTypes={tobaccoTypes}
+                />
+              ))
+            )}
+
+            {/* Summary Row (Inside Table) */}
+            <View style={[s.tableRow, s.tableRowLast]}>
+              <View style={{ width: "56%", borderRightWidth: 1, borderColor: C.dark }} />
+              <View style={{ width: "12%", borderRightWidth: 1, borderColor: C.dark, paddingHorizontal: 4, paddingVertical: 3, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, marginRight: 2 }}>ចំនួន៖</Text>
+                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, fontWeight: "bold" }}>{details.length}</Text>
               </View>
-              <View style={s.summaryDivider} />
-              <View style={s.summaryBlock}>
-                <Text style={s.summaryLabel}>សរុបទឹកប្រាក់រួម</Text>
-                <Text style={s.summaryValueGreen}>{"\u17db"}{Math.round(grandTotal).toLocaleString("en-US")}</Text>
+              <View style={{ width: "12%", borderRightWidth: 1, borderColor: C.dark, paddingHorizontal: 4, paddingVertical: 3, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, fontWeight: "bold" }}>{fmt2(totalNetWeight)}</Text>
+              </View>
+              <View style={{ width: "20%", paddingHorizontal: 4, paddingVertical: 3, alignItems: "flex-end", justifyContent: "center" }}>
+                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, fontWeight: "bold" }}>{"\u17db"}{Math.round(grandTotal).toLocaleString("en-US")}</Text>
               </View>
             </View>
           </View>
-
-          {/* ── Note (optional) ── */}
-          {record.tp_note ? (
-            <View style={s.noteBox}>
-              <Text style={s.noteLabel}>ចំណាំ</Text>
-              <Text style={s.noteText}>{record.tp_note}</Text>
-            </View>
-          ) : null}
-
           {/* ── Signatures ── */}
           <View style={s.sigRow}>
             <View style={s.sigBox}>
