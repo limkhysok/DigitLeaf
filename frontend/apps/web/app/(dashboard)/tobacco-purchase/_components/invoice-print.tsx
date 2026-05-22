@@ -51,7 +51,7 @@ const C = {
   muted: "#6b7280",
   light: "#9ca3af",
   border: "#e5e7eb",
-  bg: "#f9fafb",
+  bg: "#f2f2f2ff",
   white: "#ffffff",
   navy: "#111827",
   amber: "#fffbeb",
@@ -71,8 +71,8 @@ const s = StyleSheet.create({
     backgroundColor: C.white,
     paddingTop: 24,
     paddingBottom: 20,
-    paddingLeft: 28,
-    paddingRight: 28,
+    paddingLeft: 40,
+    paddingRight: 40,
     flexDirection: "column",
   },
 
@@ -81,10 +81,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    borderBottomWidth: 1,
-    borderBottomColor: C.navy,
-    paddingBottom: 8,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   companyName: {
     fontSize: 15,
@@ -92,6 +89,7 @@ const s = StyleSheet.create({
     fontFamily: "Kantumruy Pro",
     color: C.navy,
     letterSpacing: -0.2,
+    marginBottom: 17,
   },
   invoiceTitleBlock: {
     alignItems: "flex-end",
@@ -117,7 +115,6 @@ const s = StyleSheet.create({
     backgroundColor: C.bg,
     borderWidth: 0.2,
     borderColor: C.border,
-    borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 7,
     marginBottom: 8,
@@ -209,7 +206,7 @@ const s = StyleSheet.create({
     borderBottomColor: C.dark,
   },
   tableRowAlt: {
-    backgroundColor: C.bg,
+    backgroundColor: C.white,
   },
   tableRowLast: {
     borderBottomWidth: 0,
@@ -422,7 +419,7 @@ function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: 
       {/* Set PDF to A4 Portrait, placing the A5 landscape design on the top half! */}
       <Page size="A4" orientation="portrait" style={{ backgroundColor: "#ffffff" }}>
         {/* A5 Landscape size in points is approx 595x420, which is exactly the top half of A4 Portrait */}
-        <View style={[s.page, { width: 595, height: 420, overflow: "hidden", borderBottom: "1px dashed #ccc", paddingTop: 16, paddingBottom: 12 }]}>
+        <View style={[s.page, { width: 595, height: 420, overflow: "hidden", borderBottom: "1px dashed #ccc", paddingTop: 40, paddingBottom: 12 }]}>
 
           {/* ── Header ── */}
           <View style={s.header}>
@@ -430,28 +427,41 @@ function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: 
             <View style={{ width: "40%", alignItems: "center" }}>
               <Text style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</Text>
             </View>
-            <View style={[s.invoiceTitleBlock, { width: "30%", alignItems: "flex-end" }]}>
-              <Text style={s.invoiceTitle}>លេខវិក័យប័ត្រ {record.invoice_num}</Text>
-            </View>
+            <View style={{ width: "30%" }} /> {/* Spacer */}
           </View>
 
-          {/* ── Top Info Section (Horizontal) ── */}
-          <View style={[s.metaGrid, { flexDirection: "row", flexWrap: "nowrap", justifyContent: "space-between", marginBottom: 8, width: "100%" }]}>
-            <View style={[s.metaItem, { width: "24%" }]}>
-              <Text style={s.metaLabel}>កាលបរិច្ឆេទ</Text>
-              <Text style={s.metaValue}>{fmtDate(record.tp_date)}</Text>
+          {/* ── Top Info Section (2 Columns) ── */}
+          <View style={[s.metaGrid, { flexDirection: "row", justifyContent: "space-between", marginBottom: 8, width: "100%" }]}>
+            {/* Left Column */}
+            <View style={{ width: "48%", flexDirection: "column", gap: 6 }}>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>លេខវិក័យប័ត្រ</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>: {record.invoice_num}</Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>កាលបរិច្ឆេទ</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>: {fmtDate(record.tp_date)}</Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>អត្រាប្តូរប្រាក់</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>: {"\u17db"}{record.rate?.toLocaleString("en-US") ?? "\u2014"}</Text>
+              </View>
             </View>
-            <View style={[s.metaItem, { width: "24%" }]}>
-              <Text style={[s.metaLabel, { textAlign: "center" }]}>តំបន់</Text>
-              <Text style={[s.metaValue, { textAlign: "center" }]}>{regionLabel}</Text>
-            </View>
-            <View style={[s.metaItem, { width: "24%" }]}>
-              <Text style={[s.metaLabel, { textAlign: "center" }]}>ឈ្មោះកសិករ </Text>
-              <Text style={[s.metaValue, { textAlign: "center" }]}>{record.vendor ?? "\u2014"} {mfCode ? `(${mfCode})` : ""}</Text>
-            </View>
-            <View style={[s.metaItem, { width: "24%" }]}>
-              <Text style={[s.metaLabel, { textAlign: "right" }]}>អត្រាប្តូរប្រាក់</Text>
-              <Text style={[s.metaValue, { textAlign: "right" }]}>{"\u17db"}{record.rate?.toLocaleString("en-US") ?? "\u2014"}រៀល </Text>
+
+            {/* Right Column */}
+            <View style={{ width: "48%", flexDirection: "column", gap: 6 }}>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>ឈ្មោះកសិករ </Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>: {record.vendor ?? "\u2014"}</Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>លេខកាតកសិករ</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>: {mfCode ?? "\u2014"}</Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>តំបន់</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>: {regionLabel}</Text>
+              </View>
             </View>
           </View>
 
