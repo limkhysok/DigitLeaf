@@ -10,9 +10,15 @@ import {
   pdf,
   Font,
 } from "@react-pdf/renderer"
-import { TobaccoPurchase, PurchaserItem, RegionItem, OvenItem, TobaccoItem } from "@/lib/api-client"
+import {
+  TobaccoPurchase,
+  PurchaserItem,
+  RegionItem,
+  OvenItem,
+  TobaccoItem,
+} from "@/lib/api-client"
 
-// ── Register fonts (optional — falls back to built-in Kantumruy Pro) ──────────────
+// ── Register fonts (optional — falls back to built-in Noto Sans Khmer) ──────────────
 Font.register({
   family: "Kantumruy Pro",
   src: "/font/KantumruyPro-Regular.ttf",
@@ -24,7 +30,10 @@ Font.registerHyphenationCallback((word) => [word])
 
 function fmt2(n: number | null | undefined): string {
   if (n == null) return "\u2014"
-  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 function fmtDate(dateStr: string | null | undefined): string {
@@ -85,10 +94,8 @@ const s = StyleSheet.create({
   },
   companyName: {
     fontSize: 15,
-    fontWeight: "bold",
     fontFamily: "Kantumruy Pro",
     color: C.navy,
-    letterSpacing: -0.2,
     marginBottom: 17,
   },
   invoiceTitleBlock: {
@@ -98,8 +105,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Kantumruy Pro",
     color: C.navy,
-    textTransform: "uppercase",
-    letterSpacing: 0.2,
   },
   invoiceNum: {
     fontSize: 10,
@@ -129,8 +134,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.navy,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
   },
   metaValue: {
     fontSize: 10,
@@ -153,8 +156,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.navy,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
     marginBottom: 2,
   },
   vendorName: {
@@ -184,8 +185,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.dark,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
     textAlign: "right",
     paddingHorizontal: 4,
     paddingVertical: 4,
@@ -194,8 +193,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.dark,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
     textAlign: "left",
     paddingHorizontal: 4,
     paddingVertical: 4,
@@ -281,7 +278,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.light,
-    textTransform: "uppercase",
   },
   rateChipValue: {
     fontSize: 10,
@@ -303,7 +299,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.amberLabel,
-    textTransform: "uppercase",
     marginBottom: 1,
   },
   noteText: {
@@ -325,8 +320,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Kantumruy Pro",
     color: C.navy,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
     marginBottom: 12,
   },
   sigLine: {
@@ -358,19 +351,26 @@ export interface InvoiceData {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function TableRow({ d, i, tobaccoTypes }: Readonly<{
+function TableRow({
+  d,
+  i,
+  tobaccoTypes,
+}: Readonly<{
   d: TobaccoPurchase["details"] extends (infer T)[] | undefined ? T : never
   i: number
   tobaccoTypes: TobaccoItem[]
 }>) {
-  const tobaccoType = tobaccoTypes.find(t => t.t_id === (d as { tobacco_name?: number }).tobacco_name)
+  const tobaccoType = tobaccoTypes.find(
+    (t) => t.t_id === (d as { tobacco_name?: number }).tobacco_name
+  )
   const item = d as {
     gross_weight?: number | null
     remork_in_kg?: number | null
     sack_in_kg?: number | null
     price?: number | null
   }
-  const net = Math.max(0,
+  const net = Math.max(
+    0,
     (item.gross_weight ?? 0) - (item.remork_in_kg ?? 0) - (item.sack_in_kg ?? 0)
   )
   const total = Math.round(net * (item.price ?? 0))
@@ -382,31 +382,52 @@ function TableRow({ d, i, tobaccoTypes }: Readonly<{
     <View style={[s.tableRow, isAlt ? s.tableRowAlt : {}]}>
       <Text style={[s.tableCellNum, s.colNum]}>{i + 1}</Text>
       <Text style={[s.tableCellLeft, s.colName]}>{tobaccoLabel}</Text>
-      <Text style={[s.tableCell, s.colGross, { textAlign: "center" }]}>{fmt2(item.gross_weight)}</Text>
-      <Text style={[s.tableCell, s.colRemork, { textAlign: "center" }]}>{fmt2(item.remork_in_kg ?? 0)}</Text>
-      <Text style={[s.tableCell, s.colSack, { textAlign: "center" }]}>{fmt2(item.sack_in_kg ?? 0)}</Text>
-      <Text style={[s.tableCell, s.colPrice, { textAlign: "center" }]}>{item.price?.toLocaleString("en-US") ?? "\u2014"}</Text>
-      <Text style={[s.tableCellGreen, s.colNet, { textAlign: "center" }]}>{fmt2(net)}</Text>
-      <Text style={[s.tableCellDarkGreen, s.colTotal]}>{"\u17db"}{total.toLocaleString("en-US")}</Text>
+      <Text style={[s.tableCell, s.colGross, { textAlign: "center" }]}>
+        {fmt2(item.gross_weight)}
+      </Text>
+      <Text style={[s.tableCell, s.colRemork, { textAlign: "center" }]}>
+        {fmt2(item.remork_in_kg ?? 0)}
+      </Text>
+      <Text style={[s.tableCell, s.colSack, { textAlign: "center" }]}>
+        {fmt2(item.sack_in_kg ?? 0)}
+      </Text>
+      <Text style={[s.tableCell, s.colPrice, { textAlign: "center" }]}>
+        {item.price?.toLocaleString("en-US") ?? "\u2014"}
+      </Text>
+      <Text style={[s.tableCellGreen, s.colNet, { textAlign: "center" }]}>
+        {fmt2(net)}
+      </Text>
+      <Text style={[s.tableCellDarkGreen, s.colTotal]}>
+        {"\u17db"}
+        {total.toLocaleString("en-US")}
+      </Text>
     </View>
   )
 }
 
 // ── Main PDF Document component ───────────────────────────────────────────────
 
-function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: Readonly<InvoiceData>) {
-  const purchaser = purchasers.find(p => p.p_id === record.buyer)
-  const region = regions.find(r => r.reg_id === record.region)
+function InvoiceDocument({
+  record,
+  purchasers,
+  regions,
+  tobaccoTypes,
+  mfCode,
+}: Readonly<InvoiceData>) {
+  const purchaser = purchasers.find((p) => p.p_id === record.buyer)
+  const region = regions.find((r) => r.reg_id === record.region)
   const details = record.details ?? []
 
   const totalNetWeight = details.reduce((sum, d) => {
-    const net = Math.max(0,
+    const net = Math.max(
+      0,
       (d.gross_weight ?? 0) - (d.remork_in_kg ?? 0) - (d.sack_in_kg ?? 0)
     )
     return sum + net
   }, 0)
   const grandTotal = details.reduce((sum, d) => {
-    const net = Math.max(0,
+    const net = Math.max(
+      0,
       (d.gross_weight ?? 0) - (d.remork_in_kg ?? 0) - (d.sack_in_kg ?? 0)
     )
     return sum + net * (d.price ?? 0)
@@ -416,72 +437,140 @@ function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: 
   const regionLabel = region?.reg_name_kh || region?.reg_name || "\u2014"
   return (
     <Document title={`Invoice ${record.invoice_num}`} author="DigitLeaf">
-      {/* Set PDF to A4 Portrait, placing the A5 landscape design on the top half! */}
-      <Page size="A4" orientation="portrait" style={{ backgroundColor: "#ffffff" }}>
-        {/* A5 Landscape size in points is approx 595x420, which is exactly the top half of A4 Portrait */}
-        <View style={[s.page, { width: 595, height: 420, overflow: "hidden", borderBottom: "1px dashed #ccc", paddingTop: 40, paddingBottom: 12 }]}>
-
-          {/* ── Header ── */}
+      <Page
+        size="A4"
+        orientation="portrait"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        <View
+          style={[
+            s.page,
+            {
+              width: 595,
+              height: 420,
+              overflow: "hidden",
+              borderBottom: "1px dashed #ccc",
+              paddingTop: 40,
+              paddingBottom: 12,
+            },
+          ]}
+        >
           <View style={s.header}>
-            <View style={{ width: "30%" }} /> {/* Spacer */}
+            <View style={{ width: "30%" }} />
             <View style={{ width: "40%", alignItems: "center" }}>
               <Text style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</Text>
             </View>
-            <View style={{ width: "30%" }} /> {/* Spacer */}
+            <View style={{ width: "30%" }} />
           </View>
 
-          {/* ── Top Info Section (2 Columns) ── */}
-          <View style={[s.metaGrid, { flexDirection: "row", justifyContent: "space-between", marginBottom: 8, width: "100%" }]}>
-            {/* Left Column */}
+          <View
+            style={[
+              s.metaGrid,
+              {
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 8,
+                width: "100%",
+              },
+            ]}
+          >
             <View style={{ width: "48%", flexDirection: "column", gap: 6 }}>
               <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>លេខវិក័យប័ត្រ</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>: {record.invoice_num}</Text>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>
+                  លេខវិក័យប័ត្រ
+                </Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>
+                  : {record.invoice_num}
+                </Text>
               </View>
               <View style={{ flexDirection: "row" }}>
                 <Text style={[{ width: "45%" }, s.metaLabel]}>កាលបរិច្ឆេទ</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>: {fmtDate(record.tp_date)}</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>
+                  : {fmtDate(record.tp_date)}
+                </Text>
               </View>
               <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>អត្រាប្តូរប្រាក់</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>: {"\u17db"}{record.rate?.toLocaleString("en-US") ?? "\u2014"}</Text>
+                <Text style={[{ width: "45%" }, s.metaLabel]}>
+                  អត្រាប្តូរប្រាក់
+                </Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>
+                  : {"\u17db"}
+                  {record.rate?.toLocaleString("en-US") ?? "\u2014"}
+                </Text>
               </View>
             </View>
 
-            {/* Right Column */}
             <View style={{ width: "48%", flexDirection: "column", gap: 6 }}>
               <View style={{ flexDirection: "row" }}>
                 <Text style={[{ width: "45%" }, s.metaLabel]}>ឈ្មោះកសិករ </Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>: {record.vendor ?? "\u2014"}</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>
+                  : {record.vendor ?? "\u2014"}
+                </Text>
               </View>
               <View style={{ flexDirection: "row" }}>
                 <Text style={[{ width: "45%" }, s.metaLabel]}>លេខកាតកសិករ</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>: {mfCode ?? "\u2014"}</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>
+                  : {mfCode ?? "\u2014"}
+                </Text>
               </View>
               <View style={{ flexDirection: "row" }}>
                 <Text style={[{ width: "45%" }, s.metaLabel]}>តំបន់</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>: {regionLabel}</Text>
+                <Text style={[{ width: "55%" }, s.metaValue]}>
+                  : {regionLabel}
+                </Text>
               </View>
             </View>
           </View>
 
-          {/* ── Items Table ── */}
           <View style={s.tableWrapper}>
-            {/* Header row */}
             <View style={s.tableHeader}>
-              <Text style={[s.tableHeaderCell, s.colNum, { textAlign: "center" }]}>ល.រ</Text>
-              <Text style={[s.tableHeaderCellLeft, s.colName]}>ប្រភេទសន្លឹកថ្នាំ</Text>
-              <Text style={[s.tableHeaderCell, s.colGross, { textAlign: "center" }]}>ទម្ងន់សរុប</Text>
-              <Text style={[s.tableHeaderCell, s.colRemork, { textAlign: "center" }]}>ទម្ងន់រ៉ឺម៉ក</Text>
-              <Text style={[s.tableHeaderCell, s.colSack, { textAlign: "center" }]}>ទម្ងន់បាវ</Text>
-              <Text style={[s.tableHeaderCell, s.colPrice, { textAlign: "center" }]}>តម្លៃ</Text>
-              <Text style={[s.tableHeaderCell, s.colNet, { textAlign: "center" }]}>ទម្ងន់សុទ្ធ</Text>
+              <Text
+                style={[s.tableHeaderCell, s.colNum, { textAlign: "center" }]}
+              >
+                ល.រ
+              </Text>
+              <Text style={[s.tableHeaderCellLeft, s.colName]}>
+                ប្រភេទសន្លឹកថ្នាំ
+              </Text>
+              <Text
+                style={[s.tableHeaderCell, s.colGross, { textAlign: "center" }]}
+              >
+                ទម្ងន់សរុប
+              </Text>
+              <Text
+                style={[
+                  s.tableHeaderCell,
+                  s.colRemork,
+                  { textAlign: "center" },
+                ]}
+              >
+                ទម្ងន់រ៉ឺម៉ក
+              </Text>
+              <Text
+                style={[s.tableHeaderCell, s.colSack, { textAlign: "center" }]}
+              >
+                ទម្ងន់បាវ
+              </Text>
+              <Text
+                style={[s.tableHeaderCell, s.colPrice, { textAlign: "center" }]}
+              >
+                តម្លៃ
+              </Text>
+              <Text
+                style={[s.tableHeaderCell, s.colNet, { textAlign: "center" }]}
+              >
+                ទម្ងន់សុទ្ធ
+              </Text>
               <Text style={[s.tableHeaderCell, s.colTotal]}>សរុបទឹកប្រាក់</Text>
             </View>
 
-            {/* Detail rows */}
             {details.length === 0 ? (
-              <View style={[s.tableRow, { justifyContent: "center", paddingVertical: 10 }]}>
+              <View
+                style={[
+                  s.tableRow,
+                  { justifyContent: "center", paddingVertical: 10 },
+                ]}
+              >
                 <Text style={s.noItems}>មិនមានទិន្នន័យ</Text>
               </View>
             ) : (
@@ -495,27 +584,99 @@ function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: 
               ))
             )}
 
-            {/* Summary Row (Inside Table) */}
             <View style={[s.tableRow, s.tableRowLast]}>
-              <View style={{ width: "56%", borderRightWidth: 1, borderColor: C.dark }} />
-              <View style={{ width: "12%", borderRightWidth: 1, borderColor: C.dark, paddingHorizontal: 4, paddingVertical: 3, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, marginRight: 2 }}>ចំនួន៖</Text>
-                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, fontWeight: "bold" }}>{details.length}</Text>
+              <View
+                style={{
+                  width: "56%",
+                  borderRightWidth: 1,
+                  borderColor: C.dark,
+                }}
+              />
+              <View
+                style={{
+                  width: "12%",
+                  borderRightWidth: 1,
+                  borderColor: C.dark,
+                  paddingHorizontal: 4,
+                  paddingVertical: 3,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Kantumruy Pro",
+                    color: C.dark,
+                    marginRight: 2,
+                  }}
+                >
+                  ចំនួន៖
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Kantumruy Pro",
+                    color: C.dark,
+                  }}
+                >
+                  {details.length}
+                </Text>
               </View>
-              <View style={{ width: "12%", borderRightWidth: 1, borderColor: C.dark, paddingHorizontal: 4, paddingVertical: 3, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, fontWeight: "bold" }}>{fmt2(totalNetWeight)}</Text>
+              <View
+                style={{
+                  width: "12%",
+                  borderRightWidth: 1,
+                  borderColor: C.dark,
+                  paddingHorizontal: 4,
+                  paddingVertical: 3,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Kantumruy Pro",
+                    color: C.dark,
+                  }}
+                >
+                  {fmt2(totalNetWeight)}
+                </Text>
               </View>
-              <View style={{ width: "20%", paddingHorizontal: 4, paddingVertical: 3, alignItems: "flex-end", justifyContent: "center" }}>
-                <Text style={{ fontSize: 10, fontFamily: "Kantumruy Pro", color: C.dark, fontWeight: "bold" }}>{"\u17db"}{Math.round(grandTotal).toLocaleString("en-US")}</Text>
+              <View
+                style={{
+                  width: "20%",
+                  paddingHorizontal: 4,
+                  paddingVertical: 3,
+                  alignItems: "flex-end",
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Kantumruy Pro",
+                    color: C.dark,
+                  }}
+                >
+                  {"\u17db"}
+                  {Math.round(grandTotal).toLocaleString("en-US")}
+                </Text>
               </View>
             </View>
           </View>
-          {/* ── Signatures ── */}
+
           <View style={s.sigRow}>
             <View style={s.sigBox}>
               <Text style={s.sigLabel}>ឈ្មោះអ្នកទិញ </Text>
               <View style={s.sigLine} />
-              <Text style={s.sigName}>{purchaserLabel === "\u2014" ? "_______________" : purchaserLabel}</Text>
+              <Text style={s.sigName}>
+                {purchaserLabel === "\u2014"
+                  ? "_______________"
+                  : purchaserLabel}
+              </Text>
             </View>
             <View style={s.sigBox}>
               <Text style={s.sigLabel}>អ្នកពិនិត្យគុណភាព</Text>
@@ -528,9 +689,13 @@ function InvoiceDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: 
               <Text style={s.sigName}>_______________</Text>
             </View>
             <View style={s.sigBox}>
-              <Text style={s.sigLabel}>ឈ្មោះ និង ស្នាមម្រាមដៃ អ្នកលក់បានទទួលប្រាក់</Text>
+              <Text style={s.sigLabel}>
+                ឈ្មោះ និង ស្នាមម្រាមដៃ អ្នកលក់បានទទួលប្រាក់
+              </Text>
 
-              <Text style={s.sigName}>{record.vendor ?? "_______________"}</Text>
+              <Text style={s.sigName}>
+                {record.vendor ?? "_______________"}
+              </Text>
             </View>
           </View>
         </View>
