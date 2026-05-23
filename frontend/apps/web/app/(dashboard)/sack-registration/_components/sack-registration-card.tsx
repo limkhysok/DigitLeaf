@@ -39,15 +39,7 @@ export const SackRegistrationCard = React.memo(({
   }
   const statusLabel = getStatusLabel(rec.status)
 
-  const getStatusColor = (statusVal: number) => {
-    switch (statusVal) {
-      case 0: return "bg-amber-400"
-      case 1: return "bg-emerald-400"
-      case 2: return "bg-rose-400"
-      default: return "bg-gray-400"
-    }
-  }
-  const topBarColor = getStatusColor(rec.status)
+
 
   return (
     <Card
@@ -61,7 +53,6 @@ export const SackRegistrationCard = React.memo(({
             #{localizeNumber(index)}
           </span>
           <Badge variant="outline" className={cn("px-1.5 py-0.5 text-sm font-semibold rounded-sm border-opacity-50", status.className)}>
-            <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5", topBarColor)} />
             {statusLabel}
           </Badge>
         </div>
