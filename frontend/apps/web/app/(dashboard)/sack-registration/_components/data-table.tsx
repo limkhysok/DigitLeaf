@@ -27,6 +27,7 @@ import {
 
 import { DataTablePagination } from "@workspace/ui/components/data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
+import { useLanguage } from "@/hooks/use-language"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -41,6 +42,7 @@ export function DataTable<TData, TValue>({
   noRecordsText = "No results.",
   action,
 }: Readonly<DataTableProps<TData, TValue>>) {
+  const { t } = useLanguage()
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -131,7 +133,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} texts={t.common.pagination} />
     </div>
   )
 }

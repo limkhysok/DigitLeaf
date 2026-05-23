@@ -20,13 +20,15 @@ import { STATUS_MAP } from "./constants"
 
 interface ColumnHelpers {
   t: any
+  localizeNumber: (num: number | string | null | undefined) => string
+  localizeDateString: (formattedDate: string) => string
   total: number
   onView: (rec: SackRegistrationItem) => void
   onEdit: (rec: SackRegistrationItem) => void
   onDelete: (rec: SackRegistrationItem, index: number) => void
 }
 
-export function getColumns({ t, total, onView, onEdit, onDelete }: ColumnHelpers): ColumnDef<SackRegistrationItem>[] {
+export function getColumns({ t, localizeNumber, localizeDateString, total, onView, onEdit, onDelete }: ColumnHelpers): ColumnDef<SackRegistrationItem>[] {
   return [
     {
       id: "select",
@@ -55,7 +57,7 @@ export function getColumns({ t, total, onView, onEdit, onDelete }: ColumnHelpers
     {
       id: "no",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.no} />,
-      cell: ({ row }) => <div className="font-medium">{total - row.index}</div>,
+      cell: ({ row }) => <div className="font-medium">{localizeNumber(total - row.index)}</div>,
       enableSorting: false,
       enableHiding: false,
     },
@@ -75,18 +77,18 @@ export function getColumns({ t, total, onView, onEdit, onDelete }: ColumnHelpers
       cell: ({ row }) => {
         const statusVal = row.getValue("status") as number
         const status = STATUS_MAP[statusVal] ?? { className: "bg-muted text-muted-foreground" }
-        
+
         const getStatusLabel = (val: number) => {
           switch (val) {
             case 0: return t.sackRegistration.filters.statusPending
-            case 1: return t.sackRegistration.filters.statusApproved
+            case 1: return t.sackRegistration.filters.statusConfirmed
             case 2: return t.sackRegistration.filters.statusRejected
             default: return String(val)
           }
         }
-        
+
         return (
-          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-bold border", status.className)}>
+          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-regular border", status.className)}>
             {getStatusLabel(statusVal)}
           </span>
         )
@@ -101,18 +103,18 @@ export function getColumns({ t, total, onView, onEdit, onDelete }: ColumnHelpers
       cell: ({ row }) => {
         const val = row.getValue("sack_in_kg") as number | null
         return (
-          <div className="tabular-nums font-medium">
-            {val ?? <span className="text-muted-foreground/50">—</span>}
+          <div className="tabular-nums font-sm">
+            {val !== null && val !== undefined ? localizeNumber(val) : <span className="text-muted-foreground/50">—</span>}
           </div>
         )
       },
     },
     {
       accessorKey: "registered_at",
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.registeredAt} />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.date} />,
       cell: ({ row }) => (
         <div className="font-medium">
-          {format(new Date(row.getValue("registered_at")), "dd/MM/yyyy 'at' h:mm a")}
+          {localizeNumber(format(new Date(row.getValue("registered_at")), "dd/MM/yyyy"))}
         </div>
       ),
       sortingFn: "datetime",
@@ -139,7 +141,7 @@ export function getColumns({ t, total, onView, onEdit, onDelete }: ColumnHelpers
                 {t.sackRegistration.dialog.edit}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDelete(rec, total - row.index)}
                 className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
               >

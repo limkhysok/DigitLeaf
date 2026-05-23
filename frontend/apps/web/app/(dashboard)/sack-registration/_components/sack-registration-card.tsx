@@ -25,13 +25,13 @@ export const SackRegistrationCard = React.memo(({
   onEdit: (rec: SackRegistrationItem) => void
   onDelete: (rec: SackRegistrationItem) => void
 }) => {
-  const { t } = useLanguage()
+  const { t, localizeNumber } = useLanguage()
   const status = STATUS_MAP[rec.status] ?? { className: "bg-gray-100 text-gray-800" }
   
   const getStatusLabel = (statusVal: number) => {
     switch (statusVal) {
       case 0: return t.sackRegistration.filters.statusPending
-      case 1: return t.sackRegistration.filters.statusApproved
+      case 1: return t.sackRegistration.filters.statusConfirmed
       case 2: return t.sackRegistration.filters.statusRejected
       default: return String(statusVal)
     }
@@ -47,7 +47,7 @@ export const SackRegistrationCard = React.memo(({
         <div className="flex flex-col gap-1.5 min-w-0 pr-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
              <span className="font-mono bg-muted px-1 py-0.5 rounded-sm">
-               #{String(index + 1).padStart(2, '0')}
+               #{localizeNumber(index)}
              </span>
              <Badge variant="outline" className={cn("px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider rounded-sm", status.className)}>
                {statusLabel}

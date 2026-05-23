@@ -5,14 +5,14 @@ import { SackRegistrationListParams } from "@/lib/api-client"
 
 export const STATUS_MAP: Record<number, { label: string; className: string }> = {
   0: { label: "Pending", className: "bg-amber-100 text-amber-700 border-amber-200" },
-  1: { label: "Approved", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  1: { label: "Confirmed", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   2: { label: "Rejected", className: "bg-rose-100 text-rose-700 border-rose-200" },
 }
 
 export const STATUS_FILTER_OPTIONS: { label: string; value: number | null }[] = [
   { label: "All", value: null },
   { label: "Pending", value: 0 },
-  { label: "Approved", value: 1 },
+  { label: "Confirmed", value: 1 },
   { label: "Rejected", value: 2 },
 ]
 

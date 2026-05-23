@@ -11,20 +11,39 @@ import {
 
 interface DataTablePaginationProps<TData> {
   readonly table: Table<TData>
+  readonly texts?: {
+    rowsSelected?: (selected: number, total: number) => React.ReactNode
+    rowsPerPage?: string
+    pageOf?: (page: number, total: number) => React.ReactNode
+    goToFirstPage?: string
+    goToPrevPage?: string
+    goToNextPage?: string
+    goToLastPage?: string
+  }
 }
 
 export function DataTablePagination<TData>({
   table,
+  texts,
 }: DataTablePaginationProps<TData>) {
   return (
     <div className="flex items-center justify-between px-2">
       <div className="flex-1 text-sm text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length} of{" "}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        {texts?.rowsSelected ? (
+          texts.rowsSelected(
+            table.getFilteredSelectedRowModel().rows.length,
+            table.getFilteredRowModel().rows.length
+          )
+        ) : (
+          <>
+            {table.getFilteredSelectedRowModel().rows.length} of{" "}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </>
+        )}
       </div>
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
+          <p className="text-sm font-medium">{texts?.rowsPerPage ?? "Rows per page"}</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
@@ -44,8 +63,17 @@ export function DataTablePagination<TData>({
           </Select>
         </div>
         <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
+          {texts?.pageOf ? (
+            texts.pageOf(
+              table.getState().pagination.pageIndex + 1,
+              table.getPageCount()
+            )
+          ) : (
+            <>
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+            </>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -54,7 +82,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">Go to first page</span>
+            <span className="sr-only">{texts?.goToFirstPage ?? "Go to first page"}</span>
             <IconChevronsLeft className="h-4 w-4" />
           </Button>
           <Button
@@ -63,7 +91,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">Go to previous page</span>
+            <span className="sr-only">{texts?.goToPrevPage ?? "Go to previous page"}</span>
             <IconChevronLeft className="h-4 w-4" />
           </Button>
           <Button
@@ -72,7 +100,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">Go to next page</span>
+            <span className="sr-only">{texts?.goToNextPage ?? "Go to next page"}</span>
             <IconChevronRight className="h-4 w-4" />
           </Button>
           <Button
@@ -81,7 +109,7 @@ export function DataTablePagination<TData>({
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">Go to last page</span>
+            <span className="sr-only">{texts?.goToLastPage ?? "Go to last page"}</span>
             <IconChevronsRight className="h-4 w-4" />
           </Button>
         </div>

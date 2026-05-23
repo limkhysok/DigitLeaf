@@ -29,7 +29,7 @@ export default function SackRegistrationPage() {
   }, [])
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
-  const { t } = useLanguage()
+  const { t, localizeNumber, localizeDateString } = useLanguage()
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [records, setRecords] = React.useState<SackRegistrationItem[]>([])
@@ -77,6 +77,8 @@ export default function SackRegistrationPage() {
 
   const columns = getColumns({
     t,
+    localizeNumber,
+    localizeDateString,
     total,
     onView: setViewTarget,
     onEdit: setEditTarget,
@@ -168,7 +170,7 @@ export default function SackRegistrationPage() {
                   action={
                     <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 gap-1.5">
                       <IconPlus className="h-4 w-4" />
-                      <span className="hidden sm:inline">Add</span>
+                      <span className="hidden sm:inline">{t.sackRegistration.filters.add}</span>
                     </Button>
                   }
                 />

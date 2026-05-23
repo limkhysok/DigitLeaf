@@ -29,7 +29,7 @@ export function DataTableToolbar<TData>({
     },
     {
       value: "1",
-      label: t.sackRegistration.filters.statusApproved,
+      label: t.sackRegistration.filters.statusConfirmed,
     },
     {
       value: "2",
@@ -61,7 +61,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            {t.common.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -78,7 +78,7 @@ export function DataTableToolbar<TData>({
             member_farmer_name: t.sackRegistration.table.farmer,
             status: t.sackRegistration.table.status,
             sack_in_kg: t.sackRegistration.table.sackWeight,
-            registered_at: t.sackRegistration.table.registeredAt,
+            registered_at: t.sackRegistration.table.date,
             actions: t.sackRegistration.table.actions,
             notes: t.sackRegistration.table.notes,
           }}

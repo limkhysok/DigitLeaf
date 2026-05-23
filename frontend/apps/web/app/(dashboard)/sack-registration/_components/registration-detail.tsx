@@ -2,17 +2,18 @@
 
 import * as React from "react"
 import { IconUsers, IconUser, IconCalendar, IconPackage } from "@tabler/icons-react"
+import { format } from "date-fns"
 import { SackRegistrationItem } from "@/lib/api-client"
 import { STATUS_MAP } from "./constants"
 import { useLanguage } from "@/hooks/use-language"
 
 export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrationItem }>) {
-  const { t } = useLanguage()
+  const { t, localizeNumber, localizeDateString } = useLanguage()
   const status = STATUS_MAP[target.status] ?? { className: "bg-gray-100 text-gray-800" }
   const getStatusLabel = (statusVal: number) => {
     switch (statusVal) {
       case 0: return t.sackRegistration.filters.statusPending
-      case 1: return t.sackRegistration.filters.statusApproved
+      case 1: return t.sackRegistration.filters.statusConfirmed
       case 2: return t.sackRegistration.filters.statusRejected
       default: return String(statusVal)
     }
@@ -42,8 +43,8 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
         <div className="flex items-center gap-3 px-3 py-2">
           <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.registeredAt}</span>
-            <span className="text-xs font-medium">{new Date(target.registered_at).toLocaleDateString()}</span>
+            <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.date}</span>
+            <span className="text-xs font-medium">{localizeDateString(format(new Date(target.registered_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
           </div>
         </div>
         {target.sack_in_kg !== null && target.sack_in_kg !== undefined && (
@@ -51,7 +52,7 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
             <IconPackage className="size-3.5 shrink-0 text-muted-foreground" />
             <div className="flex flex-col min-w-0">
               <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.sackWeight}</span>
-              <span className="text-xs font-medium">{target.sack_in_kg} kg</span>
+              <span className="text-xs font-medium">{localizeNumber(target.sack_in_kg)} kg</span>
             </div>
           </div>
         )}
