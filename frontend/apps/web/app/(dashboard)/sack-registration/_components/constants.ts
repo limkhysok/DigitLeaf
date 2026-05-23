@@ -1,7 +1,7 @@
 "use client"
 
 import { format, subDays } from "date-fns"
-import { RepresentItem, SackRegistrationListParams } from "@/lib/api-client"
+import { SackRegistrationListParams } from "@/lib/api-client"
 
 export const STATUS_MAP: Record<number, { label: string; className: string }> = {
   0: { label: "Pending", className: "bg-amber-100 text-amber-700 border-amber-200" },
@@ -41,20 +41,17 @@ export function getDateRange(preset: string): { date_from?: string; date_to?: st
   }
 }
 
-export function filterRepresents(represents: readonly RepresentItem[], query: string): readonly RepresentItem[] {
-  if (!query.trim()) return represents
-  const q = query.toLowerCase()
-  return represents.filter((r) => r.represent_name.toLowerCase().includes(q))
-}
+
 
 export function buildFetchParams(
   skip: number,
   search: string,
   statusFilter: number | null,
   datePreset: string,
-  sortSackInKg: string | null = null
+  sortSackInKg: string | null = null,
+  limit: number = 200
 ): SackRegistrationListParams {
-  const params: SackRegistrationListParams = { skip, limit: 200 }
+  const params: SackRegistrationListParams = { skip, limit }
   if (search.trim()) params.search = search.trim()
   if (statusFilter !== null) params.status = statusFilter
   if (sortSackInKg) params.sort_sack_in_kg = sortSackInKg

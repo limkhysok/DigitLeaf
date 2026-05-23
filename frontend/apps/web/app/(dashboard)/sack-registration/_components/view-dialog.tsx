@@ -37,23 +37,23 @@ export function ViewDialog({
           </DialogDescription>
         </DialogHeader>
         {target && <RegistrationDetail target={target} />}
-        <DialogFooter className="flex-row items-center justify-end gap-2 sm:justify-end">
-          <Button
-            className="rounded-full h-9 px-4 text-xs capitalize tracking-wide gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent"
-            onClick={() => { if (target) { onClose(); onEdit(target) } }}
-          >
-            <IconPencil className="size-3.5" />
-            {t.sackRegistration.dialog.edit}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            {t.sackRegistration.dialog.close}
           </Button>
           <Button
             variant="destructive"
-            className="rounded-full h-9 px-4 text-xs capitalize tracking-wide gap-1.5 bg-red-500 hover:bg-red-600 text-white border-transparent"
             onClick={() => { if (target) { onClose(); onDelete(target) } }}
           >
-            <IconTrash className="size-3.5" />
+            <IconTrash className="mr-2 h-4 w-4" />
             {t.sackRegistration.dialog.delete}
           </Button>
-          <Button variant="outline" className="rounded-full h-9 px-4 text-xs capitalize tracking-wide" onClick={onClose}>{t.sackRegistration.dialog.close}</Button>
+          <Button
+            onClick={() => { if (target) { onClose(); onEdit(target) } }}
+          >
+            <IconPencil className="mr-2 h-4 w-4" />
+            {t.sackRegistration.dialog.edit}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
