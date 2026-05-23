@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import { SackRegistrationItem } from "@/lib/api-client"
-import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage, IconDots, IconUserEdit } from "@tabler/icons-react"
+import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage, IconDots, IconUser, IconPaperBag } from "@tabler/icons-react"
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   DropdownMenu,
@@ -50,24 +50,20 @@ export const SackRegistrationCard = React.memo(({
   const topBarColor = getStatusColor(rec.status)
 
   return (
-    <Card 
-      className="group flex flex-col justify-between overflow-hidden cursor-pointer border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-sm"
+    <Card
+      className="group flex flex-col overflow-hidden cursor-pointer border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm"
       onClick={() => onView(rec)}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-1.5 pt-3 px-3">
-        <div className="flex flex-col gap-1 min-w-0 pr-2">
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="font-medium text-foreground bg-muted/60 px-1.5 py-0.5 rounded-sm border border-border/50">
-              #{localizeNumber(index)}
-            </span>
-            <Badge variant="outline" className={cn("px-1.5 py-0.5 text-[11px] font-medium rounded-sm border-opacity-50", status.className)}>
-              <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5", topBarColor)} />
-              {statusLabel}
-            </Badge>
-          </div>
-          <CardTitle className="text-base font-semibold truncate leading-tight text-foreground" title={rec.member_farmer_name}>
-            {rec.member_farmer_name}
-          </CardTitle>
+      {/* ROW 1: Header (Number, Status, Menu) */}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2.5 px-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground bg-muted/60 px-1.5 rounded-sm border border-border/50">
+            #{localizeNumber(index)}
+          </span>
+          <Badge variant="outline" className={cn("px-1.5 py-0.5 text-sm font-semibold rounded-sm border-opacity-50", status.className)}>
+            <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5", topBarColor)} />
+            {statusLabel}
+          </Badge>
         </div>
 
         <DropdownMenu>
@@ -99,46 +95,59 @@ export const SackRegistrationCard = React.memo(({
         </DropdownMenu>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-1.5 pb-2 px-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-foreground flex items-center gap-1.5 font-medium shrink-0">
-            <IconUsers className="h-3.5 w-3.5" />
-            {t.sackRegistration.table.representative}
-          </span>
-          <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.represent_name}>
-            {rec.represent_name}
-          </span>
+      <CardContent className="flex flex-col gap-2.5 pb-3 px-3">
+        {/* ROW 2: Sack Icon */}
+        <div className="w-full h-20 bg-muted/20 rounded-md border border-border/50 flex flex-col items-center justify-center text-muted-foreground group-hover:bg-muted/40 transition-colors overflow-hidden">
+          <IconPaperBag className="h-10 w-10 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" stroke={1.5} />
         </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-foreground flex items-center gap-1.5 font-medium shrink-0">
-            <IconPackage className="h-3.5 w-3.5" />
-            {t.sackRegistration.table.sackWeight}
-          </span>
-          <span className="text-sm font-semibold tabular-nums text-right text-foreground">
-            {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined ? `${localizeNumber(rec.sack_in_kg)} kg` : "—"}
-          </span>
-        </div>
+        {/* ROW 3: Details */}
+        <div className="flex flex-col gap-0.5">
+          {/* Farmer */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+              <IconUser className="h-3.5 w-3.5" />
+              {t.sackRegistration.table.farmer}
+            </span>
+            <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.member_farmer_name}>
+              {rec.member_farmer_name}
+            </span>
+          </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-foreground flex items-center gap-1.5 font-medium shrink-0">
-            <IconUserEdit className="h-3.5 w-3.5" />
-            {t.sackRegistration.table.registeredBy}
-          </span>
-          <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.dl_user_name}>
-            {rec.dl_user_name || "—"}
-          </span>
+          {/* Representative */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+              <IconUsers className="h-3.5 w-3.5" />
+              {t.sackRegistration.table.representative}
+            </span>
+            <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.represent_name}>
+              {rec.represent_name}
+            </span>
+          </div>
+
+          {/* Sack (kg) */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+              <IconPackage className="h-3.5 w-3.5" />
+              {t.sackRegistration.table.sackWeight}
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+              {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined ? `${localizeNumber(rec.sack_in_kg)} kg` : "—"}
+            </span>
+          </div>
+
+          {/* Datetime */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+              <IconClock className="h-3.5 w-3.5" />
+              {t.sackRegistration.table.date}
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+              {localizeNumber(format(new Date(rec.registered_at), "dd/MM/yyyy"))}
+            </span>
+          </div>
         </div>
       </CardContent>
-
-      <CardFooter className="pt-0 pb-2 text-xs text-foreground flex items-center justify-between border-t border-border/40 bg-muted/10 mt-auto px-3 py-2">
-        <div className="flex items-center gap-1.5 font-medium">
-          <IconClock className="h-3.5 w-3.5" />
-          <span className="tabular-nums">
-            {localizeNumber(format(new Date(rec.registered_at), "dd/MM/yyyy"))}
-          </span>
-        </div>
-      </CardFooter>
     </Card>
   )
 })

@@ -10,7 +10,6 @@ import {
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import { IconLoader2, IconPlus } from "@tabler/icons-react"
-import { Card, CardContent } from "@workspace/ui/components/card"
 import { Button } from "@workspace/ui/components/button"
 import {
   ColumnFiltersState,
