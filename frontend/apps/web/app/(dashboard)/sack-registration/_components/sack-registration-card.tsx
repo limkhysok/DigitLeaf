@@ -105,7 +105,7 @@ export const SackRegistrationCard = React.memo(({
         <div className="flex flex-col gap-0.5">
           {/* Farmer */}
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
-            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconUser className="h-3.5 w-3.5" />
               {t.sackRegistration.table.farmer}
             </span>
@@ -113,21 +113,9 @@ export const SackRegistrationCard = React.memo(({
               {rec.member_farmer_name}
             </span>
           </div>
-
-          {/* Representative */}
-          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
-            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
-              <IconUsers className="h-3.5 w-3.5" />
-              {t.sackRegistration.table.representative}
-            </span>
-            <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.represent_name}>
-              {rec.represent_name}
-            </span>
-          </div>
-
           {/* Sack (kg) */}
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
-            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconPackage className="h-3.5 w-3.5" />
               {t.sackRegistration.table.sackWeight}
             </span>
@@ -135,14 +123,26 @@ export const SackRegistrationCard = React.memo(({
               {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined ? `${localizeNumber(rec.sack_in_kg)} kg` : "—"}
             </span>
           </div>
+          {/* Representative */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconUsers className="h-3.5 w-3.5" />
+              {t.sackRegistration.table.representative}
+            </span>
+            <span className="text-sm font-medium truncate text-right text-foreground" title={rec.represent_name}>
+              {rec.represent_name}
+            </span>
+          </div>
+
+
 
           {/* Datetime */}
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
-            <span className="text-sm font-semibold text-foreground flex items-center gap-1.5 shrink-0">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconClock className="h-3.5 w-3.5" />
               {t.sackRegistration.table.date}
             </span>
-            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+            <span className="text-sm font-medium tabular-nums text-right text-foreground">
               {localizeNumber(format(new Date(rec.registered_at), "dd/MM/yyyy"))}
             </span>
           </div>
