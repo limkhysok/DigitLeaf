@@ -38,16 +38,26 @@ export function DataTableToolbar<TData>({
   ]
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
-        <Input
-          placeholder={t.sackRegistration.filters.searchPlaceholder}
-          value={(table.getState().globalFilter as string) ?? ""}
-          onChange={(event) =>
-            table.setGlobalFilter(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
+    <div className="flex w-full items-center justify-between gap-2">
+      {/* Left Group */}
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="hidden lg:flex items-center">
+          <DataTableViewOptions
+            table={table}
+            title={t.common.view}
+            label={t.common.toggleColumns}
+            columnLabels={{
+              no: t.sackRegistration.table.no,
+              represent_name: t.sackRegistration.table.representative,
+              member_farmer_name: t.sackRegistration.table.farmer,
+              status: t.sackRegistration.table.status,
+              sack_in_kg: t.sackRegistration.table.sackWeight,
+              registered_at: t.sackRegistration.table.date,
+              actions: t.sackRegistration.table.actions,
+              notes: t.sackRegistration.table.notes,
+            }}
+          />
+        </div>
         {table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
@@ -59,30 +69,29 @@ export function DataTableToolbar<TData>({
           <Button
             variant="ghost"
             onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
+            className="h-8 px-2 lg:px-3 shrink-0"
           >
             {t.common.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        {action}
-        <DataTableViewOptions 
-          table={table} 
-          title={t.common.view}
-          label={t.common.toggleColumns}
-          columnLabels={{
-            no: t.sackRegistration.table.no,
-            represent_name: t.sackRegistration.table.representative,
-            member_farmer_name: t.sackRegistration.table.farmer,
-            status: t.sackRegistration.table.status,
-            sack_in_kg: t.sackRegistration.table.sackWeight,
-            registered_at: t.sackRegistration.table.date,
-            actions: t.sackRegistration.table.actions,
-            notes: t.sackRegistration.table.notes,
-          }}
+
+      {/* Center Group (Search) */}
+      <div className="flex-1 flex justify-center lg:justify-end">
+        <Input
+          placeholder={t.sackRegistration.filters.searchPlaceholder}
+          value={(table.getState().globalFilter as string) ?? ""}
+          onChange={(event) =>
+            table.setGlobalFilter(event.target.value)
+          }
+          className="rounded-md! h-8 w-full lg:max-w-none lg:w-[250px] text-xs md:text-sm  placeholder:text-sm"
         />
+      </div>
+
+      {/* Right Group (Create Button) */}
+      <div className="flex items-center gap-2 shrink-0">
+        {action}
       </div>
     </div>
   )

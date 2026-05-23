@@ -12,7 +12,20 @@ import { toast } from "sonner"
 import { IconLoader2, IconPlus } from "@tabler/icons-react"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Button } from "@workspace/ui/components/button"
+import {
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
 import { DataTable } from "./_components/data-table"
+import { DataTableToolbar } from "./_components/data-table-toolbar"
 import { getColumns } from "./_components/columns"
 import { buildFetchParams } from "./_components/constants"
 import { EditDialog } from "./_components/edit-dialog"
@@ -61,7 +74,7 @@ export default function SackRegistrationPage() {
     const timer = setTimeout(() => setIsLoading(true), 0)
     // Fetch a large limit so TanStack table can handle client-side sorting and pagination correctly
     const params = buildFetchParams(0, "", null, "all", null)
-    params.limit = 10000 
+    params.limit = 10000
     apiClient.getSackRegistrations(tokens.access_token, params)
       .then((res) => {
         if (cancelled) return
@@ -73,8 +86,6 @@ export default function SackRegistrationPage() {
     return () => { cancelled = true; clearTimeout(timer) }
   }, [isAuthLoading, tokens, refetchKey])
 
-  if (!mounted) return null
-
   const columns = getColumns({
     t,
     localizeNumber,
@@ -85,6 +96,52 @@ export default function SackRegistrationPage() {
     onDelete: (rec, index) => setDeleteTarget({ id: rec.id, no: index })
   })
 
+  // ── Table State ───────────────────────────────────────────────────────────
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [globalFilter, setGlobalFilter] = React.useState("")
+
+  const table = useReactTable({
+    data: records,
+    columns,
+    state: {
+      sorting,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
+      globalFilter,
+    },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const search = String(filterValue).toLowerCase()
+      const represent = String(row.getValue("represent_name") || "").toLowerCase()
+      const farmer = String(row.getValue("member_farmer_name") || "").toLowerCase()
+      return represent.includes(search) || farmer.includes(search)
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+  })
+
+  const actionNode = (
+    <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 gap-1.5 flex">
+      <IconPlus className="h-4 w-4" />
+      <span className="hidden sm:inline">{t.sackRegistration.filters.add}</span>
+    </Button>
+  )
+
+  if (!mounted) return null
+
   return (
     <div className="flex flex-col gap-4">
 
@@ -93,14 +150,11 @@ export default function SackRegistrationPage() {
       ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="scroll-m-24 text-4xl font-semibold tracking-tight sm:text-2xl">{t.sackRegistration.title}</h1>
-          <p className="text-[1.05rem] text-muted-foreground sm:text-base sm:text-balance md:max-w-[100%]">
+          <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">{t.sackRegistration.title}</h1>
+          <p className="text-muted-foreground text-sm sm:text-base sm:text-balance md:max-w-[100%]">
             {t.sackRegistration.subtitle}
           </p>
         </div>
-        <Button size="icon" onClick={() => setRegisterOpen(true)} className="shrink-0 lg:hidden">
-          <IconPlus stroke={2} />
-        </Button>
       </div>
 
 
@@ -120,18 +174,25 @@ export default function SackRegistrationPage() {
       )}
 
       {/* ════════════════════════════════════════════════════════════════════
+          TOOLBAR — shared across all breakpoints
+      ════════════════════════════════════════════════════════════════════ */}
+      {!isLoading && records.length > 0 && (
+        <DataTableToolbar table={table} action={actionNode} />
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
           MOBILE CONTENT — (< 768px / below md)
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
         <div className="grid md:hidden grid-cols-1 gap-3">
-          {records.map((rec, idx) => (
+          {table.getRowModel().rows.map((row) => (
             <SackRegistrationCard
-              key={rec.id}
-              rec={rec}
-              index={total - idx - 1}
+              key={row.original.id}
+              rec={row.original}
+              index={total - row.index - 1}
               onView={setViewTarget}
               onEdit={setEditTarget}
-              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - idx })}
+              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - row.index })}
             />
           ))}
         </div>
@@ -141,15 +202,15 @@ export default function SackRegistrationPage() {
           TABLET CONTENT — (768px – 1023px / md → lg)
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
-        <div className="hidden md:grid lg:hidden grid-cols-2 gap-4">
-          {records.map((rec, idx) => (
+        <div className="hidden md:grid lg:hidden grid-cols-3 gap-4">
+          {table.getRowModel().rows.map((row) => (
             <SackRegistrationCard
-              key={rec.id}
-              rec={rec}
-              index={total - idx - 1}
+              key={row.original.id}
+              rec={row.original}
+              index={total - row.index - 1}
               onView={setViewTarget}
               onEdit={setEditTarget}
-              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - idx })}
+              onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - row.index })}
             />
           ))}
         </div>
@@ -161,31 +222,20 @@ export default function SackRegistrationPage() {
       {!isLoading && records.length > 0 && (
         <div className="hidden lg:block">
           {view === "list" ? (
-            <Card>
-              <CardContent className="p-4 pt-4">
-                <DataTable 
-                  columns={columns} 
-                  data={records} 
-                  noRecordsText={t.sackRegistration.table.noRecords}
-                  action={
-                    <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 gap-1.5">
-                      <IconPlus className="h-4 w-4" />
-                      <span className="hidden sm:inline">{t.sackRegistration.filters.add}</span>
-                    </Button>
-                  }
-                />
-              </CardContent>
-            </Card>
+            <DataTable
+              table={table}
+              noRecordsText={t.sackRegistration.table.noRecords}
+            />
           ) : (
             <div className="grid grid-cols-3 xl:grid-cols-4 gap-4">
-              {records.map((rec, idx) => (
+              {table.getRowModel().rows.map((row) => (
                 <SackRegistrationCard
-                  key={rec.id}
-                  rec={rec}
-                  index={total - idx - 1}
+                  key={row.original.id}
+                  rec={row.original}
+                  index={total - row.index - 1}
                   onView={setViewTarget}
                   onEdit={setEditTarget}
-                  onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - idx })}
+                  onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - row.index })}
                 />
               ))}
             </div>

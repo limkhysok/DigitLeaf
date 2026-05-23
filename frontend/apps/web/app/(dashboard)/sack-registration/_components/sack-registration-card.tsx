@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { SackRegistrationItem } from "@/lib/api-client"
-import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage, IconDots } from "@tabler/icons-react"
+import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage, IconDots, IconUserEdit } from "@tabler/icons-react"
+import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
@@ -27,7 +28,7 @@ export const SackRegistrationCard = React.memo(({
 }) => {
   const { t, localizeNumber } = useLanguage()
   const status = STATUS_MAP[rec.status] ?? { className: "bg-gray-100 text-gray-800" }
-  
+
   const getStatusLabel = (statusVal: number) => {
     switch (statusVal) {
       case 0: return t.sackRegistration.filters.statusPending
@@ -38,80 +39,104 @@ export const SackRegistrationCard = React.memo(({
   }
   const statusLabel = getStatusLabel(rec.status)
 
+  const getStatusColor = (statusVal: number) => {
+    switch (statusVal) {
+      case 0: return "bg-amber-400"
+      case 1: return "bg-emerald-400"
+      case 2: return "bg-rose-400"
+      default: return "bg-gray-400"
+    }
+  }
+  const topBarColor = getStatusColor(rec.status)
+
   return (
     <Card 
-      className="flex flex-col justify-between overflow-hidden cursor-pointer hover:border-primary/50 transition-colors" 
+      className="group flex flex-col justify-between overflow-hidden cursor-pointer border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-sm"
       onClick={() => onView(rec)}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <div className="flex flex-col gap-1.5 min-w-0 pr-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-             <span className="font-mono bg-muted px-1 py-0.5 rounded-sm">
-               #{localizeNumber(index)}
-             </span>
-             <Badge variant="outline" className={cn("px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider rounded-sm", status.className)}>
-               {statusLabel}
-             </Badge>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-1.5 pt-3 px-3">
+        <div className="flex flex-col gap-1 min-w-0 pr-2">
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="font-medium text-foreground bg-muted/60 px-1.5 py-0.5 rounded-sm border border-border/50">
+              #{localizeNumber(index)}
+            </span>
+            <Badge variant="outline" className={cn("px-1.5 py-0.5 text-[11px] font-medium rounded-sm border-opacity-50", status.className)}>
+              <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5", topBarColor)} />
+              {statusLabel}
+            </Badge>
           </div>
-          <CardTitle className="text-base font-semibold truncate leading-tight mt-0.5" title={rec.member_farmer_name}>
+          <CardTitle className="text-base font-semibold truncate leading-tight text-foreground" title={rec.member_farmer_name}>
             {rec.member_farmer_name}
           </CardTitle>
         </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 -mr-2"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <IconDots className="h-4 w-4" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onView(rec)}>
-                <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                {t.sackRegistration.dialog.view}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(rec)}>
-                <IconPencil className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                {t.sackRegistration.dialog.edit}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(rec)} className="text-destructive focus:text-destructive">
-                <IconTrash className="mr-2 h-4 w-4 text-destructive/70" />
-                {t.sackRegistration.dialog.delete}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-foreground hover:bg-muted shrink-0 -mr-1 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <IconDots className="h-4 w-4" />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onView(rec)}>
+              <IconEye className="mr-2 h-4 w-4" />
+              {t.sackRegistration.dialog.view}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(rec)}>
+              <IconPencil className="mr-2 h-4 w-4" />
+              {t.sackRegistration.dialog.edit}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(rec)} className="text-destructive focus:text-destructive">
+              <IconTrash className="mr-2 h-4 w-4 text-destructive" />
+              {t.sackRegistration.dialog.delete}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
-      
-      <CardContent className="grid grid-cols-2 gap-4 pb-4">
-        <div className="flex flex-col gap-1 min-w-0">
-          <span className="text-xs text-muted-foreground flex items-center gap-1.5 uppercase tracking-wide">
-            <IconUsers className="h-3 w-3" />
+
+      <CardContent className="flex flex-col gap-1.5 pb-2 px-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-foreground flex items-center gap-1.5 font-medium shrink-0">
+            <IconUsers className="h-3.5 w-3.5" />
             {t.sackRegistration.table.representative}
           </span>
-          <span className="text-sm font-medium truncate" title={rec.represent_name}>
+          <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.represent_name}>
             {rec.represent_name}
           </span>
         </div>
-        <div className="flex flex-col gap-1 min-w-0">
-          <span className="text-xs text-muted-foreground flex items-center gap-1.5 uppercase tracking-wide">
-            <IconPackage className="h-3 w-3" />
+
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-foreground flex items-center gap-1.5 font-medium shrink-0">
+            <IconPackage className="h-3.5 w-3.5" />
             {t.sackRegistration.table.sackWeight}
           </span>
-          <span className="text-sm font-medium tabular-nums">
-            {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined ? `${rec.sack_in_kg} kg` : "—"}
+          <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+            {rec.sack_in_kg !== null && rec.sack_in_kg !== undefined ? `${localizeNumber(rec.sack_in_kg)} kg` : "—"}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-foreground flex items-center gap-1.5 font-medium shrink-0">
+            <IconUserEdit className="h-3.5 w-3.5" />
+            {t.sackRegistration.table.registeredBy}
+          </span>
+          <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.dl_user_name}>
+            {rec.dl_user_name || "—"}
           </span>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0 pb-3 text-xs text-muted-foreground flex items-center justify-between border-t border-border/40 bg-muted/20 mt-auto px-6 py-2.5">
-        <div className="flex items-center gap-1.5">
+      <CardFooter className="pt-0 pb-2 text-xs text-foreground flex items-center justify-between border-t border-border/40 bg-muted/10 mt-auto px-3 py-2">
+        <div className="flex items-center gap-1.5 font-medium">
           <IconClock className="h-3.5 w-3.5" />
-          <span>{new Date(rec.registered_at).toLocaleDateString()}</span>
+          <span className="tabular-nums">
+            {localizeNumber(format(new Date(rec.registered_at), "dd/MM/yyyy"))}
+          </span>
         </div>
       </CardFooter>
     </Card>
