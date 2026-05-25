@@ -69,7 +69,7 @@ export const SackRegistrationCard = React.memo(({
               <span className="sr-only">Open menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             <DropdownMenuItem onClick={() => onView(rec)}>
               <IconEye className="mr-2 h-4 w-4" />
               {t.sackRegistration.dialog.view}

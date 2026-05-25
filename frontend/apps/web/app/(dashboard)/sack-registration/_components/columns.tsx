@@ -126,12 +126,12 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
                 <span className="sr-only">Open menu</span>
                 <IconDots className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]">
+            <DropdownMenuContent align="end" className="w-[160px]" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => onView(rec)}>
                 <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
                 {t.sackRegistration.dialog.view}

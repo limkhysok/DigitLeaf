@@ -166,6 +166,11 @@ export function RegisterDialog({
                         if (representId) setRepresentId("")
                       }}
                       onFocus={() => setRepresentOpen(true)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setRepresentOpen(true)
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
                       placeholder={t.sackRegistration.dialog.searchRepPlaceholder}
                     />
                     <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
@@ -226,6 +231,11 @@ export function RegisterDialog({
                         if (farmerResult) setFarmerResult(null)
                       }}
                       onFocus={() => setFarmerOpen(true)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setFarmerOpen(true)
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
                       placeholder={t.sackRegistration.dialog.searchFarmerPlaceholder}
                       disabled={!representId}
                     />
@@ -321,8 +331,8 @@ export function RegisterDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>{t.sackRegistration.dialog.cancel}</Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="button" className="rounded-md" variant="outline" onClick={onClose}>{t.sackRegistration.dialog.cancel}</Button>
+            <Button type="submit" className="rounded-md" disabled={isSubmitting}>
               {isSubmitting && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t.sackRegistration.dialog.register}
             </Button>
