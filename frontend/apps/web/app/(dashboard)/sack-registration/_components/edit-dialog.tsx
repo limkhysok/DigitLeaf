@@ -20,10 +20,10 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@workspace/ui/components/command"
+import { Command as CommandPrimitive } from "cmdk"
 import { cn } from "@workspace/ui/lib/utils"
 import { STATUS_MAP } from "./constants"
 import { useLanguage } from "@/hooks/use-language"
@@ -136,31 +136,36 @@ export function EditDialog({
         </DialogHeader>
         {target && (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.farmerMember}</Label>
-              <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open); if (open && !farmerResult && !farmerResults.length) handleFarmerSearch(farmerQuery) }}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={farmerOpen}
-                    className="w-full justify-between"
+              <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
+                <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open); if (open && !farmerResult && !farmerResults.length) handleFarmerSearch(farmerQuery) }}>
+                  <PopoverTrigger asChild>
+                    <div className="relative">
+                      <CommandPrimitive.Input
+                        className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        value={farmerQuery}
+                        onValueChange={(val) => {
+                          setFarmerQuery(val)
+                          setFarmerOpen(true)
+                          if (farmerResult) { setFarmerResult(null) }
+                        }}
+                        onFocus={() => setFarmerOpen(true)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setFarmerOpen(true)
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        placeholder={t.sackRegistration.dialog.searchPlaceholder}
+                      />
+                      <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[--radix-popover-trigger-width] p-0"
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
                   >
-                    {farmerResult ? farmerResult.name : t.sackRegistration.dialog.searchPlaceholder}
-                    <IconChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                  <Command shouldFilter={false}>
-                    <CommandInput 
-                      className="text-sm"
-                      placeholder={t.sackRegistration.dialog.searchPlaceholder} 
-                      value={farmerQuery}
-                      onValueChange={(val) => {
-                        setFarmerQuery(val)
-                        if (farmerResult) { setFarmerResult(null) }
-                      }}
-                    />
                     <CommandList>
                       <CommandEmpty>
                         {farmerEmptyMessage}
@@ -190,10 +195,10 @@ export function EditDialog({
                         ))}
                       </CommandGroup>
                     </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              
+                  </PopoverContent>
+                </Popover>
+              </Command>
+
               {farmerResult && !farmerOpen && (
                 <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-2">
                   <div className="flex flex-col">
@@ -206,7 +211,7 @@ export function EditDialog({
             </div>
 
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.status}</Label>
               <div className="flex gap-2">
                 {Object.entries(STATUS_MAP).map(([val, { label, className }]) => {
@@ -236,29 +241,29 @@ export function EditDialog({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.sackWeightOptional}</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
-                className="text-sm"
+                className="text-sm rounded-md"
                 value={sackInKg}
                 onChange={(e) => setSackInKg(e.target.value)}
                 placeholder={t.sackRegistration.dialog.weightPlaceholder}
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.notesOptional}</Label>
-              <Input className="text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.sackRegistration.dialog.notesPlaceholder} />
+              <Input className="text-sm rounded-md" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.sackRegistration.dialog.notesPlaceholder} />
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              <Button type="button" className="rounded-md" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 {t.sackRegistration.dialog.cancel}
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" className="rounded-md" disabled={isSubmitting}>
                 {isSubmitting && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t.sackRegistration.dialog.save}
               </Button>

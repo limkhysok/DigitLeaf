@@ -38,10 +38,11 @@ export function ViewDialog({
         </DialogHeader>
         {target && <RegistrationDetail target={target} />}
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button className="rounded-md" variant="outline" onClick={onClose}>
             {t.sackRegistration.dialog.close}
           </Button>
           <Button
+            className="rounded-md"
             variant="destructive"
             onClick={() => { if (target) { onClose(); onDelete(target) } }}
           >
@@ -49,6 +50,7 @@ export function ViewDialog({
             {t.sackRegistration.dialog.delete}
           </Button>
           <Button
+            className="rounded-md"
             onClick={() => { if (target) { onClose(); onEdit(target) } }}
           >
             <IconPencil className="mr-2 h-4 w-4" />
