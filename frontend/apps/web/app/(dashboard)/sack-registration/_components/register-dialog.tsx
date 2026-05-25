@@ -153,12 +153,12 @@ export function RegisterDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1 flex flex-col">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.representative}</Label>
-            <Command shouldFilter={false} className="overflow-visible bg-transparent">
+            <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
               <Popover open={representOpen} onOpenChange={setRepresentOpen}>
                 <PopoverTrigger asChild>
                   <div className="relative">
                     <CommandPrimitive.Input
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={representSearch}
                       onValueChange={(val) => {
                         setRepresentSearch(val)
@@ -211,14 +211,14 @@ export function RegisterDialog({
             </Command>
           </div>
 
-          <div className="space-y-2 flex flex-col">
+          <div className="space-y-1 flex flex-col">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.farmerMember}</Label>
-            <Command shouldFilter={false} className="overflow-visible bg-transparent">
+            <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
               <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open); if (open && representId && !farmerResult && !farmerResults.length) handleFarmerSearch(farmerQuery) }}>
                 <PopoverTrigger asChild>
                   <div className="relative">
                     <CommandPrimitive.Input
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={farmerQuery}
                       onValueChange={(val) => {
                         setFarmerQuery(val)
@@ -281,14 +281,14 @@ export function RegisterDialog({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.registrationDate}</Label>
             <Popover open={registeredAtOpen} onOpenChange={setRegisteredAtOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-left font-normal rounded-md",
                     !registeredAt && "text-muted-foreground"
                   )}
                 >
@@ -302,22 +302,22 @@ export function RegisterDialog({
             </Popover>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.sackWeightKg}</Label>
             <Input
               type="number"
               min="0"
               step="0.01"
-              className="text-sm"
+              className="text-sm rounded-md"
               value={sackInKg}
               onChange={(e) => setSackInKg(e.target.value)}
               placeholder={t.sackRegistration.dialog.weightPlaceholder}
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.notesOptional}</Label>
-            <Input className="text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.sackRegistration.dialog.notesPlaceholder} />
+            <Input className="text-sm rounded-md" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.sackRegistration.dialog.notesPlaceholder} />
           </div>
 
           <DialogFooter>
