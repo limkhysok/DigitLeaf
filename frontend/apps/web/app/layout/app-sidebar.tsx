@@ -86,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="text-sm font-medium tracking-widest text-black uppercase leading-none whitespace-nowrap">
               KAIC
             </span>
-            <span className="text-[9px] font-normal text-black/40 tracking-[0.2em] uppercase whitespace-nowrap">
+            <span className="text-[9px] font-bold text-black/40 tracking-[0.2em] uppercase whitespace-nowrap">
               Internal System
             </span>
           </div>

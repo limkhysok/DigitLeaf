@@ -151,14 +151,14 @@ export function RegisterDialog({
           <DialogDescription>{t.sackRegistration.dialog.registerSubtitle}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2 flex flex-col">
+          <div className="space-y-1 flex flex-col">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.representative}</Label>
             <Command shouldFilter={false} className="overflow-visible bg-transparent">
               <Popover open={representOpen} onOpenChange={setRepresentOpen}>
                 <PopoverTrigger asChild>
                   <div className="relative">
                     <CommandPrimitive.Input
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={representSearch}
                       onValueChange={(val) => {
                         setRepresentSearch(val)
@@ -171,9 +171,9 @@ export function RegisterDialog({
                     <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
                   </div>
                 </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[--radix-popover-trigger-width] p-0" 
-                  align="start" 
+                <PopoverContent
+                  className="w-[--radix-popover-trigger-width] p-0"
+                  align="start"
                   onOpenAutoFocus={(e) => e.preventDefault()}
                 >
                   <CommandList>
@@ -218,7 +218,7 @@ export function RegisterDialog({
                 <PopoverTrigger asChild>
                   <div className="relative">
                     <CommandPrimitive.Input
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       value={farmerQuery}
                       onValueChange={(val) => {
                         setFarmerQuery(val)
@@ -232,9 +232,9 @@ export function RegisterDialog({
                     <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
                   </div>
                 </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[--radix-popover-trigger-width] p-0" 
-                  align="start" 
+                <PopoverContent
+                  className="w-[--radix-popover-trigger-width] p-0"
+                  align="start"
                   onOpenAutoFocus={(e) => e.preventDefault()}
                 >
                   <CommandList>
@@ -269,7 +269,7 @@ export function RegisterDialog({
                 </PopoverContent>
               </Popover>
             </Command>
-            
+
             {farmerResult && !farmerOpen && (
               <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-2">
                 <div className="flex flex-col">
