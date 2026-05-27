@@ -148,7 +148,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onPrint(rec)}>
                 <IconPrinter className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                Print Invoice
+                Print
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

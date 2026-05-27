@@ -37,7 +37,7 @@ class TobaccoPurchase(SQLModel, table=True):
     )
     vendor: Optional["MemberFarmer"] = Relationship(
         sa_relationship_kwargs={
-            "primaryjoin": "TobaccoPurchase.vendor_id == foreign(MemberFarmer.mf_id)",
+            "primaryjoin": "foreign(TobaccoPurchase.vendor_id) == MemberFarmer.mf_id",
             "lazy": "selectin"
         }
     )
