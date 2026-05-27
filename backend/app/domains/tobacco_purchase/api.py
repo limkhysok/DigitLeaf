@@ -1,5 +1,5 @@
 from typing import Annotated, List, Literal, Optional
-from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Security, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
@@ -93,8 +93,6 @@ async def list_purchases(
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
-    date_from: Optional[date] = None,
-    date_to: Optional[date] = None,
     buyer: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
@@ -104,8 +102,6 @@ async def list_purchases(
         skip=skip,
         limit=limit,
         search=search,
-        date_from=date_from,
-        date_to=date_to,
         buyer=buyer,
         sort_grand_total=sort_grand_total,
         sort_net_weight=sort_net_weight,

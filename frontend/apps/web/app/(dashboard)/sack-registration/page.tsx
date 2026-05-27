@@ -151,7 +151,7 @@ export default function SackRegistrationPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">{t.sackRegistration.title}</h1>
-          <p className="text-muted-foreground text-sm sm:text-base sm:text-balance md:max-w-[100%]">
+          <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-[100%]">
             {t.sackRegistration.subtitle}
           </p>
         </div>

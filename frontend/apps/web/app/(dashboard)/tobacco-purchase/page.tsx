@@ -68,8 +68,6 @@ export default function TobaccoPurchasePage() {
   }, [searchInput])
 
   // ── Filters ─────────────────────────────────────────────────────────────────
-  const [dateFrom, setDateFrom] = React.useState("")
-  const [dateTo, setDateTo] = React.useState("")
   const [buyerFilter, setBuyerFilter] = React.useState<number | null>(null)
 
   const [sortGrandTotal, setSortGrandTotal] = React.useState<SortDir>(null)
@@ -98,8 +96,6 @@ export default function TobaccoPurchasePage() {
           skip: 0,
           limit: PAGE_SIZE,
           search: search || undefined,
-          date_from: dateFrom || undefined,
-          date_to: dateTo || undefined,
           buyer: buyerFilter ?? undefined,
           sort_grand_total: sortGrandTotal ?? undefined,
           sort_net_weight: sortNetWeight ?? undefined,
@@ -133,7 +129,7 @@ export default function TobaccoPurchasePage() {
     } finally {
       setIsLoading(false)
     }
-  }, [tokens, search, dateFrom, dateTo, buyerFilter, sortGrandTotal, sortNetWeight])
+  }, [tokens, search, buyerFilter, sortGrandTotal, sortNetWeight])
 
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
@@ -151,8 +147,6 @@ export default function TobaccoPurchasePage() {
         skip: currentSkip,
         limit: PAGE_SIZE,
         search: search || undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
         buyer: buyerFilter ?? undefined,
         sort_grand_total: sortGrandTotal ?? undefined,
         sort_net_weight: sortNetWeight ?? undefined,
@@ -165,7 +159,7 @@ export default function TobaccoPurchasePage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, dateFrom, dateTo, buyerFilter, sortGrandTotal, sortNetWeight])
+  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, buyerFilter, sortGrandTotal, sortNetWeight])
 
   // ── IntersectionObserver ──────────────────────────────────────────────────
   React.useEffect(() => {
@@ -312,8 +306,6 @@ export default function TobaccoPurchasePage() {
   const sharedFilterProps = {
     purchasers,
     buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v) },
-    dateFrom, setDateFrom: (v: string) => { setDateFrom(v) },
-    dateTo, setDateTo: (v: string) => { setDateTo(v) },
   }
 
   const sharedCardProps = {
@@ -331,7 +323,7 @@ export default function TobaccoPurchasePage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">Tobacco Purchase</h1>
-          <p className="text-muted-foreground text-sm sm:text-base sm:text-balance md:max-w-[100%]">
+          <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-[100%]">
             Manage tobacco purchase records and details.
           </p>
         </div>
@@ -356,10 +348,6 @@ export default function TobaccoPurchasePage() {
           purchasers={purchasers}
           buyerFilter={buyerFilter}
           setBuyerFilter={setBuyerFilter}
-          dateFrom={dateFrom}
-          setDateFrom={setDateFrom}
-          dateTo={dateTo}
-          setDateTo={setDateTo}
           searchInput={searchInput}
           setSearchInput={setSearchInput}
         />

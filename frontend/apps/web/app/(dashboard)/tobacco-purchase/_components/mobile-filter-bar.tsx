@@ -7,11 +7,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/component
 import { cn } from "@workspace/ui/lib/utils"
 import type { PurchaserItem } from "@/lib/api-client"
 
-function buildDateLabel(dateFrom: string, dateTo: string): string {
-  if (dateFrom && dateTo) return `${dateFrom} → ${dateTo}`
-  if (dateFrom) return `From ${dateFrom}`
-  return `To ${dateTo}`
-}
 
 interface MobileFilterBarProps {
   searchInput: string
@@ -20,10 +15,6 @@ interface MobileFilterBarProps {
   purchasers: PurchaserItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
-  dateFrom: string
-  setDateFrom: (v: string) => void
-  dateTo: string
-  setDateTo: (v: string) => void
   className?: string
 }
 
@@ -31,19 +22,14 @@ export function MobileFilterBar({
   searchInput, setSearchInput, onAdd,
   purchasers,
   buyerFilter, setBuyerFilter,
-  dateFrom, setDateFrom,
-  dateTo, setDateTo,
   className,
 }: Readonly<MobileFilterBarProps>) {
   const activeCount = [
     buyerFilter !== null,
-    !!(dateFrom || dateTo),
   ].filter(Boolean).length
 
   const clearAll = () => {
     setBuyerFilter(null)
-    setDateFrom("")
-    setDateTo("")
   }
 
   return (
@@ -83,33 +69,6 @@ export function MobileFilterBar({
               </div>
 
               <div className="flex flex-col gap-5 pb-2">
-                {/* Date Range */}
-                <div>
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Date Range</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label htmlFor="mob-date-from" className="text-[11px] text-muted-foreground mb-1 block">From</label>
-                      <input
-                        id="mob-date-from"
-                        type="date"
-                        value={dateFrom}
-                        onChange={e => setDateFrom(e.target.value)}
-                        className="w-full h-9 rounded-lg border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-[#009640] focus:border-[#009640] transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="mob-date-to" className="text-[11px] text-muted-foreground mb-1 block">To</label>
-                      <input
-                        id="mob-date-to"
-                        type="date"
-                        value={dateTo}
-                        onChange={e => setDateTo(e.target.value)}
-                        className="w-full h-9 rounded-lg border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-[#009640] focus:border-[#009640] transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 {/* Buyer */}
                 <div>
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Buyer</p>
@@ -160,12 +119,6 @@ export function MobileFilterBar({
         <div className="flex flex-wrap gap-1.5">
           {buyerFilter !== null && (
             <Chip label={purchasers.find(p => p.p_id === buyerFilter)?.p_name ?? "Buyer"} onRemove={() => setBuyerFilter(null)} />
-          )}
-          {(dateFrom || dateTo) && (
-            <Chip
-              label={buildDateLabel(dateFrom, dateTo)}
-              onRemove={() => { setDateFrom(""); setDateTo("") }}
-            />
           )}
         </div>
       )}

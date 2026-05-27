@@ -1,7 +1,7 @@
 "use client"
 
 import { Table } from "@tanstack/react-table"
-import { IconCalendar, IconX, IconCirclePlus, IconCheck } from "@tabler/icons-react"
+import { IconX, IconCirclePlus, IconCheck } from "@tabler/icons-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -28,10 +28,6 @@ interface DataTableToolbarProps<TData> {
   purchasers: PurchaserItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
-  dateFrom: string
-  setDateFrom: (v: string) => void
-  dateTo: string
-  setDateTo: (v: string) => void
   searchInput: string
   setSearchInput: (v: string) => void
 }
@@ -43,25 +39,14 @@ export function DataTableToolbar<TData>({
   purchasers,
   buyerFilter,
   setBuyerFilter,
-  dateFrom,
-  setDateFrom,
-  dateTo,
-  setDateTo,
   searchInput,
   setSearchInput,
 }: Readonly<DataTableToolbarProps<TData>>) {
-  const isFiltered = buyerFilter !== null || dateFrom !== "" || dateTo !== "" || searchInput !== ""
+  const isFiltered = buyerFilter !== null || searchInput !== ""
 
   const clearAll = () => {
     setBuyerFilter(null)
-    setDateFrom("")
-    setDateTo("")
     setSearchInput("")
-  }
-
-  const clearDates = () => {
-    setDateFrom("")
-    setDateTo("")
   }
 
   return (
@@ -162,52 +147,6 @@ export function DataTableToolbar<TData>({
                 )}
               </CommandList>
             </Command>
-          </PopoverContent>
-        </Popover>
-
-        {/* Date range */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className={cn(
-              "flex items-center gap-1.5 h-8 px-3 rounded-md border border-dashed text-xs font-medium transition-all",
-              (dateFrom || dateTo)
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-            )}>
-              <IconCalendar className="size-3.5" />
-              Date Range
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-3" align="start">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Date Range</p>
-            <div className="flex flex-col gap-2">
-              <div>
-                <label htmlFor="filter-date-from" className="text-[11px] text-muted-foreground mb-1 block">From</label>
-                <input
-                  id="filter-date-from"
-                  type="date"
-                  value={dateFrom}
-                  onChange={e => setDateFrom(e.target.value)}
-                  className="w-full h-8 rounded-md border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
-                />
-              </div>
-              <div>
-                <label htmlFor="filter-date-to" className="text-[11px] text-muted-foreground mb-1 block">To</label>
-                <input
-                  id="filter-date-to"
-                  type="date"
-                  value={dateTo}
-                  onChange={e => setDateTo(e.target.value)}
-                  className="w-full h-8 rounded-md border border-border bg-transparent px-2 text-xs outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
-                />
-              </div>
-              {(dateFrom || dateTo) && (
-                <button
-                  onClick={clearDates}
-                  className="text-[11px] text-rose-500 hover:text-rose-700 text-left transition-colors"
-                >Clear dates</button>
-              )}
-            </div>
           </PopoverContent>
         </Popover>
 

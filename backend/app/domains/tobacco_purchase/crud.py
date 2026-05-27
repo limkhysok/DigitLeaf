@@ -280,8 +280,6 @@ async def get_purchases(
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
-    date_from: Optional[date] = None,
-    date_to: Optional[date] = None,
     buyer: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
@@ -292,10 +290,6 @@ async def get_purchases(
         base = base.where(
             col(TobaccoPurchase.invoice_num).contains(search) | col(MemberFarmer.name).contains(search)
         )
-    if date_from is not None:
-        base = base.where(col(TobaccoPurchase.tp_date) >= date_from)
-    if date_to is not None:
-        base = base.where(col(TobaccoPurchase.tp_date) <= date_to)
     if buyer is not None:
         base = base.where(col(TobaccoPurchase.buyer) == buyer)
 
