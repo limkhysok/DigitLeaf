@@ -1,15 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  Document,
-  Page,
-  View,
-  Text,
-  StyleSheet,
-  pdf,
-  Font,
-} from "@react-pdf/renderer"
+import { createRoot } from "react-dom/client"
 import {
   TobaccoPurchase,
   PurchaserItem,
@@ -17,14 +9,6 @@ import {
   OvenItem,
   TobaccoItem,
 } from "@/lib/api-client"
-
-// ── Register fonts (optional — falls back to built-in Noto Sans Khmer) ──────────────
-Font.register({
-  family: "Kantumruy Pro",
-  src: "/font/KantumruyPro-Regular.ttf",
-})
-
-Font.registerHyphenationCallback((word) => [word])
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -60,7 +44,7 @@ const C = {
   muted: "#6b7280",
   light: "#9ca3af",
   border: "#e5e7eb",
-  bg: "#f2f2f2ff",
+  bg: "#f2f2f2",
   white: "#ffffff",
   navy: "#111827",
   amber: "#fffbeb",
@@ -70,273 +54,194 @@ const C = {
   sky: "#38bdf8",
 }
 
-// ── StyleSheet ────────────────────────────────────────────────────────────────
+// ── StyleSheet (converted to plain React style objects) ────────────────────────
 
-const s = StyleSheet.create({
+const s: Record<string, React.CSSProperties> = {
   page: {
-    fontFamily: "Kantumruy Pro",
-    fontSize: 10,
+    fontFamily: "'Kantumruy Pro', 'Hanuman', 'Khmer OS Battambang', sans-serif",
+    fontSize: "12px",
     color: C.dark,
     backgroundColor: C.white,
-    paddingTop: 24,
-    paddingBottom: 20,
-    paddingLeft: 40,
-    paddingRight: 40,
+    padding: "30px 40px",
+    display: "flex",
     flexDirection: "column",
+    width: "100%",
+    height: "148mm", /* Exactly half of an A4 page in portrait */
+    boxSizing: "border-box",
   },
 
   // ── Header ──
   header: {
+    display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: 20,
+    marginBottom: "16px",
   },
   companyName: {
-    fontSize: 15,
-    fontFamily: "Kantumruy Pro",
+    fontSize: "18px",
+    fontWeight: "bold",
     color: C.navy,
-    marginBottom: 17,
-  },
-  invoiceTitleBlock: {
-    alignItems: "flex-end",
-  },
-  invoiceTitle: {
-    fontSize: 13,
-    fontFamily: "Kantumruy Pro",
-    color: C.navy,
-  },
-  invoiceNum: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.navy,
-    marginTop: 2,
+    marginBottom: "12px",
+    textAlign: "center",
   },
 
   // ── Meta Grid ──
   metaGrid: {
+    display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
     backgroundColor: C.bg,
-    borderWidth: 0.2,
-    borderColor: C.border,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    marginBottom: 8,
-    gap: 4,
+    border: `1px solid ${C.border}`,
+    padding: "8px 12px",
+    marginBottom: "12px",
+    gap: "4px",
+    justifyContent: "space-between",
   },
-  metaItem: {
+  metaCol: {
     width: "48%",
+    display: "flex",
     flexDirection: "column",
-    gap: 1,
+    gap: "6px",
+  },
+  metaRow: {
+    display: "flex",
+    flexDirection: "row",
   },
   metaLabel: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
+    fontSize: "12px",
     color: C.navy,
+    width: "45%",
   },
   metaValue: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
+    fontSize: "12px",
     color: C.dark,
-  },
-
-  // ── Vendor Box ──
-  vendorBox: {
-    flexDirection: "row",
-    backgroundColor: C.greenLight,
-    borderWidth: 1,
-    borderColor: C.greenBorder,
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    marginBottom: 8,
-  },
-  vendorLabel: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.navy,
-    marginBottom: 2,
-  },
-  vendorName: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.dark,
-  },
-  vendorAddr: {
-    fontSize: 10,
-    color: C.muted,
-    marginTop: 1,
+    width: "55%",
   },
 
   // ── Table ──
   tableWrapper: {
-    borderWidth: 1,
-    borderColor: C.dark,
-    marginTop: 4,
-    marginBottom: 8,
+    border: `1px solid ${C.dark}`,
+    marginTop: "4px",
+    marginBottom: "16px",
+    display: "flex",
+    flexDirection: "column",
   },
   tableHeader: {
+    display: "flex",
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: C.dark,
+    borderBottom: `1px solid ${C.dark}`,
+    fontWeight: "bold",
   },
   tableHeaderCell: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
+    fontSize: "12px",
     color: C.dark,
-    textAlign: "right",
-    paddingHorizontal: 4,
-    paddingVertical: 4,
+    textAlign: "center",
+    padding: "6px 4px",
+    boxSizing: "border-box",
   },
   tableHeaderCellLeft: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
+    fontSize: "12px",
     color: C.dark,
     textAlign: "left",
-    paddingHorizontal: 4,
-    paddingVertical: 4,
+    padding: "6px 4px",
+    boxSizing: "border-box",
+  },
+  tableHeaderCellRight: {
+    fontSize: "12px",
+    color: C.dark,
+    textAlign: "right",
+    padding: "6px 4px",
+    boxSizing: "border-box",
   },
   tableRow: {
+    display: "flex",
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: C.dark,
+    borderBottom: `1px solid ${C.dark}`,
   },
   tableRowAlt: {
     backgroundColor: C.white,
   },
   tableRowLast: {
-    borderBottomWidth: 0,
+    borderBottom: "none",
   },
   tableCell: {
-    fontSize: 10,
-    color: C.dark,
-    textAlign: "right",
-    paddingHorizontal: 4,
-    paddingVertical: 3,
-  },
-  tableCellLeft: {
-    fontSize: 10,
-    color: C.dark,
-    fontFamily: "Kantumruy Pro",
-    textAlign: "left",
-    paddingHorizontal: 4,
-    paddingVertical: 3,
-  },
-  tableCellGreen: {
-    fontSize: 10,
-    color: C.dark,
-    fontFamily: "Kantumruy Pro",
-    textAlign: "right",
-    paddingHorizontal: 4,
-    paddingVertical: 3,
-  },
-  tableCellDarkGreen: {
-    fontSize: 10,
-    color: C.dark,
-    fontFamily: "Kantumruy Pro",
-    textAlign: "right",
-    paddingHorizontal: 4,
-    paddingVertical: 3,
-  },
-  tableCellNum: {
-    fontSize: 10,
+    fontSize: "12px",
     color: C.dark,
     textAlign: "center",
-    paddingHorizontal: 4,
-    paddingVertical: 3,
+    padding: "5px 4px",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tableCellLeft: {
+    fontSize: "12px",
+    color: C.dark,
+    textAlign: "left",
+    padding: "5px 4px",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  tableCellRight: {
+    fontSize: "12px",
+    color: C.dark,
+    textAlign: "right",
+    padding: "5px 4px",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
 
   // Column widths with borders
-  colNum: { width: "5%", borderRightWidth: 1, borderColor: C.dark },
-  colName: { width: "23%", borderRightWidth: 1, borderColor: C.dark },
-  colGross: { width: "10%", borderRightWidth: 1, borderColor: C.dark },
-  colRemork: { width: "9%", borderRightWidth: 1, borderColor: C.dark },
-  colSack: { width: "9%", borderRightWidth: 1, borderColor: C.dark },
-  colNet: { width: "12%", borderRightWidth: 1, borderColor: C.dark },
-  colPrice: { width: "12%", borderRightWidth: 1, borderColor: C.dark },
-  colTotal: { width: "20%" },
-
-  // ── Rate chip ──
-  rateRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginBottom: 6,
-  },
-  rateChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: C.bg,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 3,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  rateChipLabel: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.light,
-  },
-  rateChipValue: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.dark,
-  },
-
-  // ── Note ──
-  noteBox: {
-    backgroundColor: C.amber,
-    borderWidth: 1,
-    borderColor: C.amberBorder,
-    borderRadius: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    marginBottom: 8,
-  },
-  noteLabel: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
-    color: C.amberLabel,
-    marginBottom: 1,
-  },
-  noteText: {
-    fontSize: 10,
-    color: C.amberText,
-  },
+  colNum: { width: "6%", borderRight: `1px solid ${C.dark}` },
+  colName: { width: "23%", borderRight: `1px solid ${C.dark}` },
+  colGross: { width: "12%", borderRight: `1px solid ${C.dark}` },
+  colRemork: { width: "10%", borderRight: `1px solid ${C.dark}` },
+  colSack: { width: "10%", borderRight: `1px solid ${C.dark}` },
+  colPrice: { width: "12%", borderRight: `1px solid ${C.dark}` },
+  colNet: { width: "12%", borderRight: `1px solid ${C.dark}` },
+  colTotal: { width: "15%" },
 
   // ── Signatures ──
   sigRow: {
+    display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 16,
+    marginTop: "20px",
   },
   sigBox: {
+    display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     width: "24%",
   },
   sigLabel: {
-    fontSize: 10,
-    fontFamily: "Kantumruy Pro",
+    fontSize: "12px",
     color: C.navy,
-    marginBottom: 12,
+    marginBottom: "40px",
+    textAlign: "center",
   },
   sigLine: {
     width: "80%",
-    marginBottom: 13,
+    borderBottom: `1px solid ${C.dark}`,
+    marginBottom: "6px",
   },
   sigName: {
-    fontSize: 10,
+    fontSize: "12px",
     color: C.navy,
   },
   noItems: {
-    paddingVertical: 10,
+    padding: "16px",
     textAlign: "center",
     color: C.light,
-    fontSize: 10,
+    fontSize: "12px",
+    width: "100%",
   },
-})
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -344,7 +249,7 @@ export interface InvoiceData {
   record: TobaccoPurchase
   purchasers: PurchaserItem[]
   regions: RegionItem[]
-  ovens: OvenItem[]
+  ovens?: OvenItem[] // marked as optional to suppress 'never used' while keeping backward compatibility
   tobaccoTypes: TobaccoItem[]
   mfCode?: string
 }
@@ -356,19 +261,14 @@ function TableRow({
   i,
   tobaccoTypes,
 }: Readonly<{
-  d: TobaccoPurchase["details"] extends (infer T)[] | undefined ? T : never
+  d: NonNullable<TobaccoPurchase["details"]>[number]
   i: number
   tobaccoTypes: TobaccoItem[]
 }>) {
   const tobaccoType = tobaccoTypes.find(
-    (t) => t.t_id === (d as { tobacco_name?: number }).tobacco_name
+    (t) => t.t_id === d.tobacco_name
   )
-  const item = d as {
-    gross_weight?: number | null
-    remork_in_kg?: number | null
-    sack_in_kg?: number | null
-    price?: number | null
-  }
+  const item = d
   const net = Math.max(
     0,
     (item.gross_weight ?? 0) - (item.remork_in_kg ?? 0) - (item.sack_in_kg ?? 0)
@@ -379,35 +279,24 @@ function TableRow({
   const tobaccoLabel = tobaccoType?.t_name_kh || tobaccoType?.t_name || "\u2014"
 
   return (
-    <View style={[s.tableRow, isAlt ? s.tableRowAlt : {}]}>
-      <Text style={[s.tableCellNum, s.colNum]}>{i + 1}</Text>
-      <Text style={[s.tableCellLeft, s.colName]}>{tobaccoLabel}</Text>
-      <Text style={[s.tableCell, s.colGross, { textAlign: "center" }]}>
-        {fmt2(item.gross_weight)}
-      </Text>
-      <Text style={[s.tableCell, s.colRemork, { textAlign: "center" }]}>
-        {fmt2(item.remork_in_kg ?? 0)}
-      </Text>
-      <Text style={[s.tableCell, s.colSack, { textAlign: "center" }]}>
-        {fmt2(item.sack_in_kg ?? 0)}
-      </Text>
-      <Text style={[s.tableCell, s.colPrice, { textAlign: "center" }]}>
-        {item.price?.toLocaleString("en-US") ?? "\u2014"}
-      </Text>
-      <Text style={[s.tableCellGreen, s.colNet, { textAlign: "center" }]}>
-        {fmt2(net)}
-      </Text>
-      <Text style={[s.tableCellDarkGreen, s.colTotal]}>
-        {"\u17db"}
-        {total.toLocaleString("en-US")}
-      </Text>
-    </View>
+    <div style={{ ...s.tableRow, ...(isAlt ? s.tableRowAlt : {}) }}>
+      <div style={{ ...s.tableCell, ...s.colNum }}>{i + 1}</div>
+      <div style={{ ...s.tableCellLeft, ...s.colName }}>{tobaccoLabel}</div>
+      <div style={{ ...s.tableCell, ...s.colGross }}>{fmt2(item.gross_weight)}</div>
+      <div style={{ ...s.tableCell, ...s.colRemork }}>{fmt2(item.remork_in_kg ?? 0)}</div>
+      <div style={{ ...s.tableCell, ...s.colSack }}>{fmt2(item.sack_in_kg ?? 0)}</div>
+      <div style={{ ...s.tableCell, ...s.colPrice }}>{item.price?.toLocaleString("en-US") ?? "\u2014"}</div>
+      <div style={{ ...s.tableCellRight, ...s.colNet, fontWeight: "bold" }}>{fmt2(net)}</div>
+      <div style={{ ...s.tableCellRight, ...s.colTotal, fontWeight: "bold" }}>
+        {"\u17db"}{total.toLocaleString("en-US")}
+      </div>
+    </div>
   )
 }
 
-// ── Main PDF Document component ───────────────────────────────────────────────
+// ── Main HTML Document component ───────────────────────────────────────────────
 
-function InvoiceDocument({
+function InvoiceHTML({
   record,
   purchasers,
   regions,
@@ -435,293 +324,156 @@ function InvoiceDocument({
 
   const purchaserLabel = purchaser?.p_name_kh || purchaser?.p_name || "\u2014"
   const regionLabel = region?.reg_name_kh || region?.reg_name || "\u2014"
+
   return (
-    <Document title={`Invoice ${record.invoice_num}`} author="DigitLeaf">
-      <Page
-        size="A4"
-        orientation="portrait"
-        style={{ backgroundColor: "#ffffff" }}
-      >
-        <View
-          style={[
-            s.page,
-            {
-              width: 595,
-              height: 420,
-              overflow: "hidden",
-              borderBottom: "1px dashed #ccc",
-              paddingTop: 40,
-              paddingBottom: 12,
-            },
-          ]}
-        >
-          <View style={s.header}>
-            <View style={{ width: "30%" }} />
-            <View style={{ width: "40%", alignItems: "center" }}>
-              <Text style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</Text>
-            </View>
-            <View style={{ width: "30%" }} />
-          </View>
+    <div style={s.page}>
+      <div style={s.header}>
+        <div style={{ width: "30%" }} />
+        <div style={{ width: "40%", textAlign: "center" }}>
+          <div style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</div>
+        </div>
+        <div style={{ width: "30%" }} />
+      </div>
 
-          <View
-            style={[
-              s.metaGrid,
-              {
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 8,
-                width: "100%",
-              },
-            ]}
-          >
-            <View style={{ width: "48%", flexDirection: "column", gap: 6 }}>
-              <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>
-                  លេខវិក័យប័ត្រ
-                </Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {record.invoice_num}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>កាលបរិច្ឆេទ</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {fmtDate(record.tp_date)}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>
-                  អត្រាប្តូរប្រាក់
-                </Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {"\u17db"}
-                  {record.rate?.toLocaleString("en-US") ?? "\u2014"}
-                </Text>
-              </View>
-            </View>
+      <div style={s.metaGrid}>
+        <div style={s.metaCol}>
+          <div style={s.metaRow}>
+            <div style={s.metaLabel}>លេខវិក័យប័ត្រ</div>
+            <div style={s.metaValue}>: {record.invoice_num}</div>
+          </div>
+          <div style={s.metaRow}>
+            <div style={s.metaLabel}>កាលបរិច្ឆេទ</div>
+            <div style={s.metaValue}>: {fmtDate(record.tp_date)}</div>
+          </div>
+          <div style={s.metaRow}>
+            <div style={s.metaLabel}>អត្រាប្តូរប្រាក់</div>
+            <div style={s.metaValue}>: {"\u17db"}{record.rate?.toLocaleString("en-US") ?? "\u2014"}</div>
+          </div>
+        </div>
 
-            <View style={{ width: "48%", flexDirection: "column", gap: 6 }}>
-              <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>ឈ្មោះកសិករ </Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {record.vendor_name ?? "\u2014"}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>លេខកាតកសិករ</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {mfCode ?? "\u2014"}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row" }}>
-                <Text style={[{ width: "45%" }, s.metaLabel]}>តំបន់</Text>
-                <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {regionLabel}
-                </Text>
-              </View>
-            </View>
-          </View>
+        <div style={s.metaCol}>
+          <div style={s.metaRow}>
+            <div style={s.metaLabel}>ឈ្មោះកសិករ</div>
+            <div style={s.metaValue}>: {record.vendor_name ?? "\u2014"}</div>
+          </div>
+          <div style={s.metaRow}>
+            <div style={s.metaLabel}>លេខកាតកសិករ</div>
+            <div style={s.metaValue}>: {mfCode ?? "\u2014"}</div>
+          </div>
+          <div style={s.metaRow}>
+            <div style={s.metaLabel}>តំបន់</div>
+            <div style={s.metaValue}>: {regionLabel}</div>
+          </div>
+        </div>
+      </div>
 
-          <View style={s.tableWrapper}>
-            <View style={s.tableHeader}>
-              <Text
-                style={[s.tableHeaderCell, s.colNum, { textAlign: "center" }]}
-              >
-                ល.រ
-              </Text>
-              <Text style={[s.tableHeaderCellLeft, s.colName]}>
-                ប្រភេទសន្លឹកថ្នាំ
-              </Text>
-              <Text
-                style={[s.tableHeaderCell, s.colGross, { textAlign: "center" }]}
-              >
-                ទម្ងន់សរុប
-              </Text>
-              <Text
-                style={[
-                  s.tableHeaderCell,
-                  s.colRemork,
-                  { textAlign: "center" },
-                ]}
-              >
-                ទម្ងន់រ៉ឺម៉ក
-              </Text>
-              <Text
-                style={[s.tableHeaderCell, s.colSack, { textAlign: "center" }]}
-              >
-                ទម្ងន់បាវ
-              </Text>
-              <Text
-                style={[s.tableHeaderCell, s.colPrice, { textAlign: "center" }]}
-              >
-                តម្លៃ
-              </Text>
-              <Text
-                style={[s.tableHeaderCell, s.colNet, { textAlign: "center" }]}
-              >
-                ទម្ងន់សុទ្ធ
-              </Text>
-              <Text style={[s.tableHeaderCell, s.colTotal]}>សរុបទឹកប្រាក់</Text>
-            </View>
+      <div style={s.tableWrapper}>
+        <div style={s.tableHeader}>
+          <div style={{ ...s.tableHeaderCell, ...s.colNum }}>ល.រ</div>
+          <div style={{ ...s.tableHeaderCellLeft, ...s.colName }}>ប្រភេទសន្លឹកថ្នាំ</div>
+          <div style={{ ...s.tableHeaderCell, ...s.colGross }}>ទម្ងន់សរុប</div>
+          <div style={{ ...s.tableHeaderCell, ...s.colRemork }}>ទម្ងន់រ៉ឺម៉ក</div>
+          <div style={{ ...s.tableHeaderCell, ...s.colSack }}>ទម្ងន់បាវ</div>
+          <div style={{ ...s.tableHeaderCell, ...s.colPrice }}>តម្លៃ</div>
+          <div style={{ ...s.tableHeaderCellRight, ...s.colNet }}>ទម្ងន់សុទ្ធ</div>
+          <div style={{ ...s.tableHeaderCellRight, ...s.colTotal }}>សរុបទឹកប្រាក់</div>
+        </div>
 
-            {details.length === 0 ? (
-              <View
-                style={[
-                  s.tableRow,
-                  { justifyContent: "center", paddingVertical: 10 },
-                ]}
-              >
-                <Text style={s.noItems}>មិនមានទិន្នន័យ</Text>
-              </View>
-            ) : (
-              details.map((d, i) => (
-                <TableRow
-                  key={d.tpd_id ?? i}
-                  d={d}
-                  i={i}
-                  tobaccoTypes={tobaccoTypes}
-                />
-              ))
-            )}
+        {details.length === 0 ? (
+          <div style={{ ...s.tableRow, justifyContent: "center", padding: "10px 0" }}>
+            <div style={s.noItems}>មិនមានទិន្នន័យ</div>
+          </div>
+        ) : (
+          details.map((d, i) => (
+            <TableRow key={d.tpd_id ?? i} d={d} i={i} tobaccoTypes={tobaccoTypes} />
+          ))
+        )}
 
-            <View style={[s.tableRow, s.tableRowLast]}>
-              <View
-                style={{
-                  width: "56%",
-                  borderRightWidth: 1,
-                  borderColor: C.dark,
-                }}
-              />
-              <View
-                style={{
-                  width: "12%",
-                  borderRightWidth: 1,
-                  borderColor: C.dark,
-                  paddingHorizontal: 4,
-                  paddingVertical: 3,
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "Kantumruy Pro",
-                    color: C.dark,
-                    marginRight: 2,
-                  }}
-                >
-                  ចំនួន៖
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "Kantumruy Pro",
-                    color: C.dark,
-                  }}
-                >
-                  {details.length}
-                </Text>
-              </View>
-              <View
-                style={{
-                  width: "12%",
-                  borderRightWidth: 1,
-                  borderColor: C.dark,
-                  paddingHorizontal: 4,
-                  paddingVertical: 3,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "Kantumruy Pro",
-                    color: C.dark,
-                  }}
-                >
-                  {fmt2(totalNetWeight)}
-                </Text>
-              </View>
-              <View
-                style={{
-                  width: "20%",
-                  paddingHorizontal: 4,
-                  paddingVertical: 3,
-                  alignItems: "flex-end",
-                  justifyContent: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "Kantumruy Pro",
-                    color: C.dark,
-                  }}
-                >
-                  {"\u17db"}
-                  {Math.round(grandTotal).toLocaleString("en-US")}
-                </Text>
-              </View>
-            </View>
-          </View>
+        <div style={{ ...s.tableRow, ...s.tableRowLast }}>
+          <div style={{ width: "61%", borderRight: `1px solid ${C.dark}`, boxSizing: "border-box" }} />
+          <div style={{ ...s.tableCell, ...s.colPrice }}>
+            <span style={{ marginRight: "4px" }}>ចំនួន៖</span>
+            <span style={{ fontWeight: "bold" }}>{details.length}</span>
+          </div>
+          <div style={{ ...s.tableCellRight, ...s.colNet }}>
+            <span style={{ fontWeight: "bold" }}>{fmt2(totalNetWeight)}</span>
+          </div>
+          <div style={{ ...s.tableCellRight, ...s.colTotal }}>
+            <span style={{ fontWeight: "bold" }}>
+              {"\u17db"}{Math.round(grandTotal).toLocaleString("en-US")}
+            </span>
+          </div>
+        </div>
+      </div>
 
-          <View style={s.sigRow}>
-            <View style={s.sigBox}>
-              <Text style={s.sigLabel}>ឈ្មោះអ្នកទិញ </Text>
-              <View style={s.sigLine} />
-              <Text style={s.sigName}>
-                {purchaserLabel === "\u2014"
-                  ? "_______________"
-                  : purchaserLabel}
-              </Text>
-            </View>
-            <View style={s.sigBox}>
-              <Text style={s.sigLabel}>អ្នកពិនិត្យគុណភាព</Text>
-              <View style={s.sigLine} />
-              <Text style={s.sigName}>_______________</Text>
-            </View>
-            <View style={s.sigBox}>
-              <Text style={s.sigLabel}>បេឡា</Text>
-              <View style={s.sigLine} />
-              <Text style={s.sigName}>_______________</Text>
-            </View>
-            <View style={s.sigBox}>
-              <Text style={s.sigLabel}>
-                ឈ្មោះ និង ស្នាមម្រាមដៃ អ្នកលក់បានទទួលប្រាក់
-              </Text>
-
-              <Text style={s.sigName}>
-                {record.vendor_name ?? "_______________"}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Page>
-    </Document>
+      <div style={s.sigRow}>
+        <div style={s.sigBox}>
+          <div style={s.sigLabel}>ឈ្មោះអ្នកទិញ</div>
+          <div style={s.sigLine} />
+          <div style={s.sigName}>{purchaserLabel === "\u2014" ? "" : purchaserLabel}</div>
+        </div>
+        <div style={s.sigBox}>
+          <div style={s.sigLabel}>អ្នកពិនិត្យគុណភាព</div>
+          <div style={s.sigLine} />
+          <div style={s.sigName}></div>
+        </div>
+        <div style={s.sigBox}>
+          <div style={s.sigLabel}>បេឡា</div>
+          <div style={s.sigLine} />
+          <div style={s.sigName}></div>
+        </div>
+        <div style={s.sigBox}>
+          <div style={s.sigLabel}>ឈ្មោះ និង ស្នាមម្រាមដៃ អ្នកលក់បានទទួលប្រាក់</div>
+          <div style={s.sigLine} />
+          <div style={s.sigName}>{record.vendor_name ?? ""}</div>
+        </div>
+      </div>
+    </div>
   )
 }
 
-// ── printInvoice — public API (same signature as before) ─────────────────────
+// ── printInvoice — public API ──────────────────────────────────────────────────
 
 export async function printInvoice(data: InvoiceData): Promise<void> {
-  // Generate the PDF as a Blob using @react-pdf/renderer
-  const doc = <InvoiceDocument {...data} />
-  const blob = await pdf(doc).toBlob()
-  const url = URL.createObjectURL(blob)
-
-  // Open in a new tab — the browser's built-in PDF viewer handles printing
-  const win = window.open(url, "_blank")
+  // Create a new tab for printing
+  const win = window.open("", "_blank")
   if (!win) {
-    // Fallback: trigger a direct download if pop-up is blocked
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `Invoice-${data.record.invoice_num}.pdf`
-    a.click()
+    alert("Please allow popups to print invoices.")
+    return
   }
 
-  // Clean up the object URL after a delay to allow the tab/download to start
-  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  // Write basic HTML structure to the new window without using deprecated document.write
+  win.document.title = `Print Invoice - ${data.record.invoice_num}`
+  win.document.body.innerHTML = '<div id="print-root"></div>'
+  const style = win.document.createElement("style")
+  style.innerHTML = `
+    @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap');
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  `
+  win.document.head.appendChild(style)
+
+  // Render the React component into the new window's DOM
+  const root = createRoot(win.document.getElementById("print-root")!)
+  root.render(<InvoiceHTML {...data} />)
+
+  // Wait for fonts to load and React to finish rendering, then print
+  setTimeout(() => {
+    win.print()
+  }, 700)
 }
