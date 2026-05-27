@@ -41,11 +41,14 @@ export default function FarmerContrastPage() {
   React.useEffect(() => {
     if (isAuthLoading || !tokens?.access_token) return
     let active = true
-    setIsLoading(true)
-    apiClient.getFarmerContrasts(tokens.access_token, selectedYear)
-      .then((data) => { if (active) setRecords(data) })
-      .catch((err) => toast.error((err as Error).message || "Failed to fetch farmer contrasts"))
-      .finally(() => { if (active) setIsLoading(false) })
+    queueMicrotask(() => {
+      if (!active) return
+      setIsLoading(true)
+      apiClient.getFarmerContrasts(tokens.access_token, selectedYear)
+        .then((data) => { if (active) setRecords(data) })
+        .catch((err) => toast.error((err as Error).message || "Failed to fetch farmer contrasts"))
+        .finally(() => { if (active) setIsLoading(false) })
+    })
     return () => { active = false }
   }, [isAuthLoading, tokens, selectedYear])
 

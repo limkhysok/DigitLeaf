@@ -349,9 +349,9 @@ export function AddPurchaseDialog({
     if (initialized.current) return
     initialized.current = true
     if (initialData) {
-      populateForm(initialData)
+      queueMicrotask(() => populateForm(initialData))
     } else {
-      resetForm()
+      queueMicrotask(() => resetForm())
     }
   }, [open, initialData, populateForm, resetForm])
 

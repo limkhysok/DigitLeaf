@@ -19,6 +19,7 @@ import { STATUS_MAP } from "./constants"
 
 
 interface ColumnHelpers {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any
   localizeNumber: (num: number | string | null | undefined) => string
   localizeDateString: (formattedDate: string) => string
@@ -114,7 +115,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.date} />,
       cell: ({ row }) => (
         <div className="tabular-nums font-sm">
-          {localizeNumber(format(new Date(row.getValue("registered_at")), "dd/MM/yyyy"))}
+          {localizeDateString(format(new Date(row.getValue("registered_at")), "dd/MM/yyyy"))}
         </div>
       ),
       sortingFn: "datetime",

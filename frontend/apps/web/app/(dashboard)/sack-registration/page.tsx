@@ -1,4 +1,5 @@
 "use client"
+"use no memo"
 
 import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
@@ -21,8 +22,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
 } from "@tanstack/react-table"
+import { useReactTable } from "@/lib/table-utils"
 import { DataTable } from "./_components/data-table"
 import { DataTableToolbar } from "./_components/data-table-toolbar"
 import { getColumns } from "./_components/columns"

@@ -24,7 +24,6 @@ function SortIcon({ dir }: Readonly<SortIconProps>) {
   )
 }
 
-const PAGE_SIZE = 100
 
 interface DesktopViewProps {
   records: TobaccoPurchase[]
