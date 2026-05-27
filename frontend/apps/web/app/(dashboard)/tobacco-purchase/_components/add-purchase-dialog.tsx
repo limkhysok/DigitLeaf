@@ -119,9 +119,11 @@ function updateDetailsSackWeight(
   }))
 }
 
+type VendorIdType = number | string | null;
+
 function validatePurchaseForm(
   buyer: string,
-  vendor: string,
+  vendor: VendorIdType,
   region: string,
   rate: string,
   details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[]
@@ -182,8 +184,8 @@ function VendorListContent({
   vendors: MemberFarmerItem[];
   buyer: string;
   vendorSearch: string;
-  vendor: string;
-  setVendor: (v: string) => void;
+  vendor: VendorIdType;
+  setVendor: (v: VendorIdType) => void;
   setVendorSearch: (v: string) => void;
   setVAddr: (v: string) => void;
   setIsVendorOpen: (open: boolean) => void;
@@ -215,16 +217,16 @@ function VendorListContent({
             type="button"
             className={cn(
               "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
-              vendor === f.name && "bg-accent"
+              vendor === f.mf_id && "bg-accent"
             )}
             onClick={() => {
-              setVendor(f.name)
+              setVendor(f.mf_id)
               setVendorSearch(`${f.name} | ${f.mf_code}`)
               setVAddr(f.address || "")
               setIsVendorOpen(false)
             }}
           >
-            <IconCheck className={cn("mr-2 h-3.5 w-3.5", vendor === f.name ? "opacity-100" : "opacity-0")} />
+            <IconCheck className={cn("mr-2 h-3.5 w-3.5", vendor === f.mf_id ? "opacity-100" : "opacity-0")} />
             {f.name} | {f.mf_code}
           </button>
         ))}
@@ -261,7 +263,7 @@ export function AddPurchaseDialog({
   const [isOvenOpen, setIsOvenOpen] = React.useState(false)
   const [vendorSearch, setVendorSearch] = React.useState("")
   const [isVendorOpen, setIsVendorOpen] = React.useState(false)
-  const [vendor, setVendor] = React.useState("")
+  const [vendor, setVendor] = React.useState<VendorIdType>(null)
   const [v_addr, setVAddr] = React.useState("")
   const [region, setRegion] = React.useState<string>("")
   const [tpDate, setTpDate] = React.useState<string>("")
@@ -278,7 +280,7 @@ export function AddPurchaseDialog({
   const resetForm = React.useCallback(() => {
     setBuyer("")
     setBuyerSearch("")
-    setVendor("")
+    setVendor(null)
     setVendorSearch("")
     setVendors([])
     setVAddr("")
@@ -299,8 +301,8 @@ export function AddPurchaseDialog({
 
   const populateForm = React.useCallback(async (data: TobaccoPurchase) => {
     setBuyer(data.buyer?.toString() || "")
-    setVendor(data.vendor || "")
-    setVendorSearch(data.vendor || "")
+    setVendor(data.vendor_id || null)
+    setVendorSearch(data.vendor_name || "")
     setVAddr(data.v_addr || "")
     setRegion(data.region?.toString() || "")
     setTpDate(data.tp_date || "")
@@ -328,7 +330,7 @@ export function AddPurchaseDialog({
       try {
         const v = await apiClient.getVendorsByBuyer(accessToken, data.buyer)
         setVendors(v)
-        const match = v.find(item => item.name === data.vendor)
+        const match = v.find(item => String(item.mf_id) === String(data.vendor_id))
         if (match) setVendorSearch(`${match.name} | ${match.mf_code}`)
       } catch {
         setVendors([])
@@ -363,7 +365,7 @@ export function AddPurchaseDialog({
     let active = true
     async function fetchSackWeight() {
       try {
-        const { sack_in_kg } = await apiClient.getVendorSack(accessToken, vendor)
+        const { sack_in_kg } = await apiClient.getVendorSack(accessToken, vendor as number)
         if (active) {
           setDetails(prev => updateDetailsSackWeight(prev, sack_in_kg ?? 0))
         }
@@ -407,7 +409,7 @@ export function AddPurchaseDialog({
       }
     }
 
-    setVendor("")
+    setVendor(null)
     setVendorSearch("")
     setVendors([])
     setIsVendorsLoading(true)
@@ -431,7 +433,7 @@ export function AddPurchaseDialog({
     try {
       const payload: TobaccoPurchaseCreate = {
         buyer: buyer ? Number.parseInt(buyer, 10) : undefined,
-        vendor,
+        vendor_id: vendor ?? undefined,
         v_addr,
         region: region ? Number.parseInt(region, 10) : undefined,
         tp_date: tpDate,
@@ -461,9 +463,12 @@ export function AddPurchaseDialog({
       // Trigger print after dialog closes if requested
       if ((shouldPrint || printAfterSave) && savedRecord) {
         if (onPrint) {
+          // Try to recover vendorSearch if they canceled out
+          const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id));
+          setVendorSearch(selectedV ? `${selectedV.name} | ${selectedV.mf_code}` : "");
           onPrint(savedRecord)
         } else {
-          const selectedV = vendors.find(v => v.name === savedRecord?.vendor);
+          const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id));
           await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes, mfCode: selectedV?.mf_code })
         }
       }
@@ -490,7 +495,7 @@ export function AddPurchaseDialog({
 
   const { title, mobileTitle, description } = getDialogLabels(isReadOnly, initialData)
 
-  const selectedVendorItem = vendors.find((v) => v.name === vendor)
+  const selectedVendorItem = vendors.find((v) => String(v.mf_id) === String(vendor))
   const displayTobacNum =
     selectedVendorItem?.tobac_num !== undefined &&
       selectedVendorItem?.tobac_num !== null
@@ -671,7 +676,10 @@ export function AddPurchaseDialog({
                   <Label className="text-[12px] font-bold text-muted-foreground/70">Vendor (Id)</Label>
                   <Popover open={isVendorOpen} onOpenChange={(open) => {
                     setIsVendorOpen(open)
-                    if (!open) setVendorSearch(vendor)
+                    if (!open) {
+                      const selectedV = vendors.find(v => String(v.mf_id) === String(vendor));
+                      setVendorSearch(selectedV ? `${selectedV.name} | ${selectedV.mf_code}` : "")
+                    }
                   }}>
                     <PopoverAnchor asChild>
                       <div className="relative group">

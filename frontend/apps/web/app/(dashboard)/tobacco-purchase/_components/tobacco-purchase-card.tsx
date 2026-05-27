@@ -95,7 +95,7 @@ export const TobaccoPurchaseCard = React.memo(({
             <div className="min-w-0">
               <span className="block text-[9px] text-slate-400 font-semibold uppercase tracking-wider leading-none">Vendor</span>
               <span className="text-xs font-medium text-slate-700 truncate block mt-0.5">
-                {rec.vendor || "—"}
+                {rec.vendor_name || "—"}
               </span>
             </div>
           </div>

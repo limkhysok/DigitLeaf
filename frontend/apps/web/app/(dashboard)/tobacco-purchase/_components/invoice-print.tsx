@@ -504,7 +504,7 @@ function InvoiceDocument({
               <View style={{ flexDirection: "row" }}>
                 <Text style={[{ width: "45%" }, s.metaLabel]}>ឈ្មោះកសិករ </Text>
                 <Text style={[{ width: "55%" }, s.metaValue]}>
-                  : {record.vendor ?? "\u2014"}
+                  : {record.vendor_name ?? "\u2014"}
                 </Text>
               </View>
               <View style={{ flexDirection: "row" }}>
@@ -694,7 +694,7 @@ function InvoiceDocument({
               </Text>
 
               <Text style={s.sigName}>
-                {record.vendor ?? "_______________"}
+                {record.vendor_name ?? "_______________"}
               </Text>
             </View>
           </View>

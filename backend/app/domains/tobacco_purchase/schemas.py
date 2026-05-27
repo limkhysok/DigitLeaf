@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any, Union
 from datetime import date, datetime
 from pydantic import BaseModel, Field, computed_field, field_validator
 from .constants import ClosingStatus
@@ -63,7 +63,7 @@ class PurchaseDetail(PurchaseDetailBase):
 class PurchaseBase(BaseModel):
     invoice_num: Optional[str] = None
     buyer: Optional[int] = None
-    vendor: Optional[str] = None
+    vendor_id: Optional[Union[int, str]] = None
     v_addr: Optional[str] = None
     region: Optional[int] = None
     tp_date: date = Field(default_factory=date.today)
@@ -77,7 +77,7 @@ class PurchaseCreate(PurchaseBase):
 
 class PurchaseUpdate(BaseModel):
     buyer: Optional[int] = None
-    vendor: Optional[str] = None
+    vendor_id: Optional[Union[int, str]] = None
     v_addr: Optional[str] = None
     region: Optional[int] = None
     tp_date: Optional[date] = None
@@ -93,7 +93,17 @@ class Purchase(PurchaseBase):
     do_date: Optional[datetime] = None
     total_net_weight: Optional[float] = None
     grand_total: Optional[float] = None
+    vendor: Optional[Any] = Field(default=None, exclude=True) # Hidden field from relationship
     details: List[PurchaseDetail] = []
+
+    @computed_field
+    @property
+    def vendor_name(self) -> Optional[str]:
+        if self.vendor:
+            return getattr(self.vendor, "name", None)
+        if self.vendor_id and not str(self.vendor_id).isdigit():
+            return str(self.vendor_id)
+        return None
 
     @field_validator("do_date", mode="before")
     @classmethod

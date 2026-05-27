@@ -1,9 +1,11 @@
 from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import Column, String
 from datetime import date, datetime
 from app.core.config import CAMBODIA_TZ
 from .purchase_detail import TobaccoPurchaseDetail
 from ..constants import ClosingStatus
+from app.domains.sack_registration.models.member_farmer import MemberFarmer
 
 class TobaccoPurchase(SQLModel, table=True):
     __tablename__ = "tobacco_purchase" # type: ignore[assignment]
@@ -11,7 +13,7 @@ class TobaccoPurchase(SQLModel, table=True):
     tp_id: Optional[int] = Field(default=None, primary_key=True)
     invoice_num: str = Field(max_length=255, index=True)
     buyer: int = Field(default=0)
-    vendor: str = Field(default="", max_length=255)
+    vendor_id: Optional[str] = Field(default=None, sa_column=Column("vendor", String(255)))
     v_addr: str = Field(default="", max_length=255)
     region: int = Field(default=0)
     tp_date: date = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ).date())
@@ -32,6 +34,12 @@ class TobaccoPurchase(SQLModel, table=True):
     # Relationships
     details: List["TobaccoPurchaseDetail"] = Relationship(
         sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"}
+    )
+    vendor: Optional["MemberFarmer"] = Relationship(
+        sa_relationship_kwargs={
+            "primaryjoin": "TobaccoPurchase.vendor_id == foreign(MemberFarmer.mf_id)",
+            "lazy": "selectin"
+        }
     )
 
     def __str__(self):

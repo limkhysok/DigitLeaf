@@ -225,10 +225,10 @@ export default function TobaccoPurchasePage() {
         : await apiClient.getTobaccoPurchase(tokens.access_token, record.tp_id)
 
       let mfCode: string | undefined = undefined;
-      if (full.buyer && full.vendor) {
+      if (full.buyer && full.vendor_id) {
         try {
           const vendorsList = await apiClient.getVendorsByBuyer(tokens.access_token, full.buyer);
-          const vItem = vendorsList.find(v => v.name === full.vendor);
+          const vItem = vendorsList.find(v => String(v.mf_id) === String(full.vendor_id));
           if (vItem) mfCode = vItem.mf_code;
         } catch {
           // ignore

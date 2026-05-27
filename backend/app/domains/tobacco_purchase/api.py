@@ -47,12 +47,12 @@ async def list_tobacco_types(
 
 @router.get("/vendor-sack")
 async def get_vendor_sack(
-    vendor_name: str,
+    vendor_id: int,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    sack_kg = await crud.get_vendor_sack_kg(db=session, vendor_name=vendor_name)
-    total_sack_kg = await crud.get_vendor_total_active_sack_kg(db=session, vendor_name=vendor_name)
+    sack_kg = await crud.get_vendor_sack_kg(db=session, vendor_id=vendor_id)
+    total_sack_kg = await crud.get_vendor_total_active_sack_kg(db=session, vendor_id=vendor_id)
     return {"sack_in_kg": sack_kg, "total_sack_in_kg": total_sack_kg}
 
 

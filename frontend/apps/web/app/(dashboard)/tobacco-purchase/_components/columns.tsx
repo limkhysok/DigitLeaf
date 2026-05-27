@@ -72,9 +72,9 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       },
     },
     {
-      accessorKey: "vendor",
+      accessorKey: "vendor_name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor" />,
-      cell: ({ row }) => <div className="text-[#374151]">{row.getValue("vendor") || "-"}</div>,
+      cell: ({ row }) => <div className="truncate min-w-[80px] max-w-[150px]">{row.original.vendor_name || "-"}</div>,
     },
     {
       id: "purchase_date",

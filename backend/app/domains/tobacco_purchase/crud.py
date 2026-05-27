@@ -41,22 +41,20 @@ async def generate_invoice_num(db: AsyncSession) -> str:
     return f"{prefix}{new_seq:04d}"
 
 
-async def get_vendor_total_active_sack_kg(db: AsyncSession, vendor_name: str) -> float:
+async def get_vendor_total_active_sack_kg(db: AsyncSession, vendor_id: int) -> float:
     result = await db.execute(
         select(func.sum(SackRegistration.sack_in_kg))
-        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
-        .where(MemberFarmer.name == vendor_name)
+        .where(SackRegistration.member_farmer_id == vendor_id)
         .where(SackRegistration.status == 0)
     )
     total = result.scalar()
     return float(total or 0.0)
 
 
-async def _deduct_sacks(db: AsyncSession, vendor: str, to_deduct: float) -> None:
+async def _deduct_sacks(db: AsyncSession, vendor_id: int, to_deduct: float) -> None:
     sack_result = await db.execute(
         select(SackRegistration)
-        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
-        .where(MemberFarmer.name == vendor)
+        .where(SackRegistration.member_farmer_id == vendor_id)
         .where(SackRegistration.status == 0)
         .order_by(col(SackRegistration.registered_at).asc())
     )
@@ -81,11 +79,10 @@ async def _deduct_sacks(db: AsyncSession, vendor: str, to_deduct: float) -> None
             db.add(sack_reg)
 
 
-async def _refund_sacks(db: AsyncSession, vendor: str, to_refund: float) -> None:
+async def _refund_sacks(db: AsyncSession, vendor_id: int, to_refund: float) -> None:
     sack_result = await db.execute(
         select(SackRegistration)
-        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
-        .where(MemberFarmer.name == vendor)
+        .where(SackRegistration.member_farmer_id == vendor_id)
         .order_by(col(SackRegistration.registered_at).desc())
         .limit(1)
     )
@@ -97,11 +94,11 @@ async def _refund_sacks(db: AsyncSession, vendor: str, to_refund: float) -> None
         db.add(sack_reg)
 
 
-async def _update_sack_registration(db: AsyncSession, vendor: str, net_sack_change: float) -> None:
+async def _update_sack_registration(db: AsyncSession, vendor_id: int, net_sack_change: float) -> None:
     if net_sack_change > 0:
-        await _deduct_sacks(db, vendor, net_sack_change)
+        await _deduct_sacks(db, vendor_id, net_sack_change)
     elif net_sack_change < 0:
-        await _refund_sacks(db, vendor, abs(net_sack_change))
+        await _refund_sacks(db, vendor_id, abs(net_sack_change))
 
 
 async def _clear_existing_details(db: AsyncSession, tp_id: int) -> float:
@@ -233,8 +230,8 @@ async def _sync_purchase_details(
 
 
     net_sack_change = new_sack_total - old_sack_total
-    if db_obj.vendor and net_sack_change != 0:
-        await _update_sack_registration(db, db_obj.vendor, net_sack_change)
+    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and net_sack_change != 0:
+        await _update_sack_registration(db, int(db_obj.vendor_id), net_sack_change)
 
 
 async def create_purchase(
@@ -265,6 +262,7 @@ async def get_purchase(db: AsyncSession, tp_id: int) -> Optional[TobaccoPurchase
     result = await db.execute(
         select(TobaccoPurchase)
         .options(selectinload(TobaccoPurchase.details))  # type: ignore[arg-type]
+        .options(selectinload(TobaccoPurchase.vendor))  # type: ignore[arg-type]
         .where(TobaccoPurchase.tp_id == tp_id)
     )
     return result.scalars().first()
@@ -290,8 +288,9 @@ async def get_purchases(
 ) -> Tuple[List[TobaccoPurchase], int]:
     base = select(TobaccoPurchase)
     if search:
+        base = base.join(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id, isouter=True)
         base = base.where(
-            col(TobaccoPurchase.invoice_num).contains(search) | col(TobaccoPurchase.vendor).contains(search)
+            col(TobaccoPurchase.invoice_num).contains(search) | col(MemberFarmer.name).contains(search)
         )
     if date_from is not None:
         base = base.where(col(TobaccoPurchase.tp_date) >= date_from)
@@ -317,6 +316,7 @@ async def get_purchases(
 
     fetch_statement = (
         base.options(selectinload(TobaccoPurchase.details))  # type: ignore[arg-type]
+        .options(selectinload(TobaccoPurchase.vendor))  # type: ignore[arg-type]
         .order_by(order_col)
         .offset(skip)
         .limit(limit)
@@ -359,8 +359,8 @@ async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
 
     # Refund consumed sacks
     total_sack_to_refund = sum(d.sack_in_kg or 0.0 for d in db_obj.details)
-    if db_obj.vendor and total_sack_to_refund > 0:
-        await _update_sack_registration(db, db_obj.vendor, -total_sack_to_refund)
+    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and total_sack_to_refund > 0:
+        await _update_sack_registration(db, int(db_obj.vendor_id), -total_sack_to_refund)
 
     await db.delete(db_obj)
     await db.commit()
@@ -374,12 +374,12 @@ async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorIt
 
     weight_subquery = (
         select(
-            TobaccoPurchase.vendor.label("vendor_name"),
+            TobaccoPurchase.vendor_id.label("vendor_id"),
             func.sum(TobaccoPurchase.total_net_weight).label("total_weight")
         )
         .where(TobaccoPurchase.tp_date >= start_date)
         .where(TobaccoPurchase.tp_date <= end_date)
-        .group_by(TobaccoPurchase.vendor)
+        .group_by(TobaccoPurchase.vendor_id)
     ).subquery()
 
     statement = (
@@ -390,7 +390,7 @@ async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorIt
         )
         .join(Represent, col(MemberFarmer.represent) == col(Represent.represent_id))
         .join(MfConYear, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
-        .outerjoin(weight_subquery, col(MemberFarmer.name) == weight_subquery.c.vendor_name)
+        .outerjoin(weight_subquery, col(MemberFarmer.mf_id) == weight_subquery.c.vendor_id)
         .where(Represent.p_id == buyer_id)
         .where(Represent.do_not_show == 0)
         .where(MemberFarmer.active == "YES")
@@ -435,11 +435,10 @@ async def get_tobacco_types(db: AsyncSession) -> List[Tobacco]:
     return list(result.scalars().all())
 
 
-async def get_vendor_sack_kg(db: AsyncSession, vendor_name: str) -> Optional[float]:
+async def get_vendor_sack_kg(db: AsyncSession, vendor_id: int) -> Optional[float]:
     result = await db.execute(
         select(SackRegistration)
-        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
-        .where(MemberFarmer.name == vendor_name)
+        .where(SackRegistration.member_farmer_id == vendor_id)
         .where(SackRegistration.status == 0)
         .order_by(col(SackRegistration.registered_at).asc())
         .limit(1)
