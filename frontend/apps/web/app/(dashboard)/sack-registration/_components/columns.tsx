@@ -144,9 +144,9 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(rec, total - row.index)}
-                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
-                <IconTrash className="mr-2 h-4 w-4 text-destructive/70 group-focus:text-destructive-foreground" />
+                <IconTrash className="mr-2 h-4 w-4" />
                 {t.sackRegistration.dialog.delete}
               </DropdownMenuItem>
             </DropdownMenuContent>

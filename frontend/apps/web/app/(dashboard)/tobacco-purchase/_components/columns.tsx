@@ -153,9 +153,9 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(rec.tp_id)}
-                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
-                <IconTrash className="mr-2 h-4 w-4 text-destructive/70 group-focus:text-destructive-foreground" />
+                <IconTrash className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
