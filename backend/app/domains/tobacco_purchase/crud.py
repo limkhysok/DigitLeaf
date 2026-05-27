@@ -287,8 +287,12 @@ async def get_purchases(
     base = select(TobaccoPurchase)
     if search:
         base = base.join(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id, isouter=True)
+        base = base.join(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id, isouter=True)
         base = base.where(
-            col(TobaccoPurchase.invoice_num).contains(search) | col(MemberFarmer.name).contains(search)
+            col(TobaccoPurchase.invoice_num).contains(search) | 
+            col(MemberFarmer.name).contains(search) |
+            col(Purchaser.p_name).contains(search) |
+            col(Purchaser.p_name_kh).contains(search)
         )
     if buyer is not None:
         base = base.where(col(TobaccoPurchase.buyer) == buyer)

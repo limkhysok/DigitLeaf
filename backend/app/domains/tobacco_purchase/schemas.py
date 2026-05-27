@@ -30,13 +30,20 @@ class PurchaseDetailBase(BaseModel):
     remork_in_kg: Optional[float] = None
     sack_in_kg: Optional[float] = None
     borrowed_leaf_kg: float = 0.0
-    CreatedDate: date = Field(default_factory=date.today)
+    CreatedDate: Optional[date] = Field(default_factory=date.today)
     closing: ClosingStatus = ClosingStatus.NO
     buyer: int = 0
     oven: int = 0
     region: int = 0
     m_id: Optional[int] = None
     picture: Optional[str] = None
+
+    @field_validator("CreatedDate", mode="before")
+    @classmethod
+    def parse_zero_created_date(cls, v):
+        if str(v) == "0000-00-00":
+            return None
+        return v
 
 class PurchaseDetailCreate(PurchaseDetailBase):
     pass
