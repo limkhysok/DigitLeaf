@@ -11,13 +11,17 @@ import {
   TobaccoItem,
 } from "@/lib/api-client"
 import { toast } from "sonner"
-import { IconLoader2 } from "@tabler/icons-react"
+import { IconLoader2, IconPlus } from "@tabler/icons-react"
 import { AddPurchaseDialog } from "./_components/add-purchase-dialog"
-import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { MobileView } from "./_components/mobile-view"
 import { TabletView } from "./_components/tablet-view"
-import { DesktopView } from "./_components/desktop-view"
+import { DataTableToolbar } from "./_components/data-table-toolbar"
+import { DataTable } from "./_components/data-table"
+import { getColumns } from "./_components/columns"
+import { getCoreRowModel, VisibilityState } from "@tanstack/react-table"
+import { useReactTable } from "@/lib/table-utils"
+import { Button } from "@workspace/ui/components/button"
 import { printInvoice } from "./_components/invoice-print"
 import {
   AlertDialog,
@@ -34,11 +38,7 @@ const PAGE_SIZE = 100
 
 type SortDir = "asc" | "desc" | null
 
-function nextSortDir(prev: SortDir): SortDir {
-  if (prev === "desc") return "asc"
-  if (prev === "asc") return null
-  return "desc"
-}
+
 
 
 
@@ -72,19 +72,8 @@ export default function TobaccoPurchasePage() {
   const [dateTo, setDateTo] = React.useState("")
   const [buyerFilter, setBuyerFilter] = React.useState<number | null>(null)
 
-  // ── Sort ────────────────────────────────────────────────────────────────────
   const [sortGrandTotal, setSortGrandTotal] = React.useState<SortDir>(null)
   const [sortNetWeight, setSortNetWeight] = React.useState<SortDir>(null)
-
-  const handleToggleSort = (col: "grand_total" | "net_weight") => {
-    if (col === "grand_total") {
-      setSortGrandTotal(prev => nextSortDir(prev))
-      setSortNetWeight(null)
-    } else {
-      setSortNetWeight(prev => nextSortDir(prev))
-      setSortGrandTotal(null)
-    }
-  }
 
   // ── Infinite Scroll ─────────────────────────────────────────────────────────
   const [skip, setSkip] = React.useState(0)
@@ -203,8 +192,8 @@ export default function TobaccoPurchasePage() {
     }
   }, [tokens])
 
-  const handleEdit = (record: TobaccoPurchase) => openRecord(record, false)
-  const handleView = (record: TobaccoPurchase) => openRecord(record, true)
+  const handleEdit = React.useCallback((record: TobaccoPurchase) => openRecord(record, false), [openRecord])
+  const handleView = React.useCallback((record: TobaccoPurchase) => openRecord(record, true), [openRecord])
 
   const handleDelete = async () => {
     if (!deleteId || !tokens?.access_token) return
@@ -259,10 +248,65 @@ export default function TobaccoPurchasePage() {
     }
   }, [tokens, purchasers, regions, ovens, tobaccoTypes])
 
-  if (!mounted) return null
-
   // ── Derived state ─────────────────────────────────────────────────────────────
   const filteredRecords = records
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+
+  const columns = React.useMemo(() => getColumns({
+    purchasers,
+    onView: handleView,
+    onEdit: handleEdit,
+    onDelete: (id: number) => setDeleteId(id),
+    onPrint: handlePrint,
+  }), [purchasers, handleView, handleEdit, handlePrint])
+
+  const sorting = React.useMemo(() => {
+    if (sortGrandTotal) return [{ id: "grand_total", desc: sortGrandTotal === "desc" }]
+    if (sortNetWeight) return [{ id: "net_weight", desc: sortNetWeight === "desc" }]
+    return []
+  }, [sortGrandTotal, sortNetWeight])
+
+  const setSorting = React.useCallback((updater: React.SetStateAction<import("@tanstack/react-table").SortingState>) => {
+    const newVal = typeof updater === "function" ? updater(sorting) : updater
+    if (newVal.length === 0) {
+      setSortGrandTotal(null)
+      setSortNetWeight(null)
+    } else {
+      const col = newVal[0]
+      if (!col) return
+      if (col.id === "grand_total") {
+        setSortGrandTotal(col.desc ? "desc" : "asc")
+        setSortNetWeight(null)
+      } else if (col.id === "net_weight") {
+        setSortNetWeight(col.desc ? "desc" : "asc")
+        setSortGrandTotal(null)
+      }
+    }
+  }, [sorting])
+
+  const table = useReactTable({
+    data: filteredRecords,
+    columns,
+    state: {
+      columnVisibility,
+      sorting,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    manualFiltering: true,
+    manualSorting: true,
+    manualPagination: true,
+  })
+
+  const actionNode = (
+    <Button onClick={handleAddNew} className="shrink-0 rounded-md h-8 px-4 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all">
+      <IconPlus className="size-3.5" />
+      <span className="hidden sm:inline">Add</span>
+    </Button>
+  )
+
+  if (!mounted) return null
 
   // ── Shared props ──────────────────────────────────────────────────────────────
   const sharedFilterProps = {
@@ -286,8 +330,8 @@ export default function TobaccoPurchasePage() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-xl font-medium text-foreground whitespace-nowrap">Tobacco Purchase</h1>
-          <p className="text-sm text-muted-foreground truncate hidden sm:block">
+          <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">Tobacco Purchase</h1>
+          <p className="text-muted-foreground text-sm sm:text-base sm:text-balance md:max-w-[100%]">
             Manage tobacco purchase records and details.
           </p>
         </div>
@@ -304,16 +348,23 @@ export default function TobaccoPurchasePage() {
       />
 
       {/* ── Desktop filter bar (≥lg) ── */}
-      <FilterBar
-        className="hidden lg:flex"
-        searchClassName="min-w-40 max-w-xs"
-        view={view}
-        setView={setView}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        onAdd={handleAddNew}
-        {...sharedFilterProps}
-      />
+      <div className="hidden lg:block">
+        <DataTableToolbar
+          table={table}
+          action={actionNode}
+          view={view}
+          setView={setView}
+          purchasers={purchasers}
+          buyerFilter={buyerFilter}
+          setBuyerFilter={setBuyerFilter}
+          dateFrom={dateFrom}
+          setDateFrom={setDateFrom}
+          dateTo={dateTo}
+          setDateTo={setDateTo}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+        />
+      </div>
 
       {/* ── Loading ── */}
       {isLoading && (
@@ -341,15 +392,9 @@ export default function TobaccoPurchasePage() {
 
       {/* ── Desktop view (≥lg) ── */}
       {!isLoading && filteredRecords.length > 0 && (
-        <DesktopView
-          {...sharedCardProps}
-          view={view}
-          sortGrandTotal={sortGrandTotal}
-          sortNetWeight={sortNetWeight}
-          onToggleSort={handleToggleSort}
-          onView={handleView}
-          onPrint={handlePrint}
-        />
+        <div className="hidden lg:block">
+          <DataTable table={table} />
+        </div>
       )}
 
       {/* ── Infinite scroll sentinel ─────────────────────────────────────── */}
