@@ -1,7 +1,10 @@
 from typing import Annotated, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+import io
+import openpyxl
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
@@ -95,6 +98,77 @@ async def list_registrations(
         items=items,  # type: ignore[arg-type]
         total=total,
         has_more=(skip + len(items)) < total,
+    )
+
+
+@router.get("/export")
+async def export_registrations(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    search: Optional[str] = None,
+    status: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+):
+    items, _ = await crud.get_all(
+        session=session,
+        skip=0,
+        limit=1000000,
+        search=search,
+        status=status,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Sack Registrations"
+    
+    headers = [
+        "ID", "Represent Name", "Member Farmer", 
+        "Sack (KG)", "Status", "Registered At", "Notes"
+    ]
+    ws.append(headers)
+    
+    status_map = {0: "Pending", 1: "Approved", 2: "Rejected"}
+    total_sack = 0.0
+    
+    for item in items:
+        sack_val = item.get("sack_in_kg") or 0.0
+        total_sack += sack_val
+        st_val = item.get("status")
+        st_str = status_map.get(st_val, str(st_val))
+        
+        reg_at = item.get("registered_at")
+        if reg_at:
+            reg_at = reg_at.strftime("%Y-%m-%d %H:%M:%S")
+            
+        row = [
+            item.get("id"),
+            item.get("represent_name"),
+            item.get("member_farmer_name"),
+            sack_val,
+            st_str,
+            reg_at,
+            item.get("notes")
+        ]
+        ws.append(row)
+        
+    ws.append([])
+    ws.append(["", "", "Total Sum:", total_sack, "", "", ""])
+    
+    stream = io.BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+    
+    filename = "sack_registrations_export.xlsx"
+    headers_dict = {
+        "Content-Disposition": f'attachment; filename="{filename}"'
+    }
+    return StreamingResponse(
+        stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers_dict
     )
 
 

@@ -9,6 +9,7 @@ import { DataTableViewOptions } from "@workspace/ui/components/data-table-view-o
 
 import { DataTableFacetedFilter } from "@workspace/ui/components/data-table-faceted-filter"
 import { useLanguage } from "@/hooks/use-language"
+import { ExportButton } from "./export-button"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -75,6 +76,7 @@ export function DataTableToolbar<TData>({
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
+        <ExportButton />
       </div>
 
       {/* Center Group (Search) */}
