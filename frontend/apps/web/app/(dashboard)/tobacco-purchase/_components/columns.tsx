@@ -68,7 +68,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       cell: ({ row }) => {
         const buyerId = row.getValue("buyer") as number
         const purchaser = purchasers.find(p => p.p_id === buyerId)
-        return <div className="font-semibold text-[#111827]">{purchaser?.p_name || "-"}</div>
+        return <div className="font-semibold text-[#111827]">{purchaser?.p_name_kh || purchaser?.p_name || "-"}</div>
       },
     },
     {

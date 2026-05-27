@@ -1,12 +1,22 @@
 "use client"
 
 import { Table } from "@tanstack/react-table"
-import { IconCalendar, IconChevronDown, IconLayoutGrid, IconLayoutList, IconX } from "@tabler/icons-react"
+import { IconCalendar, IconX, IconCirclePlus, IconCheck } from "@tabler/icons-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DataTableViewOptions } from "@workspace/ui/components/data-table-view-options"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import { Badge } from "@workspace/ui/components/badge"
+import { Separator } from "@workspace/ui/components/separator"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@workspace/ui/components/command"
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { PurchaserItem } from "@/lib/api-client"
@@ -14,8 +24,7 @@ import type { PurchaserItem } from "@/lib/api-client"
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   action?: React.ReactNode
-  view: "list" | "grid"
-  setView: (v: "list" | "grid") => void
+
   purchasers: PurchaserItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
@@ -30,8 +39,7 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   action,
-  view,
-  setView,
+
   purchasers,
   buyerFilter,
   setBuyerFilter,
@@ -82,28 +90,78 @@ export function DataTableToolbar<TData>({
         {/* Buyer Dropdown */}
         <Popover>
           <PopoverTrigger asChild>
-            <button className={cn(
-              "flex items-center gap-1.5 h-8 px-3 rounded-md border text-xs font-medium transition-all",
-              buyerFilter === null
-                ? "border-border border-dashed text-muted-foreground hover:text-foreground hover:border-foreground/30"
-                : "border-primary bg-primary/10 text-primary"
-            )}>
+            <Button variant="outline" size="sm" className="h-8 border-dashed">
+              <IconCirclePlus className="mr-2 h-4 w-4" />
               Buyer
-              <IconChevronDown className="size-3" />
-            </button>
+              {buyerFilter !== null && (
+                <>
+                  <Separator orientation="vertical" className="mx-2 h-4" />
+                  <Badge
+                    variant="secondary"
+                    className="rounded-sm px-1 font-normal lg:hidden"
+                  >
+                    1
+                  </Badge>
+                  <div className="hidden space-x-1 lg:flex">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-sm px-1 font-normal"
+                    >
+                      {purchasers.find(p => p.p_id === buyerFilter)?.p_name}
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-48 p-1" align="start">
-            <button
-              onClick={() => setBuyerFilter(null)}
-              className={cn("w-full text-left px-3 py-1.5 rounded text-xs hover:bg-muted transition-colors", buyerFilter === null && "font-semibold text-primary")}
-            >All Buyers</button>
-            {purchasers.map(p => (
-              <button
-                key={p.p_id}
-                onClick={() => setBuyerFilter(p.p_id)}
-                className={cn("w-full text-left px-3 py-1.5 rounded text-xs hover:bg-muted transition-colors", buyerFilter === p.p_id && "font-semibold text-primary")}
-              >{p.p_name}</button>
-            ))}
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <Command>
+              <CommandList>
+                <CommandEmpty>No buyers found.</CommandEmpty>
+                <CommandGroup>
+                  {purchasers.map((p) => {
+                    const isSelected = buyerFilter === p.p_id
+                    return (
+                      <CommandItem
+                        key={p.p_id}
+                        onSelect={() => {
+                          if (isSelected) {
+                            setBuyerFilter(null)
+                          } else {
+                            setBuyerFilter(p.p_id)
+                          }
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "opacity-50 [&_svg]:invisible"
+                          )}
+                        >
+                          <IconCheck className={cn("h-4 w-4")} />
+                        </div>
+                        <span>{p.p_name}</span>
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+                {buyerFilter !== null && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => setBuyerFilter(null)}
+                        className="justify-center text-center"
+                      >
+                        Clear filter
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
+              </CommandList>
+            </Command>
           </PopoverContent>
         </Popover>
 
@@ -153,29 +211,7 @@ export function DataTableToolbar<TData>({
           </PopoverContent>
         </Popover>
 
-        {/* View toggle */}
-        <div className="hidden lg:flex items-center rounded-md border border-border p-0.5 gap-0.5 ml-1">
-          <button
-            onClick={() => setView("list")}
-            className={cn(
-              "flex items-center justify-center h-6 w-6 rounded-sm transition-all duration-200",
-              view === "list" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-            title="List View"
-          >
-            <IconLayoutList className="size-3.5" />
-          </button>
-          <button
-            onClick={() => setView("grid")}
-            className={cn(
-              "flex items-center justify-center h-6 w-6 rounded-sm transition-all duration-200",
-              view === "grid" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-            title="Grid View"
-          >
-            <IconLayoutGrid className="size-3.5" />
-          </button>
-        </div>
+
 
         {isFiltered && (
           <Button

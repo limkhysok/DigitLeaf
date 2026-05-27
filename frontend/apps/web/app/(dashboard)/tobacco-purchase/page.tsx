@@ -57,7 +57,7 @@ export default function TobaccoPurchasePage() {
   const [isViewOnly, setIsViewOnly] = React.useState(false)
   const [deleteId, setDeleteId] = React.useState<number | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
-  const [view, setView] = React.useState<"list" | "grid">("list")
+
 
   // ── Search ──────────────────────────────────────────────────────────────────
   const [searchInput, setSearchInput] = React.useState("")
@@ -352,8 +352,7 @@ export default function TobaccoPurchasePage() {
         <DataTableToolbar
           table={table}
           action={actionNode}
-          view={view}
-          setView={setView}
+
           purchasers={purchasers}
           buyerFilter={buyerFilter}
           setBuyerFilter={setBuyerFilter}
