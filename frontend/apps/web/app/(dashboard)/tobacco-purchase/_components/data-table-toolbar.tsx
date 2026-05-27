@@ -63,10 +63,10 @@ export function DataTableToolbar<TData>({
               invoice_num: "Invoice No",
               buyer: "Buyer",
               vendor: "Vendor",
-              purchase_date: "Purchase Date",
-              tobacco_item_count: "Item Count",
+              tobacco_item_count: "Items",
               net_weight: "Total Weight",
               grand_total: "Grand Total",
+              purchase_date: "Date",
               actions: "Actions",
             }}
           />

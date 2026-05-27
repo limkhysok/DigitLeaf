@@ -57,7 +57,7 @@ export const TobaccoPurchaseCard = React.memo(({
           <div className="flex items-center gap-1 text-slate-400 pl-1.5">
             <IconCalendar className="size-3 shrink-0" stroke={1.5} />
             <span className="text-[10px] font-medium tracking-wide">
-              {formatPurchaseDate(rec.tp_date, rec.do_date)}
+              {formatPurchaseDate(rec.tp_date)}
             </span>
           </div>
         </div>

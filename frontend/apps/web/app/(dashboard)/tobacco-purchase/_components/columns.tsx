@@ -59,7 +59,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
     {
       accessorKey: "invoice_num",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Invoice No" />,
-      cell: ({ row }) => <div className="font-mono text-[13px] font-semibold text-[#111827]">{row.getValue("invoice_num")}</div>,
+      cell: ({ row }) => <div className="tabular-nums font-sm">{row.getValue("invoice_num")}</div>,
     },
     {
       id: "buyer",
@@ -68,7 +68,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       cell: ({ row }) => {
         const buyerId = row.getValue("buyer") as number
         const purchaser = purchasers.find(p => p.p_id === buyerId)
-        return <div className="font-semibold text-[#111827]">{purchaser?.p_name_kh || purchaser?.p_name || "-"}</div>
+        return <div className="tabular-nums font-sm">{purchaser?.p_name_kh || purchaser?.p_name || "-"}</div>
       },
     },
     {
@@ -77,22 +77,13 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       cell: ({ row }) => <div className="truncate min-w-[80px] max-w-[150px]">{row.original.vendor_name || "-"}</div>,
     },
     {
-      id: "purchase_date",
-      accessorFn: (row) => row.tp_date,
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Purchase Date" />,
-      cell: ({ row }) => {
-        const rec = row.original
-        return <div className="text-[13px] text-[#9CA3AF] whitespace-nowrap">{formatPurchaseDate(rec.tp_date, rec.do_date)}</div>
-      },
-    },
-    {
       accessorKey: "tobacco_item_count",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Item Count" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Items" />,
       cell: ({ row }) => {
         const val = row.getValue("tobacco_item_count") as number | null
         if (val == null) return <span className="text-[#9CA3AF] text-xs">-</span>
         return (
-          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-[#F3F4F6] text-[#374151] text-[11px] font-bold">
+          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-[#F3F4F6] text-[#374151] text-[11px] font-sm">
             {val}
           </span>
         )
@@ -106,7 +97,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       cell: ({ row }) => {
         const val = row.original.total_net_weight
         return (
-          <div className="tabular-nums font-bold text-[#111827]">
+          <div className="tabular-nums font-sm text-[#111827]">
             {val == null ? "-" : val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         )
@@ -119,10 +110,19 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       cell: ({ row }) => {
         const val = row.original.grand_total
         return (
-          <div className="tabular-nums font-black text-[#009640]">
+          <div className="tabular-nums font-sm text-[#009640]">
             {val == null ? "-" : `៛${Math.round(val).toLocaleString()}`}
           </div>
         )
+      },
+    },
+    {
+      id: "purchase_date",
+      accessorFn: (row) => row.tp_date,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
+      cell: ({ row }) => {
+        const rec = row.original
+        return <div className="tabular-nums font-sm">{formatPurchaseDate(rec.tp_date)}</div>
       },
     },
     {
