@@ -110,7 +110,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
       cell: ({ row }) => {
         const val = row.original.grand_total
         return (
-          <div className="tabular-nums font-sm text-[#009640]">
+          <div className="tabular-nums font-bold text-[#009640]">
             {val == null ? "-" : `៛${Math.round(val).toLocaleString()}`}
           </div>
         )
