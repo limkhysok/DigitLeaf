@@ -55,8 +55,8 @@ export function DeleteDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button type="button" variant="outline" className="rounded-full h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose} disabled={isDeleting}>{t.sackRegistration.dialog.cancel}</Button>
-          <Button type="button" onClick={confirmDelete} disabled={isDeleting} className="rounded-full h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-red-600 hover:bg-red-700 text-white border-transparent">
+          <Button type="button" variant="outline" className="rounded-md h-8 px-4 text-xs capitalize tracking-wide" onClick={onClose} disabled={isDeleting}>{t.sackRegistration.dialog.cancel}</Button>
+          <Button type="button" onClick={confirmDelete} disabled={isDeleting} className="rounded-md h-8 px-4 text-xs capitalize tracking-wide gap-1.5 bg-red-600 hover:bg-red-700 text-white border-transparent">
             {isDeleting && <IconLoader2 className="size-3.5 animate-spin" />}
             {t.sackRegistration.dialog.delete}
           </Button>

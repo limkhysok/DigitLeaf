@@ -29,44 +29,44 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
         <div className="flex items-center gap-3 px-3 py-2">
           <IconUsers className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.representative}</span>
-            <span className="text-xs font-medium truncate">{target.represent_name}</span>
+            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.representative}</span>
+            <span className="text-sm font-medium truncate">{target.represent_name}</span>
           </div>
         </div>
         <div className="flex items-center gap-3 px-3 py-2">
           <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.farmer}</span>
-            <span className="text-xs font-medium truncate">{target.member_farmer_name}</span>
+            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.farmer}</span>
+            <span className="text-sm font-medium truncate">{target.member_farmer_name}</span>
           </div>
         </div>
         <div className="flex items-center gap-3 px-3 py-2">
           <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.date}</span>
-            <span className="text-xs font-medium">{localizeDateString(format(new Date(target.registered_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
+            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.date}</span>
+            <span className="text-sm font-normal">{localizeDateString(format(new Date(target.registered_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
           </div>
         </div>
         {target.sack_in_kg !== null && target.sack_in_kg !== undefined && (
           <div className="flex items-center gap-3 px-3 py-2">
             <IconPackage className="size-3.5 shrink-0 text-muted-foreground" />
             <div className="flex flex-col min-w-0">
-              <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.sackWeight}</span>
-              <span className="text-xs font-medium">{localizeNumber(target.sack_in_kg)} kg</span>
+              <span className="text-sm text-muted-foreground">{t.sackRegistration.table.sackWeight}</span>
+              <span className="text-sm font-normal">{localizeNumber(target.sack_in_kg)} kg</span>
             </div>
           </div>
         )}
         <div className="flex items-center gap-3 px-3 py-2">
           <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-muted-foreground">{t.sackRegistration.table.registeredBy}</span>
-            <span className="text-xs font-medium">{target.dl_user_name}</span>
+            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.registeredBy}</span>
+            <span className="text-sm font-normal">{target.dl_user_name}</span>
           </div>
         </div>
         {target.notes && (
           <div className="px-3 py-2">
-            <span className="text-[10px] text-muted-foreground block mb-0.5">{t.sackRegistration.table.notes}</span>
-            <span className="text-xs">{target.notes}</span>
+            <span className="text-sm text-muted-foreground block mb-0.5">{t.sackRegistration.table.notes}</span>
+            <span className="text-sm">{target.notes}</span>
           </div>
         )}
       </div>
