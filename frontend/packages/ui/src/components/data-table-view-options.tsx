@@ -18,6 +18,7 @@ interface DataTableViewOptionsProps<TData> {
   readonly title?: string
   readonly label?: string
   readonly columnLabels?: Record<string, string>
+  readonly align?: "start" | "center" | "end"
 }
 
 export function DataTableViewOptions<TData>({
@@ -25,6 +26,7 @@ export function DataTableViewOptions<TData>({
   title = "View",
   label = "Toggle columns",
   columnLabels = {},
+  align = "start",
 }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
@@ -38,7 +40,7 @@ export function DataTableViewOptions<TData>({
           {title}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[150px]">
+      <DropdownMenuContent align={align} className="w-[150px]">
         <DropdownMenuLabel>{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
