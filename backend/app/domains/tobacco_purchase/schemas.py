@@ -131,3 +131,9 @@ class PurchaseList(BaseModel):
     items: List[Purchase]
     total: int
 
+class FormMetadataResponse(BaseModel):
+    purchasers: List[Any]
+    regions: List[Any]
+    ovens: List[Any]
+    tobacco_types: List[TobaccoItem]
+

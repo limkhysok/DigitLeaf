@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security, Request
@@ -43,6 +44,24 @@ async def list_tobacco_types(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     return await crud.get_tobacco_types(db=session)
+
+@router.get("/form-metadata", response_model=schemas.FormMetadataResponse)
+async def get_form_metadata(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    purchasers, regions, ovens, tobacco_types = await asyncio.gather(
+        crud.get_purchasers(db=session),
+        crud.get_regions(db=session),
+        crud.get_ovens(db=session),
+        crud.get_tobacco_types(db=session)
+    )
+    return {
+        "purchasers": purchasers,
+        "regions": regions,
+        "ovens": ovens,
+        "tobacco_types": tobacco_types,
+    }
 
 
 @router.get("/vendor-sack")

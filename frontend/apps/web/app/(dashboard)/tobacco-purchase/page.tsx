@@ -62,26 +62,17 @@ export default function TobaccoPurchasePage() {
   const [sortNetWeight, setSortNetWeight] = useQueryState("sort_net_weight", parseAsString)
 
   // ── Lookup Data (React Query) ──
-  const { data: purchasers = [] } = useQuery({
-    queryKey: ["purchasers"],
-    queryFn: () => apiClient.getPurchasers(tokens!.access_token),
+  const { data: metadata } = useQuery({
+    queryKey: ["tobacco-purchase-metadata"],
+    queryFn: () => apiClient.getFormMetadata(tokens!.access_token),
     enabled: !!tokens?.access_token,
   })
-  const { data: regions = [] } = useQuery({
-    queryKey: ["regions"],
-    queryFn: () => apiClient.getRegions(tokens!.access_token),
-    enabled: !!tokens?.access_token && dialogOpen,
-  })
-  const { data: ovens = [] } = useQuery({
-    queryKey: ["ovens"],
-    queryFn: () => apiClient.getOvens(tokens!.access_token),
-    enabled: !!tokens?.access_token && dialogOpen,
-  })
-  const { data: tobaccoTypes = [] } = useQuery({
-    queryKey: ["tobaccoTypes"],
-    queryFn: () => apiClient.getTobaccoTypes(tokens!.access_token),
-    enabled: !!tokens?.access_token && dialogOpen,
-  })
+
+  // Safe fallbacks
+  const purchasers = React.useMemo(() => metadata?.purchasers ?? [], [metadata])
+  const regions = React.useMemo(() => metadata?.regions ?? [], [metadata])
+  const ovens = React.useMemo(() => metadata?.ovens ?? [], [metadata])
+  const tobaccoTypes = React.useMemo(() => metadata?.tobacco_types ?? [], [metadata])
 
   // ── Infinite Query (React Query) ──
   const {
