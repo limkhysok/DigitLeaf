@@ -7,11 +7,9 @@ import { apiClient, FarmerContrastItem } from "@/lib/api-client"
 import { toast } from "sonner"
 import {
   IconLoader2,
-  IconArrowsSort,
-  IconSortAscending,
-  IconSortDescending,
   IconClipboardList,
 } from "@tabler/icons-react"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   Table,
   TableBody,
@@ -38,7 +36,7 @@ export default function FarmerContrastPage() {
   const [records, setRecords] = React.useState<FarmerContrastItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [searchInput, setSearchInput] = React.useState("")
-  const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | null>(null)
+  const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [selectedYear, setSelectedYear] = React.useState(2026)
 
@@ -69,11 +67,17 @@ export default function FarmerContrastPage() {
   }, [records, searchInput])
 
   // --- Sorted records ---
+  const getSortVal = (rec: FarmerContrastItem) => {
+    if (sortBy === "sapling") return rec.tobac_num ?? 0
+    if (sortBy === "purchased") return rec.purchased_weight ?? 0
+    return rec.expected_yield ?? 0
+  }
+
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
     return [...filteredRecords].sort((a, b) => {
-      const valA = sortBy === "sapling" ? (a.tobac_num ?? 0) : (a.expected_yield ?? 0)
-      const valB = sortBy === "sapling" ? (b.tobac_num ?? 0) : (b.expected_yield ?? 0)
+      const valA = getSortVal(a)
+      const valB = getSortVal(b)
       return sortOrder === "asc" ? valA - valB : valB - valA
     })
   }, [filteredRecords, sortBy, sortOrder])
@@ -176,47 +180,19 @@ export default function FarmerContrastPage() {
                   <TableRow>
                     <TableHead className="w-12">No.</TableHead>
                     <TableHead>{t.farmerContrast.farmerName}</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead
-                      className="cursor-pointer select-none group"
-                      onClick={() => {
-                        if (sortBy !== "sapling") { setSortBy("sapling"); setSortOrder("desc") }
-                        else if (sortOrder === "desc") setSortOrder("asc")
-                        else setSortBy(null)
-                      }}
-                    >
-                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {t.farmerContrast.saplingKg}
-                        {sortBy === "sapling" && sortOrder === "asc" && <IconSortAscending className="size-3.5" />}
-                        {sortBy === "sapling" && sortOrder === "desc" && <IconSortDescending className="size-3.5" />}
-                        {sortBy !== "sapling" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="cursor-pointer select-none group"
-                      onClick={() => {
-                        if (sortBy !== "yield") { setSortBy("yield"); setSortOrder("desc") }
-                        else if (sortOrder === "desc") setSortOrder("asc")
-                        else setSortBy(null)
-                      }}
-                    >
-                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {t.farmerContrast.expectedYieldKg}
-                        {sortBy === "yield" && sortOrder === "asc" && <IconSortAscending className="size-3.5" />}
-                        {sortBy === "yield" && sortOrder === "desc" && <IconSortDescending className="size-3.5" />}
-                        {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      </div>
-                    </TableHead>
+                    <TableHead>ID Card</TableHead>
+                    <TableHead>{t.farmerContrast.saplingKg}</TableHead>
+                    <TableHead>{t.farmerContrast.expectedYieldKg}</TableHead>
                     <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>
                     <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedRecords.map((rec, idx) => (
-                    <TableRow key={rec.mf_con_id} className="group/row">
+                    <TableRow key={rec.mf_con_id} className={cn("group/row", rec.purchased_weight != null && rec.expected_yield != null && rec.purchased_weight > rec.expected_yield && "bg-red-100 hover:bg-red-100")}>
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                       <TableCell className="font-semibold">{rec.name}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{rec.mf_code}</TableCell>
+                      <TableCell className="text-sm">{rec.mf_code}</TableCell>
                       <TableCell className="text-sm">
                         {rec.tobac_num !== undefined && rec.tobac_num !== null
                           ? rec.tobac_num.toLocaleString()

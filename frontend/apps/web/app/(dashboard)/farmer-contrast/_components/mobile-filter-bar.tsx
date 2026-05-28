@@ -13,8 +13,8 @@ interface MobileFilterBarProps {
   className?: string
   searchInput: string
   setSearchInput: (v: string) => void
-  sortBy: "sapling" | "yield" | null
-  setSortBy: (v: "sapling" | "yield" | null) => void
+  sortBy: "sapling" | "yield" | "purchased" | null
+  setSortBy: (v: "sapling" | "yield" | "purchased" | null) => void
   sortOrder: "asc" | "desc"
   setSortOrder: (v: "asc" | "desc") => void
   selectedYear: number
