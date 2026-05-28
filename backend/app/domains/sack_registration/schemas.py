@@ -83,5 +83,6 @@ class FarmerContrastPublic(BaseModel):
     land: Optional[float] = None
     tobac_num: Optional[int] = None
     expected_yield: Optional[float] = None
+    purchased_weight: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)

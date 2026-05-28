@@ -447,7 +447,10 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   win.document.body.innerHTML = '<div id="print-root"></div>'
   const style = win.document.createElement("style")
   style.innerHTML = `
-    @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700&display=swap');
+    @font-face {
+      font-family: 'Kantumruy Pro';
+      src: url('/font/KantumruyPro-Regular.ttf') format('truetype');
+    }
     body {
       margin: 0;
       padding: 0;

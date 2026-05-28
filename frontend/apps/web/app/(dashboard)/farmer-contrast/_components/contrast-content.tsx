@@ -116,6 +116,9 @@ export function ContrastContent({
                         {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
                       </div>
                     </th>
+                    <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
+                      {t.farmerContrast.purchasedWeightKg}
+                    </th>
                     <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-24">
                       {t.farmerContrast.year}
                     </th>
@@ -141,6 +144,11 @@ export function ContrastContent({
                       </td>
                       <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
                         {rec.expected_yield !== undefined && rec.expected_yield !== null ? `${rec.expected_yield.toLocaleString()} kg` : <span className="text-[#D1D5DB]">—</span>}
+                      </td>
+                      <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
+                        {rec.purchased_weight !== undefined && rec.purchased_weight !== null
+                          ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                          : <span className="text-[#D1D5DB]">—</span>}
                       </td>
                       <td className="px-4 py-3.5 text-center">
                         <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">

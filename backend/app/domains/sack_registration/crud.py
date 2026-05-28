@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
+from app.domains.tobacco_purchase.models import TobaccoPurchase
 from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate, RepresentPublic
 
 _ACTIVE_YEAR = 2026
@@ -271,6 +272,20 @@ async def delete(session: AsyncSession, record: SackRegistration) -> None:
 
 
 async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[dict]:
+    current_year = year
+    start_date = date(current_year, 1, 1)
+    end_date = date(current_year, 12, 31)
+
+    weight_subquery = (
+        select(
+            TobaccoPurchase.vendor_id.label("vendor_id"),
+            func.sum(TobaccoPurchase.total_net_weight).label("total_weight"),
+        )
+        .where(TobaccoPurchase.tp_date >= start_date)
+        .where(TobaccoPurchase.tp_date <= end_date)
+        .group_by(TobaccoPurchase.vendor_id)
+    ).subquery()
+
     stmt = (
         select(
             col(MfConYear.mf_con_id),
@@ -280,8 +295,10 @@ async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[
             col(MemberFarmer.mf_code),
             col(MfConYear.land),
             col(MfConYear.tobac_num),
+            func.coalesce(weight_subquery.c.total_weight, 0.0),
         )
         .join(MemberFarmer, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
+        .outerjoin(weight_subquery, col(MemberFarmer.mf_id) == weight_subquery.c.vendor_id)
         .where(col(MfConYear.year) == year)
         .order_by(col(MfConYear.mf_con_id).desc())
     )
@@ -297,6 +314,7 @@ async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[
             "land": r[5],
             "tobac_num": r[6],
             "expected_yield": round(r[6] * 0.8, 2) if r[6] is not None else None,
+            "purchased_weight": round(r[7], 2),
         }
         for r in rows
     ]

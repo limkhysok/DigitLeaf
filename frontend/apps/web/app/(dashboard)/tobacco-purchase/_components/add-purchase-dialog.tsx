@@ -1420,13 +1420,13 @@ const PurchaseDetailDesktopCard = React.memo(({
       {/* Main content body: Image on the Left, Spacious form fields on the Right */}
       <div className="flex flex-row gap-4 items-start">
         {/* Left Side: Enlarged Image upload / preview box (w-[189px] h-[189px] for perfect 1:1 alignment) */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           {detail.picture ? (
-            <div className="w-[189px] h-[189px] bg-white rounded-md border border-border/80 overflow-hidden group/img relative flex items-center justify-center">
+            <div className="w-47.25 h-47.25 bg-white rounded-md border border-border/80 overflow-hidden group/img relative flex items-center justify-center">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
-                className="w-full h-full p-0 border-none outline-none bg-transparent cursor-zoom-in outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                className="w-full h-full p-0 border-none outline-none bg-transparent cursor-zoom-in focus-visible:ring-1 focus-visible:ring-primary"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -1457,7 +1457,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               )}
             </div>
           ) : (
-            <label className="w-[189px] h-[189px] bg-slate-50/50 rounded-md border border-dashed border-border/80 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative block">
+            <label className="w-47.25 h-47.25 bg-slate-50/50 rounded-md border border-dashed border-border/80 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative">
               <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
               {!isReadOnly && (
                 <input

@@ -20,7 +20,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#009640] group-hover:bg-emerald-500 transition-colors duration-300" />
 
       {/* Book icon watermark */}
-      <div className="absolute -bottom-4 -right-4 z-0 text-[#009640]/[0.08] group-hover:text-[#009640]/[0.16] group-hover:-translate-y-1 transition-all duration-500 pointer-events-none">
+      <div className="absolute -bottom-4 -right-4 z-0 text-[#009640]/8 group-hover:text-[#009640]/16 group-hover:-translate-y-1 transition-all duration-500 pointer-events-none">
         <IconBook2 size={120} stroke={1} />
       </div>
 
@@ -46,7 +46,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-100">
+      <div className="grid grid-cols-3 gap-2 pt-2.5 border-t border-slate-100">
         <div className="flex flex-col gap-0.5">
           <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none">
             {t.farmerContrast.saplingKg}
@@ -74,6 +74,22 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
                 : <span className="text-slate-300">—</span>}
             </span>
             {rec.expected_yield !== undefined && rec.expected_yield !== null && (
+              <span className="text-[10px] font-medium text-slate-400 ml-0.5">kg</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-0.5 border-l border-slate-100 pl-3">
+          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none">
+            {t.farmerContrast.purchasedWeight}
+          </span>
+          <div className="flex items-baseline gap-0.5 mt-0.5">
+            <span className="text-sm font-bold text-blue-600 tabular-nums">
+              {rec.purchased_weight !== undefined && rec.purchased_weight !== null
+                ? rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : <span className="text-slate-300">—</span>}
+            </span>
+            {rec.purchased_weight !== undefined && rec.purchased_weight !== null && (
               <span className="text-[10px] font-medium text-slate-400 ml-0.5">kg</span>
             )}
           </div>
