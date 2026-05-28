@@ -66,7 +66,7 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="text-right bg-slate-50 border border-slate-200/60 rounded-md px-3 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] mr-8 shrink-0">
+    <div className="text-right bg-slate-50 border border-slate-200/60 rounded-md px-3 py-1.5  mr-8 shrink-0">
       <span className="block text-base font-medium">Tobacco Quota</span>
       <div className="flex items-baseline gap-0.5 mt-1">
         <span className={cn(
@@ -525,7 +525,7 @@ export function AddPurchaseDialog({
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className={cn("space-y-5", isReadOnly && "[&_input:disabled]:bg-white [&_input:disabled]:opacity-100 [&_input:disabled]:text-foreground [&_input:disabled]:border-border/60 [&_input:disabled]:cursor-default")}>
 
             {/* ════════════════════════════════════════════════════════════════════
               FORM FIELDS — shared across all breakpoints
@@ -540,7 +540,7 @@ export function AddPurchaseDialog({
                   <Input
                     value={tpCode}
                     readOnly
-                    className="h-8 text-[13px] rounded-md font-bold bg-slate-50 border-border/60 shadow-none cursor-default"
+                    className="h-8 text-[13px] rounded-md font-bold bg-white border-border/60 cursor-default"
                   />
                 </div>
 
@@ -568,13 +568,13 @@ export function AddPurchaseDialog({
                           onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
                       align="start"
                       sideOffset={4}
                       onMouseDown={(e) => e.preventDefault()}
@@ -627,13 +627,13 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsRegionOpen(true)}
                           onClick={() => setIsRegionOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
                       align="start"
                       sideOffset={4}
                       onOpenAutoFocus={(e) => e.preventDefault()}
@@ -694,13 +694,13 @@ export function AddPurchaseDialog({
                           onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           disabled={isReadOnly || !isBuyerSelected}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
                       align="start"
                       sideOffset={4}
                       onMouseDown={(e) => e.preventDefault()}
@@ -735,7 +735,7 @@ export function AddPurchaseDialog({
                     onChange={(e) => setVAddr(e.target.value)}
                     disabled={isReadOnly || !isBuyerSelected}
                     placeholder="Enter address..."
-                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                   />
                 </div>
 
@@ -755,13 +755,13 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsOvenOpen(true)}
                           onClick={() => setIsOvenOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0  border-border/50 z-100"
                       align="start"
                       sideOffset={4}
                       onOpenAutoFocus={(e) => e.preventDefault()}
@@ -809,7 +809,7 @@ export function AddPurchaseDialog({
                       onChange={(e) => setRate(e.target.value)}
                       required
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-md font-bold bg-white border border-border/60 text-black shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                      className="h-8 text-[13px] rounded-md font-bold bg-white border border-border/60 text-black focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                     />
                     <div className="absolute rounded-md right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                   </div>
@@ -823,7 +823,7 @@ export function AddPurchaseDialog({
                     onChange={(e) => setTpNote(e.target.value)}
                     placeholder="Type notes here..."
                     disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                   />
                 </div>
 
@@ -848,7 +848,7 @@ export function AddPurchaseDialog({
                     placeholder="DD/MM/YYYY"
                     maxLength={10}
                     disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                   />
                 </div>
 
@@ -892,7 +892,7 @@ export function AddPurchaseDialog({
               )}
               {!isReadOnly && details.length > 0 && (
                 <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                  className="w-full h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
+                  className="w-full h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 ">
                   <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                 </Button>
               )}
@@ -951,7 +951,7 @@ export function AddPurchaseDialog({
               )}
               {!isReadOnly && details.length > 0 && (
                 <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                  className="w-full h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs">
+                  className="w-full h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60">
                   <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                 </Button>
               )}
@@ -980,7 +980,7 @@ export function AddPurchaseDialog({
             <div className="hidden lg:block">
               {details.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-md border border-dashed border-border/60 bg-slate-50/50 mt-4">
-                  <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60 shadow-xs">
+                  <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
                     <IconPlus className="size-6 text-muted-foreground/20" />
                   </div>
                   <div className="space-y-1 text-center">
@@ -989,7 +989,7 @@ export function AddPurchaseDialog({
                   </div>
                   {!isReadOnly && (
                     <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                      className="mt-2 h-8 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-xs">
+                      className="mt-2 h-8 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all">
                       <IconPlus className="mr-2 size-3.5" /> Add First Item
                     </Button>
                   )}
@@ -1035,7 +1035,7 @@ export function AddPurchaseDialog({
                   <div className="flex flex-row justify-between items-center mt-3 px-1">
                     {!isReadOnly && (
                       <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                        className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 shadow-xs transition-all active:scale-95">
+                        className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95">
                         <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
                       </Button>
                     )}
@@ -1063,7 +1063,7 @@ export function AddPurchaseDialog({
                         setPrintAfterSave(true)
                         handleSubmit(e, true)
                       }}
-                      className="h-8.5 px-4 bg-white border border-[#009640]/40 hover:bg-[#f0fdf4] text-[#009640] shadow-xs rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
+                      className="h-8.5 px-4 bg-white border border-[#009640]/40 hover:bg-[#f0fdf4] text-[#009640] rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
                     >
                       {isSubmitting && printAfterSave ? (
                         <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1074,7 +1074,7 @@ export function AddPurchaseDialog({
                     </Button>
                   )}
                   <Button type="submit" disabled={isSubmitting}
-                    className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white shadow-md shadow-green-500/10 rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
+                    className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
                     {isSubmitting && !printAfterSave ? (
                       <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
@@ -1090,7 +1090,7 @@ export function AddPurchaseDialog({
       </Dialog>
       {previewImage && (
         <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-          <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-2xl flex items-center justify-center z-120 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 [&>button]:hidden">
+          <DialogContent className="max-w-3xl p-0 bg-transparent border-none flex items-center justify-center z-120 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 [&>button]:hidden">
             <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
             <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
             <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-md bg-black/90 p-1.5 flex items-center justify-center group/preview">
@@ -1175,7 +1175,7 @@ const PurchaseDetailCard = React.memo(({
               {detail.picture ? (
                 <button
                   type="button"
-                  className="w-32 h-32 bg-white rounded-md border border-border/60 overflow-hidden group/img relative flex items-center justify-center shadow-xs p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                  className="w-32 h-32 bg-white rounded-md border border-border/60 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -1195,7 +1195,7 @@ const PurchaseDetailCard = React.memo(({
                 </button>
               )}
             </PopoverTrigger>
-            <PopoverContent className="w-52 p-1 shadow-2xl border-border/50 z-100" align="center" sideOffset={8}>
+            <PopoverContent className="w-52 p-1 border-border/50 z-100" align="center" sideOffset={8}>
               <div className="flex flex-col">
                 {detail.picture && (
                   <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
@@ -1262,13 +1262,13 @@ const PurchaseDetailCard = React.memo(({
                   onFocus={() => { setSearch(""); setOpen(true) }}
                   onClick={() => { setSearch(""); setOpen(true) }}
                   disabled={isReadOnly}
-                  className="h-8 text-[13px] rounded-md bg-white border border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+                  className="h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
                 />
                 <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none" />
               </div>
             </PopoverTrigger>
             <PopoverContent
-              className="w-(--radix-popover-trigger-width) p-0 shadow-2xl border-border/50 z-100"
+              className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
               align="start"
               sideOffset={4}
               onOpenAutoFocus={(e) => e.preventDefault()}
@@ -1314,7 +1314,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
           <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-md font-bold bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md font-bold bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
             value={detail.gross_weight ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1322,7 +1322,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
           <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-md bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
             value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1332,7 +1332,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
           <Input type="number" step="0.01"
-            className="h-8 text-[13px] rounded-md bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
             value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1340,7 +1340,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Borrow(Kg)</Label>
           <Input type="number" step="0.01"
-            className="h-8 text-[13px] rounded-md bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
             value={detail.borrowed_leaf_kg ?? ""} disabled={isReadOnly}
             placeholder="opt."
             onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
@@ -1354,7 +1354,7 @@ const PurchaseDetailCard = React.memo(({
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
           <div className="relative">
             <Input type="number"
-              className="h-8 text-[13px] rounded-md font-bold bg-transparent border-border/60 shadow-none focus-visible:ring-1 focus-visible:ring-primary/30 px-2 pr-5"
+              className="h-8 text-[13px] rounded-md font-bold bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2 pr-5"
               value={detail.price ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
@@ -1414,8 +1414,8 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative bg-white border border-border/85 hover:border-primary/45 hover:-translate-y-0.5 rounded-md shadow-xs hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 p-3.5 mt-3.5",
-      "focus-within:border-primary/30 focus-within:shadow-[0_8px_30px_rgba(0,0,0,0.04)]",
+      "relative bg-white border border-border/85 hover:border-primary/45 hover:-translate-y-0.5 rounded-md transition-all duration-300 p-3.5 mt-3.5",
+      "focus-within:border-primary/30",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/10"
     )}>
       {/* Top bar: Item Index and Delete Action */}
@@ -1441,7 +1441,7 @@ const PurchaseDetailDesktopCard = React.memo(({
         {/* Left Side: Enlarged Image upload / preview box (w-[189px] h-[189px] for perfect 1:1 alignment) */}
         <div className="flex-shrink-0">
           {detail.picture ? (
-            <div className="w-[189px] h-[189px] bg-white rounded-md border border-border/80 overflow-hidden group/img relative flex items-center justify-center shadow-xs">
+            <div className="w-[189px] h-[189px] bg-white rounded-md border border-border/80 overflow-hidden group/img relative flex items-center justify-center">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
@@ -1521,13 +1521,13 @@ const PurchaseDetailDesktopCard = React.memo(({
                       onFocus={() => { setSearch(""); setOpen(true) }}
                       onClick={() => { setSearch(""); setOpen(true) }}
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-md bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+                      className="h-8 text-[13px] rounded-md bg-white border border-border/80 focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
                     />
                     <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none" />
                   </div>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-96 p-0 shadow-2xl border-border/50 z-100"
+                  className="w-96 p-0 border-border/50 z-100"
                   align="start"
                   sideOffset={4}
                   onOpenAutoFocus={(e) => e.preventDefault()}
@@ -1570,7 +1570,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="col-span-1 space-y-1">
               <Label className="text-sm">Borrow Leaf (Kg)</Label>
               <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 placeholder:text-muted-foreground/20"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80 focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 placeholder:text-muted-foreground/20"
                 value={detail.borrowed_leaf_kg ?? ""} disabled={isReadOnly}
                 placeholder="Optional"
                 onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
@@ -1583,7 +1583,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Gross Weight (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
                 value={detail.gross_weight ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1591,7 +1591,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Remork (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
                 value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1599,7 +1599,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Sack Weight (Kg)</Label>
               <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
                 value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1612,7 +1612,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               <Label className="text-sm">Price/Kg</Label>
               <div className="relative">
                 <Input type="number"
-                  className="h-8 text-[13px] rounded-md font-bold bg-white border border-border/80 shadow-xs focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 pr-7"
+                  className="h-8 text-[13px] rounded-md font-bold bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 pr-7"
                   value={detail.price ?? ""} disabled={isReadOnly}
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
@@ -1622,7 +1622,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
             <div className="space-y-1">
               <Label className="text-sm">Net Weight(Kg)</Label>
-              <div className="h-8 bg-primary/5 border border-primary/20 rounded-md px-2.5 flex items-center justify-between shadow-xs">
+              <div className="h-8 bg-primary/5 border border-primary/20 rounded-md px-2.5 flex items-center justify-between ">
                 <span className="text-[13.5px] font-black text-primary tabular-nums">
                   {netWeight.toFixed(2)}
                 </span>
@@ -1632,7 +1632,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
             <div className="space-y-1">
               <Label className="text-sm">Total Amount</Label>
-              <div className="h-8 bg-emerald-50/50 border border-emerald-100 rounded-md px-3 flex items-center justify-between shadow-xs">
+              <div className="h-8 bg-emerald-50/50 border border-emerald-100 rounded-md px-3 flex items-center justify-between">
                 <span className="text-[12px] font-bold text-emerald-700/50">៛</span>
                 <span className="text-[15px] font-black text-emerald-700 tabular-nums">
                   {total.toLocaleString()}

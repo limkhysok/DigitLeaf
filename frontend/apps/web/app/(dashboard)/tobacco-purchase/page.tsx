@@ -38,10 +38,6 @@ const PAGE_SIZE = 100
 
 type SortDir = "asc" | "desc" | null
 
-
-
-
-
 export default function TobaccoPurchasePage() {
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => {
