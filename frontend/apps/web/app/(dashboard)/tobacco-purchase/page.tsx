@@ -37,7 +37,7 @@ import { useDebounce } from "use-debounce"
 import { useInView } from "react-intersection-observer"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-const PAGE_SIZE = 100
+const PAGE_SIZE = 50
 
 type SortDir = "asc" | "desc" | null
 
@@ -46,7 +46,7 @@ export default function TobaccoPurchasePage() {
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const queryClient = useQueryClient()
-  
+
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedRecord, setSelectedRecord] = React.useState<TobaccoPurchase | null>(null)
   const [isViewOnly, setIsViewOnly] = React.useState(false)
@@ -56,7 +56,7 @@ export default function TobaccoPurchasePage() {
   // ── Search & Filters (nuqs + use-debounce) ──
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
   const [search] = useDebounce(searchInput, 400)
-  
+
   const [buyerFilter, setBuyerFilter] = useQueryState("buyer", parseAsInteger)
   const [sortGrandTotal, setSortGrandTotal] = useQueryState("sort_grand_total", parseAsString)
   const [sortNetWeight, setSortNetWeight] = useQueryState("sort_net_weight", parseAsString)
@@ -83,7 +83,7 @@ export default function TobaccoPurchasePage() {
     hasNextPage,
   } = useInfiniteQuery({
     queryKey: ["tobacco-purchases", search, buyerFilter, sortGrandTotal, sortNetWeight],
-    queryFn: ({ pageParam = 0 }) => 
+    queryFn: ({ pageParam = 0 }) =>
       apiClient.getTobaccoPurchases(tokens!.access_token, {
         skip: pageParam,
         limit: PAGE_SIZE,

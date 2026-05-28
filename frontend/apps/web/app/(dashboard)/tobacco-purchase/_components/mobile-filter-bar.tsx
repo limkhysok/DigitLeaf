@@ -40,6 +40,7 @@ export function MobileFilterBar({
         <Popover>
           <PopoverTrigger asChild>
             <Button
+              suppressHydrationWarning
               variant="outline"
               size="sm"
               className={cn(

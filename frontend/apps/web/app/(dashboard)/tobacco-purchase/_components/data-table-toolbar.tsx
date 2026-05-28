@@ -75,7 +75,7 @@ export function DataTableToolbar<TData>({
         {/* Buyer Dropdown */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 border-dashed">
+            <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
               Buyer
               {buyerFilter !== null && (

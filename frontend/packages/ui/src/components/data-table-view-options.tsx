@@ -32,6 +32,7 @@ export function DataTableViewOptions<TData>({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          suppressHydrationWarning
           variant="outline"
           size="sm"
           className="ml-auto hidden h-8 lg:flex"
