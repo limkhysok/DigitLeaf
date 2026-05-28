@@ -28,11 +28,9 @@ class TobaccoPurchaseDetail(SQLModel, table=True):
     sack_in_kg: float = Field(default=0.0)
     gross_weight: float = Field(default=0.0)
     total_amount: float = Field(default=0.0)
-    borrowed_leaf_kg: float = Field(default=0.0)
     picture: Optional[str] = Field(default=None)
 
 
 
     def __str__(self):
         return f"{self.invoice_num} - {self.tpd_id}"
-

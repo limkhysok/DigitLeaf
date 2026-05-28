@@ -157,6 +157,5 @@ erDiagram
         float sack_in_kg "Empty sack weight deduction"
         float gross_weight "Total weight before deductions"
         float total_amount "Formula: (gross - remork - sack) * price"
-        float borrowed_leaf_kg "Loaned leaves weight"
         string picture "Path or URL to item photo (Optional)"
     }

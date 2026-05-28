@@ -688,7 +688,6 @@ Creates a new tobacco purchase header with all line item details in a single tra
 - `closing`: `"YES"` or `"NO"`
 - `rate` is required
 - Per detail: `net = gross_weight - remork_in_kg - sack_in_kg`, `total_amount = net × price`
-- `borrowed_leaf_kg` per detail is optional (default `0`) — tracked separately, does not affect net weight
 - `sack_in_kg` is stored per detail in the database, representing the individual empty sack weight deduction consumed by this item line.
 - `picture` is an optional string field to associate a photo or upload reference with the item line.
 - **Sack registration deduction**: after saving, the total `sack_in_kg` across all details is summed and deducted from the farmer's pending sack registration balance. If the remaining balance reaches `0`, the registration status becomes `1` (Approved). If balance is still positive, status stays `0` (Pending). On update, the old sack values are restored first before applying the new deduction.
@@ -720,7 +719,6 @@ Creates a new tobacco purchase header with all line item details in a single tra
       "gross_weight": 90.0,
       "price": 1200.0,
       "remork_in_kg": 3.0,
-      "borrowed_leaf_kg": 0.0,
       "CreatedDate": "2026-05-11",
       "closing": "NO",
       "buyer": 1,

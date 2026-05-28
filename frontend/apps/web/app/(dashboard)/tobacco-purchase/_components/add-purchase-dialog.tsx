@@ -437,7 +437,6 @@ export function AddPurchaseDialog({
           price: Number(d.price) || 0,
           remork_in_kg: Number(d.remork_in_kg) || 0,
           sack_in_kg: Number(d.sack_in_kg) || 0,
-          borrowed_leaf_kg: Number(d.borrowed_leaf_kg) || 0,
           picture: d.picture || null,
         })) as TobaccoPurchaseDetail[]
       }
@@ -1300,7 +1299,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
       </div>
 
-      {/* Weight row: G.Weight | Remork | Sack | Borrowed Leaf */}
+      {/* Weight row: G.Weight | Remork | Sack */}
       <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-border/30">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
@@ -1319,22 +1318,13 @@ const PurchaseDetailCard = React.memo(({
           />
         </div>
       </div>
-      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-border/30 bg-slate-50/30">
+      <div className="grid grid-cols-1 divide-x divide-border/30 border-b border-border/30 bg-slate-50/30">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
           <Input type="number" step="0.01"
             className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
             value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          />
-        </div>
-        <div className="px-2 py-2.5 space-y-1">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Borrow(Kg)</Label>
-          <Input type="number" step="0.01"
-            className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
-            value={detail.borrowed_leaf_kg ?? ""} disabled={isReadOnly}
-            placeholder="opt."
-            onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
         </div>
       </div>
@@ -1492,9 +1482,9 @@ const PurchaseDetailDesktopCard = React.memo(({
 
         {/* Right Side: Spacious Form fields */}
         <div className="flex-1 space-y-3">
-          {/* Row 1: Tobacco Item Search Popover (2 columns) & Borrow Leaf (1 column) */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2 space-y-1">
+          {/* Row 1: Tobacco Item Search Popover */}
+          <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-1">
               <Label className="text-sm">Tobacco Item</Label>
               <Popover open={open} onOpenChange={(isOpen) => {
                 setOpen(isOpen)
@@ -1558,15 +1548,6 @@ const PurchaseDetailDesktopCard = React.memo(({
               </Popover>
             </div>
 
-            <div className="col-span-1 space-y-1">
-              <Label className="text-sm">Borrow Leaf (Kg)</Label>
-              <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80 focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 placeholder:text-muted-foreground/20"
-                value={detail.borrowed_leaf_kg ?? ""} disabled={isReadOnly}
-                placeholder="Optional"
-                onChange={(e) => onChange(index, "borrowed_leaf_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              />
-            </div>
           </div>
 
           {/* Row 2: Weights Inputs (3 equal columns) */}
