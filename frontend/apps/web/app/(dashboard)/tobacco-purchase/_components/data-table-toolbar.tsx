@@ -99,7 +99,7 @@ export function DataTableToolbar<TData>({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0" align="start">
+          <PopoverContent className="w-50 p-0" align="start">
             <Command>
               <CommandList>
                 <CommandEmpty>No buyers found.</CommandEmpty>
@@ -170,7 +170,7 @@ export function DataTableToolbar<TData>({
           placeholder="Search records..."
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          className="rounded-md h-8 w-full lg:max-w-none lg:w-[250px] text-xs md:text-sm placeholder:text-sm"
+          className="rounded-md h-8 w-full lg:max-w-none lg:w-62.5 text-xs md:text-sm placeholder:text-sm"
         />
       </div>
 

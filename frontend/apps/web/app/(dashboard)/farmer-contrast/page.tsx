@@ -12,8 +12,14 @@ import {
   IconSortDescending,
   IconClipboardList,
 } from "@tabler/icons-react"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { cn } from "@workspace/ui/lib/utils"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { FarmerContrastCard } from "./_components/farmer-contrast-card"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
@@ -32,7 +38,6 @@ export default function FarmerContrastPage() {
   const [records, setRecords] = React.useState<FarmerContrastItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [searchInput, setSearchInput] = React.useState("")
-  const [view, setView] = React.useState<"list" | "grid">("list")
   const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [selectedYear, setSelectedYear] = React.useState(2026)
@@ -85,8 +90,8 @@ export default function FarmerContrastPage() {
       ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-xl font-medium text-foreground whitespace-nowrap">{pageTitle}</h1>
-          <p className="text-sm text-muted-foreground truncate hidden sm:block">
+          <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
+          <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-full">
             {t.farmerContrast.subtitle}
           </p>
         </div>
@@ -115,8 +120,6 @@ export default function FarmerContrastPage() {
         searchClassName="min-w-40 max-w-xs"
         searchInput={searchInput}
         setSearchInput={setSearchInput}
-        view={view}
-        setView={setView}
         sortBy={sortBy}
         setSortBy={setSortBy}
         sortOrder={sortOrder}
@@ -167,104 +170,78 @@ export default function FarmerContrastPage() {
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden lg:block">
-          {view === "list" ? (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-[#F9FAFB] border-gray-200">
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-12">No.</th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
-                          {t.farmerContrast.farmerName}
-                        </th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
-                          Code
-                        </th>
-                        <th
-                          className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider cursor-pointer group select-none"
-                          onClick={() => {
-                            if (sortBy !== "sapling") { setSortBy("sapling"); setSortOrder("desc") }
-                            else if (sortOrder === "desc") setSortOrder("asc")
-                            else setSortBy(null)
-                          }}
-                        >
-                          <div className="flex items-center gap-1 hover:text-[#111827] transition-colors">
-                            {t.farmerContrast.saplingKg}
-                            {sortBy === "sapling" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
-                            {sortBy === "sapling" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
-                            {sortBy !== "sapling" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                          </div>
-                        </th>
-                        <th
-                          className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider cursor-pointer group select-none"
-                          onClick={() => {
-                            if (sortBy !== "yield") { setSortBy("yield"); setSortOrder("desc") }
-                            else if (sortOrder === "desc") setSortOrder("asc")
-                            else setSortBy(null)
-                          }}
-                        >
-                          <div className="flex items-center gap-1 hover:text-[#111827] transition-colors">
-                            {t.farmerContrast.expectedYieldKg}
-                            {sortBy === "yield" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
-                            {sortBy === "yield" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
-                            {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                          </div>
-                        </th>
-                        <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
-                          {t.farmerContrast.purchasedWeightKg}
-                        </th>
-                        <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-24">
-                          {t.farmerContrast.year}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedRecords.map((rec, idx) => (
-                        <tr
-                          key={rec.mf_con_id}
-                          className={cn(
-                            "group/row border-b border-gray-200 last:border-0 hover:bg-[#F9FAFB] transition-colors",
-                            idx % 2 === 1 && "bg-[#F9FAFB]/60"
-                          )}
-                        >
-                          <td className="px-4 py-3.5 text-[#9CA3AF] text-xs">{idx + 1}</td>
-                          <td className="px-4 py-3.5 text-[#111827] font-semibold">{rec.name}</td>
-                          <td className="px-4 py-3.5 text-[#6B7280] text-xs font-mono">{rec.mf_code}</td>
-                          <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
-                            {rec.tobac_num !== undefined && rec.tobac_num !== null
-                              ? rec.tobac_num.toLocaleString()
-                              : <span className="text-[#D1D5DB]">—</span>}
-                          </td>
-                          <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
-                            {rec.expected_yield !== undefined && rec.expected_yield !== null
-                              ? `${rec.expected_yield.toLocaleString()} kg`
-                              : <span className="text-[#D1D5DB]">—</span>}
-                          </td>
-                          <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
-                            {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                              ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
-                              : <span className="text-[#D1D5DB]">—</span>}
-                          </td>
-                          <td className="px-4 py-3.5 text-center">
-                            <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
-                              {rec.year}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-3 xl:grid-cols-4 gap-4">
-              {sortedRecords.map((rec, idx) => (
-                <FarmerContrastCard key={rec.mf_con_id} rec={rec} index={idx + 1} />
-              ))}
+          <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">No.</TableHead>
+                    <TableHead>{t.farmerContrast.farmerName}</TableHead>
+                    <TableHead>Code</TableHead>
+                    <TableHead
+                      className="cursor-pointer select-none group"
+                      onClick={() => {
+                        if (sortBy !== "sapling") { setSortBy("sapling"); setSortOrder("desc") }
+                        else if (sortOrder === "desc") setSortOrder("asc")
+                        else setSortBy(null)
+                      }}
+                    >
+                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {t.farmerContrast.saplingKg}
+                        {sortBy === "sapling" && sortOrder === "asc" && <IconSortAscending className="size-3.5" />}
+                        {sortBy === "sapling" && sortOrder === "desc" && <IconSortDescending className="size-3.5" />}
+                        {sortBy !== "sapling" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer select-none group"
+                      onClick={() => {
+                        if (sortBy !== "yield") { setSortBy("yield"); setSortOrder("desc") }
+                        else if (sortOrder === "desc") setSortOrder("asc")
+                        else setSortBy(null)
+                      }}
+                    >
+                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {t.farmerContrast.expectedYieldKg}
+                        {sortBy === "yield" && sortOrder === "asc" && <IconSortAscending className="size-3.5" />}
+                        {sortBy === "yield" && sortOrder === "desc" && <IconSortDescending className="size-3.5" />}
+                        {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                      </div>
+                    </TableHead>
+                    <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>
+                    <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedRecords.map((rec, idx) => (
+                    <TableRow key={rec.mf_con_id} className="group/row">
+                      <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                      <TableCell className="font-semibold">{rec.name}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{rec.mf_code}</TableCell>
+                      <TableCell className="text-sm">
+                        {rec.tobac_num !== undefined && rec.tobac_num !== null
+                          ? rec.tobac_num.toLocaleString()
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {rec.expected_yield !== undefined && rec.expected_yield !== null
+                          ? `${rec.expected_yield.toLocaleString()} kg`
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {rec.purchased_weight !== undefined && rec.purchased_weight !== null
+                          ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
+                          {rec.year}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          )}
         </div>
       )}
     </div>
