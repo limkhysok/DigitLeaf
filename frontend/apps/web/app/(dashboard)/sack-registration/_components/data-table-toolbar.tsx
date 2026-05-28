@@ -14,13 +14,17 @@ import { ExportButton } from "./export-button"
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   action?: React.ReactNode
+  searchInput: string
+  setSearchInput: (v: string) => void
 }
 
 export function DataTableToolbar<TData>({
   table,
   action,
+  searchInput,
+  setSearchInput,
 }: Readonly<DataTableToolbarProps<TData>>) {
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0 || searchInput !== ""
   const { t } = useLanguage()
 
   const statuses = [
@@ -69,7 +73,10 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={() => {
+              table.resetColumnFilters()
+              setSearchInput("")
+            }}
             className="h-8 px-2 lg:px-3 shrink-0"
           >
             {t.common.reset}
@@ -83,10 +90,8 @@ export function DataTableToolbar<TData>({
       <div className="flex-1 flex justify-center lg:justify-end">
         <Input
           placeholder={t.sackRegistration.filters.searchPlaceholder}
-          value={(table.getState().globalFilter as string) ?? ""}
-          onChange={(event) =>
-            table.setGlobalFilter(event.target.value)
-          }
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
           className="rounded-md! h-8 w-full lg:max-w-none lg:w-[250px] text-xs md:text-sm  placeholder:text-sm"
         />
       </div>

@@ -10,6 +10,7 @@ import { UserManifestProvider } from "@/hooks/use-user-manifest";
 import { LanguageCode } from "@/lib/dictionary";
 
 import { Toaster } from "@workspace/ui/components/sonner"
+import { Providers } from "@/components/providers"
 
 const figtree = Figtree({subsets:['latin'],variable:'--font-sans'})
 
@@ -48,8 +49,10 @@ export default async function RootLayout({
         <AuthProvider>
           <UserManifestProvider defaultLanguage={defaultLanguage}>
             <ThemeProvider>
-              {children}
-              <Toaster richColors position="bottom-right" />
+              <Providers>
+                {children}
+                <Toaster richColors position="bottom-right" />
+              </Providers>
             </ThemeProvider>
           </UserManifestProvider>
         </AuthProvider>

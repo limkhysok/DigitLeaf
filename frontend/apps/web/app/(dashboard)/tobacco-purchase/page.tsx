@@ -5,10 +5,6 @@ import { useAuth } from "@/hooks/use-auth"
 import {
   apiClient,
   TobaccoPurchase,
-  PurchaserItem,
-  RegionItem,
-  OvenItem,
-  TobaccoItem,
 } from "@/lib/api-client"
 import { toast } from "sonner"
 import { IconLoader2, IconPlus } from "@tabler/icons-react"
@@ -34,142 +30,96 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 
+// ── NEW IMPORTS ──
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryState, parseAsInteger, parseAsString } from "nuqs"
+import { useDebounce } from "use-debounce"
+import { useInView } from "react-intersection-observer"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+
 const PAGE_SIZE = 100
 
 type SortDir = "asc" | "desc" | null
 
 export default function TobaccoPurchasePage() {
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0)
-    return () => clearTimeout(timer)
-  }, [])
+
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
-  const [records, setRecords] = React.useState<TobaccoPurchase[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
+  const queryClient = useQueryClient()
+  
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedRecord, setSelectedRecord] = React.useState<TobaccoPurchase | null>(null)
   const [isViewOnly, setIsViewOnly] = React.useState(false)
   const [deleteId, setDeleteId] = React.useState<number | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
+  // ── Search & Filters (nuqs + use-debounce) ──
+  const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
+  const [search] = useDebounce(searchInput, 400)
+  
+  const [buyerFilter, setBuyerFilter] = useQueryState("buyer", parseAsInteger)
+  const [sortGrandTotal, setSortGrandTotal] = useQueryState("sort_grand_total", parseAsString)
+  const [sortNetWeight, setSortNetWeight] = useQueryState("sort_net_weight", parseAsString)
 
-  // ── Search ──────────────────────────────────────────────────────────────────
-  const [searchInput, setSearchInput] = React.useState("")
-  const [search, setSearch] = React.useState("")
-  React.useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput) }, 400)
-    return () => clearTimeout(t)
-  }, [searchInput])
+  // ── Lookup Data (React Query) ──
+  const { data: purchasers = [] } = useQuery({
+    queryKey: ["purchasers"],
+    queryFn: () => apiClient.getPurchasers(tokens!.access_token),
+    enabled: !!tokens?.access_token,
+  })
+  const { data: regions = [] } = useQuery({
+    queryKey: ["regions"],
+    queryFn: () => apiClient.getRegions(tokens!.access_token),
+    enabled: !!tokens?.access_token && dialogOpen,
+  })
+  const { data: ovens = [] } = useQuery({
+    queryKey: ["ovens"],
+    queryFn: () => apiClient.getOvens(tokens!.access_token),
+    enabled: !!tokens?.access_token && dialogOpen,
+  })
+  const { data: tobaccoTypes = [] } = useQuery({
+    queryKey: ["tobaccoTypes"],
+    queryFn: () => apiClient.getTobaccoTypes(tokens!.access_token),
+    enabled: !!tokens?.access_token && dialogOpen,
+  })
 
-  // ── Filters ─────────────────────────────────────────────────────────────────
-  const [buyerFilter, setBuyerFilter] = React.useState<number | null>(null)
-
-  const [sortGrandTotal, setSortGrandTotal] = React.useState<SortDir>(null)
-  const [sortNetWeight, setSortNetWeight] = React.useState<SortDir>(null)
-
-  // ── Infinite Scroll ─────────────────────────────────────────────────────────
-  const [skip, setSkip] = React.useState(0)
-  const [hasMore, setHasMore] = React.useState(false)
-  const [isLoadingMore, setIsLoadingMore] = React.useState(false)
-  const sentinelRef = React.useRef<HTMLDivElement>(null)
-
-  // ── Lookup data ─────────────────────────────────────────────────────────────
-  const [purchasers, setPurchasers] = React.useState<PurchaserItem[]>([])
-  const [regions, setRegions] = React.useState<RegionItem[]>([])
-  const [ovens, setOvens] = React.useState<OvenItem[]>([])
-  const [tobaccoTypes, setTobaccoTypes] = React.useState<TobaccoItem[]>([])
-  const lookupsLoaded = React.useRef(false)
-
-  // ── Fetch ────────────────────────────────────────────────────────────────────
-  const fetchRecords = React.useCallback(async () => {
-    if (!tokens?.access_token) return
-    setIsLoading(true)
-    try {
-      const promises: Promise<unknown>[] = [
-        apiClient.getTobaccoPurchases(tokens.access_token, {
-          skip: 0,
-          limit: PAGE_SIZE,
-          search: search || undefined,
-          buyer: buyerFilter ?? undefined,
-          sort_grand_total: sortGrandTotal ?? undefined,
-          sort_net_weight: sortNetWeight ?? undefined,
-        }),
-      ]
-
-      if (!lookupsLoaded.current) {
-        promises.push(
-          apiClient.getPurchasers(tokens.access_token),
-          apiClient.getRegions(tokens.access_token),
-          apiClient.getOvens(tokens.access_token),
-          apiClient.getTobaccoTypes(tokens.access_token),
-        )
-      }
-
-      const results = await Promise.all(promises)
-      const recData = results[0] as Awaited<ReturnType<typeof apiClient.getTobaccoPurchases>>
-      setRecords(recData.items)
-      setSkip(recData.items.length)
-      setHasMore(recData.items.length < recData.total)
-
-      if (!lookupsLoaded.current) {
-        setPurchasers(results[1] as PurchaserItem[])
-        setRegions(results[2] as RegionItem[])
-        setOvens(results[3] as OvenItem[])
-        setTobaccoTypes(results[4] as TobaccoItem[])
-        lookupsLoaded.current = true
-      }
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [tokens, search, buyerFilter, sortGrandTotal, sortNetWeight])
-
-  React.useEffect(() => {
-    if (isAuthLoading || !tokens?.access_token) return
-    const timer = setTimeout(() => { fetchRecords() }, 0)
-    return () => clearTimeout(timer)
-  }, [isAuthLoading, tokens, fetchRecords])
-
-  // ── Load more ─────────────────────────────────────────────────────────────
-  const loadMore = React.useCallback(async () => {
-    if (!tokens?.access_token || !hasMore || isLoadingMore || isLoading) return
-    setIsLoadingMore(true)
-    const currentSkip = skip
-    try {
-      const recData = await apiClient.getTobaccoPurchases(tokens.access_token, {
-        skip: currentSkip,
+  // ── Infinite Query (React Query) ──
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["tobacco-purchases", search, buyerFilter, sortGrandTotal, sortNetWeight],
+    queryFn: ({ pageParam = 0 }) => 
+      apiClient.getTobaccoPurchases(tokens!.access_token, {
+        skip: pageParam,
         limit: PAGE_SIZE,
         search: search || undefined,
         buyer: buyerFilter ?? undefined,
-        sort_grand_total: sortGrandTotal ?? undefined,
-        sort_net_weight: sortNetWeight ?? undefined,
-      })
-      setRecords(prev => [...prev, ...recData.items])
-      setSkip(currentSkip + recData.items.length)
-      setHasMore(currentSkip + recData.items.length < recData.total)
-    } catch (err) {
-      toast.error((err as Error).message)
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }, [tokens, hasMore, isLoadingMore, isLoading, skip, search, buyerFilter, sortGrandTotal, sortNetWeight])
+        sort_grand_total: (sortGrandTotal as SortDir) ?? undefined,
+        sort_net_weight: (sortNetWeight as SortDir) ?? undefined,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const totalFetched = allPages.reduce((sum, page) => sum + page.items.length, 0)
+      return totalFetched < lastPage.total ? totalFetched : undefined
+    },
+    enabled: !!tokens?.access_token && !isAuthLoading,
+  })
 
-  // ── IntersectionObserver ──────────────────────────────────────────────────
+  const records = React.useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data])
+
+  // ── IntersectionObserver (react-intersection-observer) ──
+  const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    const el = sentinelRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      (entries) => { if (entries[0]?.isIntersecting) loadMore() },
-      { rootMargin: "100px" }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [loadMore])
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // ── Actions ──────────────────────────────────────────────────────────────────
+  // ── Actions ──
   const openRecord = React.useCallback(async (record: TobaccoPurchase, viewOnly: boolean) => {
     if (!tokens?.access_token) return
     try {
@@ -191,7 +141,7 @@ export default function TobaccoPurchasePage() {
     try {
       await apiClient.deleteTobaccoPurchase(tokens.access_token, deleteId)
       toast.success("Record deleted successfully")
-      fetchRecords()
+      queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -209,7 +159,6 @@ export default function TobaccoPurchasePage() {
   const handlePrint = React.useCallback(async (record: TobaccoPurchase) => {
     if (!tokens?.access_token) return
     try {
-      // Fetch full record with details if not already loaded
       const full = record.details && record.details.length > 0
         ? record
         : await apiClient.getTobaccoPurchase(tokens.access_token, record.tp_id)
@@ -238,8 +187,7 @@ export default function TobaccoPurchasePage() {
     }
   }, [tokens, purchasers, regions, ovens, tobaccoTypes])
 
-  // ── Derived state ─────────────────────────────────────────────────────────────
-  const filteredRecords = records
+  // ── Derived state ──
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
   const columns = React.useMemo(() => getColumns({
@@ -272,10 +220,10 @@ export default function TobaccoPurchasePage() {
         setSortGrandTotal(null)
       }
     }
-  }, [sorting])
+  }, [sorting, setSortGrandTotal, setSortNetWeight])
 
   const table = useReactTable({
-    data: filteredRecords,
+    data: records,
     columns,
     state: {
       columnVisibility,
@@ -296,16 +244,16 @@ export default function TobaccoPurchasePage() {
     </Button>
   )
 
-  if (!mounted) return null
 
-  // ── Shared props ──────────────────────────────────────────────────────────────
+
+  // ── Shared props ──
   const sharedFilterProps = {
     purchasers,
     buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v) },
   }
 
   const sharedCardProps = {
-    records: filteredRecords,
+    records,
     purchasers,
     ovens,
     onEdit: handleEdit,
@@ -314,7 +262,6 @@ export default function TobaccoPurchasePage() {
 
   return (
     <div className="flex flex-col gap-4">
-
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -325,11 +272,10 @@ export default function TobaccoPurchasePage() {
         </div>
       </div>
 
-
       {/* ── Mobile & Tablet filter bar (<lg) ── */}
       <MobileFilterBar
         className="flex lg:hidden"
-        searchInput={searchInput}
+        searchInput={searchInput || ""}
         setSearchInput={setSearchInput}
         onAdd={handleAddNew}
         {...sharedFilterProps}
@@ -340,49 +286,62 @@ export default function TobaccoPurchasePage() {
         <DataTableToolbar
           table={table}
           action={actionNode}
-
           purchasers={purchasers}
           buyerFilter={buyerFilter}
           setBuyerFilter={setBuyerFilter}
-          searchInput={searchInput}
+          searchInput={searchInput || ""}
           setSearchInput={setSearchInput}
         />
       </div>
 
       {/* ── Loading ── */}
       {isLoading && (
-        <div className="flex items-center justify-center h-40">
-          <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col gap-4 mt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-[100px]" />
+              <Skeleton className="h-8 w-[100px]" />
+            </div>
+            <Skeleton className="h-8 w-[250px]" />
+          </div>
+          <div className="rounded-md border mt-2">
+            <div className="h-10 border-b bg-muted/20" />
+            {[1, 2, 3, 4, 5].map((id) => (
+              <div key={id} className="flex items-center p-4 border-b last:border-0">
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ── Empty state ── */}
-      {!isLoading && filteredRecords.length === 0 && (
+      {!isLoading && records.length === 0 && (
         <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
           No records match your filters.
         </div>
       )}
 
       {/* ── Mobile view (<md) ── */}
-      {!isLoading && filteredRecords.length > 0 && (
+      {!isLoading && records.length > 0 && (
         <MobileView {...sharedCardProps} />
       )}
 
       {/* ── Tablet view (md→lg) ── */}
-      {!isLoading && filteredRecords.length > 0 && (
+      {!isLoading && records.length > 0 && (
         <TabletView {...sharedCardProps} />
       )}
 
       {/* ── Desktop view (≥lg) ── */}
-      {!isLoading && filteredRecords.length > 0 && (
+      {!isLoading && records.length > 0 && (
         <div className="hidden lg:block">
           <DataTable table={table} />
         </div>
       )}
 
-      {/* ── Infinite scroll sentinel ─────────────────────────────────────── */}
+      {/* ── Infinite scroll sentinel ── */}
       <div ref={sentinelRef} className="h-1" />
-      {isLoadingMore && (
+      {isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
@@ -395,7 +354,9 @@ export default function TobaccoPurchasePage() {
           setDialogOpen(false)
           setSelectedRecord(null)
         }}
-        onSuccess={fetchRecords}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
+        }}
         onPrint={handlePrint}
         accessToken={tokens?.access_token || ""}
         initialData={selectedRecord}

@@ -6,11 +6,10 @@ import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import {
   apiClient,
-  RepresentItem,
   SackRegistrationItem,
 } from "@/lib/api-client"
-import { toast } from "sonner"
-import { IconLoader2, IconPlus } from "@tabler/icons-react"
+
+import { IconPlus } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   ColumnFiltersState,
@@ -34,23 +33,18 @@ import { ViewDialog } from "./_components/view-dialog"
 import { RegisterDialog } from "./_components/register-dialog"
 import { SackRegistrationCard } from "./_components/sack-registration-card"
 
+// ── NEW IMPORTS ──
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryState, parseAsString } from "nuqs"
+import { useDebounce } from "use-debounce"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+
 export default function SackRegistrationPage() {
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0)
-    return () => clearTimeout(timer)
-  }, [])
+
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t, localizeNumber, localizeDateString } = useLanguage()
-
-  // ── Data ──────────────────────────────────────────────────────────────────
-  const [records, setRecords] = React.useState<SackRegistrationItem[]>([])
-  const [represents, setRepresents] = React.useState<RepresentItem[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [total, setTotal] = React.useState(0)
-  const [refetchKey, setRefetchKey] = React.useState(0)
-  const refetch = React.useCallback(() => setRefetchKey((k) => k + 1), [])
+  const queryClient = useQueryClient()
 
   // ── Filters ───────────────────────────────────────────────────────────────
   const [view] = React.useState<"list" | "grid">("list")
@@ -59,32 +53,33 @@ export default function SackRegistrationPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
 
-  // ── Fetch represents once ─────────────────────────────────────────────────
-  React.useEffect(() => {
-    if (isAuthLoading || !tokens?.access_token) return
-    apiClient.getRepresents(tokens.access_token).then(setRepresents).catch(() => { })
-  }, [isAuthLoading, tokens])
+  // ── Search & Nuqs ─────────────────────────────────────────────────────────
+  const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
+  const [debouncedSearch] = useDebounce(searchInput, 400)
 
+  // ── Data (React Query) ─────────────────────────────────────────────────────
+  const { data: represents = [] } = useQuery({
+    queryKey: ["represents"],
+    queryFn: () => apiClient.getRepresents(tokens!.access_token),
+    enabled: !!tokens?.access_token && !isAuthLoading,
+  })
 
+  const { data: fetchResult, isLoading } = useQuery({
+    queryKey: ["sack-registrations"],
+    queryFn: () => {
+      const params = buildFetchParams(0, "", null, "all", null)
+      params.limit = 10000
+      return apiClient.getSackRegistrations(tokens!.access_token, params)
+    },
+    enabled: !!tokens?.access_token && !isAuthLoading,
+  })
 
-  // ── Fetch records ─────────────────────────────────────────────────────────
-  React.useEffect(() => {
-    if (isAuthLoading || !tokens?.access_token) return
-    let cancelled = false
-    const timer = setTimeout(() => setIsLoading(true), 0)
-    // Fetch a large limit so TanStack table can handle client-side sorting and pagination correctly
-    const params = buildFetchParams(0, "", null, "all", null)
-    params.limit = 10000
-    apiClient.getSackRegistrations(tokens.access_token, params)
-      .then((res) => {
-        if (cancelled) return
-        setRecords(res.items)
-        setTotal(res.total)
-      })
-      .catch((err) => { toast.error((err as Error).message) })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
-    return () => { cancelled = true; clearTimeout(timer) }
-  }, [isAuthLoading, tokens, refetchKey])
+  const records = fetchResult?.items ?? []
+  const total = fetchResult?.total ?? 0
+
+  const refetch = () => {
+    queryClient.invalidateQueries({ queryKey: ["sack-registrations"] })
+  }
 
   const columns = getColumns({
     t,
@@ -101,7 +96,6 @@ export default function SackRegistrationPage() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = React.useState("")
 
   const table = useReactTable({
     data: records,
@@ -111,14 +105,13 @@ export default function SackRegistrationPage() {
       columnVisibility,
       rowSelection,
       columnFilters,
-      globalFilter,
+      globalFilter: debouncedSearch,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
       const search = String(filterValue).toLowerCase()
       const represent = String(row.getValue("represent_name") || "").toLowerCase()
@@ -140,7 +133,7 @@ export default function SackRegistrationPage() {
     </Button>
   )
 
-  if (!mounted) return null
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,8 +156,22 @@ export default function SackRegistrationPage() {
           LOADING / EMPTY STATES — shared
       ════════════════════════════════════════════════════════════════════ */}
       {isLoading && (
-        <div className="flex items-center justify-center h-40">
-          <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col gap-4 mt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-[100px]" />
+              <Skeleton className="h-8 w-[100px]" />
+            </div>
+            <Skeleton className="h-8 w-[250px]" />
+          </div>
+          <div className="rounded-md border mt-2">
+            <div className="h-10 border-b bg-muted/20" />
+            {[1, 2, 3, 4, 5].map((id) => (
+              <div key={id} className="flex items-center p-4 border-b last:border-0">
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {!isLoading && records.length === 0 && (
@@ -177,7 +184,12 @@ export default function SackRegistrationPage() {
           TOOLBAR — shared across all breakpoints
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
-        <DataTableToolbar table={table} action={actionNode} />
+        <DataTableToolbar 
+          table={table} 
+          action={actionNode} 
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+        />
       )}
 
       {/* ════════════════════════════════════════════════════════════════════

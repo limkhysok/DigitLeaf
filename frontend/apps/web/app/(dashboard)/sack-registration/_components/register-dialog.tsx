@@ -3,6 +3,8 @@
 import * as React from "react"
 import { apiClient, RepresentItem, MemberFarmerItem } from "@/lib/api-client"
 import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query"
+import { useDebounce } from "use-debounce"
 import { IconChevronDown, IconLoader2, IconCheck, IconCalendar } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -49,10 +51,9 @@ export function RegisterDialog({
   const [representSearch, setRepresentSearch] = React.useState("")
   const [representOpen, setRepresentOpen] = React.useState(false)
   const [farmerQuery, setFarmerQuery] = React.useState("")
-  const [farmerResults, setFarmerResults] = React.useState<MemberFarmerItem[]>([])
+  const [debouncedFarmerQuery] = useDebounce(farmerQuery, 300)
   const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
   const [farmerOpen, setFarmerOpen] = React.useState(false)
-  const [isFarmerSearching, setIsFarmerSearching] = React.useState(false)
   const [registeredAt, setRegisteredAt] = React.useState<Date | null>(null)
   React.useEffect(() => {
     const timer = setTimeout(() => setRegisteredAt(new Date()), 0)
@@ -72,27 +73,11 @@ export function RegisterDialog({
 
   const selectedRepresent = represents.find((r) => String(r.represent_id) === representId)
 
-  const handleFarmerSearch = React.useCallback(async (query: string) => {
-    if (!accessToken) return
-    setIsFarmerSearching(true)
-    try {
-      const results = await apiClient.queryMemberFarmers(accessToken, query, Number(representId) || undefined)
-      setFarmerResults(results)
-    } catch {
-      setFarmerResults([])
-    } finally {
-      setIsFarmerSearching(false)
-    }
-  }, [accessToken, representId])
-
-  React.useEffect(() => {
-    if (farmerResult?.name === farmerQuery || (!representId && !farmerQuery.trim())) {
-      const timer = setTimeout(() => setFarmerResults([]), 0)
-      return () => clearTimeout(timer)
-    }
-    const timer = setTimeout(() => handleFarmerSearch(farmerQuery), 300)
-    return () => clearTimeout(timer)
-  }, [farmerQuery, handleFarmerSearch, farmerResult, representId])
+  const { data: farmerResults = [], isFetching: isFarmerSearching } = useQuery({
+    queryKey: ["farmers", debouncedFarmerQuery, representId],
+    queryFn: () => apiClient.queryMemberFarmers(accessToken!, debouncedFarmerQuery, Number(representId) || undefined),
+    enabled: !!accessToken && !!representId && farmerResult?.name !== debouncedFarmerQuery,
+  })
 
   React.useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -194,7 +179,6 @@ export function RegisterDialog({
                             setRepresentOpen(false)
                             setFarmerQuery("")
                             setFarmerResult(null)
-                            setFarmerResults([])
                           }}
                         >
                           <IconCheck
@@ -219,7 +203,7 @@ export function RegisterDialog({
           <div className="space-y-1 flex flex-col">
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.farmerMember}</Label>
             <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
-              <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open); if (open && representId && !farmerResult && !farmerResults.length) handleFarmerSearch(farmerQuery) }}>
+              <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open) }}>
                 <PopoverTrigger asChild>
                   <div className="relative">
                     <CommandPrimitive.Input

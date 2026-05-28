@@ -13,6 +13,7 @@ import {
   TobaccoPurchaseCreate,
   TobaccoPurchaseDetail,
 } from "@/lib/api-client"
+import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   IconLoader2,
@@ -250,8 +251,6 @@ export function AddPurchaseDialog({
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [printAfterSave, setPrintAfterSave] = React.useState(false)
   const [previewImage, setPreviewImage] = React.useState<string | null>(null)
-  const [vendors, setVendors] = React.useState<MemberFarmerItem[]>([])
-  const [isVendorsLoading, setIsVendorsLoading] = React.useState(false)
   const [dateDisplay, setDateDisplay] = React.useState("")
 
   const [buyer, setBuyer] = React.useState<string>("")
@@ -277,12 +276,28 @@ export function AddPurchaseDialog({
 
   const initialized = React.useRef(false)
 
+  const { data: vendors = [], isLoading: isVendorsLoading } = useQuery({
+    queryKey: ["vendors", buyer],
+    queryFn: () => apiClient.getVendorsByBuyer(accessToken, Number(buyer)),
+    enabled: !!buyer && !!accessToken,
+  })
+
+  // Synchronize vendor search text when vendors load (e.g. on edit mode populate)
+  React.useEffect(() => {
+    if (vendor && vendors.length > 0 && vendorSearch && !vendorSearch.includes("|")) {
+      const match = vendors.find(v => String(v.mf_id) === String(vendor))
+      if (match) {
+        const t = setTimeout(() => setVendorSearch(`${match.name} | ${match.mf_code}`), 0)
+        return () => clearTimeout(t)
+      }
+    }
+  }, [vendor, vendors, vendorSearch])
+
   const resetForm = React.useCallback(() => {
     setBuyer("")
     setBuyerSearch("")
     setVendor(null)
     setVendorSearch("")
-    setVendors([])
     setVAddr("")
     setRegion("")
     setRegionSearch("")
@@ -324,21 +339,7 @@ export function AddPurchaseDialog({
 
     const o = ovens.find(item => item.id === data.oven)
     if (o) setOvenSearch(`${o.name_en} | ${o.name_kh || ""}`)
-
-    if (data.buyer) {
-      setIsVendorsLoading(true)
-      try {
-        const v = await apiClient.getVendorsByBuyer(accessToken, data.buyer)
-        setVendors(v)
-        const match = v.find(item => String(item.mf_id) === String(data.vendor_id))
-        if (match) setVendorSearch(`${match.name} | ${match.mf_code}`)
-      } catch {
-        setVendors([])
-      } finally {
-        setIsVendorsLoading(false)
-      }
-    }
-  }, [purchasers, regions, ovens, accessToken])
+  }, [purchasers, regions, ovens])
 
   // Populate or reset whenever the dialog opens or the record being edited changes.
   // Using initialData directly as the dependency (not a ref guard) so switching
@@ -395,7 +396,7 @@ export function AddPurchaseDialog({
     })
   }, [])
 
-  const handleBuyerSelect = React.useCallback(async (pId: number) => {
+  const handleBuyerSelect = React.useCallback((pId: number) => {
     setBuyer(pId.toString())
     const p = purchasers.find(item => item.p_id === pId)
     setBuyerSearch(p ? `${p.p_name} | ${p.p_name_kh || ""}` : "")
@@ -411,17 +412,7 @@ export function AddPurchaseDialog({
 
     setVendor(null)
     setVendorSearch("")
-    setVendors([])
-    setIsVendorsLoading(true)
-    try {
-      const v = await apiClient.getVendorsByBuyer(accessToken, pId)
-      setVendors(v)
-    } catch {
-      setVendors([])
-    } finally {
-      setIsVendorsLoading(false)
-    }
-  }, [purchasers, regions, accessToken])
+  }, [purchasers, regions])
 
   const handleSubmit = async (e: React.BaseSyntheticEvent, shouldPrint = false) => {
     e.preventDefault()
