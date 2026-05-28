@@ -3,7 +3,7 @@
 import * as React from "react"
 import {
   IconSortAscending, IconSortDescending,
-  IconCirclePlus, IconX,
+  IconCirclePlus, IconX, IconAdjustmentsHorizontal,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { useLanguage } from "@/hooks/use-language"
@@ -12,6 +12,22 @@ import { Input } from "@workspace/ui/components/input"
 import { Separator } from "@workspace/ui/components/separator"
 import { Badge } from "@workspace/ui/components/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+
+type ColumnVisibility = {
+  code: boolean
+  sapling: boolean
+  expected: boolean
+  purchased: boolean
+  year: boolean
+}
 
 interface FilterBarProps {
   className?: string
@@ -24,6 +40,8 @@ interface FilterBarProps {
   setSortOrder: (v: "asc" | "desc") => void
   selectedYear: number
   setSelectedYear: (v: number) => void
+  columnVisibility: ColumnVisibility
+  setColumnVisibility: (v: ColumnVisibility) => void
 }
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027]
@@ -34,6 +52,7 @@ export function FilterBar({
   sortBy, setSortBy,
   sortOrder, setSortOrder,
   selectedYear, setSelectedYear,
+  columnVisibility, setColumnVisibility,
 }: Readonly<FilterBarProps>) {
   const { t } = useLanguage()
   const [yearOpen, setYearOpen] = React.useState(false)
@@ -52,6 +71,50 @@ export function FilterBar({
 
       {/* ── Left group ── */}
       <div className="flex flex-wrap items-center gap-2 shrink-0">
+
+        {/* View (column visibility) */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button suppressHydrationWarning variant="outline" size="sm" className="h-8">
+              <IconAdjustmentsHorizontal className="mr-2 h-4 w-4" />
+              {t.farmerContrast.view}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuLabel>{t.farmerContrast.toggleColumns}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.code}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, code: v })}
+            >
+              {t.farmerContrast.idCard}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.sapling}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, sapling: v })}
+            >
+              {t.farmerContrast.saplingKg}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.expected}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, expected: v })}
+            >
+              {t.farmerContrast.expectedYieldKg}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.purchased}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, purchased: v })}
+            >
+              {t.farmerContrast.purchasedWeightKg}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.year}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, year: v })}
+            >
+              {t.farmerContrast.year}
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Year filter */}
         <Popover open={yearOpen} onOpenChange={setYearOpen}>
@@ -94,7 +157,7 @@ export function FilterBar({
                     {sortOrder === "asc"
                       ? <IconSortAscending className="size-3" />
                       : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? "Asc" : "Desc"}
+                    {sortOrder === "asc" ? t.farmerContrast.asc : t.farmerContrast.desc}
                   </Badge>
                 </>
               )}
@@ -105,13 +168,13 @@ export function FilterBar({
               onClick={() => { setSortBy("yield"); setSortOrder("desc"); setYieldOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "yield" && sortOrder === "desc" && "bg-accent font-medium")}
             >
-              <IconSortDescending className="size-3.5" /> Largest first
+              <IconSortDescending className="size-3.5" /> {t.farmerContrast.largestFirst}
             </button>
             <button
               onClick={() => { setSortBy("yield"); setSortOrder("asc"); setYieldOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "yield" && sortOrder === "asc" && "bg-accent font-medium")}
             >
-              <IconSortAscending className="size-3.5" /> Smallest first
+              <IconSortAscending className="size-3.5" /> {t.farmerContrast.smallestFirst}
             </button>
           </PopoverContent>
         </Popover>
@@ -127,7 +190,7 @@ export function FilterBar({
                   <Separator orientation="vertical" className="mx-2 h-4" />
                   <Badge variant="secondary" className="rounded-sm px-1 font-normal flex items-center gap-1">
                     {sortOrder === "asc" ? <IconSortAscending className="size-3" /> : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? "Asc" : "Desc"}
+                    {sortOrder === "asc" ? t.farmerContrast.asc : t.farmerContrast.desc}
                   </Badge>
                 </>
               )}
@@ -138,13 +201,13 @@ export function FilterBar({
               onClick={() => { setSortBy("purchased"); setSortOrder("desc"); setPurchasedOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "purchased" && sortOrder === "desc" && "bg-accent font-medium")}
             >
-              <IconSortDescending className="size-3.5" /> Largest first
+              <IconSortDescending className="size-3.5" /> {t.farmerContrast.largestFirst}
             </button>
             <button
               onClick={() => { setSortBy("purchased"); setSortOrder("asc"); setPurchasedOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "purchased" && sortOrder === "asc" && "bg-accent font-medium")}
             >
-              <IconSortAscending className="size-3.5" /> Smallest first
+              <IconSortAscending className="size-3.5" /> {t.farmerContrast.smallestFirst}
             </button>
           </PopoverContent>
         </Popover>
@@ -152,7 +215,7 @@ export function FilterBar({
         {/* Reset */}
         {isFiltered && (
           <Button variant="ghost" onClick={clearAll} className="h-8 px-2 lg:px-3 shrink-0">
-            Reset
+            {t.farmerContrast.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}

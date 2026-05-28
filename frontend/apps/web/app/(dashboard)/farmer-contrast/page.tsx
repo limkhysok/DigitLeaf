@@ -39,6 +39,13 @@ export default function FarmerContrastPage() {
   const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [selectedYear, setSelectedYear] = React.useState(2026)
+  const [columnVisibility, setColumnVisibility] = React.useState({
+    code: true,
+    sapling: true,
+    expected: true,
+    purchased: true,
+    year: true,
+  })
 
   // --- Fetch Data ---
   React.useEffect(() => {
@@ -121,7 +128,6 @@ export default function FarmerContrastPage() {
       ════════════════════════════════════════════════════════════════════ */}
       <FilterBar
         className="hidden lg:flex"
-        searchClassName="min-w-40 max-w-xs"
         searchInput={searchInput}
         setSearchInput={setSearchInput}
         sortBy={sortBy}
@@ -130,6 +136,8 @@ export default function FarmerContrastPage() {
         setSortOrder={setSortOrder}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
+        columnVisibility={columnVisibility}
+        setColumnVisibility={setColumnVisibility}
       />
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -180,11 +188,11 @@ export default function FarmerContrastPage() {
                   <TableRow>
                     <TableHead className="w-12">No.</TableHead>
                     <TableHead>{t.farmerContrast.farmerName}</TableHead>
-                    <TableHead>ID Card</TableHead>
-                    <TableHead>{t.farmerContrast.saplingKg}</TableHead>
-                    <TableHead>{t.farmerContrast.expectedYieldKg}</TableHead>
-                    <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>
-                    <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>
+                    {columnVisibility.code && <TableHead>ID Card</TableHead>}
+                    {columnVisibility.sapling && <TableHead>{t.farmerContrast.saplingKg}</TableHead>}
+                    {columnVisibility.expected && <TableHead>{t.farmerContrast.expectedYieldKg}</TableHead>}
+                    {columnVisibility.purchased && <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>}
+                    {columnVisibility.year && <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -192,27 +200,35 @@ export default function FarmerContrastPage() {
                     <TableRow key={rec.mf_con_id} className={cn("group/row", rec.purchased_weight != null && rec.expected_yield != null && rec.purchased_weight > rec.expected_yield && "bg-red-100 hover:bg-red-100")}>
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                       <TableCell className="font-semibold">{rec.name}</TableCell>
-                      <TableCell className="text-sm">{rec.mf_code}</TableCell>
-                      <TableCell className="text-sm">
-                        {rec.tobac_num !== undefined && rec.tobac_num !== null
-                          ? rec.tobac_num.toLocaleString()
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {rec.expected_yield !== undefined && rec.expected_yield !== null
-                          ? `${rec.expected_yield.toLocaleString()} kg`
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                          ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
-                          {rec.year}
-                        </span>
-                      </TableCell>
+                      {columnVisibility.code && <TableCell className="text-sm">{rec.mf_code}</TableCell>}
+                      {columnVisibility.sapling && (
+                        <TableCell className="text-sm">
+                          {rec.tobac_num !== undefined && rec.tobac_num !== null
+                            ? rec.tobac_num.toLocaleString()
+                            : <span className="text-muted-foreground/40">—</span>}
+                        </TableCell>
+                      )}
+                      {columnVisibility.expected && (
+                        <TableCell className="text-sm">
+                          {rec.expected_yield !== undefined && rec.expected_yield !== null
+                            ? `${rec.expected_yield.toLocaleString()} kg`
+                            : <span className="text-muted-foreground/40">—</span>}
+                        </TableCell>
+                      )}
+                      {columnVisibility.purchased && (
+                        <TableCell className="text-sm">
+                          {rec.purchased_weight !== undefined && rec.purchased_weight !== null
+                            ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                            : <span className="text-muted-foreground/40">—</span>}
+                        </TableCell>
+                      )}
+                      {columnVisibility.year && (
+                        <TableCell className="text-center">
+                          <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
+                            {rec.year}
+                          </span>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
