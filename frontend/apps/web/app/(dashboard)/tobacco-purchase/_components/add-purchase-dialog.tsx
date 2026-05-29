@@ -1344,7 +1344,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         <div className="px-3 pt-3 pb-3">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5">Tobacco Item</Label>
+          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5">Tobacco Type</Label>
           <Popover open={open} onOpenChange={(isOpen) => {
             setOpen(isOpen)
             if (!isOpen) {
@@ -1599,7 +1599,7 @@ const PurchaseDetailDesktopCard = React.memo(({
           {/* Row 1: Tobacco Item Search Popover */}
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1">
-              <Label className="text-sm">Tobacco Item</Label>
+              <Label className="text-sm">Tobacco Type</Label>
               <Popover open={open} onOpenChange={(isOpen) => {
                 setOpen(isOpen)
                 if (!isOpen) {
@@ -1610,7 +1610,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                 <PopoverAnchor asChild>
                   <div className="relative group">
                     <Input
-                      placeholder="Search and select tobacco item..."
+                      placeholder="Search and select tobacco type..."
                       value={search}
                       onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
                       onFocus={() => { setSearch(""); setOpen(true) }}
