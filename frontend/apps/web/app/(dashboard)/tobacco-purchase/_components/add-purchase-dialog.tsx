@@ -69,19 +69,19 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="text-right bg-slate-50 border border-slate-200/60 rounded-md px-3 py-1.5  mr-8 shrink-0">
+    <div className="text-center border border-black/40 rounded-sm px-2 py-1 mr-8 shrink-0">
       <span className="block text-base font-medium">Tobacco Quota</span>
-      <div className="flex items-baseline gap-0.5 mt-1">
+      <div className="flex items-baseline gap-0.5">
         <span className={cn(
-          "text-base font-black",
+          "text-base font-bold",
           displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
         )}>
           {displayRemainingQuota >= 0 ? "+" : ""}
           {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
         <span className={cn(
-          "text-[10px] font-bold ml-0.5 font-sans",
-          displayRemainingQuota >= 0 ? "text-green-600/70" : "text-red-600/70"
+          "text-base font-bold",
+          displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
         )}>
           kg
         </span>
@@ -347,7 +347,7 @@ export function AddPurchaseDialog({
 
   // Populate or reset whenever the dialog opens or the record being edited changes.
   // Using initialData directly as the dependency (not a ref guard) so switching
-  // from record A → record B always re-populates correctly.
+  // from record A â†’ record B always re-populates correctly.
   React.useEffect(() => {
     if (!open) {
       initialized.current = false
@@ -363,7 +363,7 @@ export function AddPurchaseDialog({
   }, [open, initialData, populateForm, resetForm])
 
   // Auto-fetch sack weight only when creating a NEW record (no initialData).
-  // Skip this for edit mode — we must preserve the sack_in_kg values from the DB.
+  // Skip this for edit mode â€” we must preserve the sack_in_kg values from the DB.
   React.useEffect(() => {
     if (!vendor || isReadOnly || initialData) return
 
@@ -539,7 +539,7 @@ export function AddPurchaseDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-border/50">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-black/20">
           <DialogHeader>
             <div className="flex items-center justify-between w-full">
               <div className="space-y-1">
@@ -554,13 +554,13 @@ export function AddPurchaseDialog({
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className={cn("space-y-5", isReadOnly && "[&_input:disabled]:bg-white [&_input:disabled]:opacity-100 [&_input:disabled]:text-foreground [&_input:disabled]:border-border/60 [&_input:disabled]:cursor-default")}>
+          <form onSubmit={handleSubmit} className={cn("space-y-5", isReadOnly && "[&_input:disabled]:bg-white [&_input:disabled]:opacity-100 [&_input:disabled]:text-foreground [&_input:disabled]:border-black/20 [&_input:disabled]:cursor-default")}>
 
-            {/* ════════════════════════════════════════════════════════════════════
-              FORM FIELDS — shared across all breakpoints
-              grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
-          ════════════════════════════════════════════════════════════════════ */}
-            <div className="bg-white p-4 lg:p-6 rounded-md border border-border/60 space-y-2">
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+              FORM FIELDS â€” shared across all breakpoints
+              grid: cols-1 (mobile) â†’ cols-2 (tablet) â†’ cols-4 (desktop)
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            <div className="bg-white p-4 lg:p-6 rounded-md border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5">
 
                 {/* Invoice No. */}
@@ -569,7 +569,7 @@ export function AddPurchaseDialog({
                   <Input
                     value={tpCode}
                     readOnly
-                    className="h-8 text-[13px] rounded-md font-bold bg-white border-border/60 cursor-default"
+                    className="h-8 text-[13px] rounded-md font-bold bg-white border-black/20 cursor-default"
                   />
                 </div>
 
@@ -597,13 +597,13 @@ export function AddPurchaseDialog({
                           onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
                       align="start"
                       sideOffset={4}
                       onMouseDown={(e) => e.preventDefault()}
@@ -656,13 +656,13 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsRegionOpen(true)}
                           onClick={() => setIsRegionOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
                       align="start"
                       sideOffset={4}
                       onOpenAutoFocus={(e) => e.preventDefault()}
@@ -723,13 +723,13 @@ export function AddPurchaseDialog({
                           onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           disabled={isReadOnly || !isBuyerSelected}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
                       align="start"
                       sideOffset={4}
                       onMouseDown={(e) => e.preventDefault()}
@@ -764,7 +764,7 @@ export function AddPurchaseDialog({
                     onChange={(e) => setVAddr(e.target.value)}
                     disabled={isReadOnly || !isBuyerSelected}
                     placeholder="Enter address..."
-                    className="h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                   />
                 </div>
 
@@ -784,13 +784,13 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsOvenOpen(true)}
                           onClick={() => setIsOvenOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
-                      className="w-(--radix-popover-trigger-width) p-0  border-border/50 z-100"
+                      className="w-(--radix-popover-trigger-width) p-0  border-black/20 z-100"
                       align="start"
                       sideOffset={4}
                       onOpenAutoFocus={(e) => e.preventDefault()}
@@ -838,9 +838,9 @@ export function AddPurchaseDialog({
                       onChange={(e) => setRate(e.target.value)}
                       required
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-md font-bold bg-white border border-border/60 text-black focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                      className="h-8 text-[13px] rounded-md font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                     />
-                    <div className="absolute rounded-md right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
+                    <div className="absolute rounded-md right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">áŸ›</div>
                   </div>
                 </div>
 
@@ -852,7 +852,7 @@ export function AddPurchaseDialog({
                     onChange={(e) => setTpNote(e.target.value)}
                     placeholder="Type notes here..."
                     disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                   />
                 </div>
 
@@ -877,21 +877,21 @@ export function AddPurchaseDialog({
                     placeholder="DD/MM/YYYY"
                     maxLength={10}
                     disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
+                    className="h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                   />
                 </div>
 
               </div>
             </div>
 
-            {/* ════════════════════════════════════════════════════════════════════
-              MOBILE ITEMS — (< 768px / below md)
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+              MOBILE ITEMS â€” (< 768px / below md)
               Card-per-row, full-width stacked
-          ════════════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="md:hidden space-y-3">
               {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
-                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-black/20 bg-slate-50/50">
+                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                     <IconPlus className="size-5 text-muted-foreground/20" />
                   </div>
                   <p className="text-[13px] font-bold text-foreground">No items yet</p>
@@ -922,17 +922,17 @@ export function AddPurchaseDialog({
               {!isReadOnly && details.length > 0 && (
                 <div className="flex gap-2 w-full">
                   <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 ">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 ">
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 text-emerald-600 border-emerald-600/30">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600 border-emerald-600/30">
                     <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
               )}
               {details.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
+                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-black/20">
                   <div>
                     <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
                     <p className="text-[15px] font-black text-primary tabular-nums">
@@ -942,21 +942,21 @@ export function AddPurchaseDialog({
                   <div className="text-right">
                     <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
                     <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                      ៛{Math.round(grandTotal).toLocaleString()}
+                      áŸ›{Math.round(grandTotal).toLocaleString()}
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ════════════════════════════════════════════════════════════════════
-              TABLET ITEMS — (768px – 1023px / md → lg)
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+              TABLET ITEMS â€” (768px â€“ 1023px / md â†’ lg)
               2-column card grid
-          ════════════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="hidden md:block lg:hidden space-y-3">
               {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-border/60 bg-slate-50/50">
-                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-black/20 bg-slate-50/50">
+                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                     <IconPlus className="size-5 text-muted-foreground/20" />
                   </div>
                   <p className="text-[13px] font-bold text-foreground">No items yet</p>
@@ -987,17 +987,17 @@ export function AddPurchaseDialog({
               {!isReadOnly && details.length > 0 && (
                 <div className="flex gap-2 w-full">
                   <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20">
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 text-emerald-600 border-emerald-600/30">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600 border-emerald-600/30">
                     <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
               )}
               {details.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
+                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-black/20">
                   <div>
                     <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
                     <p className="text-[15px] font-black text-primary tabular-nums">
@@ -1007,21 +1007,21 @@ export function AddPurchaseDialog({
                   <div className="text-right">
                     <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
                     <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                      ៛{Math.round(grandTotal).toLocaleString()}
+                      áŸ›{Math.round(grandTotal).toLocaleString()}
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ════════════════════════════════════════════════════════════════════
-              DESKTOP ITEMS — (≥ 1024px / lg and above)
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+              DESKTOP ITEMS â€” (â‰¥ 1024px / lg and above)
               Full 9-column table, horizontally scrollable
-          ════════════════════════════════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             <div className="hidden lg:block">
               {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-md border border-dashed border-border/60 bg-slate-50/50 mt-4">
-                  <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-border/60">
+                <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-md border border-dashed border-black/20 bg-slate-50/50 mt-4">
+                  <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                     <IconPlus className="size-6 text-muted-foreground/20" />
                   </div>
                   <div className="space-y-1 text-center">
@@ -1051,7 +1051,7 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-slate-100/80 backdrop-blur-sm border border-border/80 rounded-md p-3 flex flex-row justify-between items-center mt-4">
+                  <div className="bg-slate-100/80 backdrop-blur-sm border border-black/20 rounded-md p-3 flex flex-row justify-between items-center mt-4">
                     <span className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">
                       Total Summary ({details.length} Items)
                     </span>
@@ -1066,7 +1066,7 @@ export function AddPurchaseDialog({
                       <div className="flex items-baseline gap-2">
                         <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total:</span>
                         <span className="text-[20px] font-black text-emerald-700 tabular-nums">
-                          ៛{Math.round(grandTotal).toLocaleString()}
+                          áŸ›{Math.round(grandTotal).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -1077,11 +1077,11 @@ export function AddPurchaseDialog({
                     {!isReadOnly && (
                       <div className="flex gap-2">
                         <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95">
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95">
                           <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
                         </Button>
                         <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
                           <IconPlus className="mr-1.5 size-3.5" /> Return
                         </Button>
                       </div>
@@ -1094,19 +1094,19 @@ export function AddPurchaseDialog({
               )}
             </div>
 
-            {/* ════════════════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
               RETURN ITEMS
-            ════════════════════════════════════════════════════════════════════ */}
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {returns.length > 0 && (
-              <div className="space-y-3 mt-6 border-t border-emerald-200/50 pt-4 px-2">
+              <div className="space-y-3 mt-6 border-t border-black/20 pt-4 px-2">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl" role="img" aria-label="leaf">🌱</span>
-                    <h3 className="text-[13px] font-bold text-emerald-800 uppercase tracking-wider">Tobacco Returns</h3>
+                    <span className="text-xl" role="img" aria-label="leaf">ðŸŒ±</span>
+                    <h3 className="text-[13px] font-bold text-foreground uppercase tracking-wider">Tobacco Returns</h3>
                   </div>
                   {!isReadOnly && (
                     <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                      className="h-7 px-3 text-[11px] font-bold rounded-md bg-white hover:bg-emerald-50 border-emerald-200 text-emerald-600 transition-all">
+                      className="h-7 px-3 text-[11px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-foreground transition-all">
                       <IconPlus className="mr-1 size-3" /> Add Return
                     </Button>
                   )}
@@ -1146,14 +1146,14 @@ export function AddPurchaseDialog({
               </div>
             )}
 
-            <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 border-t border-border/40 mt-3 sm:space-x-0">
+            <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 border-t border-black/20 mt-3 sm:space-x-0">
               <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
                 className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                 {isReadOnly ? "Close" : "Cancel"}
               </Button>
               {!isReadOnly && (
                 <>
-                  {/* Save & Print button — only for new records */}
+                  {/* Save & Print button â€” only for new records */}
                   {!initialData && (
                     <Button
                       type="button"
@@ -1214,7 +1214,7 @@ export function AddPurchaseDialog({
   )
 }
 
-// ─── PurchaseDetailCard — mobile & tablet card layout ────────────────────────
+// â”€â”€â”€ PurchaseDetailCard â€” mobile & tablet card layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PurchaseDetailCard = React.memo(({
   detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
@@ -1247,10 +1247,10 @@ const PurchaseDetailCard = React.memo(({
   const total = Math.round(netWeight * (Number(detail.price) || 0))
 
   return (
-    <div className="rounded-md border border-border/60 bg-white overflow-hidden">
+    <div className="rounded-md border border-black/20 bg-white overflow-hidden">
 
       {/* Card header: item number + delete */}
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-border/40">
+      <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-black/20">
         <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">
           Item #{index + 1}
         </span>
@@ -1266,15 +1266,15 @@ const PurchaseDetailCard = React.memo(({
       </div>
 
       {/* Tobacco item selector & Image */}
-      <div className="flex flex-col border-b border-border/30">
-        <div className="flex flex-col items-center justify-center px-3 pt-4 pb-3 border-b border-border/10">
+      <div className="flex flex-col border-b border-black/20">
+        <div className="flex flex-col items-center justify-center px-3 pt-4 pb-3 border-b border-black/20">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-2 text-center">Item Image</Label>
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (
                 <button
                   type="button"
-                  className="w-32 h-32 bg-white rounded-md border border-border/60 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                  className="w-32 h-32 bg-white rounded-md border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -1289,12 +1289,12 @@ const PurchaseDetailCard = React.memo(({
                   )}
                 </button>
               ) : (
-                <button type="button" disabled={isReadOnly} className="w-32 h-32 bg-slate-50/50 rounded-md border border-dashed border-border/60 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
+                <button type="button" disabled={isReadOnly} className="w-32 h-32 bg-slate-50/50 rounded-md border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
                   <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
                 </button>
               )}
             </PopoverTrigger>
-            <PopoverContent className="w-52 p-1 border-border/50 z-100" align="center" sideOffset={8}>
+            <PopoverContent className="w-52 p-1 border-black/20 z-100" align="center" sideOffset={8}>
               <div className="flex flex-col">
                 {detail.picture && (
                   <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
@@ -1361,13 +1361,13 @@ const PurchaseDetailCard = React.memo(({
                   onFocus={() => { setSearch(""); setOpen(true) }}
                   onClick={() => { setSearch(""); setOpen(true) }}
                   disabled={isReadOnly}
-                  className="h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+                  className="h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
                 />
                 <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
               </div>
             </PopoverAnchor>
             <PopoverContent
-              className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
+              className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
               align="start"
               sideOffset={4}
               onMouseDown={(e) => e.preventDefault()}
@@ -1414,11 +1414,11 @@ const PurchaseDetailCard = React.memo(({
       </div>
 
       {/* Weight row: G.Weight | Remork | Sack */}
-      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-border/30">
+      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-black/20">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
           <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-md font-bold bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
             value={detail.gross_weight ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1426,17 +1426,17 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
           <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
             value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 divide-x divide-border/30 border-b border-border/30 bg-slate-50/30">
+      <div className="grid grid-cols-1 divide-x divide-border/30 border-b border-black/20 bg-slate-50/30">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
           <Input type="number" step="0.01"
-            className="h-8 text-[13px] rounded-md bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2"
+            className="h-8 text-[13px] rounded-md bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
             value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1449,11 +1449,11 @@ const PurchaseDetailCard = React.memo(({
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
           <div className="relative">
             <Input type="number"
-              className="h-8 text-[13px] rounded-md font-bold bg-transparent border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 px-2 pr-5"
+              className="h-8 text-[13px] rounded-md font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2 pr-5"
               value={detail.price ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">áŸ›</span>
           </div>
         </div>
         <div className="px-3 py-2.5 space-y-0.5 bg-primary/2">
@@ -1463,7 +1463,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-3 py-2.5 space-y-0.5 bg-emerald-50/40">
           <Label className="text-[10px] font-bold text-emerald-700/60 uppercase tracking-wider">Total</Label>
           <p className="text-[13px] font-black text-emerald-700 tabular-nums">
-            ៛{total.toLocaleString()}
+            áŸ›{total.toLocaleString()}
           </p>
         </div>
       </div>
@@ -1474,7 +1474,7 @@ const PurchaseDetailCard = React.memo(({
 
 PurchaseDetailCard.displayName = "PurchaseDetailCard"
 
-// ─── PurchaseDetailDesktopCard — desktop spacious horizontal card layout ───
+// â”€â”€â”€ PurchaseDetailDesktopCard â€” desktop spacious horizontal card layout â”€â”€â”€
 
 const PurchaseDetailDesktopCard = React.memo(({
   detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
@@ -1509,12 +1509,12 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative bg-white border border-border/85 hover:border-primary/45 hover:-translate-y-0.5 rounded-md transition-all duration-300 p-3.5 mt-3.5",
-      "focus-within:border-primary/30",
+      "relative bg-white border border-black/20 hover:border-black/60 hover:-translate-y-0.5 rounded-md transition-all duration-300 p-3.5 mt-3.5",
+      "focus-within:border-black/40",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/10"
     )}>
       {/* Top bar: Item Index and Delete Action */}
-      <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-border/35 mb-2">
+      <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-black/20 mb-2">
         <span className="text-[11.5px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md uppercase tracking-wider">
           Item #{index + 1}
         </span>
@@ -1536,7 +1536,7 @@ const PurchaseDetailDesktopCard = React.memo(({
         {/* Left Side: Enlarged Image upload / preview box (w-[189px] h-[189px] for perfect 1:1 alignment) */}
         <div className="shrink-0">
           {detail.picture ? (
-            <div className="w-47.25 h-47.25 bg-white rounded-md border border-border/80 overflow-hidden group/img relative flex items-center justify-center">
+            <div className="w-47.25 h-47.25 bg-white rounded-md border border-black/20 overflow-hidden group/img relative flex items-center justify-center">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
@@ -1571,7 +1571,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               )}
             </div>
           ) : (
-            <label className="w-47.25 h-47.25 bg-slate-50/50 rounded-md border border-dashed border-border/80 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative">
+            <label className="w-47.25 h-47.25 bg-slate-50/50 rounded-md border border-dashed border-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative">
               <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
               {!isReadOnly && (
                 <input
@@ -1616,13 +1616,13 @@ const PurchaseDetailDesktopCard = React.memo(({
                       onFocus={() => { setSearch(""); setOpen(true) }}
                       onClick={() => { setSearch(""); setOpen(true) }}
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-md bg-white border border-border/80 focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
+                      className="h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
                     />
                     <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                   </div>
                 </PopoverAnchor>
                 <PopoverContent
-                  className="w-96 p-0 border-border/50 z-100"
+                  className="w-96 p-0 border-black/20 z-100"
                   align="start"
                   sideOffset={4}
                   onMouseDown={(e) => e.preventDefault()}
@@ -1674,7 +1674,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Gross Weight (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.gross_weight ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1682,7 +1682,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Remork (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1690,7 +1690,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Sack Weight (Kg)</Label>
               <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5"
+                className="h-8 text-[13px] rounded-md font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1703,11 +1703,11 @@ const PurchaseDetailDesktopCard = React.memo(({
               <Label className="text-sm">Price/Kg</Label>
               <div className="relative">
                 <Input type="number"
-                  className="h-8 text-[13px] rounded-md font-bold bg-white border border-border/80  focus-visible:ring-1 focus-visible:ring-primary/30 px-2.5 pr-7"
+                  className="h-8 text-[13px] rounded-md font-bold bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5 pr-7"
                   value={detail.price ?? ""} disabled={isReadOnly}
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">៛</span>
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">áŸ›</span>
               </div>
             </div>
 
@@ -1724,7 +1724,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Total Amount</Label>
               <div className="h-8 bg-emerald-50/50 border border-emerald-100 rounded-md px-3 flex items-center justify-between">
-                <span className="text-[12px] font-bold text-emerald-700/50">៛</span>
+                <span className="text-[12px] font-bold text-emerald-700/50">áŸ›</span>
                 <span className="text-[15px] font-black text-emerald-700 tabular-nums">
                   {total.toLocaleString()}
                 </span>
