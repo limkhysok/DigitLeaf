@@ -47,8 +47,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: IconClipboardList,
     },
     {
-      title: t.sidebar.tobaccoRepayment,
-      url: "/tobacco-repayment",
+      title: t.sidebar.tobaccoReturn,
+      url: "/tobacco-return",
       icon: IconCash,
     },
   ], [t])

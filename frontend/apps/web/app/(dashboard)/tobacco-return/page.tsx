@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
-import { apiClient, TobaccoRepaymentItem } from "@/lib/api-client"
+import { apiClient, TobaccoReturnItem } from "@/lib/api-client"
 import { toast } from "sonner"
 import { IconCash, IconLoader2 } from "@tabler/icons-react"
 import {
@@ -22,13 +22,13 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 
-export default function TobaccoRepaymentPage() {
+export default function TobaccoReturnPage() {
   const [mounted, setMounted] = React.useState(false)
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t, language } = useLanguage()
 
-  const [records, setRecords] = React.useState<TobaccoRepaymentItem[]>([])
+  const [records, setRecords] = React.useState<TobaccoReturnItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [selectedYear, setSelectedYear] = React.useState("2026")
   const [availableYears, setAvailableYears] = React.useState<string[]>(["2026", "2025", "2024"])
@@ -62,12 +62,12 @@ export default function TobaccoRepaymentPage() {
       if (!active) return
       setIsLoading(true)
 
-      apiClient.getTobaccoRepayments(tokens.access_token, selectedYear)
+      apiClient.getTobaccoReturns(tokens.access_token, selectedYear)
         .then((data) => {
           if (active) setRecords(data)
         })
         .catch((err) => {
-          toast.error((err as Error).message || "Failed to fetch tobacco repayments")
+          toast.error((err as Error).message || "Failed to fetch tobacco returns")
         })
         .finally(() => {
           if (active) setIsLoading(false)
@@ -79,7 +79,7 @@ export default function TobaccoRepaymentPage() {
 
   if (!mounted) return null
 
-  const pageTitle = t.sidebar?.tobaccoRepayment || "Tobacco Repayment"
+  const pageTitle = t.sidebar?.tobaccoReturn || "Tobacco Return"
 
   return (
     <div className="flex flex-col gap-4">
@@ -90,7 +90,7 @@ export default function TobaccoRepaymentPage() {
             {pageTitle}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-full">
-            Manage and track tobacco repayment records.
+            Manage and track tobacco return records.
           </p>
         </div>
         <div className="flex items-center">
@@ -121,9 +121,9 @@ export default function TobaccoRepaymentPage() {
             <IconCash className="h-10 w-10 text-[#009640] stroke-[1.5]" />
           </div>
           <div className="flex flex-col items-center text-center px-4">
-            <h3 className="text-xl font-medium text-gray-900">No Repayment Records</h3>
+            <h3 className="text-xl font-medium text-gray-900">No Return Records</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              There are no tobacco repayment records for {selectedYear} currently.
+              There are no tobacco return records for {selectedYear} currently.
             </p>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function TobaccoRepaymentPage() {
                   <TableHead>Tobacco Type</TableHead>
                   <TableHead className="text-center">Year</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Total Repaid</TableHead>
+                  <TableHead className="text-right">Total Returned</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                 </TableRow>
               </TableHeader>
@@ -164,7 +164,7 @@ export default function TobaccoRepaymentPage() {
                       {rec.qty !== null && rec.qty !== undefined ? `${rec.qty.toLocaleString()} kg` : "—"}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {rec.total_repaid !== null && rec.total_repaid !== undefined ? `${rec.total_repaid.toLocaleString()} kg` : "—"}
+                      {rec.total_returned !== null && rec.total_returned !== undefined ? `${rec.total_returned.toLocaleString()} kg` : "—"}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {rec.price !== null && rec.price !== undefined ? `៛${rec.price.toLocaleString()}` : "—"}

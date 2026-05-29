@@ -2,19 +2,19 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
 from .models.t_contract import TContract
-from .models.t_contract_repay import TContractRepay
-from .schemas import TContractRepayCreate
+from .models.t_contract_return import TContractReturn
+from .schemas import TContractReturnCreate
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 
-async def get_tobacco_repayments(db: AsyncSession, note: str = "2025") -> List[dict]:
+async def get_tobacco_returns(db: AsyncSession, note: str = "2025") -> List[dict]:
     # Subquery for total_qty_repay
     repay_subq = (
         select(
-            TContractRepay.con_id,
-            func.sum(TContractRepay.qty_repay).label("total_qty_repay")
+            TContractReturn.con_id,
+            func.sum(TContractReturn.qty_repay).label("total_qty_repay")
         )
-        .group_by(TContractRepay.con_id)
+        .group_by(TContractReturn.con_id)
     ).subquery()
 
     stmt = (
@@ -27,7 +27,7 @@ async def get_tobacco_repayments(db: AsyncSession, note: str = "2025") -> List[d
             Tobacco.t_name,
             Tobacco.t_name_kh,
             TContract.qty,
-            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_repaid"),
+            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_returned"),
             TContract.price,
             TContract.note
         )
@@ -54,7 +54,7 @@ async def get_tobacco_repayments(db: AsyncSession, note: str = "2025") -> List[d
             "t_name": row.t_name,
             "t_name_kh": row.t_name_kh,
             "qty": row.qty,
-            "total_repaid": row.total_repaid,
+            "total_returned": row.total_returned,
             "price": row.price,
             "note": row.note,
         }
@@ -71,7 +71,7 @@ async def get_available_years(db: AsyncSession) -> List[str]:
     result = await db.execute(stmt)
     return [row for row in result.scalars().all() if str(row).isdigit()]
 
-async def create_repayment(db: AsyncSession, obj_in: TContractRepayCreate) -> TContractRepay:
+async def create_return(db: AsyncSession, obj_in: TContractReturnCreate) -> TContractReturn:
     stmt = select(TContract.con_id).where(TContract.con_num == obj_in.con_num)
     result = await db.execute(stmt)
     con_id = result.scalar_first()
@@ -79,7 +79,7 @@ async def create_repayment(db: AsyncSession, obj_in: TContractRepayCreate) -> TC
     if not con_id:
         raise ValueError(f"Contract number {obj_in.con_num} not found")
         
-    db_obj = TContractRepay(
+    db_obj = TContractReturn(
         con_id=con_id,
         tobac_type=obj_in.tobac_type,
         qty_repay=obj_in.qty_repay
@@ -96,10 +96,10 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
     
     repay_subq = (
         select(
-            TContractRepay.con_id,
-            func.sum(TContractRepay.qty_repay).label("total_qty_repay")
+            TContractReturn.con_id,
+            func.sum(TContractReturn.qty_repay).label("total_qty_repay")
         )
-        .group_by(TContractRepay.con_id)
+        .group_by(TContractReturn.con_id)
     ).subquery()
 
     stmt = (
@@ -107,7 +107,7 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
             TContract,
             Tobacco.t_name,
             Tobacco.t_name_kh,
-            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_repaid")
+            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_returned")
         )
         .where(TContract.contractor == mf.name)
         .outerjoin(Tobacco, TContract.tobac_type == Tobacco.t_id)
@@ -121,7 +121,7 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
             **row.TContract.model_dump(),
             "t_name": row.t_name,
             "t_name_kh": row.t_name_kh,
-            "total_repaid": row.total_repaid
+            "total_returned": row.total_returned
         }
         for row in rows
     ]

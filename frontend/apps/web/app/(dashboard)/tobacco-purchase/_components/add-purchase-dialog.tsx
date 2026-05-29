@@ -12,7 +12,7 @@ import {
   TobaccoPurchase,
   TobaccoPurchaseCreate,
   TobaccoPurchaseDetail,
-  TobaccoRepaymentCreate,
+  TobaccoReturnCreate,
 } from "@/lib/api-client"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -27,7 +27,7 @@ import {
   IconPrinter,
 } from "@tabler/icons-react"
 import { printInvoice } from "./invoice-print"
-import { RepaymentDetailCard, RepaymentDetailDesktopCard, type RepaymentItemType } from "./repayment-cards"
+import { ReturnDetailCard, ReturnDetailDesktopCard, type ReturnItemType } from "./return-cards"
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -274,7 +274,7 @@ export function AddPurchaseDialog({
   const [tpCode, setTpCode] = React.useState(`${format(new Date(), "yyyyMMdd")}-TEMP`)
 
   const [details, setDetails] = React.useState<(Partial<TobaccoPurchaseDetail> & { tempId: string })[]>([])
-  const [repayments, setRepayments] = React.useState<RepaymentItemType[]>([])
+  const [returns, setReturns] = React.useState<ReturnItemType[]>([])
 
   const initialized = React.useRef(false)
 
@@ -314,7 +314,7 @@ export function AddPurchaseDialog({
     setTpCode(`${format(new Date(), "yyyyMMdd")}-TEMP`)
 
     setDetails([{ tempId: "initial-0", tobacco_name: undefined, gross_weight: 0, price: 0 }])
-    setRepayments([])
+    setReturns([])
   }, [ovens])
 
   const populateForm = React.useCallback(async (data: TobaccoPurchase) => {
@@ -333,7 +333,7 @@ export function AddPurchaseDialog({
     setRate(data.rate.toString())
     setTpCode(data.invoice_num || "")
     setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: crypto.randomUUID() })) || [])
-    setRepayments(data.repayments?.map((r: Partial<TobaccoRepaymentCreate>) => ({ ...r, tempId: crypto.randomUUID() })) || [])
+    setReturns(data.returns?.map((r: Partial<TobaccoReturnCreate>) => ({ ...r, tempId: crypto.randomUUID() })) || [])
 
     const b = purchasers.find(p => p.p_id === data.buyer)
     if (b) setBuyerSearch(`${b.p_name} | ${b.p_name_kh || ""}`)
@@ -406,16 +406,16 @@ export function AddPurchaseDialog({
     })
   }, [])
 
-  const handleAddRepayment = React.useCallback(() => {
-    setRepayments(prev => [...prev, { tempId: crypto.randomUUID(), con_id: undefined, tobac_type: undefined, qty_repay: '' as unknown as number }])
+  const handleAddReturn = React.useCallback(() => {
+    setReturns(prev => [...prev, { tempId: crypto.randomUUID(), con_id: undefined, tobac_type: undefined, qty_repay: '' as unknown as number }])
   }, [])
 
-  const handleRemoveRepayment = React.useCallback((index: number) => {
-    setRepayments(prev => prev.filter((_, i) => i !== index))
+  const handleRemoveReturn = React.useCallback((index: number) => {
+    setReturns(prev => prev.filter((_, i) => i !== index))
   }, [])
 
-  const handleRepaymentChange = React.useCallback((index: number, field: string, val: string | number) => {
-    setRepayments(prev => {
+  const handleReturnChange = React.useCallback((index: number, field: string, val: string | number) => {
+    setReturns(prev => {
       const newReps = [...prev]
       const item = newReps[index]
       if (item) newReps[index] = { ...item, [field]: val }
@@ -459,14 +459,14 @@ export function AddPurchaseDialog({
         sack_in_kg: Number(d.sack_in_kg) || 0,
         picture: d.picture || null,
       })) as TobaccoPurchaseDetail[],
-      repayments: repayments.length > 0 ? repayments.map(r => ({
+      returns: returns.length > 0 ? returns.map(r => ({
         con_id: Number(r.con_id),
         con_num: r.con_num || "",
         tobac_type: Number(r.tobac_type),
         qty_repay: Number(r.qty_repay) || 0
       })) : undefined
     }
-  }, [buyer, vendor, v_addr, region, tpDate, tpNote, oven, rate, details, repayments])
+  }, [buyer, vendor, v_addr, region, tpDate, tpNote, oven, rate, details, returns])
 
   const handlePostSavePrint = React.useCallback(async (savedRecord: TobaccoPurchase | null, shouldPrint: boolean) => {
     if ((shouldPrint || printAfterSave) && savedRecord) {
@@ -925,9 +925,9 @@ export function AddPurchaseDialog({
                     className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 ">
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
                     className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 text-emerald-600 border-emerald-600/30">
-                    <IconPlus className="mr-2 size-4" /> Repay
+                    <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
               )}
@@ -990,9 +990,9 @@ export function AddPurchaseDialog({
                     className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60">
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
                     className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 text-emerald-600 border-emerald-600/30">
-                    <IconPlus className="mr-2 size-4" /> Repay
+                    <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
               )}
@@ -1080,9 +1080,9 @@ export function AddPurchaseDialog({
                           className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95">
                           <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
                         </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
                           className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
-                          <IconPlus className="mr-1.5 size-3.5" /> Repay
+                          <IconPlus className="mr-1.5 size-3.5" /> Return
                         </Button>
                       </div>
                     )}
@@ -1095,51 +1095,51 @@ export function AddPurchaseDialog({
             </div>
 
             {/* ════════════════════════════════════════════════════════════════════
-              REPAYMENT ITEMS
+              RETURN ITEMS
             ════════════════════════════════════════════════════════════════════ */}
-            {repayments.length > 0 && (
+            {returns.length > 0 && (
               <div className="space-y-3 mt-6 border-t border-emerald-200/50 pt-4 px-2">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl" role="img" aria-label="leaf">🌱</span>
-                    <h3 className="text-[13px] font-bold text-emerald-800 uppercase tracking-wider">Tobacco Repayments</h3>
+                    <h3 className="text-[13px] font-bold text-emerald-800 uppercase tracking-wider">Tobacco Returns</h3>
                   </div>
                   {!isReadOnly && (
-                    <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
                       className="h-7 px-3 text-[11px] font-bold rounded-md bg-white hover:bg-emerald-50 border-emerald-200 text-emerald-600 transition-all">
-                      <IconPlus className="mr-1 size-3" /> Add Repayment
+                      <IconPlus className="mr-1 size-3" /> Add Return
                     </Button>
                   )}
                 </div>
 
                 {/* Mobile & Tablet View */}
                 <div className="lg:hidden space-y-3">
-                  {repayments.map((repay, idx) => (
-                    <RepaymentDetailCard
-                      key={repay.tempId}
-                      repay={repay}
+                  {returns.map((item, idx) => (
+                    <ReturnDetailCard
+                      key={item.tempId}
+                      item={item}
                       index={idx}
                       isReadOnly={isReadOnly}
                       tobaccoTypes={tobaccoTypes}
                       vendorContracts={vendorContracts}
-                      onRemove={handleRemoveRepayment}
-                      onChange={handleRepaymentChange}
+                      onRemove={handleRemoveReturn}
+                      onChange={handleReturnChange}
                     />
                   ))}
                 </div>
 
                 {/* Desktop View */}
                 <div className="hidden lg:block space-y-3">
-                  {repayments.map((repay, idx) => (
-                    <RepaymentDetailDesktopCard
-                      key={repay.tempId}
-                      repay={repay}
+                  {returns.map((item, idx) => (
+                    <ReturnDetailDesktopCard
+                      key={item.tempId}
+                      item={item}
                       index={idx}
                       isReadOnly={isReadOnly}
                       tobaccoTypes={tobaccoTypes}
                       vendorContracts={vendorContracts}
-                      onRemove={handleRemoveRepayment}
-                      onChange={handleRepaymentChange}
+                      onRemove={handleRemoveReturn}
+                      onChange={handleReturnChange}
                     />
                   ))}
                 </div>

@@ -64,7 +64,7 @@ class PurchaseDetail(PurchaseDetailBase):
     class Config:
         from_attributes = True
 
-class PurchaseRepaymentCreate(BaseModel):
+class PurchaseReturnCreate(BaseModel):
     con_id: int
     tobac_type: int
     qty_repay: float
@@ -85,7 +85,7 @@ class PurchaseBase(BaseModel):
 
 class PurchaseCreate(PurchaseBase):
     details: List[PurchaseDetailCreate] = []
-    repayments: Optional[List[PurchaseRepaymentCreate]] = None
+    returns: Optional[List[PurchaseReturnCreate]] = None
 
 class PurchaseUpdate(BaseModel):
     buyer: Optional[int] = None
@@ -98,7 +98,7 @@ class PurchaseUpdate(BaseModel):
     oven: Optional[int] = None
     rate: Optional[int] = None
     details: Optional[List[PurchaseDetailCreate]] = None
-    repayments: Optional[List[PurchaseRepaymentCreate]] = None
+    returns: Optional[List[PurchaseReturnCreate]] = None
 
 class Purchase(PurchaseBase):
     tp_id: int

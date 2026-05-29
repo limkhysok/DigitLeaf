@@ -1,6 +1,6 @@
 import asyncio
 from app.db.session import async_session_maker
-from app.domains.tobacco_repayment.crud import get_vendor_contracts
+from app.domains.tobacco_return.crud import get_vendor_contracts
 
 async def main():
     async with async_session_maker() as session:
