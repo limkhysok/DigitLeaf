@@ -556,10 +556,10 @@ export function AddPurchaseDialog({
 
           <form onSubmit={handleSubmit} className={cn("space-y-5", isReadOnly && "[&_input:disabled]:bg-white [&_input:disabled]:opacity-100 [&_input:disabled]:text-foreground [&_input:disabled]:border-black/20 [&_input:disabled]:cursor-default")}>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              FORM FIELDS â€” shared across all breakpoints
-              grid: cols-1 (mobile) â†’ cols-2 (tablet) â†’ cols-4 (desktop)
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                FORM FIELDS — shared across all breakpoints
+                grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="bg-white p-4 lg:p-6 rounded-md border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5">
 
@@ -840,7 +840,7 @@ export function AddPurchaseDialog({
                       disabled={isReadOnly}
                       className="h-8 text-[13px] rounded-md font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                     />
-                    <div className="absolute rounded-md right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">áŸ›</div>
+                    <div className="absolute rounded-md right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                   </div>
                 </div>
 
@@ -884,10 +884,10 @@ export function AddPurchaseDialog({
               </div>
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              MOBILE ITEMS â€” (< 768px / below md)
-              Card-per-row, full-width stacked
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                MOBILE ITEMS — (< 768px / below md)
+                Card-per-row, full-width stacked
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="md:hidden space-y-3">
               {details.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-black/20 bg-slate-50/50">
@@ -942,17 +942,17 @@ export function AddPurchaseDialog({
                   <div className="text-right">
                     <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
                     <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                      áŸ›{Math.round(grandTotal).toLocaleString()}
+                      ៛{Math.round(grandTotal).toLocaleString()}
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              TABLET ITEMS â€” (768px â€“ 1023px / md â†’ lg)
-              2-column card grid
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                TABLET ITEMS — (768px – 1023px / md → lg)
+                2-column card grid
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="hidden md:block lg:hidden space-y-3">
               {details.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-black/20 bg-slate-50/50">
@@ -1007,17 +1007,17 @@ export function AddPurchaseDialog({
                   <div className="text-right">
                     <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
                     <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                      áŸ›{Math.round(grandTotal).toLocaleString()}
+                      ៛{Math.round(grandTotal).toLocaleString()}
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              DESKTOP ITEMS â€” (â‰¥ 1024px / lg and above)
-              Full 9-column table, horizontally scrollable
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                DESKTOP ITEMS — (≥ 1024px / lg and above)
+                Full 9-column table, horizontally scrollable
+              ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="hidden lg:block">
               {details.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-md border border-dashed border-black/20 bg-slate-50/50 mt-4">
@@ -1051,22 +1051,21 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-slate-100/80 backdrop-blur-sm border border-black/20 rounded-md p-3 flex flex-row justify-between items-center mt-4">
-                    <span className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">
+                  <div className="bg-green-600 border border-green-600 rounded-md p-3 flex flex-row justify-between items-center mt-4">
+                    <span className="text-base font-bold text-white">
                       Total Summary ({details.length} Items)
                     </span>
                     <div className="flex items-center gap-6">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-[11px] font-bold uppercase text-slate-400">Total Weight:</span>
-                        <span className="text-[18px] font-black text-primary tabular-nums">
-                          {totalNetWeight.toFixed(2)} <span className="text-[11px] font-bold text-primary/50">Kg</span>
+                        <span className="text-base font-bold text-white">Total Net Weight</span>
+                        <span className="text-base font-bold text-white">
+                          {totalNetWeight.toFixed(2)} <span className="text-base font-bold text-white">Kg</span>
                         </span>
                       </div>
-                      <div className="h-6 w-px bg-border" />
                       <div className="flex items-baseline gap-2">
-                        <span className="text-[11px] font-bold uppercase text-emerald-700/50">Grand Total:</span>
-                        <span className="text-[20px] font-black text-emerald-700 tabular-nums">
-                          áŸ›{Math.round(grandTotal).toLocaleString()}
+                        <span className="text-base font-bold text-white">Grand Total</span>
+                        <span className="text-base font-bold text-white">
+                          {Math.round(grandTotal).toLocaleString()} ៛
                         </span>
                       </div>
                     </div>
@@ -1094,22 +1093,13 @@ export function AddPurchaseDialog({
               )}
             </div>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-              RETURN ITEMS
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {returns.length > 0 && (
               <div className="space-y-3 mt-6 border-t border-black/20 pt-4 px-2">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl" role="img" aria-label="leaf">ðŸŒ±</span>
-                    <h3 className="text-[13px] font-bold text-foreground uppercase tracking-wider">Tobacco Returns</h3>
+                    <span className="text-xl" role="img" aria-label="leaf">🌱</span>
+                    <h3 className="text-base font-semibold">Tobacco Returns</h3>
                   </div>
-                  {!isReadOnly && (
-                    <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                      className="h-7 px-3 text-[11px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-foreground transition-all">
-                      <IconPlus className="mr-1 size-3" /> Add Return
-                    </Button>
-                  )}
                 </div>
 
                 {/* Mobile & Tablet View */}
@@ -1153,7 +1143,7 @@ export function AddPurchaseDialog({
               </Button>
               {!isReadOnly && (
                 <>
-                  {/* Save & Print button â€” only for new records */}
+                  {/* Save & Print button — only for new records */}
                   {!initialData && (
                     <Button
                       type="button"
@@ -1162,7 +1152,7 @@ export function AddPurchaseDialog({
                         setPrintAfterSave(true)
                         handleSubmit(e, true)
                       }}
-                      className="h-8.5 px-4 bg-white border border-[#009640]/40 hover:bg-[#f0fdf4] text-[#009640] rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
+                      className="h-8.5 px-4 bg-white border border-black/20 text-foreground rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
                     >
                       {isSubmitting && printAfterSave ? (
                         <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1214,7 +1204,7 @@ export function AddPurchaseDialog({
   )
 }
 
-// â”€â”€â”€ PurchaseDetailCard â€” mobile & tablet card layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ━━━ PurchaseDetailCard — mobile & tablet card layout ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const PurchaseDetailCard = React.memo(({
   detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
@@ -1453,7 +1443,7 @@ const PurchaseDetailCard = React.memo(({
               value={detail.price ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">áŸ›</span>
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
           </div>
         </div>
         <div className="px-3 py-2.5 space-y-0.5 bg-primary/2">
@@ -1463,7 +1453,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-3 py-2.5 space-y-0.5 bg-emerald-50/40">
           <Label className="text-[10px] font-bold text-emerald-700/60 uppercase tracking-wider">Total</Label>
           <p className="text-[13px] font-black text-emerald-700 tabular-nums">
-            áŸ›{total.toLocaleString()}
+            ៛{total.toLocaleString()}
           </p>
         </div>
       </div>
@@ -1474,7 +1464,7 @@ const PurchaseDetailCard = React.memo(({
 
 PurchaseDetailCard.displayName = "PurchaseDetailCard"
 
-// â”€â”€â”€ PurchaseDetailDesktopCard â€” desktop spacious horizontal card layout â”€â”€â”€
+// ━━━ PurchaseDetailDesktopCard — desktop spacious horizontal card layout ━━━
 
 const PurchaseDetailDesktopCard = React.memo(({
   detail, index, isReadOnly, tobaccoTypes, onRemove, onChange, onPreviewImage
@@ -1707,7 +1697,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                   value={detail.price ?? ""} disabled={isReadOnly}
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">áŸ›</span>
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">៛</span>
               </div>
             </div>
 
@@ -1724,7 +1714,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Total Amount</Label>
               <div className="h-8 bg-emerald-50/50 border border-emerald-100 rounded-md px-3 flex items-center justify-between">
-                <span className="text-[12px] font-bold text-emerald-700/50">áŸ›</span>
+                <span className="text-[12px] font-bold text-emerald-700/50">៛</span>
                 <span className="text-[15px] font-black text-emerald-700 tabular-nums">
                   {total.toLocaleString()}
                 </span>
