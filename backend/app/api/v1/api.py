@@ -4,6 +4,7 @@ from app.domains.audit import api as audit_log
 from app.domains.users import api as users
 from app.domains.sack_registration import api as sack_registration
 from app.domains.tobacco_purchase import api as tobacco_purchase
+from app.domains.tobacco_repayment import api as tobacco_repayment
 from app.core.route_logger import AuditLogRoute
 
 api_router = APIRouter(route_class=AuditLogRoute)
@@ -12,3 +13,4 @@ api_router.include_router(audit_log.router, prefix="/audit-logs", tags=["audit-l
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(sack_registration.router, prefix="/sack-registrations", tags=["sack-registrations"])
 api_router.include_router(tobacco_purchase.router, prefix="/tobacco-purchases", tags=["tobacco-purchases"])
+api_router.include_router(tobacco_repayment.router, prefix="/tobacco-repayments", tags=["tobacco-repayments"])
