@@ -6,4 +6,6 @@ class TContractRepay(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     con_id: Optional[int] = Field(default=None)
+    tp_id: Optional[int] = Field(default=None)
+    tobac_type: Optional[int] = Field(default=None)
     qty_repay: Optional[float] = Field(default=None)

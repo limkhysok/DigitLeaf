@@ -12,6 +12,7 @@ import {
   TobaccoPurchase,
   TobaccoPurchaseCreate,
   TobaccoPurchaseDetail,
+  TobaccoRepaymentCreate,
 } from "@/lib/api-client"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -26,6 +27,7 @@ import {
   IconPrinter,
 } from "@tabler/icons-react"
 import { printInvoice } from "./invoice-print"
+import { RepaymentDetailCard, RepaymentDetailDesktopCard, type RepaymentItemType } from "./repayment-cards"
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -269,10 +271,10 @@ export function AddPurchaseDialog({
   const [tpNote, setTpNote] = React.useState("")
   const [oven, setOven] = React.useState<string>("")
   const [rate, setRate] = React.useState("4000")
-  const [tpCode, setTpCode] = React.useState("")
-
+  const [tpCode, setTpCode] = React.useState(`${format(new Date(), "yyyyMMdd")}-TEMP`)
 
   const [details, setDetails] = React.useState<(Partial<TobaccoPurchaseDetail> & { tempId: string })[]>([])
+  const [repayments, setRepayments] = React.useState<RepaymentItemType[]>([])
 
   const initialized = React.useRef(false)
 
@@ -312,6 +314,7 @@ export function AddPurchaseDialog({
     setTpCode(`${format(new Date(), "yyyyMMdd")}-TEMP`)
 
     setDetails([{ tempId: "initial-0", tobacco_name: undefined, gross_weight: 0, price: 0 }])
+    setRepayments([])
   }, [ovens])
 
   const populateForm = React.useCallback(async (data: TobaccoPurchase) => {
@@ -330,6 +333,7 @@ export function AddPurchaseDialog({
     setRate(data.rate.toString())
     setTpCode(data.invoice_num || "")
     setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: crypto.randomUUID() })) || [])
+    setRepayments(data.repayments?.map((r: Partial<TobaccoRepaymentCreate>) => ({ ...r, tempId: crypto.randomUUID() })) || [])
 
     const b = purchasers.find(p => p.p_id === data.buyer)
     if (b) setBuyerSearch(`${b.p_name} | ${b.p_name_kh || ""}`)
@@ -379,6 +383,12 @@ export function AddPurchaseDialog({
     return () => { active = false }
   }, [vendor, accessToken, isReadOnly, initialData])
 
+  const { data: vendorContracts = [] } = useQuery({
+    queryKey: ["vendorContracts", vendor],
+    queryFn: () => apiClient.getVendorContracts(accessToken, Number(vendor)),
+    enabled: !!vendor && !Number.isNaN(Number(vendor)),
+  })
+
   const handleAddDetail = React.useCallback(() => {
     setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0 }])
   }, [])
@@ -393,6 +403,23 @@ export function AddPurchaseDialog({
       const item = newDetails[index]
       if (item) newDetails[index] = { ...item, [field]: val }
       return newDetails
+    })
+  }, [])
+
+  const handleAddRepayment = React.useCallback(() => {
+    setRepayments(prev => [...prev, { tempId: crypto.randomUUID(), con_id: undefined, tobac_type: undefined, qty_repay: '' as unknown as number }])
+  }, [])
+
+  const handleRemoveRepayment = React.useCallback((index: number) => {
+    setRepayments(prev => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const handleRepaymentChange = React.useCallback((index: number, field: string, val: string | number) => {
+    setRepayments(prev => {
+      const newReps = [...prev]
+      const item = newReps[index]
+      if (item) newReps[index] = { ...item, [field]: val }
+      return newReps
     })
   }, [])
 
@@ -414,6 +441,46 @@ export function AddPurchaseDialog({
     setVendorSearch("")
   }, [purchasers, regions])
 
+  const buildPayload = React.useCallback((): TobaccoPurchaseCreate => {
+    return {
+      buyer: buyer ? Number.parseInt(buyer, 10) : undefined,
+      vendor_id: vendor ?? undefined,
+      v_addr,
+      region: region ? Number.parseInt(region, 10) : undefined,
+      tp_date: tpDate,
+      tp_note: tpNote,
+      oven: oven ? Number.parseInt(oven, 10) : undefined,
+      rate: Number.parseInt(rate, 10),
+      details: details.map(d => ({
+        tobacco_name: d.tobacco_name as number,
+        gross_weight: Number(d.gross_weight) || 0,
+        price: Number(d.price) || 0,
+        remork_in_kg: Number(d.remork_in_kg) || 0,
+        sack_in_kg: Number(d.sack_in_kg) || 0,
+        picture: d.picture || null,
+      })) as TobaccoPurchaseDetail[],
+      repayments: repayments.length > 0 ? repayments.map(r => ({
+        con_id: Number(r.con_id),
+        con_num: r.con_num || "",
+        tobac_type: Number(r.tobac_type),
+        qty_repay: Number(r.qty_repay) || 0
+      })) : undefined
+    }
+  }, [buyer, vendor, v_addr, region, tpDate, tpNote, oven, rate, details, repayments])
+
+  const handlePostSavePrint = React.useCallback(async (savedRecord: TobaccoPurchase | null, shouldPrint: boolean) => {
+    if ((shouldPrint || printAfterSave) && savedRecord) {
+      if (onPrint) {
+        const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id))
+        setVendorSearch(selectedV ? `${selectedV.name} | ${selectedV.mf_code}` : "")
+        onPrint(savedRecord)
+      } else {
+        const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id))
+        await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes, mfCode: selectedV?.mf_code })
+      }
+    }
+  }, [printAfterSave, onPrint, vendors, purchasers, regions, ovens, tobaccoTypes])
+
   const handleSubmit = async (e: React.BaseSyntheticEvent, shouldPrint = false) => {
     e.preventDefault()
     if (!validatePurchaseForm(buyer, vendor, region, rate, details)) {
@@ -422,24 +489,7 @@ export function AddPurchaseDialog({
 
     setIsSubmitting(true)
     try {
-      const payload: TobaccoPurchaseCreate = {
-        buyer: buyer ? Number.parseInt(buyer, 10) : undefined,
-        vendor_id: vendor ?? undefined,
-        v_addr,
-        region: region ? Number.parseInt(region, 10) : undefined,
-        tp_date: tpDate,
-        tp_note: tpNote,
-        oven: oven ? Number.parseInt(oven, 10) : undefined,
-        rate: Number.parseInt(rate, 10),
-        details: details.map(d => ({
-          tobacco_name: d.tobacco_name as number,
-          gross_weight: Number(d.gross_weight) || 0,
-          price: Number(d.price) || 0,
-          remork_in_kg: Number(d.remork_in_kg) || 0,
-          sack_in_kg: Number(d.sack_in_kg) || 0,
-          picture: d.picture || null,
-        })) as TobaccoPurchaseDetail[]
-      }
+      const payload = buildPayload()
       let savedRecord: TobaccoPurchase | null = null
       if (initialData?.tp_id) {
         savedRecord = await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
@@ -450,18 +500,7 @@ export function AddPurchaseDialog({
       }
       onSuccess()
       onClose()
-      // Trigger print after dialog closes if requested
-      if ((shouldPrint || printAfterSave) && savedRecord) {
-        if (onPrint) {
-          // Try to recover vendorSearch if they canceled out
-          const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id));
-          setVendorSearch(selectedV ? `${selectedV.name} | ${selectedV.mf_code}` : "");
-          onPrint(savedRecord)
-        } else {
-          const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id));
-          await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes, mfCode: selectedV?.mf_code })
-        }
-      }
+      await handlePostSavePrint(savedRecord, shouldPrint)
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -881,10 +920,16 @@ export function AddPurchaseDialog({
                 </div>
               )}
               {!isReadOnly && details.length > 0 && (
-                <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                  className="w-full h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 ">
-                  <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-                </Button>
+                <div className="flex gap-2 w-full">
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 ">
+                    <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 text-emerald-600 border-emerald-600/30">
+                    <IconPlus className="mr-2 size-4" /> Repay
+                  </Button>
+                </div>
               )}
               {details.length > 0 && (
                 <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
@@ -940,10 +985,16 @@ export function AddPurchaseDialog({
                 </div>
               )}
               {!isReadOnly && details.length > 0 && (
-                <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                  className="w-full h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60">
-                  <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-                </Button>
+                <div className="flex gap-2 w-full">
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60">
+                    <IconPlus className="mr-2 size-4 text-primary" /> Add Row
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 text-emerald-600 border-emerald-600/30">
+                    <IconPlus className="mr-2 size-4" /> Repay
+                  </Button>
+                </div>
               )}
               {details.length > 0 && (
                 <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-border/60">
@@ -1024,10 +1075,16 @@ export function AddPurchaseDialog({
                   {/* Add Row Button Row */}
                   <div className="flex flex-row justify-between items-center mt-3 px-1">
                     {!isReadOnly && (
-                      <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                        className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95">
-                        <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95">
+                          <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-border/60 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
+                          <IconPlus className="mr-1.5 size-3.5" /> Repay
+                        </Button>
+                      </div>
                     )}
                     <span className="text-[11px] font-medium text-muted-foreground italic">
                       Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
@@ -1036,6 +1093,58 @@ export function AddPurchaseDialog({
                 </div>
               )}
             </div>
+
+            {/* ════════════════════════════════════════════════════════════════════
+              REPAYMENT ITEMS
+            ════════════════════════════════════════════════════════════════════ */}
+            {repayments.length > 0 && (
+              <div className="space-y-3 mt-6 border-t border-emerald-200/50 pt-4 px-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl" role="img" aria-label="leaf">🌱</span>
+                    <h3 className="text-[13px] font-bold text-emerald-800 uppercase tracking-wider">Tobacco Repayments</h3>
+                  </div>
+                  {!isReadOnly && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddRepayment}
+                      className="h-7 px-3 text-[11px] font-bold rounded-md bg-white hover:bg-emerald-50 border-emerald-200 text-emerald-600 transition-all">
+                      <IconPlus className="mr-1 size-3" /> Add Repayment
+                    </Button>
+                  )}
+                </div>
+
+                {/* Mobile & Tablet View */}
+                <div className="lg:hidden space-y-3">
+                  {repayments.map((repay, idx) => (
+                    <RepaymentDetailCard
+                      key={repay.tempId}
+                      repay={repay}
+                      index={idx}
+                      isReadOnly={isReadOnly}
+                      tobaccoTypes={tobaccoTypes}
+                      vendorContracts={vendorContracts}
+                      onRemove={handleRemoveRepayment}
+                      onChange={handleRepaymentChange}
+                    />
+                  ))}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden lg:block space-y-3">
+                  {repayments.map((repay, idx) => (
+                    <RepaymentDetailDesktopCard
+                      key={repay.tempId}
+                      repay={repay}
+                      index={idx}
+                      isReadOnly={isReadOnly}
+                      tobaccoTypes={tobaccoTypes}
+                      vendorContracts={vendorContracts}
+                      onRemove={handleRemoveRepayment}
+                      onChange={handleRepaymentChange}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 border-t border-border/40 mt-3 sm:space-x-0">
               <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
@@ -1243,8 +1352,8 @@ const PurchaseDetailCard = React.memo(({
               setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
             }
           }}>
-            <PopoverTrigger asChild>
-              <div className="relative">
+            <PopoverAnchor asChild>
+              <div className="relative group">
                 <Input
                   placeholder="Search item..."
                   value={search}
@@ -1254,14 +1363,19 @@ const PurchaseDetailCard = React.memo(({
                   disabled={isReadOnly}
                   className="h-8 text-[13px] rounded-md bg-white border border-border/60  focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
                 />
-                <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none" />
+                <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
               </div>
-            </PopoverTrigger>
+            </PopoverAnchor>
             <PopoverContent
               className="w-(--radix-popover-trigger-width) p-0 border-border/50 z-100"
               align="start"
               sideOffset={4}
+              onMouseDown={(e) => e.preventDefault()}
               onOpenAutoFocus={(e) => e.preventDefault()}
+              onInteractOutside={(e) => {
+                const target = e.target as HTMLElement
+                if (target.closest('.group')) e.preventDefault()
+              }}
             >
               <div className="max-h-62.5 overflow-y-auto p-1">
                 {tobaccoTypes.length === 0 ? (
@@ -1493,8 +1607,8 @@ const PurchaseDetailDesktopCard = React.memo(({
                   setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
                 }
               }}>
-                <PopoverTrigger asChild>
-                  <div className="relative">
+                <PopoverAnchor asChild>
+                  <div className="relative group">
                     <Input
                       placeholder="Search and select tobacco item..."
                       value={search}
@@ -1504,14 +1618,19 @@ const PurchaseDetailDesktopCard = React.memo(({
                       disabled={isReadOnly}
                       className="h-8 text-[13px] rounded-md bg-white border border-border/80 focus-visible:ring-1 focus-visible:ring-primary/30 pr-10"
                     />
-                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none" />
+                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                   </div>
-                </PopoverTrigger>
+                </PopoverAnchor>
                 <PopoverContent
                   className="w-96 p-0 border-border/50 z-100"
                   align="start"
                   sideOffset={4}
+                  onMouseDown={(e) => e.preventDefault()}
                   onOpenAutoFocus={(e) => e.preventDefault()}
+                  onInteractOutside={(e) => {
+                    const target = e.target as HTMLElement
+                    if (target.closest('.group')) e.preventDefault()
+                  }}
                 >
                   <div className="max-h-62.5 overflow-y-auto p-1">
                     {tobaccoTypes.length === 0 ? (

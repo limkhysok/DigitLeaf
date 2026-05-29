@@ -73,15 +73,15 @@ export default function FarmerContrastPage() {
     )
   }, [records, searchInput])
 
-  // --- Sorted records ---
-  const getSortVal = (rec: FarmerContrastItem) => {
-    if (sortBy === "sapling") return rec.tobac_num ?? 0
-    if (sortBy === "purchased") return rec.purchased_weight ?? 0
-    return rec.expected_yield ?? 0
-  }
-
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
+
+    const getSortVal = (rec: FarmerContrastItem) => {
+      if (sortBy === "sapling") return rec.tobac_num ?? 0
+      if (sortBy === "purchased") return rec.purchased_weight ?? 0
+      return rec.expected_yield ?? 0
+    }
+
     return [...filteredRecords].sort((a, b) => {
       const valA = getSortVal(a)
       const valB = getSortVal(b)

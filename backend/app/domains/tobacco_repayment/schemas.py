@@ -13,3 +13,8 @@ class TobaccoRepaymentItem(BaseModel):
     total_repaid: Optional[float]
     price: Optional[float]
     note: Optional[str]
+
+class TContractRepayCreate(BaseModel):
+    con_num: str
+    tobac_type: int
+    qty_repay: float

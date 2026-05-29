@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
 from .models.t_contract import TContract
 from .models.t_contract_repay import TContractRepay
+from .schemas import TContractRepayCreate
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 
@@ -69,3 +70,58 @@ async def get_available_years(db: AsyncSession) -> List[str]:
     )
     result = await db.execute(stmt)
     return [row for row in result.scalars().all() if str(row).isdigit()]
+
+async def create_repayment(db: AsyncSession, obj_in: TContractRepayCreate) -> TContractRepay:
+    stmt = select(TContract.con_id).where(TContract.con_num == obj_in.con_num)
+    result = await db.execute(stmt)
+    con_id = result.scalar_first()
+    
+    if not con_id:
+        raise ValueError(f"Contract number {obj_in.con_num} not found")
+        
+    db_obj = TContractRepay(
+        con_id=con_id,
+        tobac_type=obj_in.tobac_type,
+        qty_repay=obj_in.qty_repay
+    )
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj
+
+async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
+    mf = await db.get(MemberFarmer, vendor_id)
+    if not mf:
+        return []
+    
+    repay_subq = (
+        select(
+            TContractRepay.con_id,
+            func.sum(TContractRepay.qty_repay).label("total_qty_repay")
+        )
+        .group_by(TContractRepay.con_id)
+    ).subquery()
+
+    stmt = (
+        select(
+            TContract,
+            Tobacco.t_name,
+            Tobacco.t_name_kh,
+            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_repaid")
+        )
+        .where(TContract.contractor == mf.name)
+        .outerjoin(Tobacco, TContract.tobac_type == Tobacco.t_id)
+        .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)
+    )
+    result = await db.execute(stmt)
+    rows = result.all()
+    
+    return [
+        {
+            **row.TContract.model_dump(),
+            "t_name": row.t_name,
+            "t_name_kh": row.t_name_kh,
+            "total_repaid": row.total_repaid
+        }
+        for row in rows
+    ]
