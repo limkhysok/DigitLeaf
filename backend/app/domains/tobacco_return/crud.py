@@ -1,62 +1,74 @@
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select, col, func
+from sqlmodel import select, func
+from sqlalchemy import text
 from .models.t_contract import TContract
 from .models.t_contract_return import TContractReturn
 from .schemas import TContractReturnCreate
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 
-async def get_tobacco_returns(db: AsyncSession, note: str = "2025") -> List[dict]:
-    # Subquery for total_qty_repay
-    repay_subq = (
-        select(
-            TContractReturn.con_id,
-            func.sum(TContractReturn.qty_repay).label("total_qty_repay")
-        )
-        .group_by(TContractReturn.con_id)
-    ).subquery()
-
-    stmt = (
-        select(
-            TContract.con_id,
-            TContract.con_num,
-            TContract.contractor,
-            TContract.represent,
-            TContract.tobac_type,
-            Tobacco.t_name,
-            Tobacco.t_name_kh,
-            TContract.qty,
-            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_returned"),
-            TContract.price,
-            TContract.note
-        )
-        .select_from(MemberFarmer)
-        .join(
-            TContract,
-            (col(MemberFarmer.name).collate("utf8mb3_unicode_ci") == TContract.contractor) &
-            (TContract.note == note)
-        )
-        .join(Tobacco, TContract.tobac_type == Tobacco.t_id)
-        .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)
-        .distinct()
-    )
-    result = await db.execute(stmt)
+async def get_tobacco_returns(db: AsyncSession) -> List[dict]:
+    query = text("""
+        SELECT 
+            c.con_id AS id, 
+            c.con_num AS contract_number,  
+            c.contractor AS contract_contractor_name, 
+            r.represent_name AS representative, 
+            mcy.year AS contract_year,
+            mcy.mf_con_id,
+            t.tobacco AS tobacco_type,
+            SUM(c.qty) AS Quantity,
+            IFNULL(repay.total_qty_repay, 0) AS total_repaid
+        FROM 
+            kaic_db.t_contract AS c
+        INNER JOIN 
+            kaic_db.member_farmer AS m ON c.f_id = m.mf_id
+        INNER JOIN 
+            kaic_db.mf_con_year AS mcy ON mcy.mf_id = c.f_id 
+            AND mcy.year = YEAR(c.date) 
+        LEFT JOIN 
+            kaic_db.represent AS r ON c.represent = r.represent_id 
+        LEFT JOIN 
+            kaic_db.con_tobacco AS t ON c.tobac_type = t.t_id
+        LEFT JOIN (
+            SELECT con_id, SUM(qty_repay) AS total_qty_repay
+            FROM kaic_db.t_contract_repay
+            GROUP BY con_id
+        ) AS repay ON c.con_id = repay.con_id
+        WHERE 
+            mcy.year = YEAR(CURDATE()) - 1
+        GROUP BY 
+            c.con_id,
+            c.con_num,
+            c.represent,
+            r.represent_name, 
+            c.f_id, 
+            m.mf_id, 
+            mcy.mf_id, 
+            mcy.mf_con_id,
+            c.contractor, 
+            m.name, 
+            mcy.year, 
+            c.tobac_type,
+            t.tobacco
+        ORDER BY 
+            c.f_id DESC;
+    """)
+    result = await db.execute(query)
     rows = result.fetchall()
     
     return [
         {
-            "con_id": row.con_id,
-            "con_num": row.con_num,
-            "contractor": row.contractor,
-            "represent": row.represent,
-            "tobac_type": row.tobac_type,
-            "t_name": row.t_name,
-            "t_name_kh": row.t_name_kh,
-            "qty": row.qty,
-            "total_returned": row.total_returned,
-            "price": row.price,
-            "note": row.note,
+            "id": row.id,
+            "contract_number": row.contract_number,
+            "contract_contractor_name": row.contract_contractor_name,
+            "representative": row.representative,
+            "contract_year": row.contract_year,
+            "mf_con_id": row.mf_con_id,
+            "tobacco_type": row.tobacco_type,
+            "Quantity": float(row.Quantity) if row.Quantity is not None else 0.0,
+            "total_repaid": float(row.total_repaid) if row.total_repaid is not None else 0.0,
         }
         for row in rows
     ]

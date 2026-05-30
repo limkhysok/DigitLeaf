@@ -1,5 +1,5 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, Query, Security
+from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
@@ -13,12 +13,11 @@ router = APIRouter()
 async def read_tobacco_returns(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    note: str = Query(default="2026", description="Filter by note/year")
 ):
     """
     Retrieve tobacco return records based on a specific note (e.g. '2026').
     """
-    return await get_tobacco_returns(session, note=note)
+    return await get_tobacco_returns(session)
 
 @router.get("/years", response_model=List[str])
 async def read_available_years(

@@ -2,17 +2,15 @@ from pydantic import BaseModel
 from typing import Optional
 
 class TobaccoReturnItem(BaseModel):
-    con_id: Optional[int]
-    con_num: Optional[str]
-    contractor: Optional[str]
-    represent: Optional[str]
-    tobac_type: Optional[int]
-    t_name: Optional[str]
-    t_name_kh: Optional[str]
-    qty: Optional[float]
-    total_returned: Optional[float]
-    price: Optional[float]
-    note: Optional[str]
+    id: Optional[int]
+    contract_number: Optional[str]
+    contract_contractor_name: Optional[str]
+    representative: Optional[str]
+    contract_year: Optional[int]
+    mf_con_id: Optional[int]
+    tobacco_type: Optional[str]
+    Quantity: Optional[float]
+    total_repaid: Optional[float]
 
 class TContractReturnCreate(BaseModel):
     con_num: str

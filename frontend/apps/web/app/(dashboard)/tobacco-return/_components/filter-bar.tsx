@@ -28,15 +28,14 @@ export type ColumnVisibility = {
   year: boolean
   qty: boolean
   totalReturned: boolean
-  price: boolean
 }
 
 interface FilterBarProps {
   className?: string
   searchInput: string
   setSearchInput: (v: string) => void
-  sortBy: "qty" | "total_returned" | "price" | null
-  setSortBy: (v: "qty" | "total_returned" | "price" | null) => void
+  sortBy: "Quantity" | "total_repaid" | null
+  setSortBy: (v: "Quantity" | "total_repaid" | null) => void
   sortOrder: "asc" | "desc"
   setSortOrder: (v: "asc" | "desc") => void
   selectedYear: string
@@ -57,7 +56,6 @@ export function FilterBar({
 }: Readonly<FilterBarProps>) {
   const [yearOpen, setYearOpen] = React.useState(false)
   const [qtyOpen, setQtyOpen] = React.useState(false)
-  const [priceOpen, setPriceOpen] = React.useState(false)
 
   const isFiltered = sortBy !== null || searchInput !== ""
 
@@ -125,12 +123,6 @@ export function FilterBar({
             >
               Total Returned
             </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={columnVisibility.price}
-              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, price: v })}
-            >
-              Price
-            </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -168,7 +160,7 @@ export function FilterBar({
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
               Qty
-              {sortBy === "qty" && (
+              {sortBy === "Quantity" && (
                 <>
                   <Separator orientation="vertical" className="mx-2 h-4" />
                   <Badge variant="secondary" className="rounded-sm px-1 font-normal flex items-center gap-1">
@@ -183,52 +175,21 @@ export function FilterBar({
           </PopoverTrigger>
           <PopoverContent className="w-36 p-1" align="start">
             <button
-              onClick={() => { setSortBy("qty"); setSortOrder("desc"); setQtyOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "qty" && sortOrder === "desc" && "bg-accent font-medium")}
+              onClick={() => { setSortBy("Quantity"); setSortOrder("desc"); setQtyOpen(false) }}
+              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "Quantity" && sortOrder === "desc" && "bg-accent font-medium")}
             >
               <IconSortDescending className="size-3.5" /> Largest first
             </button>
             <button
-              onClick={() => { setSortBy("qty"); setSortOrder("asc"); setQtyOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "qty" && sortOrder === "asc" && "bg-accent font-medium")}
+              onClick={() => { setSortBy("Quantity"); setSortOrder("asc"); setQtyOpen(false) }}
+              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "Quantity" && sortOrder === "asc" && "bg-accent font-medium")}
             >
               <IconSortAscending className="size-3.5" /> Smallest first
             </button>
           </PopoverContent>
         </Popover>
 
-        {/* Sort by Price */}
-        <Popover open={priceOpen} onOpenChange={setPriceOpen}>
-          <PopoverTrigger asChild>
-            <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
-              <IconCirclePlus className="mr-2 h-4 w-4" />
-              Price
-              {sortBy === "price" && (
-                <>
-                  <Separator orientation="vertical" className="mx-2 h-4" />
-                  <Badge variant="secondary" className="rounded-sm px-1 font-normal flex items-center gap-1">
-                    {sortOrder === "asc" ? <IconSortAscending className="size-3" /> : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? "Asc" : "Desc"}
-                  </Badge>
-                </>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-36 p-1" align="start">
-            <button
-              onClick={() => { setSortBy("price"); setSortOrder("desc"); setPriceOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "price" && sortOrder === "desc" && "bg-accent font-medium")}
-            >
-              <IconSortDescending className="size-3.5" /> Largest first
-            </button>
-            <button
-              onClick={() => { setSortBy("price"); setSortOrder("asc"); setPriceOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "price" && sortOrder === "asc" && "bg-accent font-medium")}
-            >
-              <IconSortAscending className="size-3.5" /> Smallest first
-            </button>
-          </PopoverContent>
-        </Popover>
+
 
         {/* Reset */}
         {isFiltered && (

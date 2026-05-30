@@ -21,16 +21,17 @@ export default function TobaccoReturnPage() {
   const [mounted, setMounted] = React.useState(false)
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
-  const { t, language } = useLanguage()
+  const { t } = useLanguage()
 
   const [records, setRecords] = React.useState<TobaccoReturnItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
-  const [selectedYear, setSelectedYear] = React.useState("2026")
-  const [availableYears, setAvailableYears] = React.useState<string[]>(["2026", "2025", "2024"])
+  const currentYearMinusOne = (new Date().getFullYear() - 1).toString()
+  const [selectedYear, setSelectedYear] = React.useState(currentYearMinusOne)
+  const [availableYears, setAvailableYears] = React.useState<string[]>([currentYearMinusOne, (new Date().getFullYear()).toString(), (new Date().getFullYear() - 2).toString()])
 
   // --- Filter State ---
   const [searchInput, setSearchInput] = React.useState("")
-  const [sortBy, setSortBy] = React.useState<"qty" | "total_returned" | "price" | null>(null)
+  const [sortBy, setSortBy] = React.useState<"Quantity" | "total_repaid" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [columnVisibility, setColumnVisibility] = React.useState({
     contractNo: true,
@@ -40,7 +41,6 @@ export default function TobaccoReturnPage() {
     year: true,
     qty: true,
     totalReturned: true,
-    price: true,
   })
 
   React.useEffect(() => {
@@ -56,7 +56,7 @@ export default function TobaccoReturnPage() {
       .then((years) => {
         if (active && years.length > 0) {
           setAvailableYears(years)
-          setSelectedYear(prev => years.includes(prev) ? prev : (years[0] || "2026"))
+          setSelectedYear(prev => years.includes(prev) ? prev : (years[0] || (new Date().getFullYear() - 1).toString()))
         }
       })
       .catch(console.error)
@@ -93,9 +93,9 @@ export default function TobaccoReturnPage() {
     if (!term) return records
     return records.filter(
       (rec) =>
-        (rec.con_num?.toLowerCase().includes(term)) ||
-        (rec.contractor?.toLowerCase().includes(term)) ||
-        (rec.represent?.toLowerCase().includes(term))
+        (rec.contract_number?.toLowerCase().includes(term)) ||
+        (rec.contract_contractor_name?.toLowerCase().includes(term)) ||
+        (rec.representative?.toLowerCase().includes(term))
     )
   }, [records, searchInput])
 
@@ -103,9 +103,8 @@ export default function TobaccoReturnPage() {
     if (!sortBy) return filteredRecords
 
     const getSortVal = (rec: TobaccoReturnItem) => {
-      if (sortBy === "qty") return rec.qty ?? 0
-      if (sortBy === "total_returned") return rec.total_returned ?? 0
-      if (sortBy === "price") return rec.price ?? 0
+      if (sortBy === "Quantity") return rec.Quantity ?? 0
+      if (sortBy === "total_repaid") return rec.total_repaid ?? 0
       return 0
     }
 
@@ -129,7 +128,7 @@ export default function TobaccoReturnPage() {
             {pageTitle}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-full">
-            Manage and track tobacco return records.
+            Manage and track tobacco return records from {currentYearMinusOne} - {new Date().getFullYear()}.
           </p>
         </div>
       </div>
@@ -201,39 +200,33 @@ export default function TobaccoReturnPage() {
                   {columnVisibility.year && <TableHead className="text-center">Year</TableHead>}
                   {columnVisibility.qty && <TableHead className="text-right">Qty</TableHead>}
                   {columnVisibility.totalReturned && <TableHead className="text-right">Total Returned</TableHead>}
-                  {columnVisibility.price && <TableHead className="text-right">Price</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-white text-black">
                 {sortedRecords.map((rec, idx) => (
-                  <TableRow key={`${rec.con_id}-${idx}`}>
+                  <TableRow key={`${rec.id}-${idx}`}>
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    {columnVisibility.contractNo && <TableCell className="font-medium">{rec.con_num || "—"}</TableCell>}
-                    {columnVisibility.contractor && <TableCell>{rec.contractor || "—"}</TableCell>}
-                    {columnVisibility.representative && <TableCell>{rec.represent || "—"}</TableCell>}
+                    {columnVisibility.contractNo && <TableCell className="font-medium">{rec.contract_number || "—"}</TableCell>}
+                    {columnVisibility.contractor && <TableCell>{rec.contract_contractor_name || "—"}</TableCell>}
+                    {columnVisibility.representative && <TableCell>{rec.representative || "—"}</TableCell>}
                     {columnVisibility.tobaccoType && (
                       <TableCell>
-                        {language === "kh" ? (rec.t_name_kh || rec.t_name || "—") : (rec.t_name || "—")}
+                        {rec.tobacco_type || "—"}
                       </TableCell>
                     )}
                     {columnVisibility.year && (
                       <TableCell className="text-center font-medium">
-                        {rec.note || "—"}
+                        {rec.contract_year || "—"}
                       </TableCell>
                     )}
                     {columnVisibility.qty && (
                       <TableCell className="text-right">
-                        {rec.qty !== null && rec.qty !== undefined ? `${rec.qty.toLocaleString()} kg` : "—"}
+                        {rec.Quantity !== null && rec.Quantity !== undefined ? `${rec.Quantity.toLocaleString()} kg` : "—"}
                       </TableCell>
                     )}
                     {columnVisibility.totalReturned && (
                       <TableCell className="text-right font-medium">
-                        {rec.total_returned !== null && rec.total_returned !== undefined ? `${rec.total_returned.toLocaleString()} kg` : "—"}
-                      </TableCell>
-                    )}
-                    {columnVisibility.price && (
-                      <TableCell className="text-right font-medium">
-                        {rec.price !== null && rec.price !== undefined ? `៛${rec.price.toLocaleString()}` : "—"}
+                        {rec.total_repaid !== null && rec.total_repaid !== undefined ? `${rec.total_repaid.toLocaleString()} kg` : "—"}
                       </TableCell>
                     )}
                   </TableRow>

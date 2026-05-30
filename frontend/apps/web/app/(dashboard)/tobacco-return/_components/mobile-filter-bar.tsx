@@ -12,8 +12,8 @@ interface MobileFilterBarProps {
   className?: string
   searchInput: string
   setSearchInput: (v: string) => void
-  sortBy: "qty" | "total_returned" | "price" | null
-  setSortBy: (v: "qty" | "total_returned" | "price" | null) => void
+  sortBy: "Quantity" | "total_repaid" | null
+  setSortBy: (v: "Quantity" | "total_repaid" | null) => void
   sortOrder: "asc" | "desc"
   setSortOrder: (v: "asc" | "desc") => void
   selectedYear: string
@@ -91,10 +91,10 @@ export function MobileFilterBar({
               <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Qty</span>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
-                  onClick={() => { setSortBy("qty"); setSortOrder("asc") }}
+                  onClick={() => { setSortBy("Quantity"); setSortOrder("asc") }}
                   className={cn(
                     "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
-                    sortBy === "qty" && sortOrder === "asc"
+                    sortBy === "Quantity" && sortOrder === "asc"
                       ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
                       : "bg-muted/30 text-muted-foreground border-border"
                   )}
@@ -102,39 +102,10 @@ export function MobileFilterBar({
                   <IconSortAscending className="size-3.5" /> Smallest
                 </button>
                 <button
-                  onClick={() => { setSortBy("qty"); setSortOrder("desc") }}
+                  onClick={() => { setSortBy("Quantity"); setSortOrder("desc") }}
                   className={cn(
                     "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
-                    sortBy === "qty" && sortOrder === "desc"
-                      ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
-                      : "bg-muted/30 text-muted-foreground border-border"
-                  )}
-                >
-                  <IconSortDescending className="size-3.5" /> Largest
-                </button>
-              </div>
-            </div>
-
-            {/* Sort by Price */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Price</span>
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  onClick={() => { setSortBy("price"); setSortOrder("asc") }}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
-                    sortBy === "price" && sortOrder === "asc"
-                      ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
-                      : "bg-muted/30 text-muted-foreground border-border"
-                  )}
-                >
-                  <IconSortAscending className="size-3.5" /> Smallest
-                </button>
-                <button
-                  onClick={() => { setSortBy("price"); setSortOrder("desc") }}
-                  className={cn(
-                    "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
-                    sortBy === "price" && sortOrder === "desc"
+                    sortBy === "Quantity" && sortOrder === "desc"
                       ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
                       : "bg-muted/30 text-muted-foreground border-border"
                   )}
