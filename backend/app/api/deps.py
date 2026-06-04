@@ -1,0 +1,65 @@
+from typing import Annotated
+from fastapi import Depends, HTTPException, status, Security
+from fastapi.security import OAuth2PasswordBearer, SecurityScopes
+from jose import jwt, JWTError
+from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.config import settings
+from app.db.session import get_session
+from app.domains.users import crud as crud_user
+from app.domains.users.models import User
+from app.domains.auth.schemas import TokenPayload
+
+reusable_oauth2 = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/auth/login/access-token",
+    scopes={
+        "login_system": "Basic permission to access system endpoints",
+        "manage_users": "Can create, edit, and delete user accounts",
+        "view_audit_logs": "Can view system security audit logs",
+        "approve_leave": "Can approve or reject leave requests",
+        "admin": "Legacy god mode",
+        "user": "Legacy regular user",
+    }
+)
+
+TokenDep = Annotated[str, Depends(reusable_oauth2)]
+
+
+async def get_current_user(
+    security_scopes: SecurityScopes,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    token: TokenDep,
+) -> User:
+    if security_scopes.scopes:
+        authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
+    else:
+        authenticate_value = "Bearer"
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": authenticate_value},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        token_data = TokenPayload(**payload)
+        if token_data.sub is None:
+            raise credentials_exception
+    except (JWTError, ValidationError):
+        raise credentials_exception
+
+    user = await crud_user.get_user_by_username(session, token_data.sub)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if security_scopes.scopes and not set(security_scopes.scopes).issubset(token_data.scopes):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+            headers={"WWW-Authenticate": authenticate_value},
+        )
+
+    return user
+
+
+CurrentUser = Annotated[User, Security(get_current_user, scopes=["user"])]

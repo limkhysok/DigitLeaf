@@ -1,0 +1,43 @@
+from typing import Annotated, Optional
+from fastapi import APIRouter, Depends, HTTPException, Security
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_session
+from app.domains.users.models import User
+from app.api.deps import get_current_user
+from app.core.route_logger import AuditLogRoute
+from app.domains.farmers import crud
+from app.domains.farmers.schemas import RepresentPublic, MemberFarmerPublic
+
+router = APIRouter(route_class=AuditLogRoute)
+
+
+@router.get("/represents", response_model=list[RepresentPublic])
+async def list_represents(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    return await crud.get_represents(session=session)
+
+
+@router.get(
+    "/member-farmers",
+    response_model=list[MemberFarmerPublic],
+    responses={400: {"description": "No search parameter provided"}},
+)
+async def get_member_farmers(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    q: Optional[str] = None,
+    name: Optional[str] = None,
+    identity_card: Optional[str] = None,
+    represent_id: Optional[int] = None,
+    limit: int = 10,
+):
+    if q is not None:
+        return await crud.query_member_farmers(
+            session=session, query=q, represent_id=represent_id, limit=limit
+        )
+    if name or identity_card:
+        farmer = await crud.search_member_farmer(session=session, name=name, identity_card=identity_card)
+        return [farmer] if farmer else []
+    raise HTTPException(status_code=400, detail="Provide q, name, or identity_card")
