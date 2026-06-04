@@ -9,7 +9,7 @@ import {
   SackRegistrationItem,
 } from "@/lib/api-client"
 
-import { IconPlus } from "@tabler/icons-react"
+import { IconLoader2, IconPlus } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   ColumnFiltersState,
@@ -19,7 +19,6 @@ import {
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table"
 import { useReactTable } from "@/lib/table-utils"
@@ -33,49 +32,68 @@ import { ViewDialog } from "./_components/view-dialog"
 import { RegisterDialog } from "./_components/register-dialog"
 import { SackRegistrationCard } from "./_components/sack-registration-card"
 
-// ── NEW IMPORTS ──
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useQueryState, parseAsString } from "nuqs"
 import { useDebounce } from "use-debounce"
+import { useInView } from "react-intersection-observer"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-export default function SackRegistrationPage() {
+const PAGE_SIZE = 30
 
+export default function SackRegistrationPage() {
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t, localizeNumber, localizeDateString } = useLanguage()
   const queryClient = useQueryClient()
 
-  // ── Filters ───────────────────────────────────────────────────────────────
   const [view] = React.useState<"list" | "grid">("list")
   const [registerOpen, setRegisterOpen] = React.useState(false)
   const [viewTarget, setViewTarget] = React.useState<SackRegistrationItem | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
 
-  // ── Search & Nuqs ─────────────────────────────────────────────────────────
+  // ── Search (server-side via nuqs + debounce) ──
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
   const [debouncedSearch] = useDebounce(searchInput, 400)
 
-  // ── Data (React Query) ─────────────────────────────────────────────────────
+  // ── Represents lookup ──
   const { data: represents = [] } = useQuery({
     queryKey: ["represents"],
     queryFn: () => apiClient.getRepresents(tokens!.access_token),
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 
-  const { data: fetchResult, isLoading } = useQuery({
-    queryKey: ["sack-registrations"],
-    queryFn: () => {
-      const params = buildFetchParams(0, "", null, "all", null)
-      params.limit = 10000
+  // ── Infinite Query (server-side search, client-side status filter) ──
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["sack-registrations", debouncedSearch],
+    queryFn: ({ pageParam }) => {
+      const params = buildFetchParams(pageParam as number, debouncedSearch, null, "all", null, PAGE_SIZE)
       return apiClient.getSackRegistrations(tokens!.access_token, params)
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0)
+      return totalFetched < lastPage.total ? totalFetched : undefined
     },
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 
-  const records = fetchResult?.items ?? []
-  const total = fetchResult?.total ?? 0
+  const records = React.useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data])
+  const total = data?.pages[0]?.total ?? 0
+
+  // ── Infinite scroll sentinel ──
+  const { ref: sentinelRef, inView } = useInView({ rootMargin: "200px" })
+  React.useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const refetch = () => {
     queryClient.invalidateQueries({ queryKey: ["sack-registrations"] })
@@ -91,7 +109,7 @@ export default function SackRegistrationPage() {
     onDelete: (rec, index) => setDeleteTarget({ id: rec.id, no: index })
   })
 
-  // ── Table State ───────────────────────────────────────────────────────────
+  // ── Table State ──
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -105,25 +123,18 @@ export default function SackRegistrationPage() {
       columnVisibility,
       rowSelection,
       columnFilters,
-      globalFilter: debouncedSearch,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const search = String(filterValue).toLowerCase()
-      const represent = String(row.getValue("represent_name") || "").toLowerCase()
-      const farmer = String(row.getValue("member_farmer_name") || "").toLowerCase()
-      return represent.includes(search) || farmer.includes(search)
-    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: true,
   })
 
   const actionNode = (
@@ -133,13 +144,11 @@ export default function SackRegistrationPage() {
     </Button>
   )
 
-
-
   return (
     <div className="flex flex-col gap-4">
 
       {/* ════════════════════════════════════════════════════════════════════
-          HEADER — shared across all breakpoints
+          HEADER
       ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -150,10 +159,8 @@ export default function SackRegistrationPage() {
         </div>
       </div>
 
-
-
       {/* ════════════════════════════════════════════════════════════════════
-          LOADING / EMPTY STATES — shared
+          LOADING / EMPTY STATES
       ════════════════════════════════════════════════════════════════════ */}
       {isLoading && (
         <div className="flex flex-col gap-4 mt-4">
@@ -181,12 +188,12 @@ export default function SackRegistrationPage() {
       )}
 
       {/* ════════════════════════════════════════════════════════════════════
-          TOOLBAR — shared across all breakpoints
+          TOOLBAR
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
-        <DataTableToolbar 
-          table={table} 
-          action={actionNode} 
+        <DataTableToolbar
+          table={table}
+          action={actionNode}
           searchInput={searchInput}
           setSearchInput={setSearchInput}
         />
@@ -252,6 +259,14 @@ export default function SackRegistrationPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Infinite scroll sentinel ── */}
+      <div ref={sentinelRef} className="h-1" />
+      {isFetchingNextPage && (
+        <div className="flex items-center justify-center py-4">
+          <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
 

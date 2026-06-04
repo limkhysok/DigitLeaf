@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 
 class RepresentPublic(BaseModel):
@@ -86,3 +86,8 @@ class FarmerContrastPublic(BaseModel):
     purchased_weight: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FarmerContrastListResponse(BaseModel):
+    items: List[FarmerContrastPublic]
+    total: int

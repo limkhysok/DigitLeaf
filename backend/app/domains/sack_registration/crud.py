@@ -271,7 +271,12 @@ async def delete(session: AsyncSession, record: SackRegistration) -> None:
     await session.commit()
 
 
-async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[dict]:
+async def get_farmer_contrasts(
+    session: AsyncSession,
+    year: int = 2026,
+    skip: int = 0,
+    limit: int = 30,
+) -> dict:
     current_year = year
     start_date = date(current_year, 1, 1)
     end_date = date(current_year, 12, 31)
@@ -286,7 +291,7 @@ async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[
         .group_by(TobaccoPurchase.vendor_id)
     ).subquery()
 
-    stmt = (
+    base_stmt = (
         select(
             col(MfConYear.mf_con_id),
             col(MfConYear.mf_id),
@@ -300,11 +305,18 @@ async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[
         .join(MemberFarmer, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
         .outerjoin(weight_subquery, col(MemberFarmer.mf_id) == weight_subquery.c.vendor_id)
         .where(col(MfConYear.year) == year)
-        .order_by(col(MfConYear.mf_con_id).desc())
     )
-    result = await session.execute(stmt)
+
+    count_result = await session.execute(
+        select(func.count()).select_from(base_stmt.subquery())
+    )
+    total = count_result.scalar() or 0
+
+    result = await session.execute(
+        base_stmt.order_by(col(MfConYear.mf_con_id).desc()).offset(skip).limit(limit)
+    )
     rows = result.all()
-    return [
+    items = [
         {
             "mf_con_id": r[0],
             "mf_id": r[1],
@@ -318,3 +330,4 @@ async def get_farmer_contrasts(session: AsyncSession, year: int = 2026) -> list[
         }
         for r in rows
     ]
+    return {"items": items, "total": total}

@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
@@ -19,17 +19,20 @@ from app.domains.sack_registration.schemas import (
     RepresentPublic,
     MemberFarmerPublic,
     FarmerContrastPublic,
+    FarmerContrastListResponse,
 )
 
 router = APIRouter(route_class=AuditLogRoute)
 
-@router.get("/farmer-contrast", response_model=list[FarmerContrastPublic])
+@router.get("/farmer-contrast", response_model=FarmerContrastListResponse)
 async def list_farmer_contrasts(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     year: int = 2026,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(30, ge=1, le=500),
 ):
-    return await crud.get_farmer_contrasts(session=session, year=year)
+    return await crud.get_farmer_contrasts(session=session, year=year, skip=skip, limit=limit)
 
 _NOT_FOUND = "Sack registration not found"
 _FARMER_NOT_FOUND = "Member farmer not found"

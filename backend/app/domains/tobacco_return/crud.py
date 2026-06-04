@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func
 from sqlalchemy import text
@@ -8,57 +8,78 @@ from .schemas import TContractReturnCreate
 from app.domains.sack_registration.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 
-async def get_tobacco_returns(db: AsyncSession) -> List[dict]:
-    query = text("""
-        SELECT 
-            c.con_id AS id, 
-            c.con_num AS contract_number,  
-            c.contractor AS contract_contractor_name, 
-            r.represent_name AS representative, 
+async def get_tobacco_returns(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 30,
+    year: Optional[int] = None,
+) -> dict:
+    year_expr = ":year_val" if year is not None else "YEAR(CURDATE()) - 1"
+    bind = {"skip": skip, "limit": limit}
+    if year is not None:
+        bind["year_val"] = year
+
+    count_query = text(f"""
+        SELECT COUNT(DISTINCT c.con_id)
+        FROM kaic_db.t_contract AS c
+        INNER JOIN kaic_db.member_farmer AS m ON c.f_id = m.mf_id
+        INNER JOIN kaic_db.mf_con_year AS mcy ON mcy.mf_id = c.f_id AND mcy.year = YEAR(c.date)
+        WHERE mcy.year = {year_expr}
+    """)
+    count_result = await db.execute(count_query, bind)
+    total = count_result.scalar() or 0
+
+    query = text(f"""
+        SELECT
+            c.con_id AS id,
+            c.con_num AS contract_number,
+            c.contractor AS contract_contractor_name,
+            r.represent_name AS representative,
             mcy.year AS contract_year,
             mcy.mf_con_id,
             t.tobacco AS tobacco_type,
             SUM(c.qty) AS Quantity,
             IFNULL(repay.total_qty_repay, 0) AS total_repaid
-        FROM 
+        FROM
             kaic_db.t_contract AS c
-        INNER JOIN 
+        INNER JOIN
             kaic_db.member_farmer AS m ON c.f_id = m.mf_id
-        INNER JOIN 
-            kaic_db.mf_con_year AS mcy ON mcy.mf_id = c.f_id 
-            AND mcy.year = YEAR(c.date) 
-        LEFT JOIN 
-            kaic_db.represent AS r ON c.represent = r.represent_id 
-        LEFT JOIN 
+        INNER JOIN
+            kaic_db.mf_con_year AS mcy ON mcy.mf_id = c.f_id
+            AND mcy.year = YEAR(c.date)
+        LEFT JOIN
+            kaic_db.represent AS r ON c.represent = r.represent_id
+        LEFT JOIN
             kaic_db.con_tobacco AS t ON c.tobac_type = t.t_id
         LEFT JOIN (
             SELECT con_id, SUM(qty_repay) AS total_qty_repay
             FROM kaic_db.t_contract_repay
             GROUP BY con_id
         ) AS repay ON c.con_id = repay.con_id
-        WHERE 
-            mcy.year = YEAR(CURDATE()) - 1
-        GROUP BY 
+        WHERE
+            mcy.year = {year_expr}
+        GROUP BY
             c.con_id,
             c.con_num,
             c.represent,
-            r.represent_name, 
-            c.f_id, 
-            m.mf_id, 
-            mcy.mf_id, 
+            r.represent_name,
+            c.f_id,
+            m.mf_id,
+            mcy.mf_id,
             mcy.mf_con_id,
-            c.contractor, 
-            m.name, 
-            mcy.year, 
+            c.contractor,
+            m.name,
+            mcy.year,
             c.tobac_type,
             t.tobacco
-        ORDER BY 
-            c.f_id DESC;
+        ORDER BY
+            c.f_id DESC
+        LIMIT :limit OFFSET :skip
     """)
-    result = await db.execute(query)
+    result = await db.execute(query, bind)
     rows = result.fetchall()
-    
-    return [
+
+    items = [
         {
             "id": row.id,
             "contract_number": row.contract_number,
@@ -72,6 +93,7 @@ async def get_tobacco_returns(db: AsyncSession) -> List[dict]:
         }
         for row in rows
     ]
+    return {"items": items, "total": total}
 
 async def get_available_years(db: AsyncSession) -> List[str]:
     stmt = (

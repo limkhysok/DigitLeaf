@@ -4,11 +4,7 @@ import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, FarmerContrastItem } from "@/lib/api-client"
-import { toast } from "sonner"
-import {
-  IconLoader2,
-  IconClipboardList,
-} from "@tabler/icons-react"
+import { IconLoader2, IconClipboardList } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   Table,
@@ -21,6 +17,10 @@ import {
 import { FarmerContrastCard } from "./_components/farmer-contrast-card"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInView } from "react-intersection-observer"
+
+const PAGE_SIZE = 30
 
 export default function FarmerContrastPage() {
   const [mounted, setMounted] = React.useState(false)
@@ -32,9 +32,6 @@ export default function FarmerContrastPage() {
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t } = useLanguage()
 
-  // --- State ---
-  const [records, setRecords] = React.useState<FarmerContrastItem[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
   const [searchInput, setSearchInput] = React.useState("")
   const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
@@ -47,45 +44,62 @@ export default function FarmerContrastPage() {
     year: true,
   })
 
-  // --- Fetch Data ---
-  React.useEffect(() => {
-    if (isAuthLoading || !tokens?.access_token) return
-    let active = true
-    queueMicrotask(() => {
-      if (!active) return
-      setIsLoading(true)
-      apiClient.getFarmerContrasts(tokens.access_token, selectedYear)
-        .then((data) => { if (active) setRecords(data) })
-        .catch((err) => toast.error((err as Error).message || "Failed to fetch farmer contrasts"))
-        .finally(() => { if (active) setIsLoading(false) })
-    })
-    return () => { active = false }
-  }, [isAuthLoading, tokens, selectedYear])
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["farmer-contrasts", selectedYear],
+    queryFn: ({ pageParam }) =>
+      apiClient.getFarmerContrasts(tokens!.access_token, {
+        year: selectedYear,
+        skip: pageParam as number,
+        limit: PAGE_SIZE,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0)
+      return totalFetched < lastPage.total ? totalFetched : undefined
+    },
+    enabled: !!tokens?.access_token && !isAuthLoading,
+  })
 
-  // --- Filtered records ---
+  const allRecords = React.useMemo(
+    () => data?.pages.flatMap((p) => p.items) ?? [],
+    [data]
+  )
+
+  // Sentinel for infinite scroll
+  const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
+  React.useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // Client-side search + sort on loaded records
   const filteredRecords = React.useMemo(() => {
     const term = searchInput.trim().toLowerCase()
-    if (!term) return records
-    return records.filter(
+    if (!term) return allRecords
+    return allRecords.filter(
       (rec) =>
         rec.name.toLowerCase().includes(term) ||
         rec.mf_code.toLowerCase().includes(term)
     )
-  }, [records, searchInput])
+  }, [allRecords, searchInput])
 
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
-
     const getSortVal = (rec: FarmerContrastItem) => {
       if (sortBy === "sapling") return rec.tobac_num ?? 0
       if (sortBy === "purchased") return rec.purchased_weight ?? 0
       return rec.expected_yield ?? 0
     }
-
     return [...filteredRecords].sort((a, b) => {
-      const valA = getSortVal(a)
-      const valB = getSortVal(b)
-      return sortOrder === "asc" ? valA - valB : valB - valA
+      const diff = getSortVal(a) - getSortVal(b)
+      return sortOrder === "asc" ? diff : -diff
     })
   }, [filteredRecords, sortBy, sortOrder])
 
@@ -183,57 +197,65 @@ export default function FarmerContrastPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden lg:block">
           <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">No.</TableHead>
-                    <TableHead>{t.farmerContrast.farmerName}</TableHead>
-                    {columnVisibility.code && <TableHead>ID Card</TableHead>}
-                    {columnVisibility.sapling && <TableHead>{t.farmerContrast.saplingKg}</TableHead>}
-                    {columnVisibility.expected && <TableHead>{t.farmerContrast.expectedYieldKg}</TableHead>}
-                    {columnVisibility.purchased && <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>}
-                    {columnVisibility.year && <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">No.</TableHead>
+                  <TableHead>{t.farmerContrast.farmerName}</TableHead>
+                  {columnVisibility.code && <TableHead>ID Card</TableHead>}
+                  {columnVisibility.sapling && <TableHead>{t.farmerContrast.saplingKg}</TableHead>}
+                  {columnVisibility.expected && <TableHead>{t.farmerContrast.expectedYieldKg}</TableHead>}
+                  {columnVisibility.purchased && <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>}
+                  {columnVisibility.year && <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedRecords.map((rec, idx) => (
+                  <TableRow key={rec.mf_con_id} className={cn("group/row", rec.purchased_weight != null && rec.expected_yield != null && rec.purchased_weight > rec.expected_yield && "bg-red-100 hover:bg-red-100")}>
+                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                    <TableCell className="font-semibold">{rec.name}</TableCell>
+                    {columnVisibility.code && <TableCell className="text-sm">{rec.mf_code}</TableCell>}
+                    {columnVisibility.sapling && (
+                      <TableCell className="text-sm">
+                        {rec.tobac_num !== undefined && rec.tobac_num !== null
+                          ? rec.tobac_num.toLocaleString()
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                    )}
+                    {columnVisibility.expected && (
+                      <TableCell className="text-sm">
+                        {rec.expected_yield !== undefined && rec.expected_yield !== null
+                          ? `${rec.expected_yield.toLocaleString()} kg`
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                    )}
+                    {columnVisibility.purchased && (
+                      <TableCell className="text-sm">
+                        {rec.purchased_weight !== undefined && rec.purchased_weight !== null
+                          ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                    )}
+                    {columnVisibility.year && (
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
+                          {rec.year}
+                        </span>
+                      </TableCell>
+                    )}
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedRecords.map((rec, idx) => (
-                    <TableRow key={rec.mf_con_id} className={cn("group/row", rec.purchased_weight != null && rec.expected_yield != null && rec.purchased_weight > rec.expected_yield && "bg-red-100 hover:bg-red-100")}>
-                      <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                      <TableCell className="font-semibold">{rec.name}</TableCell>
-                      {columnVisibility.code && <TableCell className="text-sm">{rec.mf_code}</TableCell>}
-                      {columnVisibility.sapling && (
-                        <TableCell className="text-sm">
-                          {rec.tobac_num !== undefined && rec.tobac_num !== null
-                            ? rec.tobac_num.toLocaleString()
-                            : <span className="text-muted-foreground/40">—</span>}
-                        </TableCell>
-                      )}
-                      {columnVisibility.expected && (
-                        <TableCell className="text-sm">
-                          {rec.expected_yield !== undefined && rec.expected_yield !== null
-                            ? `${rec.expected_yield.toLocaleString()} kg`
-                            : <span className="text-muted-foreground/40">—</span>}
-                        </TableCell>
-                      )}
-                      {columnVisibility.purchased && (
-                        <TableCell className="text-sm">
-                          {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                            ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
-                            : <span className="text-muted-foreground/40">—</span>}
-                        </TableCell>
-                      )}
-                      {columnVisibility.year && (
-                        <TableCell className="text-center">
-                          <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
-                            {rec.year}
-                          </span>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Infinite scroll sentinel ── */}
+      <div ref={sentinelRef} className="h-1" />
+      {isFetchingNextPage && (
+        <div className="flex items-center justify-center py-4">
+          <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
     </div>

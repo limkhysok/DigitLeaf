@@ -37,7 +37,7 @@ import { useDebounce } from "use-debounce"
 import { useInView } from "react-intersection-observer"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-const PAGE_SIZE = 50
+const PAGE_SIZE = 30
 
 type SortDir = "asc" | "desc" | null
 

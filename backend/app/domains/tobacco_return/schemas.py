@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 class TobaccoReturnItem(BaseModel):
     id: Optional[int]
@@ -11,6 +11,10 @@ class TobaccoReturnItem(BaseModel):
     tobacco_type: Optional[str]
     Quantity: Optional[float]
     total_repaid: Optional[float]
+
+class TobaccoReturnListResponse(BaseModel):
+    items: List[TobaccoReturnItem]
+    total: int
 
 class TContractReturnCreate(BaseModel):
     con_num: str

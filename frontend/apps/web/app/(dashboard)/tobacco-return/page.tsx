@@ -16,6 +16,10 @@ import {
 } from "@workspace/ui/components/table"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { useInView } from "react-intersection-observer"
+
+const PAGE_SIZE = 30
 
 export default function TobaccoReturnPage() {
   const [mounted, setMounted] = React.useState(false)
@@ -23,13 +27,14 @@ export default function TobaccoReturnPage() {
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t } = useLanguage()
 
-  const [records, setRecords] = React.useState<TobaccoReturnItem[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
   const currentYearMinusOne = (new Date().getFullYear() - 1).toString()
   const [selectedYear, setSelectedYear] = React.useState(currentYearMinusOne)
-  const [availableYears, setAvailableYears] = React.useState<string[]>([currentYearMinusOne, (new Date().getFullYear()).toString(), (new Date().getFullYear() - 2).toString()])
+  const [availableYears, setAvailableYears] = React.useState<string[]>([
+    currentYearMinusOne,
+    new Date().getFullYear().toString(),
+    (new Date().getFullYear() - 2).toString(),
+  ])
 
-  // --- Filter State ---
   const [searchInput, setSearchInput] = React.useState("")
   const [sortBy, setSortBy] = React.useState<"Quantity" | "total_repaid" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
@@ -48,70 +53,78 @@ export default function TobaccoReturnPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  React.useEffect(() => {
-    if (isAuthLoading || !tokens?.access_token) return
-    let active = true
-
-    apiClient.getAvailableYears(tokens.access_token)
-      .then((years) => {
-        if (active && years.length > 0) {
-          setAvailableYears(years)
-          setSelectedYear(prev => years.includes(prev) ? prev : (years[0] || (new Date().getFullYear() - 1).toString()))
-        }
-      })
-      .catch(console.error)
-
-    return () => { active = false }
-  }, [isAuthLoading, tokens])
+  // Fetch available years
+  const { data: yearsData } = useQuery({
+    queryKey: ["tobacco-return-years"],
+    queryFn: () => apiClient.getAvailableYears(tokens!.access_token),
+    enabled: !!tokens?.access_token && !isAuthLoading,
+  })
 
   React.useEffect(() => {
-    if (isAuthLoading || !tokens?.access_token) return
-    let active = true
+    if (yearsData && yearsData.length > 0) {
+      setAvailableYears(yearsData)
+      setSelectedYear((prev) => (yearsData.includes(prev) ? prev : (yearsData[0] ?? currentYearMinusOne)))
+    }
+  }, [yearsData, currentYearMinusOne])
 
-    queueMicrotask(() => {
-      if (!active) return
-      setIsLoading(true)
+  // Infinite query — resets when selectedYear changes
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["tobacco-returns", selectedYear],
+    queryFn: ({ pageParam }) =>
+      apiClient.getTobaccoReturns(tokens!.access_token, {
+        skip: pageParam as number,
+        limit: PAGE_SIZE,
+        year: selectedYear,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0)
+      return totalFetched < lastPage.total ? totalFetched : undefined
+    },
+    enabled: !!tokens?.access_token && !isAuthLoading,
+  })
 
-      apiClient.getTobaccoReturns(tokens.access_token, selectedYear)
-        .then((data) => {
-          if (active) setRecords(data)
-        })
-        .catch((err) => {
-          toast.error((err as Error).message || "Failed to fetch tobacco returns")
-        })
-        .finally(() => {
-          if (active) setIsLoading(false)
-        })
-    })
+  const allRecords = React.useMemo(
+    () => data?.pages.flatMap((p) => p.items) ?? [],
+    [data]
+  )
 
-    return () => { active = false }
-  }, [isAuthLoading, tokens, selectedYear])
+  // Sentinel for infinite scroll
+  const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
+  React.useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage().catch(() => toast.error("Failed to load more records"))
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // --- Filtered records ---
+  // Client-side search + sort on loaded records
   const filteredRecords = React.useMemo(() => {
     const term = searchInput.trim().toLowerCase()
-    if (!term) return records
-    return records.filter(
+    if (!term) return allRecords
+    return allRecords.filter(
       (rec) =>
-        (rec.contract_number?.toLowerCase().includes(term)) ||
-        (rec.contract_contractor_name?.toLowerCase().includes(term)) ||
-        (rec.representative?.toLowerCase().includes(term))
+        rec.contract_number?.toLowerCase().includes(term) ||
+        rec.contract_contractor_name?.toLowerCase().includes(term) ||
+        rec.representative?.toLowerCase().includes(term)
     )
-  }, [records, searchInput])
+  }, [allRecords, searchInput])
 
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
-
     const getSortVal = (rec: TobaccoReturnItem) => {
       if (sortBy === "Quantity") return rec.Quantity ?? 0
       if (sortBy === "total_repaid") return rec.total_repaid ?? 0
       return 0
     }
-
     return [...filteredRecords].sort((a, b) => {
-      const valA = getSortVal(a)
-      const valB = getSortVal(b)
-      return sortOrder === "asc" ? valA - valB : valB - valA
+      const diff = getSortVal(a) - getSortVal(b)
+      return sortOrder === "asc" ? diff : -diff
     })
   }, [filteredRecords, sortBy, sortOrder])
 
@@ -210,9 +223,7 @@ export default function TobaccoReturnPage() {
                     {columnVisibility.contractor && <TableCell>{rec.contract_contractor_name || "—"}</TableCell>}
                     {columnVisibility.representative && <TableCell>{rec.representative || "—"}</TableCell>}
                     {columnVisibility.tobaccoType && (
-                      <TableCell>
-                        {rec.tobacco_type || "—"}
-                      </TableCell>
+                      <TableCell>{rec.tobacco_type || "—"}</TableCell>
                     )}
                     {columnVisibility.year && (
                       <TableCell className="text-center font-medium">
@@ -221,12 +232,16 @@ export default function TobaccoReturnPage() {
                     )}
                     {columnVisibility.qty && (
                       <TableCell className="text-right">
-                        {rec.Quantity !== null && rec.Quantity !== undefined ? `${rec.Quantity.toLocaleString()} kg` : "—"}
+                        {rec.Quantity !== null && rec.Quantity !== undefined
+                          ? `${rec.Quantity.toLocaleString()} kg`
+                          : "—"}
                       </TableCell>
                     )}
                     {columnVisibility.totalReturned && (
                       <TableCell className="text-right font-medium">
-                        {rec.total_repaid !== null && rec.total_repaid !== undefined ? `${rec.total_repaid.toLocaleString()} kg` : "—"}
+                        {rec.total_repaid !== null && rec.total_repaid !== undefined
+                          ? `${rec.total_repaid.toLocaleString()} kg`
+                          : "—"}
                       </TableCell>
                     )}
                   </TableRow>
@@ -234,6 +249,14 @@ export default function TobaccoReturnPage() {
               </TableBody>
             </Table>
           </div>
+        </div>
+      )}
+
+      {/* ── Infinite scroll sentinel ── */}
+      <div ref={sentinelRef} className="h-1" />
+      {isFetchingNextPage && (
+        <div className="flex items-center justify-center py-4">
+          <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
     </div>

@@ -1,23 +1,24 @@
-from typing import Annotated, List
-from fastapi import APIRouter, Depends, Security
+from typing import Annotated, List, Optional
+from fastapi import APIRouter, Depends, Query, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from .schemas import TobaccoReturnItem, TContractReturnCreate
+from .schemas import TobaccoReturnItem, TobaccoReturnListResponse, TContractReturnCreate
 from .crud import get_tobacco_returns
 
 router = APIRouter()
 
-@router.get("/", response_model=List[TobaccoReturnItem])
+@router.get("/", response_model=TobaccoReturnListResponse)
 async def read_tobacco_returns(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(30, ge=1, le=200),
+    year: Optional[int] = Query(None),
 ):
-    """
-    Retrieve tobacco return records based on a specific note (e.g. '2026').
-    """
-    return await get_tobacco_returns(session)
+    result = await get_tobacco_returns(session, skip=skip, limit=limit, year=year)
+    return result
 
 @router.get("/years", response_model=List[str])
 async def read_available_years(
