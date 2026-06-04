@@ -5,13 +5,13 @@ from sqlalchemy import text
 from .models.t_contract import TContract
 from .models.t_contract_return import TContractReturn
 from .schemas import TContractReturnCreate
-from app.domains.sack_registration.models.member_farmer import MemberFarmer
+from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 
 async def get_tobacco_returns(
     db: AsyncSession,
     skip: int = 0,
-    limit: int = 30,
+    limit: int = 20,
     year: Optional[int] = None,
 ) -> dict:
     year_expr = ":year_val" if year is not None else "YEAR(CURDATE()) - 1"

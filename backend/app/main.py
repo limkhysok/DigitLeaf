@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from app.api.v1.api import api_router
+from app.api.v1.router import api_router
 from app.core.config import settings
 from sqladmin import Admin
 from app.db.session import engine, init_db
@@ -32,7 +32,6 @@ logger.add(
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     level="INFO",
 )
-logger.add("logs/app_{time:YYYY-MM-DD}.log", rotation="50 MB", retention="10 days", level="INFO")
 
 
 @asynccontextmanager

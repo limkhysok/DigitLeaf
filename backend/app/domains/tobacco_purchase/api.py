@@ -1,6 +1,6 @@
 from typing import Annotated, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Security, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Security, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
@@ -106,8 +106,8 @@ async def create_purchase(
 async def list_purchases(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=500),
     search: Optional[str] = None,
     buyer: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,

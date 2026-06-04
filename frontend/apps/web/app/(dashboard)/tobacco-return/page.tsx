@@ -78,7 +78,7 @@ export default function TobaccoReturnPage() {
     queryKey: ["tobacco-returns", selectedYear],
     queryFn: ({ pageParam }) =>
       apiClient.getTobaccoReturns(tokens!.access_token, {
-        skip: pageParam as number,
+        skip: pageParam,
         limit: PAGE_SIZE,
         year: selectedYear,
       }),

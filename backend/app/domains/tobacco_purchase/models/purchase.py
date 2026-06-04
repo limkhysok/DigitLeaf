@@ -5,7 +5,7 @@ from datetime import date, datetime
 from app.core.config import CAMBODIA_TZ
 from .purchase_detail import TobaccoPurchaseDetail
 from ..constants import ClosingStatus
-from app.domains.sack_registration.models.member_farmer import MemberFarmer
+from app.domains.farmers.models.member_farmer import MemberFarmer
 
 class TobaccoPurchase(SQLModel, table=True):
     __tablename__ = "tobacco_purchase" # type: ignore[assignment]

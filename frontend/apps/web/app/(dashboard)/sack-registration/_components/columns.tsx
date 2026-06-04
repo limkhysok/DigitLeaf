@@ -41,7 +41,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
-          className="translate-y-[2px]"
+          className="translate-y-0.5"
         />
       ),
       cell: ({ row }) => (
@@ -49,7 +49,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-          className="translate-y-[2px]"
+          className="translate-y-0.5"
         />
       ),
       enableSorting: false,
@@ -132,7 +132,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
                 <IconDots className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => onView(rec)}>
                 <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
                 {t.sackRegistration.dialog.view}

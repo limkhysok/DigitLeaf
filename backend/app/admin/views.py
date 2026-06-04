@@ -13,6 +13,7 @@ from app.core import security
 from app.domains.users.crud import get_user_by_username
 from app.core.config import settings
 
+
 class AdminAuth(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
         form = await request.form()
@@ -59,7 +60,9 @@ class AdminAuth(AuthenticationBackend):
 
         return True
 
+
 authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
+
 
 class UserAdmin(ModelView, model=User):
     column_list = [User.id, User.user_name, User.role, User.is_active, User.created_at]  # type: ignore[assignment]
@@ -70,11 +73,13 @@ class UserAdmin(ModelView, model=User):
     form_columns = [User.user_name, User.password, User.role]  # type: ignore[assignment]
     icon = "fa-solid fa-users"
 
+
 class UserTokenAdmin(ModelView, model=UserToken):
     column_list = [UserToken.id, UserToken.user_name, UserToken.created_at, UserToken.expires_at]  # type: ignore[assignment]
     column_searchable_list = [UserToken.user_name]  # type: ignore[assignment]
     page_size = 100
     icon = "fa-solid fa-key"
+
 
 class AuditLogAdmin(ModelView, model=AuditLog):
     column_list = [AuditLog.id, AuditLog.user_id, AuditLog.endpoint, AuditLog.method, AuditLog.created_at]  # type: ignore[assignment]
@@ -87,6 +92,7 @@ class AuditLogAdmin(ModelView, model=AuditLog):
     can_edit = False
     can_delete = False
 
+
 class RoleAdmin(ModelView, model=Role):
     column_list = [Role.id, Role.name, Role.description]  # type: ignore[assignment]
     column_searchable_list = [Role.name]  # type: ignore[assignment]
@@ -94,6 +100,7 @@ class RoleAdmin(ModelView, model=Role):
 
     form_columns = [Role.name, Role.description, Role.permissions]  # type: ignore[assignment]
     icon = "fa-solid fa-user-shield"
+
 
 class PermissionAdmin(ModelView, model=Permission):
     column_list = [Permission.id, Permission.name, Permission.description]  # type: ignore[assignment]
@@ -103,10 +110,12 @@ class PermissionAdmin(ModelView, model=Permission):
     form_columns = [Permission.name, Permission.description, Permission.roles]  # type: ignore[assignment]
     icon = "fa-solid fa-unlock-keyhole"
 
+
 def format_user_id(m: Any, _: Any) -> str:
     with Session(engine) as session:  # type: ignore[arg-type]
         user = session.get(User, m.user_id)
         return user.user_name if user else str(m.user_id)
+
 
 def format_role_id(m: Any, _: Any) -> str:
     with Session(engine) as session:  # type: ignore[arg-type]

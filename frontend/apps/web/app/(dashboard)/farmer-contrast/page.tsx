@@ -20,7 +20,7 @@ import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 
-const PAGE_SIZE = 30
+const PAGE_SIZE = 20
 
 export default function FarmerContrastPage() {
   const [mounted, setMounted] = React.useState(false)
@@ -55,7 +55,7 @@ export default function FarmerContrastPage() {
     queryFn: ({ pageParam }) =>
       apiClient.getFarmerContrasts(tokens!.access_token, {
         year: selectedYear,
-        skip: pageParam as number,
+        skip: pageParam,
         limit: PAGE_SIZE,
       }),
     initialPageParam: 0,

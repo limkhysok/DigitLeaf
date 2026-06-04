@@ -61,7 +61,7 @@ function getPictureUrl(picture?: string | null): string {
   if (picture.startsWith("data:") || picture.startsWith("blob:")) {
     return picture
   }
-  const apiRoot = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1"
+  const apiRoot = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api/v1"
   const backendBase = apiRoot.replace("/api/v1", "")
   return `${backendBase}/uploads/${picture}`
 }
@@ -926,7 +926,7 @@ export function AddPurchaseDialog({
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600 border-emerald-600/30">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
                     <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
@@ -991,7 +991,7 @@ export function AddPurchaseDialog({
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600 border-emerald-600/30">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
                     <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
@@ -1080,7 +1080,7 @@ export function AddPurchaseDialog({
                           <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
                         </Button>
                         <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
                           <IconPlus className="mr-1.5 size-3.5" /> Return
                         </Button>
                       </div>

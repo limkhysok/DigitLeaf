@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
+    "build": "dotenv -e .env -- turbo build",
+    "dev": "dotenv -e .env -- turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck"
@@ -12,6 +12,7 @@
   "devDependencies": {
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
+    "dotenv-cli": "^8.0.0",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "turbo": "^2.9.8",

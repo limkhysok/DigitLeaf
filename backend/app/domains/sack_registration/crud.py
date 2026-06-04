@@ -1,72 +1,13 @@
-from typing import Optional
+from typing import Any, Optional, cast
 from datetime import datetime, date
-from sqlalchemy import cast, Date, func
+from sqlalchemy import cast as sa_cast, Date, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col
 from app.core.config import CAMBODIA_TZ
-from app.domains.sack_registration.models import SackRegistration, Represent, MemberFarmer, MfConYear
-from app.domains.tobacco_purchase.models import TobaccoPurchase
-from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate, RepresentPublic
-
-_ACTIVE_YEAR = 2026
-_ACTIVE_JOIN = (col(MfConYear.mf_id) == col(MemberFarmer.mf_id)) & (MfConYear.year == _ACTIVE_YEAR)
-
-
-async def get_represents(session: AsyncSession) -> list[RepresentPublic]:
-    result = await session.execute(
-        select(
-            col(Represent.represent_id),
-            Represent.represent_name,
-            func.count(col(MemberFarmer.mf_id)).label("farmer_count"),
-        )
-        .join(MemberFarmer, col(MemberFarmer.represent) == col(Represent.represent_id))
-        .join(MfConYear, _ACTIVE_JOIN)
-        .where(Represent.do_not_show == 0)
-        .group_by(col(Represent.represent_id), Represent.represent_name)
-        .order_by(Represent.represent_name)
-    )
-    rows = result.all()
-    return [
-        RepresentPublic(represent_id=r[0], represent_name=r[1], farmer_count=r[2])
-        for r in rows
-    ]
-
-
-async def search_member_farmer(
-    session: AsyncSession,
-    name: Optional[str] = None,
-    identity_card: Optional[str] = None,
-) -> Optional[MemberFarmer]:
-    base = select(MemberFarmer).join(MfConYear, _ACTIVE_JOIN)
-    if identity_card:
-        result = await session.execute(base.where(MemberFarmer.mf_code == identity_card))
-        farmer = result.scalars().first()
-        if farmer:
-            return farmer
-    if name:
-        result = await session.execute(base.where(MemberFarmer.name == name))
-        return result.scalars().first()
-    return None
-
-
-async def query_member_farmers(
-    session: AsyncSession,
-    query: str,
-    represent_id: Optional[int] = None,
-    limit: int = 10,
-) -> list[MemberFarmer]:
-    stmt = (
-        select(MemberFarmer)
-        .join(MfConYear, _ACTIVE_JOIN)
-        .where(
-            col(MemberFarmer.name).ilike(f"%{query}%") | col(MemberFarmer.mf_code).ilike(f"%{query}%")
-        )
-        .distinct()
-    )
-    if represent_id is not None:
-        stmt = stmt.where(MemberFarmer.represent == represent_id)
-    result = await session.execute(stmt.limit(limit))
-    return list(result.scalars().all())
+from app.domains.sack_registration.models import SackRegistration
+from app.domains.farmers.models import Represent, MemberFarmer
+from app.domains.farmers.crud import search_member_farmer
+from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate
 
 
 async def get_by_id(session: AsyncSession, sack_id: int) -> Optional[SackRegistration]:
@@ -74,19 +15,19 @@ async def get_by_id(session: AsyncSession, sack_id: int) -> Optional[SackRegistr
     return result.scalars().first()
 
 
-async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict]:
+async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict[str, Any]]:
     stmt = (
         select(SackRegistration, Represent.represent_name, MemberFarmer.name)
-        .join(Represent, SackRegistration.represent_id == Represent.represent_id)
-        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
+        .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
         .where(SackRegistration.id == sack_id)
     )
     result = await session.execute(stmt)
     row = result.first()
     if not row:
         return None
-    sack, r_name, f_name = row
-    data = sack.model_dump()
+    sack, r_name, f_name = cast(tuple[SackRegistration, str, str], row)
+    data: dict[str, Any] = sack.model_dump()
     data["represent_name"] = r_name
     data["member_farmer_name"] = f_name
     return data
@@ -101,11 +42,11 @@ async def get_all(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     sort_sack_in_kg: Optional[str] = None,
-) -> tuple[list[dict], int]:
+) -> tuple[list[dict[str, Any]], int]:
     stmt = (
         select(SackRegistration, Represent.represent_name, MemberFarmer.name)
-        .join(Represent, SackRegistration.represent_id == Represent.represent_id)
-        .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+        .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
+        .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
     )
     count_stmt = select(func.count()).select_from(SackRegistration)
 
@@ -118,8 +59,8 @@ async def get_all(
         stmt = stmt.where(cond)
         count_stmt = (
             count_stmt
-            .join(Represent, SackRegistration.represent_id == Represent.represent_id)
-            .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+            .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
+            .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
             .where(cond)
         )
 
@@ -128,12 +69,12 @@ async def get_all(
         count_stmt = count_stmt.where(SackRegistration.status == status)
 
     if date_from is not None:
-        stmt = stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
-        count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
+        stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) >= date_from)
+        count_stmt = count_stmt.where(sa_cast(SackRegistration.registered_at, Date) >= date_from)
 
     if date_to is not None:
-        stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
-        count_stmt = count_stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
+        stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) <= date_to)
+        count_stmt = count_stmt.where(sa_cast(SackRegistration.registered_at, Date) <= date_to)
 
     if sort_sack_in_kg == "asc":
         stmt = stmt.order_by(col(SackRegistration.sack_in_kg).is_(None), col(SackRegistration.sack_in_kg).asc(), col(SackRegistration.created_at).desc())
@@ -144,15 +85,15 @@ async def get_all(
 
     total = (await session.scalar(count_stmt)) or 0
     result = await session.execute(stmt.offset(skip).limit(limit))
-    
-    items = []
+
+    items: list[dict[str, Any]] = []
     for row in result.all():
-        sack, r_name, f_name = row
-        data = sack.model_dump()
+        sack, r_name, f_name = cast(tuple[SackRegistration, str, str], row)
+        data: dict[str, Any] = sack.model_dump()
         data["represent_name"] = r_name
         data["member_farmer_name"] = f_name
         items.append(data)
-        
+
     return items, total
 
 
@@ -172,16 +113,16 @@ async def get_status_counts(
         )
         stmt = (
             stmt
-            .join(Represent, SackRegistration.represent_id == Represent.represent_id)
-            .join(MemberFarmer, SackRegistration.member_farmer_id == MemberFarmer.mf_id)
+            .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
+            .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
             .where(cond)
         )
 
     if date_from is not None:
-        stmt = stmt.where(cast(SackRegistration.registered_at, Date) >= date_from)
+        stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) >= date_from)
 
     if date_to is not None:
-        stmt = stmt.where(cast(SackRegistration.registered_at, Date) <= date_to)
+        stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) <= date_to)
 
     stmt = stmt.group_by(col(SackRegistration.status))
     result = await session.execute(stmt)
@@ -204,7 +145,7 @@ async def create(
     data: SackRegistrationCreate,
     current_user_id: int,
     current_user_name: str,
-) -> tuple[Optional[dict], Optional[str]]:
+) -> tuple[Optional[dict[str, Any]], Optional[str]]:
     result = await session.execute(select(Represent).where(Represent.represent_id == data.represent_id))
     represent = result.scalars().first()
     if not represent:
@@ -234,9 +175,9 @@ async def create(
     session.add(record)
     await session.commit()
     await session.refresh(record)
-    
+
     assert record.id is not None
-    details = await get_details(session, record.id)
+    details: Optional[dict[str, Any]] = await get_details(session, record.id)
     return details, None
 
 
@@ -244,7 +185,7 @@ async def update(
     session: AsyncSession,
     record: SackRegistration,
     data: SackRegistrationUpdate,
-) -> tuple[Optional[dict], Optional[str]]:
+) -> tuple[Optional[dict[str, Any]], Optional[str]]:
     update_data = data.model_dump(exclude_unset=True)
 
     if "member_farmer_identity_card" in update_data:
@@ -260,74 +201,12 @@ async def update(
     record.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(record)
     await session.commit()
-    
+
     assert record.id is not None
-    details = await get_details(session, record.id)
+    details: Optional[dict[str, Any]] = await get_details(session, record.id)
     return details, None
 
 
 async def delete(session: AsyncSession, record: SackRegistration) -> None:
     await session.delete(record)
     await session.commit()
-
-
-async def get_farmer_contrasts(
-    session: AsyncSession,
-    year: int = 2026,
-    skip: int = 0,
-    limit: int = 30,
-) -> dict:
-    current_year = year
-    start_date = date(current_year, 1, 1)
-    end_date = date(current_year, 12, 31)
-
-    weight_subquery = (
-        select(
-            TobaccoPurchase.vendor_id.label("vendor_id"),
-            func.sum(TobaccoPurchase.total_net_weight).label("total_weight"),
-        )
-        .where(TobaccoPurchase.tp_date >= start_date)
-        .where(TobaccoPurchase.tp_date <= end_date)
-        .group_by(TobaccoPurchase.vendor_id)
-    ).subquery()
-
-    base_stmt = (
-        select(
-            col(MfConYear.mf_con_id),
-            col(MfConYear.mf_id),
-            col(MfConYear.year),
-            col(MemberFarmer.name),
-            col(MemberFarmer.mf_code),
-            col(MfConYear.land),
-            col(MfConYear.tobac_num),
-            func.coalesce(weight_subquery.c.total_weight, 0.0),
-        )
-        .join(MemberFarmer, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
-        .outerjoin(weight_subquery, col(MemberFarmer.mf_id) == weight_subquery.c.vendor_id)
-        .where(col(MfConYear.year) == year)
-    )
-
-    count_result = await session.execute(
-        select(func.count()).select_from(base_stmt.subquery())
-    )
-    total = count_result.scalar() or 0
-
-    result = await session.execute(
-        base_stmt.order_by(col(MfConYear.mf_con_id).desc()).offset(skip).limit(limit)
-    )
-    rows = result.all()
-    items = [
-        {
-            "mf_con_id": r[0],
-            "mf_id": r[1],
-            "year": r[2],
-            "name": r[3],
-            "mf_code": r[4],
-            "land": r[5],
-            "tobac_num": r[6],
-            "expected_yield": round(r[6] * 0.8, 2) if r[6] is not None else None,
-            "purchased_weight": round(r[7], 2),
-        }
-        for r in rows
-    ]
-    return {"items": items, "total": total}

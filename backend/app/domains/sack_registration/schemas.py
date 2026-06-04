@@ -1,23 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 from datetime import datetime
-from typing import List, Optional
-
-
-class RepresentPublic(BaseModel):
-    represent_id: int
-    represent_name: str
-    farmer_count: int = 0
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class MemberFarmerPublic(BaseModel):
-    mf_id: int
-    name: str
-    mf_code: str
-    address: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
+from typing import Optional
 
 
 class SackRegistrationCreate(BaseModel):
@@ -72,22 +55,3 @@ class SackRegistrationStatusCounts(BaseModel):
     pending: int
     approved: int
     rejected: int
-
-
-class FarmerContrastPublic(BaseModel):
-    mf_con_id: int
-    mf_id: int
-    year: int
-    name: str
-    mf_code: str
-    land: Optional[float] = None
-    tobac_num: Optional[int] = None
-    expected_yield: Optional[float] = None
-    purchased_weight: Optional[float] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class FarmerContrastListResponse(BaseModel):
-    items: List[FarmerContrastPublic]
-    total: int

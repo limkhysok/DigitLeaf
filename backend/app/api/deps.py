@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.db.session import get_session
 from app.domains.users import crud as crud_user
 from app.domains.users.models import User
-from app.schemas.token import TokenPayload
+from app.domains.auth.schemas import TokenPayload
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl="/api/v1/auth/login/access-token",

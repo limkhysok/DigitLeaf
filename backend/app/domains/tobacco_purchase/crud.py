@@ -5,10 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select, func, col
 from .models import TobaccoPurchase, TobaccoPurchaseDetail, Purchaser, Region, Oven, Tobacco
-from app.domains.sack_registration.models.sack_registration import SackRegistration
-from app.domains.sack_registration.models.represent import Represent
-from app.domains.sack_registration.models.member_farmer import MemberFarmer
-from app.domains.sack_registration.models.mf_con_year import MfConYear
+from app.domains.sack_registration.models import SackRegistration
+from app.domains.farmers.models import Represent, MemberFarmer
+from app.domains.farmer_contrast.models import MfConYear
 from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate
 from datetime import datetime
 
@@ -278,7 +277,7 @@ async def get_purchase_details(db: AsyncSession, invoice_num: str) -> List[Tobac
 async def get_purchases(
     db: AsyncSession,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 20,
     search: Optional[str] = None,
     buyer: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
