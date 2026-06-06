@@ -138,7 +138,7 @@ export default function SackRegistrationPage() {
   })
 
   const actionNode = (
-    <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 gap-1.5 flex">
+    <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 px-3 flex rounded-sm">
       <IconPlus className="h-4 w-4" />
       <span className="hidden sm:inline">{t.sackRegistration.filters.add}</span>
     </Button>
@@ -176,7 +176,7 @@ export default function SackRegistrationPage() {
             </div>
             <Skeleton className="h-8 w-62.5" />
           </div>
-          <div className="rounded-md border mt-2">
+          <div className="rounded-sm border mt-2">
             <div className="h-10 border-b bg-muted/20" />
             {[1, 2, 3, 4, 5].map((id) => (
               <div key={id} className="flex items-center p-4 border-b last:border-0">
@@ -195,7 +195,7 @@ export default function SackRegistrationPage() {
       {/* ════════════════════════════════════════════════════════════════════
           TOOLBAR
       ════════════════════════════════════════════════════════════════════ */}
-      {!isLoading && records.length > 0 && (
+      {!isLoading && (
         <DataTableToolbar
           table={table}
           action={actionNode}
