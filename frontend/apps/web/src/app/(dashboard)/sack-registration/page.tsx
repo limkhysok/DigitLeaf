@@ -31,6 +31,7 @@ import { DeleteDialog } from "./_components/delete-dialog"
 import { ViewDialog } from "./_components/view-dialog"
 import { RegisterDialog } from "./_components/register-dialog"
 import { SackRegistrationCard } from "./_components/sack-registration-card"
+import { SackRegistrationStatsPanel } from "./_components/stats"
 
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useQueryState, parseAsString } from "nuqs"
@@ -94,7 +95,8 @@ export default function SackRegistrationPage() {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const refetch = () => {
-    queryClient.invalidateQueries({ queryKey: ["sack-registrations"] })
+    queryClient.resetQueries({ queryKey: ["sack-registrations"] })
+    queryClient.invalidateQueries({ queryKey: ["sack-registration-stats"] })
   }
 
   const columns = getColumns({
@@ -156,6 +158,11 @@ export default function SackRegistrationPage() {
           </p>
         </div>
       </div>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          STATS
+      ════════════════════════════════════════════════════════════════════ */}
+      <SackRegistrationStatsPanel />
 
       {/* ════════════════════════════════════════════════════════════════════
           LOADING / EMPTY STATES

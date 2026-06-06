@@ -55,3 +55,26 @@ class SackRegistrationStatusCounts(BaseModel):
     pending: int
     approved: int
     rejected: int
+
+
+class RegistrationCounts(BaseModel):
+    total: int
+    today: int
+
+
+class StatusBreakdown(BaseModel):
+    approved: int
+    approved_today: int
+    pending: int
+    pending_today: int
+
+
+class SackWeightKg(BaseModel):
+    pending: float
+    pending_today: float
+
+
+class SackRegistrationStats(BaseModel):
+    registration_counts: RegistrationCounts
+    status_breakdown: StatusBreakdown
+    sack_weight_kg: SackWeightKg

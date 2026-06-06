@@ -16,6 +16,7 @@ from app.domains.sack_registration.schemas import (
     SackRegistrationPublic,
     SackRegistrationListResponse,
     SackRegistrationStatusCounts,
+    SackRegistrationStats,
 )
 
 router = APIRouter(route_class=AuditLogRoute)
@@ -121,6 +122,14 @@ async def get_status_counts(
     return await crud.get_status_counts(session=session, search=search, date_from=date_from, date_to=date_to)
 
 
+@router.get("/stats", response_model=SackRegistrationStats)
+async def get_stats(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    return await crud.get_stats(session=session)
+
+
 @router.get("/{sack_id}", response_model=SackRegistrationPublic, responses={404: {"description": _NOT_FOUND}})
 async def get_registration(
     sack_id: int,
@@ -158,6 +167,10 @@ async def create_registration(
     return record
 
 
+_PENDING_NEEDS_WEIGHT = "Pending status requires sack weight greater than 0"
+_CONFIRMED_NEEDS_ZERO = "Confirmed status requires sack weight to be 0 (farmer must return the sack first)"
+
+
 @router.patch(
     "/{sack_id}",
     response_model=SackRegistrationPublic,
@@ -172,6 +185,15 @@ async def update_registration(
     record = await crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
+
+    final_status = data.status if data.status is not None else record.status
+    final_sack = data.sack_in_kg if data.sack_in_kg is not None else (record.sack_in_kg or 0.0)
+
+    if final_status == 0 and final_sack <= 0:
+        raise HTTPException(status_code=422, detail=_PENDING_NEEDS_WEIGHT)
+    if final_status == 1 and final_sack != 0:
+        raise HTTPException(status_code=422, detail=_CONFIRMED_NEEDS_ZERO)
+
     updated, error = await crud.update(session=session, record=record, data=data)
     if error == "farmer_not_found":
         raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)

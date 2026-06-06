@@ -89,7 +89,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
         }
 
         return (
-          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-regular border", status.className)}>
+          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-semibold border", status.className)}>
             {getStatusLabel(statusVal)}
           </span>
         )

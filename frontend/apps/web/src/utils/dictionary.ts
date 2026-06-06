@@ -174,6 +174,19 @@ export const translations = {
         errSelectDate: "Please select a date",
         errInvalidWeight: "Please enter a valid sack weight (0 or more)",
         registerSuccessToast: "Sack registered successfully",
+      },
+      stats: {
+        registrations: "Registrations",
+        total: "Total",
+        today: "Today",
+        thisWeek: "This Week",
+        thisMonth: "This Month",
+        statusBreakdown: "Status",
+        approved: "Approved",
+        pending: "Pending",
+        rejected: "Rejected",
+        sackWeight: "Sack Weight",
+        average: "Avg / Reg",
       }
     },
     farmerContrast: {
@@ -462,6 +475,19 @@ export const translations = {
         errSelectDate: "សូមជ្រើសរើសកាលបរិច្ឆេទ",
         errInvalidWeight: "សូមបញ្ចូលទម្ងន់បាវឱ្យបានត្រឹមត្រូវ (ចាប់ពី ០ ឡើងទៅ)",
         registerSuccessToast: "បានចុះឈ្មោះបាវដោយជោគជ័យ",
+      },
+      stats: {
+        registrations: "ការចុះឈ្មោះ",
+        total: "សរុប",
+        today: "ថ្ងៃនេះ",
+        thisWeek: "សប្តាហ៍នេះ",
+        thisMonth: "ខែនេះ",
+        statusBreakdown: "ស្ថានភាព",
+        approved: "បានបញ្ជាក់",
+        pending: "កំពុងរង់ចាំ",
+        rejected: "បានបដិសេធ",
+        sackWeight: "ទម្ងន់បាវ (គីឡូ)",
+        average: "មធ្យម / ករណី",
       }
     },
     farmerContrast: {
@@ -752,6 +778,19 @@ export type TranslationType = {
       readonly errSelectDate: string;
       readonly errInvalidWeight: string;
       readonly registerSuccessToast: string;
+    };
+    readonly stats: {
+      readonly registrations: string;
+      readonly total: string;
+      readonly today: string;
+      readonly thisWeek: string;
+      readonly thisMonth: string;
+      readonly statusBreakdown: string;
+      readonly approved: string;
+      readonly pending: string;
+      readonly rejected: string;
+      readonly sackWeight: string;
+      readonly average: string;
     };
   };
   readonly farmerContrast: {

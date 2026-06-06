@@ -75,6 +75,23 @@ export interface SackStatusCountsParams {
   date_to?: string;
 }
 
+export interface SackRegistrationStats {
+  registration_counts: {
+    total: number
+    today: number
+  }
+  status_breakdown: {
+    approved: number
+    approved_today: number
+    pending: number
+    pending_today: number
+  }
+  sack_weight_kg: {
+    pending: number
+    pending_today: number
+  }
+}
+
 export interface FarmerContrastItem {
   mf_con_id: number;
   mf_id: number;

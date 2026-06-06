@@ -1,6 +1,6 @@
 from typing import Any, Optional, cast
 from datetime import datetime, date
-from sqlalchemy import cast as sa_cast, Date, func
+from sqlalchemy import cast as sa_cast, Date, func, case, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col
 from app.core.config import CAMBODIA_TZ
@@ -137,6 +137,50 @@ async def get_status_counts(
         "pending": counts[0],
         "approved": counts[1],
         "rejected": counts[2],
+    }
+
+
+async def get_stats(session: AsyncSession) -> dict[str, Any]:
+    now = datetime.now(CAMBODIA_TZ)
+    today = now.date()
+
+    reg_date = sa_cast(SackRegistration.registered_at, Date)
+
+    count_stmt = select(
+        func.count().label("total"),
+        func.sum(case((reg_date == today, 1), else_=0)).label("today"),
+        func.sum(case((SackRegistration.status == 1, 1), else_=0)).label("approved"),
+        func.sum(case((and_(reg_date == today, SackRegistration.status == 1), 1), else_=0)).label("approved_today"),
+        func.sum(case((SackRegistration.status == 0, 1), else_=0)).label("pending"),
+        func.sum(case((and_(reg_date == today, SackRegistration.status == 0), 1), else_=0)).label("pending_today"),
+    ).select_from(SackRegistration)
+
+    weight_stmt = select(
+        func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0).label("pending_kg"),
+        func.coalesce(
+            func.sum(case((reg_date == today, SackRegistration.sack_in_kg), else_=None)),
+            0.0,
+        ).label("pending_today_kg"),
+    ).select_from(SackRegistration).where(SackRegistration.status == 0)
+
+    count_row = (await session.execute(count_stmt)).first()
+    weight_row = (await session.execute(weight_stmt)).first()
+
+    return {
+        "registration_counts": {
+            "total": (count_row.total or 0) if count_row else 0,
+            "today": (count_row.today or 0) if count_row else 0,
+        },
+        "status_breakdown": {
+            "approved": (count_row.approved or 0) if count_row else 0,
+            "approved_today": (count_row.approved_today or 0) if count_row else 0,
+            "pending": (count_row.pending or 0) if count_row else 0,
+            "pending_today": (count_row.pending_today or 0) if count_row else 0,
+        },
+        "sack_weight_kg": {
+            "pending": round(float(weight_row.pending_kg), 2) if weight_row else 0.0,
+            "pending_today": round(float(weight_row.pending_today_kg), 2) if weight_row else 0.0,
+        },
     }
 
 

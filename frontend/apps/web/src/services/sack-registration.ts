@@ -9,6 +9,7 @@ import type {
   SackRegistrationListResponse,
   SackStatusCounts,
   SackStatusCountsParams,
+  SackRegistrationStats,
   FarmerContrastListResponse,
 } from "../types";
 
@@ -174,6 +175,17 @@ export const sackRegistrationApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to fetch status counts");
+    }
+    return response.json();
+  },
+
+  async getSackRegistrationStats(accessToken: string): Promise<SackRegistrationStats> {
+    const response = await fetch(`${API_BASE_URL}/sack-registrations/stats`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch stats");
     }
     return response.json();
   },
