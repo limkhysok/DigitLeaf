@@ -14,11 +14,17 @@ router = APIRouter()
 async def read_tobacco_returns(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    skip: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
     year: Optional[int] = Query(None),
 ):
-    return await crud.get_tobacco_returns(session, skip=skip, limit=limit, year=year)
+    skip = (page - 1) * limit
+    result = await crud.get_tobacco_returns(session, skip=skip, limit=limit, year=year)
+    return TobaccoReturnListResponse(
+        items=result["items"],
+        total=result["total"],
+        has_more=(skip + len(result["items"])) < result["total"],
+    )
 
 
 @router.get("/years", response_model=List[str])

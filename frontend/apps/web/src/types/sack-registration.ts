@@ -47,7 +47,7 @@ export interface SackRegistrationUpdate {
 }
 
 export interface SackRegistrationListParams {
-  skip?: number;
+  page?: number;
   limit?: number;
   search?: string;
   status?: number;
@@ -90,4 +90,5 @@ export interface FarmerContrastItem {
 export interface FarmerContrastListResponse {
   items: FarmerContrastItem[];
   total: number;
+  has_more: boolean;
 }

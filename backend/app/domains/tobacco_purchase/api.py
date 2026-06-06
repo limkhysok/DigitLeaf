@@ -106,13 +106,14 @@ async def create_purchase(
 async def list_purchases(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    skip: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=500),
     search: Optional[str] = None,
     buyer: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ):
+    skip = (page - 1) * limit
     items, total = await crud.get_purchases(
         db=session,
         skip=skip,
@@ -122,7 +123,7 @@ async def list_purchases(
         sort_grand_total=sort_grand_total,
         sort_net_weight=sort_net_weight,
     )
-    return schemas.PurchaseList(items=items, total=total)  # type: ignore[arg-type]
+    return schemas.PurchaseList(items=items, total=total, has_more=(skip + len(items)) < total)  # type: ignore[arg-type]
 
 
 @router.get("/{tp_id}", response_model=schemas.Purchase, responses={404: {"description": _NOT_FOUND}})

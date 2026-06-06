@@ -83,20 +83,18 @@ export default function TobaccoPurchasePage() {
     hasNextPage,
   } = useInfiniteQuery({
     queryKey: ["tobacco-purchases", search, buyerFilter, sortGrandTotal, sortNetWeight],
-    queryFn: ({ pageParam = 0 }) =>
+    queryFn: ({ pageParam = 1 }) =>
       apiClient.getTobaccoPurchases(tokens!.access_token, {
-        skip: pageParam,
+        page: pageParam,
         limit: PAGE_SIZE,
         search: search || undefined,
         buyer: buyerFilter ?? undefined,
         sort_grand_total: (sortGrandTotal as SortDir) ?? undefined,
         sort_net_weight: (sortNetWeight as SortDir) ?? undefined,
       }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalFetched = allPages.reduce((sum, page) => sum + page.items.length, 0)
-      return totalFetched < lastPage.total ? totalFetched : undefined
-    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.has_more ? allPages.length + 1 : undefined,
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 

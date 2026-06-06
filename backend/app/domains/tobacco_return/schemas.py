@@ -15,6 +15,7 @@ class TobaccoReturnItem(BaseModel):
 class TobaccoReturnListResponse(BaseModel):
     items: List[TobaccoReturnItem]
     total: int
+    has_more: bool
 
 class TContractReturnCreate(BaseModel):
     con_num: str

@@ -44,14 +44,14 @@ export function getDateRange(preset: string): { date_from?: string; date_to?: st
 
 
 export function buildFetchParams(
-  skip: number,
+  page: number,
   search: string,
   statusFilter: number | null,
   datePreset: string,
   sortSackInKg: string | null = null,
-  limit: number = 200
+  limit: number = 20
 ): SackRegistrationListParams {
-  const params: SackRegistrationListParams = { skip, limit }
+  const params: SackRegistrationListParams = { page, limit }
   if (search.trim()) params.search = search.trim()
   if (statusFilter !== null) params.status = statusFilter
   if (sortSackInKg) params.sort_sack_in_kg = sortSackInKg

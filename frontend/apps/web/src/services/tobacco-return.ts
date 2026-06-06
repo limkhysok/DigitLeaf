@@ -5,10 +5,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/a
 export const tobaccoReturnApi = {
   getTobaccoReturns: async (
     token: string,
-    params: { skip?: number; limit?: number; year?: string } = {}
+    params: { page?: number; limit?: number; year?: string } = {}
   ): Promise<TobaccoReturnListResponse> => {
     const query = new URLSearchParams();
-    if (params.skip !== undefined) query.set("skip", String(params.skip));
+    if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.year) query.set("year", params.year);
     const res = await fetch(`${BASE_URL}/tobacco-returns/?${query}`, {

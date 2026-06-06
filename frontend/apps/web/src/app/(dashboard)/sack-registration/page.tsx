@@ -76,11 +76,9 @@ export default function SackRegistrationPage() {
       const params = buildFetchParams(pageParam, debouncedSearch, null, "all", null, PAGE_SIZE)
       return apiClient.getSackRegistrations(tokens!.access_token, params)
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0)
-      return totalFetched < lastPage.total ? totalFetched : undefined
-    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.has_more ? allPages.length + 1 : undefined,
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 

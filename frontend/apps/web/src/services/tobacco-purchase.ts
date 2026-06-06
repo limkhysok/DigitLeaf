@@ -94,7 +94,7 @@ export const tobaccoPurchaseApi = {
     params: TobaccoPurchaseListParams = {}
   ): Promise<TobaccoPurchaseListResponse> {
     const query = new URLSearchParams();
-    if (params.skip !== undefined) query.set("skip", String(params.skip));
+    if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.search) query.set("search", params.search);
     if (params.buyer != null) query.set("buyer", String(params.buyer));

@@ -78,15 +78,13 @@ export default function TobaccoReturnPage() {
     queryKey: ["tobacco-returns", selectedYear],
     queryFn: ({ pageParam }) =>
       apiClient.getTobaccoReturns(tokens!.access_token, {
-        skip: pageParam,
+        page: pageParam,
         limit: PAGE_SIZE,
         year: selectedYear,
       }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0)
-      return totalFetched < lastPage.total ? totalFetched : undefined
-    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.has_more ? allPages.length + 1 : undefined,
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 

@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
@@ -28,14 +28,15 @@ _FARMER_NOT_FOUND = "Member farmer not found"
 async def list_registrations(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    skip: int = 0,
-    limit: int = 200,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=200),
     search: Optional[str] = None,
     status: Optional[int] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     sort_sack_in_kg: Optional[str] = None,
 ):
+    skip = (page - 1) * limit
     items, total = await crud.get_all(
         session=session,
         skip=skip,

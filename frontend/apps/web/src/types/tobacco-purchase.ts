@@ -96,10 +96,11 @@ export interface TobaccoPurchaseCreate {
 export interface TobaccoPurchaseListResponse {
   items: TobaccoPurchase[];
   total: number;
+  has_more: boolean;
 }
 
 export interface TobaccoPurchaseListParams {
-  skip?: number;
+  page?: number;
   limit?: number;
   search?: string;
   buyer?: number | null;

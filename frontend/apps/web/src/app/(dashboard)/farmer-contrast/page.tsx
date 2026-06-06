@@ -55,14 +55,12 @@ export default function FarmerContrastPage() {
     queryFn: ({ pageParam }) =>
       apiClient.getFarmerContrasts(tokens!.access_token, {
         year: selectedYear,
-        skip: pageParam,
+        page: pageParam,
         limit: PAGE_SIZE,
       }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0)
-      return totalFetched < lastPage.total ? totalFetched : undefined
-    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.has_more ? allPages.length + 1 : undefined,
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 

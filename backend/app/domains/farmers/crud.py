@@ -50,6 +50,7 @@ async def query_member_farmers(
     session: AsyncSession,
     query: str,
     represent_id: Optional[int] = None,
+    skip: int = 0,
     limit: int = 10,
 ) -> list[MemberFarmer]:
     stmt = (
@@ -62,5 +63,5 @@ async def query_member_farmers(
     )
     if represent_id is not None:
         stmt = stmt.where(MemberFarmer.represent == represent_id)
-    result = await session.execute(stmt.limit(limit))
+    result = await session.execute(stmt.offset(skip).limit(limit))
     return list(result.scalars().all())

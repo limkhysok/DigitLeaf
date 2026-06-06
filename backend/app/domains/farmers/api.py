@@ -1,5 +1,5 @@
 from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
@@ -31,11 +31,13 @@ async def get_member_farmers(
     name: Optional[str] = None,
     identity_card: Optional[str] = None,
     represent_id: Optional[int] = None,
-    limit: int = 10,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=200),
 ):
     if q is not None:
+        skip = (page - 1) * limit
         return await crud.query_member_farmers(
-            session=session, query=q, represent_id=represent_id, limit=limit
+            session=session, query=q, represent_id=represent_id, skip=skip, limit=limit
         )
     if name or identity_card:
         farmer = await crud.search_member_farmer(session=session, name=name, identity_card=identity_card)

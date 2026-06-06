@@ -13,4 +13,5 @@ export interface TobaccoReturnItem {
 export interface TobaccoReturnListResponse {
   items: TobaccoReturnItem[];
   total: number;
+  has_more: boolean;
 }

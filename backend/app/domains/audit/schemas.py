@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 
 class AuditLogPublic(BaseModel):
@@ -13,3 +13,9 @@ class AuditLogPublic(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogListResponse(BaseModel):
+    items: List[AuditLogPublic]
+    total: int
+    has_more: bool

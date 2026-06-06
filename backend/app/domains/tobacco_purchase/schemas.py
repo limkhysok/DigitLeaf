@@ -136,6 +136,7 @@ class Purchase(PurchaseBase):
 class PurchaseList(BaseModel):
     items: List[Purchase]
     total: int
+    has_more: bool
 
 class FormMetadataResponse(BaseModel):
     purchasers: List[Any]

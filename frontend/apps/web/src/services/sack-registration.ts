@@ -87,7 +87,7 @@ export const sackRegistrationApi = {
     params: SackRegistrationListParams = {}
   ): Promise<SackRegistrationListResponse> {
     const query = new URLSearchParams();
-    if (params.skip !== undefined) query.set("skip", String(params.skip));
+    if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.search) query.set("search", params.search);
     if (params.status !== undefined) query.set("status", String(params.status));
@@ -202,11 +202,11 @@ export const sackRegistrationApi = {
 
   async getFarmerContrasts(
     accessToken: string,
-    params: { year?: number; skip?: number; limit?: number } = {}
+    params: { year?: number; page?: number; limit?: number } = {}
   ): Promise<FarmerContrastListResponse> {
     const query = new URLSearchParams();
     if (params.year !== undefined) query.set("year", String(params.year));
-    if (params.skip !== undefined) query.set("skip", String(params.skip));
+    if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     const response = await fetch(
       `${API_BASE_URL}/farmer-contrast/?${query}`,

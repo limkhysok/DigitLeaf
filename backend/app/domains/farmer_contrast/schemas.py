@@ -19,3 +19,4 @@ class FarmerContrastPublic(BaseModel):
 class FarmerContrastListResponse(BaseModel):
     items: List[FarmerContrastPublic]
     total: int
+    has_more: bool

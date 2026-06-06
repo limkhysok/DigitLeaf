@@ -16,7 +16,13 @@ async def list_farmer_contrasts(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     year: int = 2026,
-    skip: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=500),
 ):
-    return await crud.get_farmer_contrasts(session=session, year=year, skip=skip, limit=limit)
+    skip = (page - 1) * limit
+    result = await crud.get_farmer_contrasts(session=session, year=year, skip=skip, limit=limit)
+    return FarmerContrastListResponse(
+        items=result["items"],
+        total=result["total"],
+        has_more=(skip + len(result["items"])) < result["total"],
+    )
