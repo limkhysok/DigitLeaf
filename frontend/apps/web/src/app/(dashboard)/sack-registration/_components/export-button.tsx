@@ -103,17 +103,19 @@ export function ExportButton() {
       <PopoverContent className="w-80 p-4" align="start">
         <div className="flex flex-col gap-4">
           <div className="space-y-2">
-            <h4 className="font-medium leading-none">Export Data</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="text-sm font-semibold">Export Data</h4>
+            <p className="text-sm font-regular text-muted-foreground">
               Select filters for your Excel export.
             </p>
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status" className="text-sm font-medium">
+              Status
+            </Label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger id="status">
-                <SelectValue placeholder="Select status" />
+              <SelectTrigger id="status" className="w-full h-8">
+                <SelectValue placeholder="Select status" className="text-sm font-regular" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
@@ -125,10 +127,12 @@ export function ExportButton() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="dateRange">Date Range</Label>
+            <Label htmlFor="dateRange" className="text-sm font-medium">
+              Date Range
+            </Label>
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger id="dateRange">
-                <SelectValue placeholder="Select date range" />
+              <SelectTrigger id="dateRange" className="w-full h-8">
+                <SelectValue placeholder="Select date range" className="text-sm font-regular" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="today">Today</SelectItem>
