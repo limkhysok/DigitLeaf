@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconDownload, IconLoader2 } from "@tabler/icons-react"
+import { IconDownload, IconLoader2, IconCalendar } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   Popover,
@@ -10,25 +10,29 @@ import {
 } from "@workspace/ui/components/popover"
 import { Label } from "@workspace/ui/components/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
-import { Input } from "@workspace/ui/components/input"
+import { Calendar } from "@workspace/ui/components/calendar"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient } from "@/services/api-client"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
+import { format } from "date-fns"
+import { cn } from "@workspace/ui/lib/utils"
 
 function toLocalYMD(d: Date) {
   const offset = d.getTimezoneOffset()
   const local = new Date(d.getTime() - offset * 60 * 1000)
   return local.toISOString().split("T")[0] ?? ""
 }
+
 export function ExportButton() {
   const { tokens } = useAuth()
   const accessToken = tokens?.access_token
   const { t } = useLanguage()
   const [open, setOpen] = React.useState(false)
+  const [calendarOpen, setCalendarOpen] = React.useState(false)
   const [status, setStatus] = React.useState<string>("all")
-  const todayYMD = toLocalYMD(new Date())
-  const [selectedDate, setSelectedDate] = React.useState(todayYMD)
+  const today = new Date()
+  const [selectedDate, setSelectedDate] = React.useState<Date>(today)
   const [isExporting, setIsExporting] = React.useState(false)
 
   const handleExport = async () => {
@@ -36,16 +40,17 @@ export function ExportButton() {
     setIsExporting(true)
     try {
       const statusParam = status === "all" ? undefined : Number.parseInt(status, 10)
+      const dateYMD = toLocalYMD(selectedDate)
       const blob = await apiClient.exportSackRegistrations(accessToken, {
         status: statusParam,
-        date_from: selectedDate,
-        date_to: selectedDate,
+        date_from: dateYMD,
+        date_to: dateYMD,
       })
 
       const url = globalThis.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `sack_registrations_${selectedDate}.xlsx`
+      a.download = `sack_registrations_${dateYMD}.xlsx`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -76,17 +81,34 @@ export function ExportButton() {
           </div>
 
           <div className="grid gap-2">
-            <div className="flex items-center gap-1.5">
-              <Label htmlFor="export-date" className="text-sm font-medium">Date</Label>
-            </div>
-            <Input
-              id="export-date"
-              type="date"
-              value={selectedDate}
-              max={todayYMD}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="h-8 text-sm"
-            />
+            <Label className="text-sm font-medium">Date</Label>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-8 w-full justify-start text-left text-sm font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <IconCalendar className="mr-2 h-4 w-4" />
+                  {format(selectedDate, "PPP")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date)
+                      setCalendarOpen(false)
+                    }
+                  }}
+                  disabled={(date) => date > today}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid gap-2">

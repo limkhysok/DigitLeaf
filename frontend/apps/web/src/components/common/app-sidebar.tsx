@@ -88,11 +88,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             className="object-contain shrink-0 transition-transform duration-300 group-hover/logo:scale-105"
           />
 
-          <div className="flex flex-col gap-0.5 min-w-0 flex-1 overflow-hidden transition-[opacity,max-width] duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:opacity-0 group-data-[collapsible=icon]/sidebar:max-w-0">
-            <span className="text-sm font-medium tracking-widest text-black uppercase leading-none whitespace-nowrap">
+          <div className="flex flex-col gap-0 min-w-0 flex-1 overflow-hidden transition-[opacity,max-width] duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:opacity-0 group-data-[collapsible=icon]/sidebar:max-w-0">
+            <span className="text-sm font-semibold tracking-widest text-black uppercase leading-none whitespace-nowrap">
               KAIC
             </span>
-            <span className="text-[9px] font-bold text-black/40 tracking-[0.2em] uppercase whitespace-nowrap">
+            <span className="text-[10px] font-medium text-green-700 uppercase tracking-normal">
               Internal System
             </span>
           </div>
