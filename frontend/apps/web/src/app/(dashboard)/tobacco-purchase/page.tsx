@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/hooks/use-language"
 import {
   apiClient,
   TobaccoPurchase,
 } from "@/services/api-client"
 import { toast } from "sonner"
-import { IconLoader2, IconPlus } from "@tabler/icons-react"
+import { IconCirclePlusFilled, IconLoader2 } from "@tabler/icons-react"
 import { AddPurchaseDialog } from "./_components/add-purchase-dialog"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { MobileView } from "./_components/mobile-view"
@@ -45,6 +46,7 @@ export default function TobaccoPurchasePage() {
 
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
+  const { t } = useLanguage()
   const queryClient = useQueryClient()
 
   const [dialogOpen, setDialogOpen] = React.useState(false)
@@ -227,9 +229,9 @@ export default function TobaccoPurchasePage() {
   })
 
   const actionNode = (
-    <Button onClick={handleAddNew} className="shrink-0 rounded-md h-8 px-4 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all">
-      <IconPlus className="size-3.5" />
-      <span className="hidden sm:inline">Add</span>
+    <Button size="sm" onClick={handleAddNew} className="h-8 px-3 flex gap-1.5 rounded-sm">
+      <IconCirclePlusFilled className="h-4 w-4" />
+      <span className="hidden sm:inline">{t.tobaccoPurchase.filters.add}</span>
     </Button>
   )
 
