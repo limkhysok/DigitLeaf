@@ -465,7 +465,7 @@ export const translations = {
         searchFarmerPlaceholder: "ស្វែងរកតាមឈ្មោះ ឬលេខកាត",
         searching: "កំពុងស្វែងរក...",
         selectRepFirst: "សូមជ្រើសរើសតំណាងជាមុនសិន។",
-        idCardLabel: "អត្តសញ្ញាណប័ណ្ណ៖ {code}",
+        idCardLabel: "លេខកាត៖ {code}",
         registrationDate: "កាលបរិច្ឆេទ",
         selectDatePlaceholder: "ជ្រើសរើសកាលបរិច្ឆេទ...",
         sackWeightKg: "បាវ(គីឡូក្រាម)",

@@ -10,7 +10,7 @@ export function TopNav() {
   const { user } = useAuth()
   return (
     <header
-      className="flex h-14 shrink-0 items-center border-b border-gray-300 sticky top-0 z-30 bg-white"
+      className="flex h-13 shrink-0 items-center border-b border-gray-300 sticky top-0 z-30 bg-white"
     >
       <div className="flex h-full w-full items-center gap-2 px-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">

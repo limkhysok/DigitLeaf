@@ -4,8 +4,8 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import {
-  IconLayoutSidebarLeftCollapse,
-  IconLayoutSidebarLeftExpand
+  IconLayoutSidebarLeftCollapseFilled,
+  IconLayoutSidebarLeftExpandFilled
 } from "@tabler/icons-react"
 
 import { useIsMobile } from "../hooks/use-mobile"
@@ -309,7 +309,7 @@ export const SidebarTrigger = React.forwardRef<
   const { toggleSidebar, state, isMobile, openMobile } = useSidebar()
 
   const isOpen = isMobile ? openMobile : state === "expanded"
-  const Icon = isOpen ? IconLayoutSidebarLeftCollapse : IconLayoutSidebarLeftExpand
+  const Icon = isOpen ? IconLayoutSidebarLeftCollapseFilled : IconLayoutSidebarLeftExpandFilled
 
   return (
     <Button

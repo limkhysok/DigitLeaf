@@ -28,7 +28,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="pl-5">Overview</SidebarGroupLabel>
+      <SidebarGroupLabel className="pl-5 transition-[opacity,max-width] duration-300 ease-in-out">Overview</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isActive =

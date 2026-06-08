@@ -188,7 +188,7 @@ export function RegisterDialog({
                             )}
                           />
                           {r.represent_name}
-                          <span className="text-muted-foreground text-xs ml-auto">
+                          <span className="text-muted-foreground text-sm ml-auto">
                             {t.sackRegistration.dialog.membersCount.replace("{count}", String(r.farmer_count))}
                           </span>
                         </CommandItem>
@@ -252,10 +252,7 @@ export function RegisterDialog({
                               farmerResult?.mf_id === f.mf_id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          <div className="flex flex-col">
-                            <span>{f.name}</span>
-                            <span className="text-[10px] text-muted-foreground">ID: {f.mf_code}</span>
-                          </div>
+                          <span>{f.name} <span className="text-gray-800">({f.mf_code})</span></span>
                         </CommandItem>
                       ))}
                     </CommandGroup>
