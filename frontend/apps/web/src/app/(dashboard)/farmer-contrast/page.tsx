@@ -113,9 +113,8 @@ export default function FarmerContrastPage() {
       ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
-          <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-full">
-            {t.farmerContrast.subtitle}
+          <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">            {t.farmerContrast.subtitle}
           </p>
         </div>
       </div>

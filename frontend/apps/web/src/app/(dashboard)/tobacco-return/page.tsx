@@ -29,11 +29,6 @@ export default function TobaccoReturnPage() {
 
   const currentYearMinusOne = (new Date().getFullYear() - 1).toString()
   const [selectedYear, setSelectedYear] = React.useState(currentYearMinusOne)
-  const [availableYears, setAvailableYears] = React.useState<string[]>([
-    currentYearMinusOne,
-    new Date().getFullYear().toString(),
-    (new Date().getFullYear() - 2).toString(),
-  ])
 
   const [searchInput, setSearchInput] = React.useState("")
   const [sortBy, setSortBy] = React.useState<"Quantity" | "total_repaid" | null>(null)
@@ -60,14 +55,13 @@ export default function TobaccoReturnPage() {
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 
-  React.useEffect(() => {
-    if (yearsData && yearsData.length > 0) {
-      setAvailableYears(yearsData)
-      setSelectedYear((prev) => (yearsData.includes(prev) ? prev : (yearsData[0] ?? currentYearMinusOne)))
-    }
-  }, [yearsData, currentYearMinusOne])
+  const availableYears = (yearsData && yearsData.length > 0)
+    ? yearsData
+    : [currentYearMinusOne, new Date().getFullYear().toString(), (new Date().getFullYear() - 2).toString()]
 
-  // Infinite query — resets when selectedYear changes
+  const effectiveYear = availableYears.includes(selectedYear) ? selectedYear : (availableYears[0] ?? currentYearMinusOne)
+
+  // Infinite query — resets when effectiveYear changes
   const {
     data,
     isLoading,
@@ -75,12 +69,12 @@ export default function TobaccoReturnPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["tobacco-returns", selectedYear],
+    queryKey: ["tobacco-returns", effectiveYear],
     queryFn: ({ pageParam }) =>
       apiClient.getTobaccoReturns(tokens!.access_token, {
         page: pageParam,
         limit: PAGE_SIZE,
-        year: selectedYear,
+        year: effectiveYear,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
@@ -135,12 +129,8 @@ export default function TobaccoReturnPage() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">
-            {pageTitle}
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-sm sm:text-balance md:max-w-full">
-            Manage and track tobacco return records from {currentYearMinusOne} - {new Date().getFullYear()}.
-          </p>
+          <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">Manage and track tobacco return records from {currentYearMinusOne} - {new Date().getFullYear()}.</p>
         </div>
       </div>
 
@@ -153,7 +143,7 @@ export default function TobaccoReturnPage() {
         setSortBy={setSortBy}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
-        selectedYear={selectedYear}
+        selectedYear={effectiveYear}
         setSelectedYear={setSelectedYear}
         availableYears={availableYears}
       />
@@ -167,7 +157,7 @@ export default function TobaccoReturnPage() {
         setSortBy={setSortBy}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
-        selectedYear={selectedYear}
+        selectedYear={effectiveYear}
         setSelectedYear={setSelectedYear}
         availableYears={availableYears}
         columnVisibility={columnVisibility}

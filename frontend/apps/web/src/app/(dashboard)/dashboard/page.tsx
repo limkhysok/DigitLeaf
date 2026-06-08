@@ -66,7 +66,7 @@ export default function DashboardPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Workspace Overview</h1>
+          <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">Workspace Overview</h1>
           <p className="text-muted-foreground font-medium">Monitoring your system&apos;s real-time performance and node activity.</p>
         </div>
         <div className="flex items-center gap-3">

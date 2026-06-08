@@ -92,7 +92,7 @@ export function DataTableToolbar<TData>({
           placeholder={t.sackRegistration.filters.searchPlaceholder}
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          className="rounded-sm! h-8 w-full lg:max-w-none lg:w-62.5 text-xs md:text-sm  placeholder:text-sm"
+          className="rounded-sm! h-8 w-full lg:max-w-none lg:w-58.5 text-xs md:text-sm  placeholder:text-sm"
         />
       </div>
 
