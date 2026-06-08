@@ -185,7 +185,7 @@ export const translations = {
         approved: "Approved",
         pending: "Pending",
         rejected: "Rejected",
-        sackWeight: "Sack Weight",
+        sackWeight: "Sack",
         average: "Avg / Reg",
       }
     },
@@ -486,7 +486,7 @@ export const translations = {
         approved: "បានបញ្ជាក់",
         pending: "កំពុងរង់ចាំ",
         rejected: "បានបដិសេធ",
-        sackWeight: "ទម្ងន់បាវ (គីឡូ)",
+        sackWeight: "ទម្ងន់បើកបាវ",
         average: "មធ្យម / ករណី",
       }
     },
