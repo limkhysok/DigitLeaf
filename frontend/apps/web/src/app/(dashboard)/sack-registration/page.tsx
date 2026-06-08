@@ -9,7 +9,7 @@ import {
   SackRegistrationItem,
 } from "@/services/api-client"
 
-import { IconLoader2, IconPlus } from "@tabler/icons-react"
+import { IconLoader2, IconCirclePlusFilled } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
   ColumnFiltersState,
@@ -138,8 +138,8 @@ export default function SackRegistrationPage() {
   })
 
   const actionNode = (
-    <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 px-3 flex rounded-sm">
-      <IconPlus className="h-4 w-4" />
+    <Button size="sm" onClick={() => setRegisterOpen(true)} className="h-8 px-3 flex gap-1.5 rounded-sm">
+      <IconCirclePlusFilled className="h-4 w-4" />
       <span className="hidden sm:inline">{t.sackRegistration.filters.add}</span>
     </Button>
   )

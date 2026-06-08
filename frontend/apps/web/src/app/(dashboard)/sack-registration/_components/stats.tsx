@@ -6,7 +6,7 @@
   import { useQuery } from "@tanstack/react-query"
   import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
   import { Skeleton } from "@workspace/ui/components/skeleton"
-  import { IconClipboardList, IconScale, IconArrowDownLeft, IconArrowUpRight } from "@tabler/icons-react"
+  import { IconClipboardList, IconScale, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react"
 
   export function SackRegistrationStatsPanel() {
     const { tokens, isLoading: isAuthLoading } = useAuth()
@@ -36,7 +36,7 @@
           <CardHeader className="pb-1 pt-4 px-5">
             <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.registrations}
-              <IconClipboardList className="h-5 w-5 text-gray-700" />
+              <IconClipboardList className="h-6 w-6 text-gray-700" />
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
@@ -52,7 +52,7 @@
           <CardHeader className="pb-1 pt-4 px-5">
             <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.approved}
-              <IconArrowDownLeft className="h-5 w-5 text-gray-700" />
+              <IconTrendingDown className="h-6 w-6 text-gray-700" style={{ transform: 'scaleX(-1)' }} />
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
@@ -68,7 +68,7 @@
           <CardHeader className="pb-1 pt-4 px-5">
             <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.pending}
-              <IconArrowUpRight className="h-5 w-5 text-gray-700" />
+              <IconTrendingUp className="h-6 w-6 text-gray-700" />
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
@@ -84,7 +84,7 @@
           <CardHeader className="pb-1 pt-4 px-5">
             <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.sackWeight}
-              <IconScale className="h-5 w-5 text-gray-700" />
+              <IconScale className="h-6 w-6 text-gray-700" />
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">

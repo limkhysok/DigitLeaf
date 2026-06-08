@@ -185,7 +185,7 @@ export const translations = {
         approved: "Approved",
         pending: "Pending",
         rejected: "Rejected",
-        sackWeight: "Sack",
+        sackWeight: "Pending Sack",
         average: "Avg / Reg",
       }
     },
