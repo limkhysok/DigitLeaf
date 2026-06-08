@@ -88,36 +88,19 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     }
   }, [saveTokensToStorage])
 
+  // Run auth init once on mount only — NOT on every navigation
   useEffect(() => {
     let isMounted = true
 
     const initAuth = async () => {
       const storedTokens = loadTokensFromStorage()
-      
+
       if (storedTokens) {
-        // Set tokens if not already set
-        setTokens(prev => {
-          if (prev?.access_token !== storedTokens.access_token) {
-            return storedTokens
-          }
-          return prev
-        })
-
-        const success = await fetchCurrentUser(storedTokens)
-        if (!isMounted) return
-
-        if (success) {
-          if (pathname === "/" || pathname?.includes("/login")) {
-            router.push("/dashboard")
-          }
-        } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
-          router.push("/login")
-        }
-      } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
-        router.push("/login")
+        setTokens(storedTokens)
+        await fetchCurrentUser(storedTokens)
       }
-      
-      setIsLoading(false)
+
+      if (isMounted) setIsLoading(false)
     }
 
     initAuth()
@@ -125,7 +108,21 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     return () => {
       isMounted = false
     }
-  }, [fetchCurrentUser, loadTokensFromStorage, pathname, router])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Handle redirects separately based on resolved auth state
+  useEffect(() => {
+    if (isLoading) return
+
+    if (user) {
+      if (pathname === "/" || pathname?.includes("/login")) {
+        router.push("/dashboard")
+      }
+    } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
+      router.push("/login")
+    }
+  }, [isLoading, user, pathname, router])
 
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true)

@@ -3,10 +3,10 @@
 import { type TablerIcon } from "@tabler/icons-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@workspace/ui/lib/utils"
 
 import {
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -28,42 +28,26 @@ export function NavMain({
 
   return (
     <SidebarGroup>
+      <SidebarGroupLabel className="pl-5">Overview</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          const isActive = pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))
+          const isActive =
+            pathname === item.url ||
+            (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))
 
           return (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive}
-                className={cn(
-                  "group/btn relative transition-all duration-200 ease-in-out h-9",
-                  "group-data-[collapsible=icon]/sidebar:justify-center",
-                  isActive
-                    ? "bg-[#009640]! text-white! font-medium"
-                    : "text-black! hover:bg-black/5! hover:text-black!"
-                )}
-              >
+              <SidebarMenuButton asChild isActive={isActive}>
                 <Link href={item.url}>
-                  {item.icon && (
-                    <item.icon size={18} stroke={1.5} />
-                  )}
-                  <span className={cn(
-                    "truncate text-sm transition-all duration-200 group-data-[collapsible=icon]/sidebar:hidden",
-                    isActive ? "font-semibold" : "font-medium"
-                  )}>
-                    {item.title}
-                  </span>
-
+                  {item.icon && <item.icon size={25} viewBox="0 0 25 25" stroke={2} />}
+                  <span className="truncate group-data-[collapsible=icon]/sidebar:hidden">{item.title}</span>
                   {item.badge && (
-                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 text-white text-[10px] font-bold px-1 group-data-[collapsible=icon]/sidebar:hidden">
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 text-white text-[10px] font-bold px-1">
                       {item.badge}
                     </span>
                   )}
-
                   {item.hasUpdate && !item.badge && (
-                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white group-data-[collapsible=icon]/sidebar:hidden" />
+                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white" />
                   )}
                 </Link>
               </SidebarMenuButton>

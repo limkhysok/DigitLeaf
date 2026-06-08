@@ -29,12 +29,12 @@
     if (!stats) return null
 
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
         {/* Total Registrations */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm shadow-xs">
           <CardHeader className="pb-1 pt-4 px-5">
-            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.registrations}
               <IconClipboardList className="h-5 w-5 text-gray-700" />
             </CardTitle>
@@ -48,9 +48,9 @@
         </Card>
 
         {/* Total Confirmed */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm shadow-xs">
           <CardHeader className="pb-1 pt-4 px-5">
-            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.approved}
               <IconCircleCheck className="h-5 w-5 text-gray-700" />
             </CardTitle>
@@ -64,9 +64,9 @@
         </Card>
 
         {/* Total Pending */}
-        <Card className="rounded-sm">
+        <Card className="rounded-sm shadow-xs">
           <CardHeader className="pb-1 pt-4 px-5">
-            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.pending}
               <IconClock className="h-5 w-5 text-gray-700" />
             </CardTitle>
@@ -80,9 +80,9 @@
         </Card>
 
         {/* Pending Sack Weight */}
-        <Card className=" rounded-sm">
+        <Card className="rounded-sm shadow-xs">
           <CardHeader className="pb-1 pt-4 px-5">
-            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
               {t.sackRegistration.stats.sackWeight}
               <IconScale className="h-5 w-5 text-gray-700" />
             </CardTitle>
