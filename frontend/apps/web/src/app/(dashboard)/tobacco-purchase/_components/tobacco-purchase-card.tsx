@@ -33,7 +33,7 @@ export const TobaccoPurchaseCard = React.memo(({
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 group-hover:bg-emerald-500 rounded-l-xl transition-colors duration-300" />
 
       {/* Background Leaf Watermark */}
-      <div className="absolute -bottom-6 -right-6 z-0 text-emerald-500/[0.06] group-hover:text-emerald-500/[0.12] group-hover:-translate-y-2 transition-all duration-500 pointer-events-none -rotate-12">
+      <div className="absolute -bottom-6 -right-6 z-0 text-emerald-500/6 group-hover:text-emerald-500/12 group-hover:-translate-y-2 transition-all duration-500 pointer-events-none -rotate-12">
         <IconLeaf size={160} stroke={1} />
       </div>
 

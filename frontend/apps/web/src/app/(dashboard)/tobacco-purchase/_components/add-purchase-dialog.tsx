@@ -569,7 +569,7 @@ export function AddPurchaseDialog({
                   <Input
                     value={tpCode}
                     readOnly
-                    className="h-8 text-[13px] rounded-md font-bold bg-white border-black/20 cursor-default"
+                    className="h-8 text-[13px] rounded-md font-semibold bg-white border-black/20 cursor-default"
                   />
                 </div>
 
@@ -606,14 +606,14 @@ export function AddPurchaseDialog({
                       className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
                       align="start"
                       sideOffset={4}
-                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
                       onOpenAutoFocus={(e) => e.preventDefault()}
                       onInteractOutside={(e) => {
                         const target = e.target as HTMLElement
                         if (target.closest('.group')) e.preventDefault()
                       }}
                     >
-                      <div className="max-h-75 overflow-y-auto p-1">
+                      <div className="max-h-75 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                         {purchasers
                           .filter(p =>
                             p.p_name.toLowerCase().includes(buyerSearch.toLowerCase()) ||
@@ -671,7 +671,7 @@ export function AddPurchaseDialog({
                         if (target.closest('.group')) e.preventDefault()
                       }}
                     >
-                      <div className="max-h-75 overflow-y-auto p-1">
+                      <div className="max-h-75 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                         {regions
                           .filter(r =>
                             r.reg_name.toLowerCase().includes(regionSearch.toLowerCase()) ||
@@ -732,14 +732,14 @@ export function AddPurchaseDialog({
                       className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
                       align="start"
                       sideOffset={4}
-                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
                       onOpenAutoFocus={(e) => e.preventDefault()}
                       onInteractOutside={(e) => {
                         const target = e.target as HTMLElement
                         if (target.closest('.group')) e.preventDefault()
                       }}
                     >
-                      <div className="max-h-75 overflow-y-auto p-1">
+                      <div className="max-h-75 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                         <VendorListContent
                           isVendorsLoading={isVendorsLoading}
                           vendors={vendors}
@@ -799,7 +799,7 @@ export function AddPurchaseDialog({
                         if (target.closest('.group')) e.preventDefault()
                       }}
                     >
-                      <div className="max-h-75 overflow-y-auto p-1">
+                      <div className="max-h-75 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                         {ovens
                           .filter(o =>
                             o.name_en.toLowerCase().includes(ovenSearch.toLowerCase()) ||
@@ -1360,14 +1360,14 @@ const PurchaseDetailCard = React.memo(({
               className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
               align="start"
               sideOffset={4}
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               onInteractOutside={(e) => {
                 const target = e.target as HTMLElement
                 if (target.closest('.group')) e.preventDefault()
               }}
             >
-              <div className="max-h-62.5 overflow-y-auto p-1">
+              <div className="max-h-62.5 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                 {tobaccoTypes.length === 0 ? (
                   <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
                 ) : tobaccoTypes
@@ -1615,14 +1615,14 @@ const PurchaseDetailDesktopCard = React.memo(({
                   className="w-96 p-0 border-black/20 z-100"
                   align="start"
                   sideOffset={4}
-                  onMouseDown={(e) => e.preventDefault()}
+                  onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
                   onOpenAutoFocus={(e) => e.preventDefault()}
                   onInteractOutside={(e) => {
                     const target = e.target as HTMLElement
                     if (target.closest('.group')) e.preventDefault()
                   }}
                 >
-                  <div className="max-h-62.5 overflow-y-auto p-1">
+                  <div className="max-h-62.5 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                     {tobaccoTypes.length === 0 ? (
                       <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
                     ) : tobaccoTypes
@@ -1635,7 +1635,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                           key={t.t_id}
                           type="button"
                           className={cn(
-                            "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
+                            "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent border-b border-border/70",
                             detail.tobacco_name === t.t_id && "bg-accent"
                           )}
                           onClick={() => {
@@ -1645,9 +1645,9 @@ const PurchaseDetailDesktopCard = React.memo(({
                           }}
                         >
                           <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                          <div className="flex flex-col items-start">
-                            <span className="font-bold">{t.t_name}</span>
-                            <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                          <div className="flex flex-col items-start ">
+                            <span className="text-sm font-normal">{t.t_name}</span>
+                            <span className="text-sm font-normal text-gray-700">{t.t_name_kh || "-"}</span>
                           </div>
                         </button>
                       ))
