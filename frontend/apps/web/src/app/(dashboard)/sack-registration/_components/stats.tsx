@@ -40,9 +40,9 @@
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex flex-col gap-0.5">
               <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.registration_counts.total)}</span>
-              <span className="text-sm font-medium text-emerald-500">+{localizeNumber(stats.registration_counts.today)} {t.sackRegistration.stats.today}</span>
+              <span className="text-xs font-medium text-emerald-500">+{localizeNumber(stats.registration_counts.today)} {t.sackRegistration.stats.today}</span>
             </div>
           </CardContent>
         </Card>
@@ -56,9 +56,9 @@
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex flex-col gap-0.5">
               <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.status_breakdown.approved)}</span>
-              <span className="text-sm font-medium text-emerald-500">+{localizeNumber(stats.status_breakdown.approved_today)} {t.sackRegistration.stats.today}</span>
+              <span className="text-xs font-medium text-emerald-500">+{localizeNumber(stats.status_breakdown.approved_today)} {t.sackRegistration.stats.today}</span>
             </div>
           </CardContent>
         </Card>
@@ -72,9 +72,9 @@
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex flex-col gap-0.5">
               <span className="text-2xl font-bold">{localizeNumber(stats.status_breakdown.pending)}</span>
-              <span className="text-sm font-medium text-emerald-500">+{localizeNumber(stats.status_breakdown.pending_today)} {t.sackRegistration.stats.today}</span>
+              <span className="text-xs font-medium text-emerald-500">+{localizeNumber(stats.status_breakdown.pending_today)} {t.sackRegistration.stats.today}</span>
             </div>
           </CardContent>
         </Card>
@@ -88,10 +88,12 @@
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.sack_weight_kg.pending)}</span>
-              <span className="text-lg font-medium">Kg</span>
-              <span className="text-sm font-medium text-emerald-500">+{localizeNumber(stats.sack_weight_kg.pending_today)} kg {t.sackRegistration.stats.today}</span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.sack_weight_kg.pending)}</span>
+                <span className="text-lg font-medium">Kg</span>
+              </div>
+              <span className="text-xs font-medium text-emerald-500">+{localizeNumber(stats.sack_weight_kg.pending_today)} kg {t.sackRegistration.stats.today}</span>
             </div>
           </CardContent>
         </Card>

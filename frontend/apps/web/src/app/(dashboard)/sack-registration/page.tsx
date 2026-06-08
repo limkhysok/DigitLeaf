@@ -186,12 +186,6 @@ export default function SackRegistrationPage() {
           </div>
         </div>
       )}
-      {!isLoading && records.length === 0 && (
-        <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-          {t.sackRegistration.table.noRecords}
-        </div>
-      )}
-
       {/* ════════════════════════════════════════════════════════════════════
           TOOLBAR
       ════════════════════════════════════════════════════════════════════ */}
@@ -202,6 +196,12 @@ export default function SackRegistrationPage() {
           searchInput={searchInput}
           setSearchInput={setSearchInput}
         />
+      )}
+
+      {!isLoading && records.length === 0 && (
+        <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
+          {t.sackRegistration.table.noRecords}
+        </div>
       )}
 
       {/* ════════════════════════════════════════════════════════════════════
