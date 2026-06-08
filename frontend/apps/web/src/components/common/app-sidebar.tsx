@@ -3,11 +3,11 @@
 import * as React from "react"
 import { useSyncExternalStore } from "react"
 import {
-  IconLayoutDashboard,
-  IconReceipt,
-  IconPackage,
-  IconClipboardList,
-  IconCash,
+  IconLayoutDashboardFilled,
+  IconCloverFilled,
+  IconArrowAutofitRightFilled,
+  IconFileDescriptionFilled,
+  IconCashBanknoteFilled,
 } from "@tabler/icons-react"
 
 import {
@@ -27,28 +27,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: t.sidebar.dashboard,
       url: "/dashboard",
-      icon: IconLayoutDashboard,
+      icon: IconLayoutDashboardFilled,
       isActive: true,
     },
     {
       title: t.sidebar.sackRegistration,
       url: "/sack-registration",
-      icon: IconPackage,
+      icon: IconArrowAutofitRightFilled,
     },
     {
       title: t.sidebar.tobaccoPurchase,
       url: "/tobacco-purchase",
-      icon: IconReceipt,
+      icon: IconCloverFilled,
     },
     {
       title: t.sidebar.farmerContrast,
       url: "/farmer-contrast",
-      icon: IconClipboardList,
+      icon: IconFileDescriptionFilled,
     },
     {
       title: t.sidebar.tobaccoReturn,
       url: "/tobacco-return",
-      icon: IconCash,
+      icon: IconCashBanknoteFilled,
     },
   ], [t])
 
