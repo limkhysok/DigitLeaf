@@ -105,14 +105,14 @@ export const ReturnDetailCard = React.memo(({
             <PopoverContent
               className="w-64 p-0 border-border/50 z-120"
               align="start"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               onInteractOutside={(e) => {
                 const target = e.target as HTMLElement
                 if (target.closest('.group')) e.preventDefault()
               }}
             >
-              <div className="max-h-60 overflow-y-auto p-1">
+              <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                 {vendorContracts.length === 0 ? (
                   <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
                 ) : vendorContracts
@@ -172,14 +172,14 @@ export const ReturnDetailCard = React.memo(({
             <PopoverContent
               className="w-64 p-0 border-border/50 z-120"
               align="start"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
               onOpenAutoFocus={(e) => e.preventDefault()}
               onInteractOutside={(e) => {
                 const target = e.target as HTMLElement
                 if (target.closest('.group')) e.preventDefault()
               }}
             >
-              <div className="max-h-60 overflow-y-auto p-1">
+              <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                 {tobaccoTypes
                   .filter(t => {
                     const s = searchTobac.toLowerCase()
@@ -268,12 +268,12 @@ export const ReturnDetailDesktopCard = React.memo(({
   }, [item.con_num])
 
   const remainingText = selectedContract?.qty
-    ? ` (Remaining ${selectedContract.qty} / ${selectedContract.total_returned || 0})`
+    ? `(${selectedContract.qty} / ${selectedContract.total_returned || 0} Kg Left)`
     : ""
 
   return (
     <div className={cn(
-      "relative border-t border-black/20 hover:-translate-y-0.5 rounded-none transition-all duration-300 p-3.5 mt-3.5",
+      "relative border-t border-black/40 hover:-translate-y-0.5 rounded-none transition-all duration-300 py-3 mt-2.5",
       "focus-within:border-black/20"
     )}>
       <div className="flex items-center justify-between gap-4 pb-1.5 mb-3">
@@ -318,14 +318,14 @@ export const ReturnDetailDesktopCard = React.memo(({
               <PopoverContent
                 className="w-64 p-0 border-black/20 z-120"
                 align="start"
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onInteractOutside={(e) => {
                   const target = e.target as HTMLElement
                   if (target.closest('.group')) e.preventDefault()
                 }}
               >
-                <div className="max-h-60 overflow-y-auto p-1">
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                   {vendorContracts.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
                   ) : vendorContracts
@@ -385,14 +385,14 @@ export const ReturnDetailDesktopCard = React.memo(({
               <PopoverContent
                 className="w-64 p-0 border-black/20 z-120"
                 align="start"
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onInteractOutside={(e) => {
                   const target = e.target as HTMLElement
                   if (target.closest('.group')) e.preventDefault()
                 }}
               >
-                <div className="max-h-60 overflow-y-auto p-1">
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                   {tobaccoTypes
                     .filter(t => {
                       const s = searchTobac.toLowerCase()
@@ -427,7 +427,7 @@ export const ReturnDetailDesktopCard = React.memo(({
 
           <div className="w-[40%] space-y-1">
             <Label className="text-sm">
-              Repay Leaf (Kg) <span className="text-sm">{remainingText}</span>
+              Repay<span className="text-sm">{remainingText}</span>
             </Label>
             <div className="relative">
               <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />

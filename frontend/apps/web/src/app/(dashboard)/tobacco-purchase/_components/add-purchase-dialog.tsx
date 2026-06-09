@@ -1044,6 +1044,11 @@ export function AddPurchaseDialog({
                 </div>
               ) : (
                 <div className="space-y-3 mt-2 mb-4 px-7 py-2 rounded-sm border border-black/40 divide-y divide-black/40">
+                  <div className="flex items-center justify-between pt-2 pb-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-medium">Tobacco Purchase</h3>
+                    </div>
+                  </div>
                   {details.map((detail, idx) => (
                     <PurchaseDetailDesktopCard
                       key={detail.tempId}
@@ -1082,7 +1087,7 @@ export function AddPurchaseDialog({
             </div>
 
             {returns.length > 0 && (
-              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-4 px-7">
+              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/40 pt-4 px-7">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-medium">Tobacco Repay</h3>
