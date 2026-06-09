@@ -1525,15 +1525,13 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative bg-white border border-black/20 hover:border-black/60 hover:-translate-y-0.5 rounded-sm transition-all duration-300 pt-4 pb-5 px-6",
-      "focus-within:border-black/40",
-      index % 2 === 0 ? "bg-white" : "bg-slate-50/10"
+      "border border-black/20 hover:border-black/40 rounded-sm transition-all duration-200 px-4 pt-3 pb-4",
+      index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
-      {/* Top bar: Item Index and Delete Action */}
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <span className="text-sm font-bold text-foreground px-0 py-0.5 rounded-sm">
-          Item {index + 1}
-        </span>
+
+      {/* Header: Item # + Remove */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-bold text-foreground">Item {index + 1}</span>
         {!isReadOnly && (
           <Button
             type="button"
@@ -1547,12 +1545,13 @@ const PurchaseDetailDesktopCard = React.memo(({
         )}
       </div>
 
-      {/* Main content body: Image on the Left, Spacious form fields on the Right */}
-      <div className="flex flex-row gap-4 items-start">
-        {/* Left Side: Enlarged Image upload / preview box (w-[189px] h-[189px] for perfect 1:1 alignment) */}
-        <div className="shrink-0">
+      {/* Body: Image (left, spans both rows) + Fields (right, 2 rows) */}
+      <div className="flex gap-3 items-stretch">
+
+        {/* Image — self-stretches to match field rows height */}
+        <div className="shrink-0 w-28 self-stretch">
           {detail.picture ? (
-            <div className="w-47.25 h-47.25 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center">
+            <div className="w-full h-full min-h-27 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
@@ -1567,18 +1566,16 @@ const PurchaseDetailDesktopCard = React.memo(({
               </button>
               {!isReadOnly && (
                 <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
-                  <IconPlus className="size-10 text-white" />
+                  <IconPlus className="size-7 text-white" />
                   <input
                     type="file"
                     accept="image/*"
-                    className="hidden rounded-sm"
+                    className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (file) {
                         const reader = new FileReader()
-                        reader.onloadend = () => {
-                          onChange(index, "picture", reader.result as string)
-                        }
+                        reader.onloadend = () => onChange(index, "picture", reader.result as string)
                         reader.readAsDataURL(file)
                       }
                     }}
@@ -1587,20 +1584,21 @@ const PurchaseDetailDesktopCard = React.memo(({
               )}
             </div>
           ) : (
-            <label className="w-48.25 h-48.25 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative">
-              <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
+            <label className={cn(
+              "w-full h-full min-h-27 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center transition-all group/img",
+              isReadOnly ? "cursor-default" : "cursor-pointer hover:border-primary/40"
+            )}>
+              <IconPlus className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
               {!isReadOnly && (
                 <input
                   type="file"
                   accept="image/*"
-                  className="hidden rounded-sm"
+                  className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) {
                       const reader = new FileReader()
-                      reader.onloadend = () => {
-                        onChange(index, "picture", reader.result as string)
-                      }
+                      reader.onloadend = () => onChange(index, "picture", reader.result as string)
                       reader.readAsDataURL(file)
                     }
                   }}
@@ -1610,11 +1608,12 @@ const PurchaseDetailDesktopCard = React.memo(({
           )}
         </div>
 
-        {/* Right Side: Spacious Form fields */}
-        <div className="flex-1 space-y-3">
-          {/* Row 1: Tobacco Item Search Popover */}
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1">
+        {/* Fields — 2 rows */}
+        <div className="flex-1 flex flex-col gap-2">
+
+          {/* Row 1: Tobacco Type 50% | Gross Weight 25% | Price/Kg 25% */}
+          <div className="flex">
+            <div className="w-[50%] pr-3 space-y-1">
               <Label className="text-sm">Tobacco Type</Label>
               <Popover open={open} onOpenChange={(isOpen) => {
                 setOpen(isOpen)
@@ -1632,13 +1631,13 @@ const PurchaseDetailDesktopCard = React.memo(({
                       onFocus={() => { setSearch(""); setOpen(true) }}
                       onClick={() => { setSearch(""); setOpen(true) }}
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
+                      className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
                     />
-                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                    <IconSearch className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                   </div>
                 </PopoverAnchor>
                 <PopoverContent
-                  className="w-96 p-0 border-black/20 z-100"
+                  className="w-80 p-0 border-black/20 z-100"
                   align="start"
                   sideOffset={4}
                   onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
@@ -1671,7 +1670,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                           }}
                         >
                           <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                          <div className="flex flex-col items-start ">
+                          <div className="flex flex-col items-start">
                             <span className="text-sm font-normal">{t.t_name}</span>
                             <span className="text-sm font-normal text-gray-700">{t.t_name_kh || "-"}</span>
                           </div>
@@ -1683,67 +1682,61 @@ const PurchaseDetailDesktopCard = React.memo(({
               </Popover>
             </div>
 
-          </div>
-
-          {/* Row 2: Weights Inputs (3 equal columns) */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
+            <div className="w-[25%] pr-3 space-y-1">
               <Label className="text-sm">Gross Weight (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
+                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.gross_weight ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm">Remork (Kg)</Label>
-              <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
-                value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
-                onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-sm">Sack (Kg)</Label>
-              <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
-                value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
-                onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              />
-            </div>
-          </div>
 
-          {/* Row 3: Price, Net Weight, and Total Amount (3 equal columns representing Price x Net Weight = Total Amount) */}
-          <div className="grid grid-cols-3 gap-3 items-end">
-            <div className="space-y-1">
+            <div className="w-[25%] space-y-1">
               <Label className="text-sm">Price/Kg</Label>
               <div className="relative">
                 <Input type="number"
-                  className="h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5 pr-7"
+                  className="h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5 pr-7"
                   value={detail.price ?? ""} disabled={isReadOnly}
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold opacity-40">៛</span>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-1">
-              <Label className="text-sm">Net Weight(Kg)</Label>
-              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between ">
-                <span className="text-sm font-bold tabular-nums">
-                  {netWeight.toFixed(2)}
-                </span>
-                <span className="text-sm font-semibold">Kg</span>
+          {/* Row 2: Remork 25% | Sack 25% | Net Weight 25% | Total Amount 25% */}
+          <div className="flex">
+            <div className="w-[25%] pr-3 space-y-1">
+              <Label className="text-sm">Remork (Kg)</Label>
+              <Input type="number" step="1"
+                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
+                value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
+
+            <div className="w-[25%] pr-3 space-y-1">
+              <Label className="text-sm">Sack (Kg)</Label>
+              <Input type="number" step="0.01"
+                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
+                value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
+
+            <div className="w-[25%] pr-3 space-y-1">
+              <Label className="text-sm">Net Weight</Label>
+              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between">
+                <span className="text-sm font-bold tabular-nums">{netWeight.toFixed(2)}</span>
+                <span className="text-[11px] font-semibold text-muted-foreground">Kg</span>
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="w-[25%] space-y-1">
               <Label className="text-sm">Total Amount</Label>
-              <div className="h-8 border border-black/20 rounded-sm px-3 flex items-center justify-between">
+              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between ">
                 <span className="text-sm font-bold">៛</span>
-                <span className="text-sm font-bold tabular-nums">
-                  {total.toLocaleString()}
-                </span>
+                <span className="text-sm font-bold tabular-nums">{total.toLocaleString()}</span>
               </div>
             </div>
           </div>
