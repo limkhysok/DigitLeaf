@@ -1515,37 +1515,35 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "transition-all duration-200 pb-4 mb-1",
+      "relative transition-all duration-200 pb-4 mb-1",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
-      {/* Header: Item # + Remove */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-bold text-foreground">Item {index + 1}</span>
-        {!isReadOnly && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemove(index)}
-            className="text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 h-6.5 px-2 rounded-sm transition-colors text-[11px]"
-          >
-            <IconX className="size-3 mr-1" /> Remove
-          </Button>
-        )}
-      </div>
+      {/* Delete button — top-right of the card */}
+      {!isReadOnly && (
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          className="absolute top-0 right-0 p-1 rounded text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 transition-colors z-10"
+        >
+          <IconX className="size-3.5" />
+        </button>
+      )}
 
-      {/* Body: Image (left, spans both rows) + Fields (right, 2 rows) */}
+      {/* Body: Image (left) + Fields (right, 2 rows) */}
       <div className="flex gap-3 items-stretch">
 
-        {/* Image — self-stretches to match field rows height */}
-        <div className="shrink-0 w-28 self-stretch">
+        {/* Image column — "Item N" label sits above image like other field labels */}
+        <div className="shrink-0 w-24 flex flex-col">
+          <div className="mb-1">
+            <Label className="text-sm">Item {index + 1}</Label>
+          </div>
           {detail.picture ? (
-            <div className="w-full h-full min-h-27 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative">
+            <div className="w-full flex-1 min-h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
-                className="w-full h-full p-0 border-none outline-none bg-transparent cursor-zoom-in focus-visible:ring-1 focus-visible:ring-primary"
+                className="w-full flex-1 p-0 border-none outline-none bg-transparent cursor-zoom-in focus-visible:ring-1 focus-visible:ring-primary"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -1575,7 +1573,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             </div>
           ) : (
             <label className={cn(
-              "w-full h-full min-h-27 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center transition-all group/img",
+              "w-full flex-1 min-h-20 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center transition-all group/img",
               isReadOnly ? "cursor-default" : "cursor-pointer hover:border-primary/40"
             )}>
               <IconPlus className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
