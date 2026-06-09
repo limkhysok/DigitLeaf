@@ -25,6 +25,15 @@ import {
   IconCamera,
   IconPhoto,
   IconPrinter,
+  IconFileInvoice,
+  IconUser,
+  IconMapPin,
+  IconBuildingStore,
+  IconHome,
+  IconFlame,
+  IconCurrencyDollar,
+  IconNote,
+  IconCalendar,
 } from "@tabler/icons-react"
 import { printInvoice } from "./invoice-print"
 import { ReturnDetailCard, ReturnDetailDesktopCard, type ReturnItemType } from "./return-cards"
@@ -540,7 +549,7 @@ export function AddPurchaseDialog({
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-sm border-black/20">
-          <DialogHeader>
+          <DialogHeader className="mb-2.5">
             <div className="flex items-center justify-between w-full">
               <div className="space-y-1">
                 <DialogTitle className="text-[18px] font-medium text-foreground">
@@ -561,16 +570,19 @@ export function AddPurchaseDialog({
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="bg-white p-4 lg:p-6 rounded-sm border border-black/20 space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
 
                 {/* Invoice No. */}
                 <div className="lg:col-span-3 space-y-1.5">
                   <Label className="text-sm">Invoice</Label>
-                  <Input
-                    value={tpCode}
-                    readOnly
-                    className="h-8 text-[13px] rounded-sm font-normal bg-white border-black/20 cursor-default"
-                  />
+                  <div className="relative">
+                    <IconFileInvoice className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                    <Input
+                      value={tpCode}
+                      readOnly
+                      className="pl-8 h-8 text-[13px] rounded-sm font-normal bg-white border-black/20 cursor-default"
+                    />
+                  </div>
                 </div>
 
                 {/* Buyer */}
@@ -585,6 +597,7 @@ export function AddPurchaseDialog({
                   }}>
                     <PopoverAnchor asChild>
                       <div className="relative group">
+                        <IconUser className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                         <Input
                           placeholder="Search buyer..."
                           value={buyerSearch}
@@ -597,7 +610,7 @@ export function AddPurchaseDialog({
                           onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-10 h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -644,6 +657,7 @@ export function AddPurchaseDialog({
                   <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                     <PopoverAnchor asChild>
                       <div className="relative group">
+                        <IconMapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                         <Input
                           placeholder="Region..."
                           value={regionSearch}
@@ -656,7 +670,7 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsRegionOpen(true)}
                           onClick={() => setIsRegionOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -712,6 +726,7 @@ export function AddPurchaseDialog({
                   }}>
                     <PopoverAnchor asChild>
                       <div className="relative group">
+                        <IconBuildingStore className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                         <Input
                           placeholder="Search vendor..."
                           value={vendorSearch}
@@ -723,7 +738,7 @@ export function AddPurchaseDialog({
                           onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           disabled={isReadOnly || !isBuyerSelected}
-                          className="pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -758,14 +773,17 @@ export function AddPurchaseDialog({
 
                 {/* Vendor Address */}
                 <div className="md:col-span-2 lg:col-span-4 space-y-1.5">
-                  <Label className="text-sm">Vendor Address</Label>
-                  <Input
-                    value={v_addr}
-                    onChange={(e) => setVAddr(e.target.value)}
-                    disabled={isReadOnly || !isBuyerSelected}
-                    placeholder="Enter address..."
-                    className="h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
-                  />
+                  <Label className="text-sm">Address</Label>
+                  <div className="relative">
+                    <IconHome className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                    <Input
+                      value={v_addr}
+                      onChange={(e) => setVAddr(e.target.value)}
+                      disabled={isReadOnly || !isBuyerSelected}
+                      placeholder="Enter address..."
+                      className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                    />
+                  </div>
                 </div>
 
                 {/* Oven */}
@@ -774,6 +792,7 @@ export function AddPurchaseDialog({
                   <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
                     <PopoverAnchor asChild>
                       <div className="relative group">
+                        <IconFlame className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                         <Input
                           placeholder="Oven..."
                           value={ovenSearch}
@@ -784,7 +803,7 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsOvenOpen(true)}
                           onClick={() => setIsOvenOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -832,13 +851,14 @@ export function AddPurchaseDialog({
                 <div className="lg:col-span-3 space-y-1.5">
                   <Label className="text-sm">Exchange Rate</Label>
                   <div className="relative group">
+                    <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                     <Input
                       type="number"
                       value={rate}
                       onChange={(e) => setRate(e.target.value)}
                       required
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                      className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                     />
                     <div className="absolute rounded-sm right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                   </div>
@@ -847,38 +867,44 @@ export function AddPurchaseDialog({
                 {/* Remark */}
                 <div className="md:col-span-1 lg:col-span-4 space-y-1.5">
                   <Label className="text-sm">Remark (Optional)</Label>
-                  <Input
-                    value={tpNote}
-                    onChange={(e) => setTpNote(e.target.value)}
-                    placeholder="Type notes here..."
-                    disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
-                  />
+                  <div className="relative">
+                    <IconNote className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                    <Input
+                      value={tpNote}
+                      onChange={(e) => setTpNote(e.target.value)}
+                      placeholder="Type notes here..."
+                      disabled={isReadOnly}
+                      className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                    />
+                  </div>
                 </div>
 
                 {/* Purchase Date */}
                 <div className="lg:col-span-3 space-y-1.5">
                   <Label className="text-sm">Purchase Date</Label>
-                  <Input
-                    value={dateDisplay}
-                    onChange={(e) => {
-                      const masked = maskDate(e.target.value)
-                      setDateDisplay(masked)
-                      const digits = masked.replaceAll(/\D/g, "")
-                      if (digits.length === 8) {
-                        const d = digits.slice(0, 2)
-                        const m = digits.slice(2, 4)
-                        const y = digits.slice(4, 8)
-                        setTpDate(`${y}-${m}-${d}`)
-                      } else {
-                        setTpDate("")
-                      }
-                    }}
-                    placeholder="DD/MM/YYYY"
-                    maxLength={10}
-                    disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
-                  />
+                  <div className="relative">
+                    <IconCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                    <Input
+                      value={dateDisplay}
+                      onChange={(e) => {
+                        const masked = maskDate(e.target.value)
+                        setDateDisplay(masked)
+                        const digits = masked.replaceAll(/\D/g, "")
+                        if (digits.length === 8) {
+                          const d = digits.slice(0, 2)
+                          const m = digits.slice(2, 4)
+                          const y = digits.slice(4, 8)
+                          setTpDate(`${y}-${m}-${d}`)
+                        } else {
+                          setTpDate("")
+                        }
+                      }}
+                      placeholder="DD/MM/YYYY"
+                      maxLength={10}
+                      disabled={isReadOnly}
+                      className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                    />
+                  </div>
                 </div>
 
               </div>
@@ -1499,13 +1525,13 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative bg-white border border-black/20 hover:border-black/60 hover:-translate-y-0.5 rounded-sm transition-all duration-300 p-3.5 mt-3.5",
+      "relative bg-white border border-black/20 hover:border-black/60 hover:-translate-y-0.5 rounded-sm transition-all duration-300 pt-4 pb-5 px-6",
       "focus-within:border-black/40",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/10"
     )}>
       {/* Top bar: Item Index and Delete Action */}
       <div className="flex items-center justify-between gap-4 mb-2">
-        <span className="text-sm font-bold text-foreground px-2 py-0.5 rounded-sm">
+        <span className="text-sm font-bold text-foreground px-0 py-0.5 rounded-sm">
           Item {index + 1}
         </span>
         {!isReadOnly && (
@@ -1516,7 +1542,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             onClick={() => onRemove(index)}
             className="text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 h-6.5 px-2 rounded-sm transition-colors text-[11px]"
           >
-            <IconX className="size-3 mr-1" /> Remove Item
+            <IconX className="size-3 mr-1" /> Remove
           </Button>
         )}
       </div>
