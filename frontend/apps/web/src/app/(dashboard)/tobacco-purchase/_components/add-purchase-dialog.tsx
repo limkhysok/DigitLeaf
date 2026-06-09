@@ -585,7 +585,7 @@ export function AddPurchaseDialog({
                     <Input
                       value={tpCode}
                       readOnly
-                      className="pl-8 h-8 text-[13px] rounded-sm font-normal bg-white border-black/20 cursor-default"
+                      className="pl-8 h-8 text-[13px] rounded-sm font-normal bg-input/50 border-black/20 cursor-default"
                     />
                   </div>
                 </div>
@@ -1058,7 +1058,7 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 border border-gray-200 rounded-sm py-2 px-3 flex flex-row justify-between items-center mt-4 mb-5">
+                  <div className="bg-green-600 border border-gray-200 rounded-sm py-2 px-3 flex flex-row justify-between items-center mt-5 mb-5">
                     <span className="text-base font-medium text-white">
                       Total ({details.length} Item)
                     </span>
@@ -1143,7 +1143,7 @@ export function AddPurchaseDialog({
               {/* Right: Cancel + Save & Print + Save Purchase */}
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
-                  className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
+                  className="h-8.5 px-4 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                   {isReadOnly ? "Close" : "Cancel"}
                 </Button>
                 {!isReadOnly && (
@@ -1727,7 +1727,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
             <div className="w-[25%] pr-4 space-y-1">
               <Label className="text-sm">Net Weight</Label>
-              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between">
+              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between bg-input/50">
                 <div className="flex items-center gap-1.5">
                   <IconWeight className="h-3.5 w-3.5 text-foreground/80 shrink-0" />
                   <span className="text-sm font-bold tabular-nums">{netWeight.toFixed(2)}</span>
@@ -1738,7 +1738,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
             <div className="w-[25%] space-y-1">
               <Label className="text-sm">Total Amount</Label>
-              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between ">
+              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between bg-input/50">
                 <span className="text-sm font-bold">៛</span>
                 <span className="text-sm font-bold tabular-nums">{total.toLocaleString()}</span>
               </div>

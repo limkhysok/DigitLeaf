@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconCheck, IconSearch, IconX } from "@tabler/icons-react"
+import { IconCheck, IconSearch, IconX, IconFileInvoice, IconLeaf, IconWeight } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -293,13 +293,8 @@ export const ReturnDetailDesktopCard = React.memo(({
         )}
       </div>
 
-      <div className="flex flex-row gap-4 items-start w-full">
-        <div className="shrink-0 flex items-center justify-center w-24 h-24 rounded-md border border-dashed border-black/20">
-          <span className="text-4xl" role="img" aria-label="Leaf">🌱</span>
-        </div>
-
-        <div className="flex-1 grid grid-cols-3 gap-4">
-          <div className="space-y-1">
+      <div className="flex gap-4">
+          <div className="w-[30%] space-y-1">
             <Label className="text-sm">Contract Number</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
@@ -307,6 +302,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             }}>
               <PopoverAnchor asChild>
                 <div className="relative group">
+                  <IconFileInvoice className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input
                     placeholder="Search contract..."
                     value={searchCon}
@@ -314,7 +310,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
                     onClick={() => { setSearchCon(""); setOpenCon(true) }}
                     disabled={isReadOnly}
-                    className="h-8 text-sm rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pr-10"
+                    className="h-8 text-sm rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10"
                   />
                   <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -362,7 +358,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             </Popover>
           </div>
 
-          <div className="space-y-1">
+          <div className="w-[30%] space-y-1">
             <Label className="text-sm">Tobacco Item</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
@@ -373,6 +369,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             }}>
               <PopoverAnchor asChild>
                 <div className="relative group">
+                  <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input
                     placeholder="Search item..."
                     value={searchTobac}
@@ -380,7 +377,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
                     onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
                     disabled={isReadOnly || !!item.con_id}
-                    className="h-8 text-sm rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pr-10 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="h-8 text-sm rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
                   <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -428,18 +425,20 @@ export const ReturnDetailDesktopCard = React.memo(({
             </Popover>
           </div>
 
-          <div className="space-y-1">
+          <div className="w-[40%] space-y-1">
             <Label className="text-sm">
               Repay Leaf (Kg) <span className="text-sm">{remainingText}</span>
             </Label>
-            <Input type="number" step="0.01"
-              className="h-8 text-sm rounded-md font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 px-2.5"
-              value={item.qty_repay ?? ""} disabled={isReadOnly}
-              onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-            />
+            <div className="relative">
+              <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+              <Input type="number" step="0.01"
+                className="h-8 text-sm rounded-md font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-2.5"
+                value={item.qty_repay ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+            </div>
           </div>
         </div>
-      </div>
     </div>
   )
 })
