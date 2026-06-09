@@ -69,7 +69,7 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="text-center border border-black/40 rounded-sm px-2 py-1 mr-8 shrink-0">
+    <div className="text-center border border-black/40 rounded-sm px-3 py-1.5 mr-8 shrink-0">
       <span className="block text-base font-medium">Tobacco Quota</span>
       <div className="flex items-baseline gap-0.5">
         <span className={cn(
@@ -219,7 +219,7 @@ function VendorListContent({
             key={f.mf_id}
             type="button"
             className={cn(
-              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+              "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground",
               vendor === f.mf_id && "bg-accent"
             )}
             onClick={() => {
@@ -539,15 +539,15 @@ export function AddPurchaseDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto rounded-md border-black/20">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-sm border-black/20">
           <DialogHeader>
             <div className="flex items-center justify-between w-full">
               <div className="space-y-1">
-                <DialogTitle className="text-[18px] font-bold text-foreground">
+                <DialogTitle className="text-[18px] font-medium text-foreground">
                   <span className="md:hidden">{mobileTitle}</span>
                   <span className="hidden md:inline">{title}</span>
                 </DialogTitle>
-                <DialogDescription className="hidden md:block text-[13px] text-muted-foreground/70">{description}</DialogDescription>
+                <DialogDescription className="hidden md:block text-sm font-medium text-gray-600">{description}</DialogDescription>
               </div>
 
               <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
@@ -560,22 +560,22 @@ export function AddPurchaseDialog({
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white p-4 lg:p-6 rounded-md border border-black/20 space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-5">
+            <div className="bg-white p-4 lg:p-6 rounded-sm border border-black/20 space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-5">
 
                 {/* Invoice No. */}
-                <div className="lg:col-span-1 space-y-1.5">
-                  <Label className="text-sm">Invoice No.</Label>
+                <div className="lg:col-span-3 space-y-1.5">
+                  <Label className="text-sm">Invoice</Label>
                   <Input
                     value={tpCode}
                     readOnly
-                    className="h-8 text-[13px] rounded-md font-semibold bg-white border-black/20 cursor-default"
+                    className="h-8 text-[13px] rounded-sm font-normal bg-white border-black/20 cursor-default"
                   />
                 </div>
 
                 {/* Buyer */}
-                <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
-                  <Label className="text-sm">Buyer selection</Label>
+                <div className="md:col-span-1 lg:col-span-4 space-y-1.5">
+                  <Label className="text-sm">Buyer</Label>
                   <Popover open={isBuyerOpen} onOpenChange={(open) => {
                     setIsBuyerOpen(open)
                     if (!open) {
@@ -597,7 +597,7 @@ export function AddPurchaseDialog({
                           onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pr-10 h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -624,7 +624,7 @@ export function AddPurchaseDialog({
                               key={p.p_id}
                               type="button"
                               className={cn(
-                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground",
                                 buyer === p.p_id.toString() && "bg-accent"
                               )}
                               onClick={() => handleBuyerSelect(p.p_id)}
@@ -639,7 +639,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Region */}
-                <div className="lg:col-span-1 space-y-1.5">
+                <div className="lg:col-span-3 space-y-1.5">
                   <Label className="text-sm">Region</Label>
                   <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                     <PopoverAnchor asChild>
@@ -656,7 +656,7 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsRegionOpen(true)}
                           onClick={() => setIsRegionOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -682,7 +682,7 @@ export function AddPurchaseDialog({
                               key={r.reg_id}
                               type="button"
                               className={cn(
-                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground",
                                 region === r.reg_id.toString() && "bg-accent"
                               )}
                               onClick={() => {
@@ -701,8 +701,8 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Vendor */}
-                <div className="lg:col-span-1 space-y-1.5">
-                  <Label className="text-sm">Vendor(Id)</Label>
+                <div className="lg:col-span-3 space-y-1.5">
+                  <Label className="text-sm">Vendor</Label>
                   <Popover open={isVendorOpen} onOpenChange={(open) => {
                     setIsVendorOpen(open)
                     if (!open) {
@@ -723,7 +723,7 @@ export function AddPurchaseDialog({
                           onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           disabled={isReadOnly || !isBuyerSelected}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -757,19 +757,19 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Vendor Address */}
-                <div className="md:col-span-2 lg:col-span-2 space-y-1.5">
+                <div className="md:col-span-2 lg:col-span-4 space-y-1.5">
                   <Label className="text-sm">Vendor Address</Label>
                   <Input
                     value={v_addr}
                     onChange={(e) => setVAddr(e.target.value)}
                     disabled={isReadOnly || !isBuyerSelected}
                     placeholder="Enter address..."
-                    className="h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                    className="h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                   />
                 </div>
 
                 {/* Oven */}
-                <div className="lg:col-span-1 space-y-1.5">
+                <div className="lg:col-span-3 space-y-1.5">
                   <Label className="text-sm">Oven</Label>
                   <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
                     <PopoverAnchor asChild>
@@ -784,7 +784,7 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsOvenOpen(true)}
                           onClick={() => setIsOvenOpen(true)}
                           disabled={isReadOnly}
-                          className="pr-10 h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
                         <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
@@ -810,7 +810,7 @@ export function AddPurchaseDialog({
                               key={o.id}
                               type="button"
                               className={cn(
-                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-[13px] outline-hidden hover:bg-accent hover:text-accent-foreground",
+                                "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground",
                                 oven === o.id.toString() && "bg-accent"
                               )}
                               onClick={() => {
@@ -828,9 +828,9 @@ export function AddPurchaseDialog({
                   </Popover>
                 </div>
 
-                {/* System Rate */}
-                <div className="lg:col-span-1 space-y-1.5">
-                  <Label className="text-sm">System Rate</Label>
+                {/* Exchange Rate */}
+                <div className="lg:col-span-3 space-y-1.5">
+                  <Label className="text-sm">Exchange Rate</Label>
                   <div className="relative group">
                     <Input
                       type="number"
@@ -838,26 +838,26 @@ export function AddPurchaseDialog({
                       onChange={(e) => setRate(e.target.value)}
                       required
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-md font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                      className="h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                     />
-                    <div className="absolute rounded-md right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
+                    <div className="absolute rounded-sm right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                   </div>
                 </div>
 
                 {/* Remark */}
-                <div className="md:col-span-1 lg:col-span-2 space-y-1.5">
+                <div className="md:col-span-1 lg:col-span-4 space-y-1.5">
                   <Label className="text-sm">Remark (Optional)</Label>
                   <Input
                     value={tpNote}
                     onChange={(e) => setTpNote(e.target.value)}
                     placeholder="Type notes here..."
                     disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                    className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                   />
                 </div>
 
                 {/* Purchase Date */}
-                <div className="lg:col-span-1 space-y-1.5">
+                <div className="lg:col-span-3 space-y-1.5">
                   <Label className="text-sm">Purchase Date</Label>
                   <Input
                     value={dateDisplay}
@@ -877,7 +877,7 @@ export function AddPurchaseDialog({
                     placeholder="DD/MM/YYYY"
                     maxLength={10}
                     disabled={isReadOnly}
-                    className="h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                    className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                   />
                 </div>
 
@@ -890,7 +890,7 @@ export function AddPurchaseDialog({
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="md:hidden space-y-3">
               {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-black/20 bg-slate-50/50">
+                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
                   <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                     <IconPlus className="size-5 text-muted-foreground/20" />
                   </div>
@@ -922,17 +922,17 @@ export function AddPurchaseDialog({
               {!isReadOnly && details.length > 0 && (
                 <div className="flex gap-2 w-full">
                   <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 ">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 ">
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
                     <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
               )}
               {details.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-black/20">
+                <div className="flex items-center justify-between px-4 py-3 rounded-sm bg-slate-50 border border-black/20">
                   <div>
                     <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
                     <p className="text-[15px] font-black text-primary tabular-nums">
@@ -955,7 +955,7 @@ export function AddPurchaseDialog({
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="hidden md:block lg:hidden space-y-3">
               {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-md border border-dashed border-black/20 bg-slate-50/50">
+                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
                   <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                     <IconPlus className="size-5 text-muted-foreground/20" />
                   </div>
@@ -987,17 +987,17 @@ export function AddPurchaseDialog({
               {!isReadOnly && details.length > 0 && (
                 <div className="flex gap-2 w-full">
                   <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20">
                     <IconPlus className="mr-2 size-4 text-primary" /> Add Row
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
+                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
                     <IconPlus className="mr-2 size-4" /> Return
                   </Button>
                 </div>
               )}
               {details.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-md bg-slate-50 border border-black/20">
+                <div className="flex items-center justify-between px-4 py-3 rounded-sm bg-slate-50 border border-black/20">
                   <div>
                     <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
                     <p className="text-[15px] font-black text-primary tabular-nums">
@@ -1020,7 +1020,7 @@ export function AddPurchaseDialog({
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="hidden lg:block">
               {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-md border border-dashed border-black/20 bg-slate-50/50 mt-4">
+                <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-sm border border-dashed border-black/20 bg-slate-50/50 mt-4">
                   <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                     <IconPlus className="size-6 text-muted-foreground/20" />
                   </div>
@@ -1051,7 +1051,7 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 border border-green-600 rounded-md p-3 flex flex-row justify-between items-center mt-4">
+                  <div className="bg-green-600 border border-green-600 rounded-sm p-3 flex flex-row justify-between items-center mt-4">
                     <span className="text-base font-bold text-white">
                       Total Summary ({details.length} Items)
                     </span>
@@ -1076,11 +1076,11 @@ export function AddPurchaseDialog({
                     {!isReadOnly && (
                       <div className="flex gap-2">
                         <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95">
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95">
                           <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
                         </Button>
                         <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-md bg-white hover:bg-slate-50 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
+                          className="h-8.5 px-4 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
                           <IconPlus className="mr-1.5 size-3.5" /> Return
                         </Button>
                       </div>
@@ -1152,7 +1152,7 @@ export function AddPurchaseDialog({
                         setPrintAfterSave(true)
                         handleSubmit(e, true)
                       }}
-                      className="h-8.5 px-4 bg-white border border-black/20 text-foreground rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
+                      className="h-8.5 px-4 bg-white border border-black/20 text-foreground rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
                     >
                       {isSubmitting && printAfterSave ? (
                         <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1163,7 +1163,7 @@ export function AddPurchaseDialog({
                     </Button>
                   )}
                   <Button type="submit" disabled={isSubmitting}
-                    className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-md text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
+                    className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
                     {isSubmitting && !printAfterSave ? (
                       <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
@@ -1182,12 +1182,12 @@ export function AddPurchaseDialog({
           <DialogContent className="max-w-3xl p-0 bg-transparent border-none flex items-center justify-center z-120 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 [&>button]:hidden">
             <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
             <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
-            <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-md bg-black/90 p-1.5 flex items-center justify-center group/preview">
+            <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-sm bg-black/90 p-1.5 flex items-center justify-center group/preview">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewImage}
                 alt="Tobacco Purchase Detail"
-                className="max-h-[80vh] max-w-full object-contain rounded-md select-none"
+                className="max-h-[80vh] max-w-full object-contain rounded-sm select-none"
               />
               <button
                 type="button"
@@ -1237,7 +1237,7 @@ const PurchaseDetailCard = React.memo(({
   const total = Math.round(netWeight * (Number(detail.price) || 0))
 
   return (
-    <div className="rounded-md border border-black/20 bg-white overflow-hidden">
+    <div className="rounded-sm border border-black/20 bg-white overflow-hidden">
 
       {/* Card header: item number + delete */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-black/20">
@@ -1264,7 +1264,7 @@ const PurchaseDetailCard = React.memo(({
               {detail.picture ? (
                 <button
                   type="button"
-                  className="w-32 h-32 bg-white rounded-md border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                  className="w-32 h-32 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -1279,7 +1279,7 @@ const PurchaseDetailCard = React.memo(({
                   )}
                 </button>
               ) : (
-                <button type="button" disabled={isReadOnly} className="w-32 h-32 bg-slate-50/50 rounded-md border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
+                <button type="button" disabled={isReadOnly} className="w-32 h-32 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
                   <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
                 </button>
               )}
@@ -1299,7 +1299,7 @@ const PurchaseDetailCard = React.memo(({
                         type="file"
                         accept="image/*"
                         capture="environment"
-                        className="hidden rounded-md"
+                        className="hidden rounded-sm"
                         onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file) {
@@ -1315,7 +1315,7 @@ const PurchaseDetailCard = React.memo(({
                       <input
                         type="file"
                         accept="image/*"
-                        className="hidden rounded-md"
+                        className="hidden rounded-sm"
                         onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file) {
@@ -1351,7 +1351,7 @@ const PurchaseDetailCard = React.memo(({
                   onFocus={() => { setSearch(""); setOpen(true) }}
                   onClick={() => { setSearch(""); setOpen(true) }}
                   disabled={isReadOnly}
-                  className="h-8 text-[13px] rounded-md bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
+                  className="h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
                 />
                 <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
               </div>
@@ -1408,7 +1408,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
           <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-md font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
+            className="h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
             value={detail.gross_weight ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1416,7 +1416,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
           <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-md bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
+            className="h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
             value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1426,7 +1426,7 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
           <Input type="number" step="0.01"
-            className="h-8 text-[13px] rounded-md bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
+            className="h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
             value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
             onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
           />
@@ -1439,7 +1439,7 @@ const PurchaseDetailCard = React.memo(({
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
           <div className="relative">
             <Input type="number"
-              className="h-8 text-[13px] rounded-md font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2 pr-5"
+              className="h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2 pr-5"
               value={detail.price ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
@@ -1499,14 +1499,14 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative bg-white border border-black/20 hover:border-black/60 hover:-translate-y-0.5 rounded-md transition-all duration-300 p-3.5 mt-3.5",
+      "relative bg-white border border-black/20 hover:border-black/60 hover:-translate-y-0.5 rounded-sm transition-all duration-300 p-3.5 mt-3.5",
       "focus-within:border-black/40",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/10"
     )}>
       {/* Top bar: Item Index and Delete Action */}
-      <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-black/20 mb-2">
-        <span className="text-[11.5px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md uppercase tracking-wider">
-          Item #{index + 1}
+      <div className="flex items-center justify-between gap-4 mb-2">
+        <span className="text-sm font-bold text-foreground px-2 py-0.5 rounded-sm">
+          Item {index + 1}
         </span>
         {!isReadOnly && (
           <Button
@@ -1514,7 +1514,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             variant="ghost"
             size="sm"
             onClick={() => onRemove(index)}
-            className="text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 h-6.5 px-2 rounded-md transition-colors text-[11px]"
+            className="text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 h-6.5 px-2 rounded-sm transition-colors text-[11px]"
           >
             <IconX className="size-3 mr-1" /> Remove Item
           </Button>
@@ -1526,7 +1526,7 @@ const PurchaseDetailDesktopCard = React.memo(({
         {/* Left Side: Enlarged Image upload / preview box (w-[189px] h-[189px] for perfect 1:1 alignment) */}
         <div className="shrink-0">
           {detail.picture ? (
-            <div className="w-47.25 h-47.25 bg-white rounded-md border border-black/20 overflow-hidden group/img relative flex items-center justify-center">
+            <div className="w-47.25 h-47.25 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
@@ -1545,7 +1545,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                   <input
                     type="file"
                     accept="image/*"
-                    className="hidden rounded-md"
+                    className="hidden rounded-sm"
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (file) {
@@ -1561,13 +1561,13 @@ const PurchaseDetailDesktopCard = React.memo(({
               )}
             </div>
           ) : (
-            <label className="w-47.25 h-47.25 bg-slate-50/50 rounded-md border border-dashed border-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative">
+            <label className="w-48.25 h-48.25 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all group/img overflow-hidden relative">
               <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
               {!isReadOnly && (
                 <input
                   type="file"
                   accept="image/*"
-                  className="hidden rounded-md"
+                  className="hidden rounded-sm"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) {
@@ -1606,7 +1606,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                       onFocus={() => { setSearch(""); setOpen(true) }}
                       onClick={() => { setSearch(""); setOpen(true) }}
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
+                      className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
                     />
                     <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                   </div>
@@ -1664,7 +1664,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Gross Weight (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
+                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.gross_weight ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1672,15 +1672,15 @@ const PurchaseDetailDesktopCard = React.memo(({
             <div className="space-y-1">
               <Label className="text-sm">Remork (Kg)</Label>
               <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
+                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-sm">Sack Weight (Kg)</Label>
+              <Label className="text-sm">Sack (Kg)</Label>
               <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-md font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
+                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
                 value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -1693,7 +1693,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               <Label className="text-sm">Price/Kg</Label>
               <div className="relative">
                 <Input type="number"
-                  className="h-8 text-[13px] rounded-md font-bold bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5 pr-7"
+                  className="h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2.5 pr-7"
                   value={detail.price ?? ""} disabled={isReadOnly}
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
@@ -1703,19 +1703,19 @@ const PurchaseDetailDesktopCard = React.memo(({
 
             <div className="space-y-1">
               <Label className="text-sm">Net Weight(Kg)</Label>
-              <div className="h-8 bg-primary/5 border border-primary/20 rounded-md px-2.5 flex items-center justify-between ">
-                <span className="text-[13.5px] font-black text-primary tabular-nums">
+              <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between ">
+                <span className="text-sm font-bold tabular-nums">
                   {netWeight.toFixed(2)}
                 </span>
-                <span className="text-[9px] font-bold text-primary/50">Kg</span>
+                <span className="text-sm font-semibold">Kg</span>
               </div>
             </div>
 
             <div className="space-y-1">
               <Label className="text-sm">Total Amount</Label>
-              <div className="h-8 bg-emerald-50/50 border border-emerald-100 rounded-md px-3 flex items-center justify-between">
-                <span className="text-[12px] font-bold text-emerald-700/50">៛</span>
-                <span className="text-[15px] font-black text-emerald-700 tabular-nums">
+              <div className="h-8 border border-black/20 rounded-sm px-3 flex items-center justify-between">
+                <span className="text-sm font-bold">៛</span>
+                <span className="text-sm font-bold tabular-nums">
                   {total.toLocaleString()}
                 </span>
               </div>
