@@ -574,7 +574,7 @@ export function AddPurchaseDialog({
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white mt-3 p-4 lg:px-4 lg:py-3 rounded-sm border border-black/20 space-y-2">
+            <div className="bg-white mt-3 p-4 lg:px-7 lg:py-6 rounded-sm border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
 
                 {/* Invoice No. */}
@@ -1043,7 +1043,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="space-y-3 mt-3 mb-4 px-4 py-2 rounded-sm border border-black/20 divide-y divide-black/20">
+                <div className="space-y-3 mt-2 mb-4 px-7 py-2 rounded-sm border border-black/40 divide-y divide-black/40">
                   {details.map((detail, idx) => (
                     <PurchaseDetailDesktopCard
                       key={detail.tempId}
@@ -1082,7 +1082,7 @@ export function AddPurchaseDialog({
             </div>
 
             {returns.length > 0 && (
-              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-4 px-4">
+              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-4 px-7">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-medium">Tobacco Repay</h3>
@@ -1515,7 +1515,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative transition-all duration-200 pb-4 mb-1",
+      "relative transition-all duration-200 pb-4 mb-3 mt-6",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
@@ -1531,12 +1531,12 @@ const PurchaseDetailDesktopCard = React.memo(({
       )}
 
       {/* Body: Image (left) + Fields (right, 2 rows) */}
-      <div className="flex gap-3 items-stretch">
+      <div className="flex gap-5 items-stretch mb-2">
 
         {/* Image column — "Item N" label sits above image like other field labels */}
         <div className="shrink-0 w-24 flex flex-col">
           <div className="mb-1">
-            <Label className="text-sm">Item {index + 1}</Label>
+            <Label className="text-sm font-bold tracking-wider">Item {index + 1}</Label>
           </div>
           {detail.picture ? (
             <div className="w-full flex-1 min-h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative">
@@ -1597,11 +1597,11 @@ const PurchaseDetailDesktopCard = React.memo(({
         </div>
 
         {/* Fields — 2 rows */}
-        <div className="flex-1 flex flex-col gap-2">
+        <div className="flex-1 flex flex-col gap-3">
 
           {/* Row 1: Tobacco Type 50% | Gross Weight 25% | Price/Kg 25% */}
           <div className="flex">
-            <div className="w-[50%] pr-3 space-y-1">
+            <div className="w-[50%] pr-4 space-y-1">
               <Label className="text-sm">Tobacco Type</Label>
               <Popover open={open} onOpenChange={(isOpen) => {
                 setOpen(isOpen)
@@ -1671,7 +1671,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               </Popover>
             </div>
 
-            <div className="w-[25%] pr-3 space-y-1">
+            <div className="w-[25%] pr-4 space-y-1">
               <Label className="text-sm">Gross Weight (Kg)</Label>
               <div className="relative">
                 <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1699,7 +1699,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
           {/* Row 2: Remork 25% | Sack 25% | Net Weight 25% | Total Amount 25% */}
           <div className="flex">
-            <div className="w-[25%] pr-3 space-y-1">
+            <div className="w-[25%] pr-4 space-y-1">
               <Label className="text-sm">Remork (Kg)</Label>
               <div className="relative">
                 <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1711,7 +1711,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               </div>
             </div>
 
-            <div className="w-[25%] pr-3 space-y-1">
+            <div className="w-[25%] pr-4 space-y-1">
               <Label className="text-sm">Sack (Kg)</Label>
               <div className="relative">
                 <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1723,7 +1723,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               </div>
             </div>
 
-            <div className="w-[25%] pr-3 space-y-1">
+            <div className="w-[25%] pr-4 space-y-1">
               <Label className="text-sm">Net Weight</Label>
               <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between">
                 <span className="text-sm font-bold tabular-nums">{netWeight.toFixed(2)}</span>
