@@ -83,7 +83,7 @@ function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemain
   if (displayRemainingQuota === null) return null;
   return (
     <div className="text-center border border-black/40 rounded-sm px-3 py-1.5 mr-8 shrink-0">
-      <span className="block text-base font-medium">Tobacco Quota</span>
+      <span className="block text-base font-medium">Quota</span>
       <div className="flex items-baseline gap-0.5">
         <span className={cn(
           "text-base font-bold",
@@ -552,8 +552,8 @@ export function AddPurchaseDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-sm border-black/20">
-          <DialogHeader className="mb-2.5">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-sm border-black/20">
+          <DialogHeader className="mb-0 pb-2.5 shrink-0 border-b border-black/40">
             <div className="flex items-center justify-between w-full">
               <div className="space-y-1">
                 <DialogTitle className="text-[18px] font-medium text-foreground">
@@ -567,13 +567,14 @@ export function AddPurchaseDialog({
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className={cn("space-y-5", isReadOnly && "[&_input:disabled]:bg-white [&_input:disabled]:opacity-100 [&_input:disabled]:text-foreground [&_input:disabled]:border-black/20 [&_input:disabled]:cursor-default")}>
+          <form onSubmit={handleSubmit} className={cn("flex flex-col flex-1 min-h-0", isReadOnly && "[&_input:disabled]:bg-white [&_input:disabled]:opacity-100 [&_input:disabled]:text-foreground [&_input:disabled]:border-black/20 [&_input:disabled]:cursor-default")}>
+            <div className="flex-1 overflow-y-auto space-y-5">
 
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white p-4 lg:p-6 rounded-sm border border-black/20 space-y-2">
+            <div className="bg-white mt-3 p-4 lg:px-4 lg:py-3 rounded-sm border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
 
                 {/* Invoice No. */}
@@ -949,18 +950,6 @@ export function AddPurchaseDialog({
                   ))}
                 </div>
               )}
-              {!isReadOnly && details.length > 0 && (
-                <div className="flex gap-2 w-full">
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 ">
-                    <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
-                    <IconPlus className="mr-2 size-4" /> Return
-                  </Button>
-                </div>
-              )}
               {details.length > 0 && (
                 <div className="flex items-center justify-between px-4 py-3 rounded-sm bg-slate-50 border border-black/20">
                   <div>
@@ -1014,18 +1003,6 @@ export function AddPurchaseDialog({
                   ))}
                 </div>
               )}
-              {!isReadOnly && details.length > 0 && (
-                <div className="flex gap-2 w-full">
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20">
-                    <IconPlus className="mr-2 size-4 text-primary" /> Add Row
-                  </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                    className="flex-1 h-8 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 text-emerald-600">
-                    <IconPlus className="mr-2 size-4" /> Return
-                  </Button>
-                </div>
-              )}
               {details.length > 0 && (
                 <div className="flex items-center justify-between px-4 py-3 rounded-sm bg-slate-50 border border-black/20">
                   <div>
@@ -1066,7 +1043,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="space-y-3 mt-3 p-4 rounded-sm border border-black/20 divide-y divide-black/20">
+                <div className="space-y-3 mt-3 mb-4 px-4 py-2 rounded-sm border border-black/20 divide-y divide-black/20">
                   {details.map((detail, idx) => (
                     <PurchaseDetailDesktopCard
                       key={detail.tempId}
@@ -1081,9 +1058,9 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 border border-gray-200 rounded-sm py-1.5 px-4 flex flex-row justify-between items-center mt-4">
+                  <div className="bg-green-600 border border-gray-200 rounded-sm py-1.5 px-4 flex flex-row justify-between items-center mt-4 mb-2">
                     <span className="text-base font-semibold text-white">
-                      Total ({details.length} Items)
+                      Total ({details.length} Item)
                     </span>
                     <div className="flex items-center gap-10">
                       <div className="flex items-baseline gap-2">
@@ -1100,35 +1077,15 @@ export function AddPurchaseDialog({
                       </div>
                     </div>
                   </div>
-
-                  {/* Add Row Button Row */}
-                  <div className="flex flex-row justify-between items-center mt-3 px-1">
-                    {!isReadOnly && (
-                      <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95">
-                          <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                          className="h-8.5 px-4 text-[12px] font-bold rounded-sm bg-white hover:bg-slate-50 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
-                          <IconPlus className="mr-1.5 size-3.5" /> Return
-                        </Button>
-                      </div>
-                    )}
-                    <span className="text-[11px] font-medium text-muted-foreground italic">
-                      Tip: Changes are saved only after clicking &apos;Save Purchase&apos;
-                    </span>
-                  </div>
                 </div>
               )}
             </div>
 
             {returns.length > 0 && (
-              <div className="space-y-3 mt-6 rounded-sm border border-black/20 pt-4 px-2">
-                <div className="flex items-center justify-between mb-2">
+              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-4 px-4">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl" role="img" aria-label="leaf">🌱</span>
-                    <h3 className="text-base font-semibold">Tobacco Returns</h3>
+                    <h3 className="text-base font-medium">Tobacco Repay</h3>
                   </div>
                 </div>
 
@@ -1165,44 +1122,62 @@ export function AddPurchaseDialog({
                 </div>
               </div>
             )}
+            </div>
 
-            <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 mt-3 sm:space-x-0">
-              <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
-                className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
-                {isReadOnly ? "Close" : "Cancel"}
-              </Button>
-              {!isReadOnly && (
-                <>
-                  {/* Save & Print button — only for new records */}
-                  {!initialData && (
-                    <Button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={(e) => {
-                        setPrintAfterSave(true)
-                        handleSubmit(e, true)
-                      }}
-                      className="h-8.5 px-4 bg-white border border-black/20 text-foreground rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
-                    >
-                      {isSubmitting && printAfterSave ? (
+            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-2 px-0 py-4 border-t border-black/20 bg-background sm:space-x-0">
+              {/* Left: Add Row + Return */}
+              <div className="flex gap-2">
+                {!isReadOnly && (
+                  <>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                      className="h-8.5 px-4 text-[13px] font-medium rounded-sm bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95">
+                      <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
+                      className="h-8.5 px-4 text-[13px] font-medium rounded-sm bg-white hover:bg-slate-50 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
+                      <IconPlus className="mr-1.5 size-3.5" /> Return
+                    </Button>
+                  </>
+                )}
+              </div>
+              {/* Right: Cancel + Save & Print + Save Purchase */}
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
+                  className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
+                  {isReadOnly ? "Close" : "Cancel"}
+                </Button>
+                {!isReadOnly && (
+                  <>
+                    {!initialData && (
+                      <Button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={(e) => {
+                          setPrintAfterSave(true)
+                          handleSubmit(e, true)
+                        }}
+                        className="h-8.5 px-4 bg-white border border-black/20 text-foreground rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
+                      >
+                        {isSubmitting && printAfterSave ? (
+                          <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <IconPrinter className="h-3.5 w-3.5" />
+                        )}
+                        Save &amp; Print
+                      </Button>
+                    )}
+                    <Button type="submit" disabled={isSubmitting}
+                      className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
+                      {isSubmitting && !printAfterSave ? (
                         <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <IconPrinter className="h-3.5 w-3.5" />
+                        <IconCheck className="h-3.5 w-3.5" />
                       )}
-                      Save &amp; Print
+                      {initialData ? "Update Purchase" : "Save Purchase"}
                     </Button>
-                  )}
-                  <Button type="submit" disabled={isSubmitting}
-                    className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
-                    {isSubmitting && !printAfterSave ? (
-                      <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <IconCheck className="h-3.5 w-3.5" />
-                    )}
-                    {initialData ? "Update Purchase" : "Save Purchase"}
-                  </Button>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -1540,7 +1515,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "transition-all duration-200 pb-4",
+      "transition-all duration-200 pb-4 mb-1",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 

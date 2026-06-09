@@ -103,7 +103,7 @@ export const ReturnDetailCard = React.memo(({
               </div>
             </PopoverAnchor>
             <PopoverContent
-              className="w-64 p-0 border-border/50 z-[120]"
+              className="w-64 p-0 border-border/50 z-120"
               align="start"
               onMouseDown={(e) => e.preventDefault()}
               onOpenAutoFocus={(e) => e.preventDefault()}
@@ -170,7 +170,7 @@ export const ReturnDetailCard = React.memo(({
               </div>
             </PopoverAnchor>
             <PopoverContent
-              className="w-64 p-0 border-border/50 z-[120]"
+              className="w-64 p-0 border-border/50 z-120"
               align="start"
               onMouseDown={(e) => e.preventDefault()}
               onOpenAutoFocus={(e) => e.preventDefault()}
@@ -273,10 +273,10 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative border border-black/20 hover:-translate-y-0.5 rounded-md transition-all duration-300 p-3.5 mt-3.5",
+      "relative border-t border-black/20 hover:-translate-y-0.5 rounded-none transition-all duration-300 p-3.5 mt-3.5",
       "focus-within:border-black/20"
     )}>
-      <div className="flex items-center justify-between gap-4 pb-1.5 border-b border-black/20 mb-3">
+      <div className="flex items-center justify-between gap-4 pb-1.5 mb-3">
         <span className="text-sm font-bold text-foreground">
           Repay #{index + 1}
         </span>
@@ -320,7 +320,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                 </div>
               </PopoverAnchor>
               <PopoverContent
-                className="w-64 p-0 border-black/20 z-[120]"
+                className="w-64 p-0 border-black/20 z-120"
                 align="start"
                 onMouseDown={(e) => e.preventDefault()}
                 onOpenAutoFocus={(e) => e.preventDefault()}
@@ -386,7 +386,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                 </div>
               </PopoverAnchor>
               <PopoverContent
-                className="w-64 p-0 border-black/20 z-[120]"
+                className="w-64 p-0 border-black/20 z-120"
                 align="start"
                 onMouseDown={(e) => e.preventDefault()}
                 onOpenAutoFocus={(e) => e.preventDefault()}
