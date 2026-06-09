@@ -34,6 +34,10 @@ import {
   IconCurrencyDollar,
   IconNote,
   IconCalendar,
+  IconLeaf,
+  IconWeight,
+  IconTruck,
+  IconPackage,
 } from "@tabler/icons-react"
 import { printInvoice } from "./invoice-print"
 import { ReturnDetailCard, ReturnDetailDesktopCard, type ReturnItemType } from "./return-cards"
@@ -1062,7 +1066,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="space-y-3 mt-3">
+                <div className="space-y-3 mt-3 p-4 rounded-sm border border-black/20 divide-y divide-black/20">
                   {details.map((detail, idx) => (
                     <PurchaseDetailDesktopCard
                       key={detail.tempId}
@@ -1077,20 +1081,20 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 border border-green-600 rounded-sm p-3 flex flex-row justify-between items-center mt-4">
-                    <span className="text-base font-bold text-white">
-                      Total Summary ({details.length} Items)
+                  <div className="bg-green-600 border border-gray-200 rounded-sm py-1.5 px-4 flex flex-row justify-between items-center mt-4">
+                    <span className="text-base font-semibold text-white">
+                      Total ({details.length} Items)
                     </span>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-10">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-base font-bold text-white">Total Net Weight</span>
-                        <span className="text-base font-bold text-white">
-                          {totalNetWeight.toFixed(2)} <span className="text-base font-bold text-white">Kg</span>
+                        <span className="text-base font-semibold text-white">Total Weight</span>
+                        <span className="text-base font-semibold text-white">
+                          {totalNetWeight.toFixed(2)} <span className="text-base font-semibold text-white">Kg</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-base font-bold text-white">Grand Total</span>
-                        <span className="text-base font-bold text-white">
+                        <span className="text-base font-semibold text-white">Grand Total</span>
+                        <span className="text-base font-semibold text-white">
                           {Math.round(grandTotal).toLocaleString()} ៛
                         </span>
                       </div>
@@ -1120,7 +1124,7 @@ export function AddPurchaseDialog({
             </div>
 
             {returns.length > 0 && (
-              <div className="space-y-3 mt-6 border-t border-black/20 pt-4 px-2">
+              <div className="space-y-3 mt-6 rounded-sm border border-black/20 pt-4 px-2">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl" role="img" aria-label="leaf">🌱</span>
@@ -1162,7 +1166,7 @@ export function AddPurchaseDialog({
               </div>
             )}
 
-            <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 border-t border-black/20 mt-3 sm:space-x-0">
+            <DialogFooter className="flex flex-row justify-end gap-2 pt-3.5 mt-3 sm:space-x-0">
               <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
                 className="h-8.5 px-4 text-[13px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                 {isReadOnly ? "Close" : "Cancel"}
@@ -1370,6 +1374,7 @@ const PurchaseDetailCard = React.memo(({
           }}>
             <PopoverAnchor asChild>
               <div className="relative group">
+                <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                 <Input
                   placeholder="Search item..."
                   value={search}
@@ -1377,7 +1382,7 @@ const PurchaseDetailCard = React.memo(({
                   onFocus={() => { setSearch(""); setOpen(true) }}
                   onClick={() => { setSearch(""); setOpen(true) }}
                   disabled={isReadOnly}
-                  className="h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
+                  className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
                 />
                 <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
               </div>
@@ -1433,29 +1438,38 @@ const PurchaseDetailCard = React.memo(({
       <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-black/20">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
-          <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
-            value={detail.gross_weight ?? ""} disabled={isReadOnly}
-            onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          />
+          <div className="relative">
+            <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+            <Input type="number" step="1"
+              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
+              value={detail.gross_weight ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+          </div>
         </div>
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
-          <Input type="number" step="1"
-            className="h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
-            value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
-            onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          />
+          <div className="relative">
+            <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+            <Input type="number" step="1"
+              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
+              value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-1 divide-x divide-border/30 border-b border-black/20 bg-slate-50/30">
         <div className="px-2 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack(Kg)</Label>
-          <Input type="number" step="0.01"
-            className="h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2"
-            value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
-            onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          />
+          <div className="relative">
+            <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+            <Input type="number" step="0.01"
+              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
+              value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+          </div>
         </div>
       </div>
 
@@ -1464,8 +1478,9 @@ const PurchaseDetailCard = React.memo(({
         <div className="px-3 py-2.5 space-y-1">
           <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
           <div className="relative">
+            <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number"
-              className="h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 px-2 pr-5"
+              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-5"
               value={detail.price ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
@@ -1525,12 +1540,12 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "border border-black/20 hover:border-black/40 rounded-sm transition-all duration-200 px-4 pt-3 pb-4",
+      "transition-all duration-200 pb-4",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
       {/* Header: Item # + Remove */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-bold text-foreground">Item {index + 1}</span>
         {!isReadOnly && (
           <Button
@@ -1624,6 +1639,7 @@ const PurchaseDetailDesktopCard = React.memo(({
               }}>
                 <PopoverAnchor asChild>
                   <div className="relative group">
+                    <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                     <Input
                       placeholder="Search and select tobacco type..."
                       value={search}
@@ -1631,7 +1647,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                       onFocus={() => { setSearch(""); setOpen(true) }}
                       onClick={() => { setSearch(""); setOpen(true) }}
                       disabled={isReadOnly}
-                      className="h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
+                      className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
                     />
                     <IconSearch className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                   </div>
@@ -1684,18 +1700,22 @@ const PurchaseDetailDesktopCard = React.memo(({
 
             <div className="w-[25%] pr-3 space-y-1">
               <Label className="text-sm">Gross Weight (Kg)</Label>
-              <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
-                value={detail.gross_weight ?? ""} disabled={isReadOnly}
-                onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              />
+              <div className="relative">
+                <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                <Input type="number" step="1"
+                  className="pl-8 h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-2.5"
+                  value={detail.gross_weight ?? ""} disabled={isReadOnly}
+                  onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+                />
+              </div>
             </div>
 
             <div className="w-[25%] space-y-1">
               <Label className="text-sm">Price/Kg</Label>
               <div className="relative">
+                <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                 <Input type="number"
-                  className="h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5 pr-7"
+                  className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-7"
                   value={detail.price ?? ""} disabled={isReadOnly}
                   onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
                 />
@@ -1708,20 +1728,26 @@ const PurchaseDetailDesktopCard = React.memo(({
           <div className="flex">
             <div className="w-[25%] pr-3 space-y-1">
               <Label className="text-sm">Remork (Kg)</Label>
-              <Input type="number" step="1"
-                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
-                value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
-                onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              />
+              <div className="relative">
+                <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                <Input type="number" step="1"
+                  className="pl-8 h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-2.5"
+                  value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
+                  onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+                />
+              </div>
             </div>
 
             <div className="w-[25%] pr-3 space-y-1">
               <Label className="text-sm">Sack (Kg)</Label>
-              <Input type="number" step="0.01"
-                className="h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 px-2.5"
-                value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
-                onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-              />
+              <div className="relative">
+                <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                <Input type="number" step="0.01"
+                  className="pl-8 h-8 text-[13px] rounded-sm font-medium bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-2.5"
+                  value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
+                  onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+                />
+              </div>
             </div>
 
             <div className="w-[25%] pr-3 space-y-1">
