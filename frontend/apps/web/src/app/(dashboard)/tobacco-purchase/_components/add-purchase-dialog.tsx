@@ -884,7 +884,7 @@ export function AddPurchaseDialog({
                       onChange={(e) => setRate(e.target.value)}
                       required
                       disabled={isReadOnly}
-                      className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-white border border-black/20 text-black focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                      className="pl-8 h-8 text-[13px] rounded-sm font-semibold bg-white border border-black/20 text-medium focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                     />
                     <div className="absolute rounded-sm right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-40">៛</div>
                   </div>
@@ -1010,7 +1010,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5">
                   {details.map((detail, idx) => (
                     <PurchaseDetailCard
                       key={detail.tempId}
@@ -1275,7 +1275,7 @@ const PurchaseDetailCard = React.memo(({
       {/* Card header: item number + delete */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-black/20">
         <span className="text-sm font-medium">
-          Item #{index + 1}
+          Item {index + 1}
         </span>
         {!isReadOnly && (
           <button
@@ -1291,7 +1291,7 @@ const PurchaseDetailCard = React.memo(({
       {/* Tobacco item selector & Image */}
       <div className="flex flex-col border-b border-black/20">
         <div className="flex flex-col items-center justify-center px-3 pt-4 pb-3 border-b border-black/20">
-          <Label className="text-sm block mb-2 text-center">Item Image</Label>
+          <Label className="text-sm block mb-2 text-center">Image</Label>
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (

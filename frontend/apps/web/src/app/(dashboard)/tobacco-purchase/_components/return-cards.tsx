@@ -64,10 +64,17 @@ export const ReturnDetailCard = React.memo(({
 
   return (
     <div className="rounded-md border border-black/20 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-sm font-bold text-foreground">
-          Return #{index + 1}
-        </span>
+      <div className="flex items-center justify-between px-3 py-2 border-b border-black/10">
+        <div>
+          <span className="text-sm font-bold text-foreground block">
+            Return #{index + 1}
+          </span>
+          <div className="flex gap-1.5 mt-1">
+            <IconFileInvoice className="h-3 w-3 text-muted-foreground/50" />
+            <IconLeaf className="h-3 w-3 text-muted-foreground/50" />
+            <IconWeight className="h-3 w-3 text-muted-foreground/50" />
+          </div>
+        </div>
         {!isReadOnly && (
           <button
             type="button"
@@ -79,153 +86,157 @@ export const ReturnDetailCard = React.memo(({
         )}
       </div>
 
-      <div className="px-3 pt-3 pb-3 space-y-3">
-        {/* Contract Selection */}
-        <div>
-          <Label className="text-sm font-bold text-foreground">Contract Number</Label>
-          <Popover open={openCon} onOpenChange={(isOpen) => {
-            setOpenCon(isOpen)
-            if (!isOpen) setSearchCon(item.con_num || "")
-          }}>
-            <PopoverAnchor asChild>
-              <div className="relative group">
-                <Input
-                  placeholder="Search contract..."
-                  value={searchCon}
-                  onChange={(e) => { setSearchCon(e.target.value); if (!openCon) setOpenCon(true) }}
-                  onFocus={() => { setSearchCon(""); setOpenCon(true) }}
-                  onClick={() => { setSearchCon(""); setOpenCon(true) }}
-                  disabled={isReadOnly}
-                  className="h-8 text-sm rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pr-10"
-                />
-                <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
-              </div>
-            </PopoverAnchor>
-            <PopoverContent
-              className="w-64 p-0 border-border/50 z-120"
-              align="start"
-              onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
-              onOpenAutoFocus={(e) => e.preventDefault()}
-              onInteractOutside={(e) => {
-                const target = e.target as HTMLElement
-                if (target.closest('.group')) e.preventDefault()
-              }}
-            >
-              <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
-                {vendorContracts.length === 0 ? (
-                  <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
-                ) : vendorContracts
-                  .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
-                  .map((c) => (
-                    <button
-                      key={c.con_id}
-                      type="button"
-                      className={cn(
-                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none ",
-                        item.con_id === c.con_id && "bg-white"
-                      )}
-                      onClick={() => {
-                        onChange(index, "con_id", c.con_id)
-                        onChange(index, "con_num", c.con_num)
-                        if (c.tobac_type) {
-                          onChange(index, "tobac_type", c.tobac_type)
-                        }
-                        setSearchCon(c.con_num)
-                        setOpenCon(false)
-                      }}
-                    >
-                      <IconCheck className={cn("mr-2 h-3 w-3", item.con_id === c.con_id ? "opacity-100" : "opacity-0")} />
-                      {c.con_num}
-                    </button>
-                  ))
-                }
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+      <div className="px-3 pt-2 pb-3">
+        <div className="flex gap-2 items-end">
+          {/* Contract Selection */}
+          <div className="flex-1 min-w-0 space-y-1">
+            <Label className="text-xs font-bold text-foreground">Contract</Label>
+            <Popover open={openCon} onOpenChange={(isOpen) => {
+              setOpenCon(isOpen)
+              if (!isOpen) setSearchCon(item.con_num || "")
+            }}>
+              <PopoverAnchor asChild>
+                <div className="relative group">
+                  <IconFileInvoice className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
+                  <Input
+                    placeholder="Search contract..."
+                    value={searchCon}
+                    onChange={(e) => { setSearchCon(e.target.value); if (!openCon) setOpenCon(true) }}
+                    onFocus={() => { setSearchCon(""); setOpenCon(true) }}
+                    onClick={() => { setSearchCon(""); setOpenCon(true) }}
+                    disabled={isReadOnly}
+                    className="h-8 text-xs rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                  />
+                  <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-64 p-0 border-border/50 z-120"
+                align="start"
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement
+                  if (target.closest('.group')) e.preventDefault()
+                }}
+              >
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+                  {vendorContracts.length === 0 ? (
+                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
+                  ) : vendorContracts
+                    .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
+                    .map((c) => (
+                      <button
+                        key={c.con_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none ",
+                          item.con_id === c.con_id && "bg-white"
+                        )}
+                        onClick={() => {
+                          onChange(index, "con_id", c.con_id)
+                          onChange(index, "con_num", c.con_num)
+                          if (c.tobac_type) {
+                            onChange(index, "tobac_type", c.tobac_type)
+                          }
+                          setSearchCon(c.con_num)
+                          setOpenCon(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.con_id === c.con_id ? "opacity-100" : "opacity-0")} />
+                        {c.con_num}
+                      </button>
+                    ))
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
 
-        {/* Tobacco Item */}
-        <div>
-          <Label className="text-sm font-bold text-foreground">Tobacco Item</Label>
-          <Popover open={openTobac} onOpenChange={(isOpen) => {
-            setOpenTobac(isOpen)
-            if (!isOpen) {
-              const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-              setSearchTobac(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
-            }
-          }}>
-            <PopoverAnchor asChild>
-              <div className="relative group">
-                <Input
-                  placeholder="Search item..."
-                  value={searchTobac}
-                  onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
-                  onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
-                  onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
-                  disabled={isReadOnly || !!item.con_id}
-                  className="h-8 text-sm rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pr-10 disabled:opacity-70 disabled:cursor-not-allowed"
-                />
-                <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
-              </div>
-            </PopoverAnchor>
-            <PopoverContent
-              className="w-64 p-0 border-border/50 z-120"
-              align="start"
-              onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
-              onOpenAutoFocus={(e) => e.preventDefault()}
-              onInteractOutside={(e) => {
-                const target = e.target as HTMLElement
-                if (target.closest('.group')) e.preventDefault()
-              }}
-            >
-              <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
-                {tobaccoTypes
-                  .filter(t => {
-                    const s = searchTobac.toLowerCase()
-                    return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
-                  })
-                  .map((t) => (
-                    <button
-                      key={t.t_id}
-                      type="button"
-                      className={cn(
-                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none ",
-                        item.tobac_type === t.t_id && "bg-white"
-                      )}
-                      onClick={() => {
-                        onChange(index, "tobac_type", t.t_id)
-                        setSearchTobac(`${t.t_name} | ${t.t_name_kh || ""}`)
-                        setOpenTobac(false)
-                      }}
-                    >
-                      <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
-                      <div className="flex flex-col items-start">
-                        <span className="font-bold">{t.t_name}</span>
-                        <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
-                      </div>
-                    </button>
-                  ))
-                }
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+          {/* Tobacco Item */}
+          <div className="flex-1 min-w-0 space-y-1">
+            <Label className="text-xs font-bold text-foreground">Tobacco</Label>
+            <Popover open={openTobac} onOpenChange={(isOpen) => {
+              setOpenTobac(isOpen)
+              if (!isOpen) {
+                const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+                setSearchTobac(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+              }
+            }}>
+              <PopoverAnchor asChild>
+                <div className="relative group">
+                  <IconLeaf className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
+                  <Input
+                    placeholder="Search item..."
+                    value={searchTobac}
+                    onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
+                    onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
+                    onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
+                    disabled={isReadOnly || !!item.con_id}
+                    className="h-8 text-xs rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
+                  />
+                  <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-64 p-0 border-border/50 z-120"
+                align="start"
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement
+                  if (target.closest('.group')) e.preventDefault()
+                }}
+              >
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+                  {tobaccoTypes
+                    .filter(t => {
+                      const s = searchTobac.toLowerCase()
+                      return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                    })
+                    .map((t) => (
+                      <button
+                        key={t.t_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none ",
+                          item.tobac_type === t.t_id && "bg-white"
+                        )}
+                        onClick={() => {
+                          onChange(index, "tobac_type", t.t_id)
+                          setSearchTobac(`${t.t_name} | ${t.t_name_kh || ""}`)
+                          setOpenTobac(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
+                        <div className="flex flex-col items-start">
+                          <span className="font-bold">{t.t_name}</span>
+                          <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                        </div>
+                      </button>
+                    ))
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
 
-        {/* Repay Leaf */}
-        <div>
-          <Label className="text-sm font-bold text-foreground block mb-1.5">
-            Return Leaf<span className="text-sm">{remainingText}</span>
-          </Label>
-          <div className="relative">
-            <Input type="number" step="0.01"
-              className="h-8 text-sm rounded-md font-bold bg-white border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 px-2 pr-8"
-              value={item.qty_repay ?? ""} disabled={isReadOnly}
-              onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-            />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+          {/* Repay Leaf */}
+          <div className="w-24 shrink-0 space-y-1">
+            <Label className="text-xs font-bold text-foreground block">
+              Repay<span className="text-xs font-normal text-muted-foreground">{remainingText}</span>
+            </Label>
+            <div className="relative">
+              <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
+              <Input type="number" step="0.01"
+                className="h-8 text-xs rounded-md font-bold bg-white border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                value={item.qty_repay ?? ""} disabled={isReadOnly}
+                onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   )
