@@ -63,7 +63,7 @@ export const ReturnDetailCard = React.memo(({
     : ""
 
   return (
-    <div className="rounded-md border border-border/60 overflow-hidden">
+    <div className="rounded-md border border-black/20 overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2">
         <span className="text-sm font-bold text-foreground">
           Return #{index + 1}

@@ -595,7 +595,7 @@ export function AddPurchaseDialog({
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white mt-3 p-4 lg:px-7 lg:py-6 rounded-sm border border-black/20 space-y-2">
+            <div className="bg-white mt-3 py-5 px-6 lg:px-7 lg:py-6 rounded-sm border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
 
                 {/* Invoice No. */}
@@ -993,7 +993,8 @@ export function AddPurchaseDialog({
                 TABLET ITEMS — (768px – 1023px / md → lg)
                 2-column card grid
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="hidden md:block lg:hidden space-y-3">
+            <div className="hidden md:block lg:hidden space-y-3 px-6 py-4 border border-black/20 rounded-sm">
+              <h3 className="text-base font-medium">Tobacco Purchase</h3>
               {details.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
                   <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
@@ -1009,7 +1010,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   {details.map((detail, idx) => (
                     <PurchaseDetailCard
                       key={detail.tempId}
@@ -1109,7 +1110,7 @@ export function AddPurchaseDialog({
             </div>
 
             {returns.length > 0 && (
-              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/40 pt-4 px-7">
+              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-4 px-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-medium">Tobacco Repay</h3>
@@ -1273,7 +1274,7 @@ const PurchaseDetailCard = React.memo(({
 
       {/* Card header: item number + delete */}
       <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-black/20">
-        <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">
+        <span className="text-sm font-medium">
           Item #{index + 1}
         </span>
         {!isReadOnly && (
@@ -1290,7 +1291,7 @@ const PurchaseDetailCard = React.memo(({
       {/* Tobacco item selector & Image */}
       <div className="flex flex-col border-b border-black/20">
         <div className="flex flex-col items-center justify-center px-3 pt-4 pb-3 border-b border-black/20">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-2 text-center">Item Image</Label>
+          <Label className="text-sm block mb-2 text-center">Item Image</Label>
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (
@@ -1358,7 +1359,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         <div className="px-3 pt-3 pb-3">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider block mb-1.5">Tobacco Type</Label>
+          <Label className="text-sm block mb-1.5">Tobacco Type</Label>
           <Popover open={open} onOpenChange={(isOpen) => {
             setOpen(isOpen)
             if (!isOpen) {
@@ -1416,8 +1417,8 @@ const PurchaseDetailCard = React.memo(({
                     >
                       <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
                       <div className="flex flex-col items-start">
-                        <span className="font-bold">{t.t_name}</span>
-                        <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                        <span className="text-sm font-normal">{t.t_name}</span>
+                        <span className="text-sm font-normal text-gray-700">{t.t_name_kh || "-"}</span>
                       </div>
                     </button>
                   ))
@@ -1428,66 +1429,69 @@ const PurchaseDetailCard = React.memo(({
         </div>
       </div>
 
-      {/* Weight row: G.Weight | Remork | Sack */}
+      {/* Weight row: Gross Weight | Remork | Sack */}
       <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-black/20">
-        <div className="px-2 py-2.5 space-y-1">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">G.Weight</Label>
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-sm">Gross Weight</Label>
           <div className="relative">
             <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number" step="1"
-              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
+              className="pl-8 h-8 text-[13px] rounded-sm font-medium bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
               value={detail.gross_weight ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
           </div>
         </div>
-        <div className="px-2 py-2.5 space-y-1">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Remork</Label>
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-sm">Remork</Label>
           <div className="relative">
             <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number" step="1"
-              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
+              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
               value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 divide-x divide-border/30 border-b border-black/20 bg-slate-50/30">
-        <div className="px-2 py-2.5 space-y-1">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Sack</Label>
+      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-black/20 bg-slate-50/30">
+        <div className="px-3 py-2.5 space-y-1">
+          <Label className="text-sm">Sack</Label>
           <div className="relative">
             <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number" step="0.01"
-              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
+              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
               value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
           </div>
         </div>
-      </div>
-
-      {/* Footer row: Price | Net Weight | Total */}
-      <div className="grid grid-cols-3 divide-x divide-border/30">
         <div className="px-3 py-2.5 space-y-1">
-          <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Price/Kg</Label>
+          <Label className="text-sm">Price/Kg</Label>
           <div className="relative">
             <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number"
-              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-5"
+              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-5"
               value={detail.price ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
           </div>
         </div>
-        <div className="px-3 py-2.5 space-y-0.5 bg-primary/2">
-          <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-wider">Net</Label>
-          <p className="text-[13px] font-black text-primary tabular-nums">{netWeight.toFixed(2)}</p>
+      </div>
+
+      {/* Footer row: Net Weight | Total */}
+      <div className="grid grid-cols-2 divide-x divide-border/30">
+        <div className="px-3 py-2.5 space-y-0.5 bg-input/50">
+          <Label className="text-sm">Net Weight</Label>
+          <p className="text-sm font-bold tabular-nums">{netWeight.toFixed(2)}</p>
         </div>
-        <div className="px-3 py-2.5 space-y-0.5 bg-emerald-50/40">
-          <Label className="text-[10px] font-bold text-emerald-700/60 uppercase tracking-wider">Total</Label>
-          <p className="text-[13px] font-black text-emerald-700 tabular-nums">
+        <div className="px-3 py-2.5 space-y-0.5 bg-input/50">
+          <Label className="text-sm">Total</Label>
+          <p className="text-sm font-bold tabular-nums">
             ៛{total.toLocaleString()}
           </p>
         </div>
