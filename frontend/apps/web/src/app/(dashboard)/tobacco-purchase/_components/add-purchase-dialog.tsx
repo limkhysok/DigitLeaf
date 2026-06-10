@@ -130,7 +130,7 @@ function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | n
   if (isReadOnly) {
     return {
       title: "View Tobacco Purchase",
-      mobileTitle: "View",
+      mobileTitle: "View Tobacco",
       description: "Viewing purchase details.",
     }
   }
