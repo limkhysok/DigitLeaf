@@ -1,8 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconCheck, IconSearch, IconX, IconFileInvoice, IconLeaf, IconWeight } from "@tabler/icons-react"
-import { Button } from "@workspace/ui/components/button"
+import { IconCheck, IconSearch, IconX, IconFileInvoice, IconLeaf, IconWeight, IconReplace } from "@tabler/icons-react"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Popover, PopoverContent, PopoverAnchor } from "@workspace/ui/components/popover"
@@ -276,25 +275,15 @@ export const ReturnDetailDesktopCard = React.memo(({
       "relative border-t border-black/40 hover:-translate-y-0.5 rounded-none transition-all duration-300 py-3 mt-2.5",
       "focus-within:border-black/20"
     )}>
-      <div className="flex items-center justify-between gap-4 pb-1.5 mb-3">
-        <span className="text-sm font-bold text-foreground">
-          Repay #{index + 1}
-        </span>
-        {!isReadOnly && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemove(index)}
-            className="text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 h-6.5 px-2 rounded-md transition-colors text-[11px]"
-          >
-            <IconX className="size-3 mr-1" /> Remove
-          </Button>
-        )}
-      </div>
+      <div className="flex gap-4 items-end">
+          <div className="shrink-0 space-y-1">
+            <span className="text-sm font-medium text-foreground block">Item {index + 1}</span>
+            <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-md bg-white">
+              <IconReplace className="h-4 w-4 text-foreground/70" />
+            </div>
+          </div>
 
-      <div className="flex gap-4">
-          <div className="w-[30%] space-y-1">
+          <div className="w-[28%] space-y-1">
             <Label className="text-sm">Contract Number</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
@@ -358,7 +347,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             </Popover>
           </div>
 
-          <div className="w-[30%] space-y-1">
+          <div className="w-[28%] space-y-1">
             <Label className="text-sm">Tobacco Item</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
@@ -425,7 +414,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             </Popover>
           </div>
 
-          <div className="w-[40%] space-y-1">
+          <div className="flex-1 space-y-1">
             <Label className="text-sm">
               Repay<span className="text-sm">{remainingText}</span>
             </Label>
@@ -438,6 +427,18 @@ export const ReturnDetailDesktopCard = React.memo(({
               />
             </div>
           </div>
+
+          {!isReadOnly && (
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <IconX className="size-3.5" />
+              </button>
+            </div>
+          )}
         </div>
     </div>
   )

@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import {
   IconLoader2,
   IconPlus,
+  IconSeedling,
   IconSearch,
   IconCheck,
   IconX,
@@ -69,6 +70,28 @@ function maskDate(raw: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
 }
 
+async function processImageFile(file: File, maxSize = 800): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      const cropSize = Math.min(img.width, img.height)
+      const outputSize = Math.min(cropSize, maxSize)
+      const canvas = document.createElement("canvas")
+      canvas.width = outputSize
+      canvas.height = outputSize
+      const ctx = canvas.getContext("2d")!
+      const offsetX = (img.width - cropSize) / 2
+      const offsetY = (img.height - cropSize) / 2
+      ctx.drawImage(img, offsetX, offsetY, cropSize, cropSize, 0, 0, outputSize, outputSize)
+      resolve(canvas.toDataURL("image/webp", 0.85))
+    }
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Failed to load image")) }
+    img.src = objectUrl
+  })
+}
+
 function getPictureUrl(picture?: string | null): string {
   if (!picture) return ""
   if (picture.startsWith("data:") || picture.startsWith("blob:")) {
@@ -82,18 +105,17 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="text-center border border-black/40 rounded-sm px-3 py-1.5 mr-8 shrink-0">
-      <span className="block text-base font-medium">Quota</span>
+    <div className="flex text-center  rounded-sm px-3 py-1 shrink-0">
+      <span className="block text-base font-medium">Quota: </span>
       <div className="flex items-baseline gap-0.5">
-        <span className={cn(
-          "text-base font-bold",
+        <span className={cn("text-base font-medium",
           displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
         )}>
           {displayRemainingQuota >= 0 ? "+" : ""}
           {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
         <span className={cn(
-          "text-base font-bold",
+          "text-base font-medium",
           displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
         )}>
           kg
@@ -562,8 +584,6 @@ export function AddPurchaseDialog({
                 </DialogTitle>
                 <DialogDescription className="hidden md:block text-sm font-medium text-gray-600">{description}</DialogDescription>
               </div>
-
-              <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
             </div>
           </DialogHeader>
 
@@ -1048,6 +1068,7 @@ export function AddPurchaseDialog({
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-medium">Tobacco Purchase</h3>
                     </div>
+                    <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
                   </div>
                   {details.map((detail, idx) => (
                     <PurchaseDetailDesktopCard
@@ -1310,13 +1331,9 @@ const PurchaseDetailCard = React.memo(({
                         accept="image/*"
                         capture="environment"
                         className="hidden rounded-sm"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0]
-                          if (file) {
-                            const reader = new FileReader()
-                            reader.onloadend = () => onChange(index, "picture", reader.result as string)
-                            reader.readAsDataURL(file)
-                          }
+                          if (file) onChange(index, "picture", await processImageFile(file))
                         }}
                       />
                     </label>
@@ -1326,13 +1343,9 @@ const PurchaseDetailCard = React.memo(({
                         type="file"
                         accept="image/*"
                         className="hidden rounded-sm"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0]
-                          if (file) {
-                            const reader = new FileReader()
-                            reader.onloadend = () => onChange(index, "picture", reader.result as string)
-                            reader.readAsDataURL(file)
-                          }
+                          if (file) onChange(index, "picture", await processImageFile(file))
                         }}
                       />
                     </label>
@@ -1564,13 +1577,9 @@ const PurchaseDetailDesktopCard = React.memo(({
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onloadend = () => onChange(index, "picture", reader.result as string)
-                        reader.readAsDataURL(file)
-                      }
+                      if (file) onChange(index, "picture", await processImageFile(file))
                     }}
                   />
                 </label>
@@ -1581,19 +1590,15 @@ const PurchaseDetailDesktopCard = React.memo(({
               "w-full flex-1 min-h-20 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center transition-all group/img",
               isReadOnly ? "cursor-default" : "cursor-pointer hover:border-primary/40"
             )}>
-              <IconPlus className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
+              <IconSeedling className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
               {!isReadOnly && (
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0]
-                    if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => onChange(index, "picture", reader.result as string)
-                      reader.readAsDataURL(file)
-                    }
+                    if (file) onChange(index, "picture", await processImageFile(file))
                   }}
                 />
               )}
