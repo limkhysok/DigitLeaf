@@ -1152,7 +1152,7 @@ export function AddPurchaseDialog({
             )}
             </div>
 
-            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-2 px-0 py-4 border-t border-black/20 bg-background sm:space-x-0">
+            <DialogFooter className="mt-0 shrink-0 flex flex-col md:flex-row md:justify-between items-stretch md:items-center gap-2 px-0 py-4 border-t border-black/20 bg-background sm:space-x-0">
               {/* Left: Add Row + Return */}
               <div className="flex gap-2">
                 {!isReadOnly && (
@@ -1169,7 +1169,7 @@ export function AddPurchaseDialog({
                 )}
               </div>
               {/* Right: Cancel + Save & Print + Save Purchase */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-end">
                 <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
                   className="h-8.5 px-4 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                   {isReadOnly ? "Close" : "Cancel"}
