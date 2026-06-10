@@ -595,7 +595,7 @@ export function AddPurchaseDialog({
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white mt-3 py-5 px-6 lg:px-7 lg:py-6 rounded-sm border border-black/20 space-y-2">
+            <div className="bg-white mt-3 py-3 px-3 md:py-5 md:px-6 lg:px-7 lg:py-6 rounded-sm border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
 
                 {/* Invoice No. */}
@@ -1288,16 +1288,93 @@ const PurchaseDetailCard = React.memo(({
         )}
       </div>
 
-      {/* Tobacco item selector & Image */}
-      <div className="flex flex-col border-b border-black/20">
-        <div className="flex flex-col items-center justify-center px-3 pt-4 pb-3 border-b border-black/20">
-          <Label className="text-sm block mb-2 text-center">Image</Label>
+      {/* Tobacco Type — full width */}
+      <div className="px-3 pt-3 pb-3 border-b border-black/20">
+        <Label className="text-sm block mb-1.5">Tobacco Type</Label>
+        <Popover open={open} onOpenChange={(isOpen) => {
+          setOpen(isOpen)
+          if (!isOpen) {
+            const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
+            setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+          }
+        }}>
+          <PopoverAnchor asChild>
+            <div className="relative group">
+              <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+              <Input
+                placeholder="Search item..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
+                onFocus={() => { setSearch(""); setOpen(true) }}
+                onClick={() => { setSearch(""); setOpen(true) }}
+                disabled={isReadOnly}
+                className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
+              />
+              <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+            </div>
+          </PopoverAnchor>
+          <PopoverContent
+            className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
+            align="start"
+            sideOffset={4}
+            onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onInteractOutside={(e) => {
+              const target = e.target as HTMLElement
+              if (target.closest('.group')) e.preventDefault()
+            }}
+          >
+            <div className="max-h-62.5 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+              {tobaccoTypes.length === 0 ? (
+                <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
+              ) : tobaccoTypes
+                .filter(t => {
+                  const s = search.toLowerCase()
+                  return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                })
+                .map((t) => (
+                  <button
+                    key={t.t_id}
+                    type="button"
+                    className={cn(
+                      "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
+                      detail.tobacco_name === t.t_id && "bg-accent"
+                    )}
+                    onClick={() => {
+                      onChange(index, "tobacco_name", t.t_id)
+                      setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
+                      setOpen(false)
+                    }}
+                  >
+                    <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-normal">{t.t_name}</span>
+                      <span className="text-sm font-normal text-gray-700">{t.t_name_kh || "-"}</span>
+                    </div>
+                  </button>
+                ))
+              }
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Middle: 2-col grid — all 5 cells are direct children so auto-placement is correct
+            Col 1          | Col 2
+            Image (r-span-3)| Gross Weight   ← row 1
+                           | Remork          ← row 2
+            Price/Kg       | Sack            ← row 3 (aligned)
+      */}
+      <div className="grid grid-cols-2 border-b border-black/20">
+
+        {/* Col 1 rows 1-2: Image */}
+        <div className="row-span-2 border-r border-black/20 p-3">
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (
                 <button
                   type="button"
-                  className="w-32 h-32 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                  className="w-full aspect-square bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -1307,13 +1384,13 @@ const PurchaseDetailCard = React.memo(({
                   />
                   {!isReadOnly && (
                     <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                      <IconPlus className="size-8 text-white" />
+                      <IconPlus className="size-6 text-white" />
                     </div>
                   )}
                 </button>
               ) : (
-                <button type="button" disabled={isReadOnly} className="w-32 h-32 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
-                  <IconPlus className="size-10 text-muted-foreground/20 group-hover/img:text-primary/40" />
+                <button type="button" disabled={isReadOnly} className="w-full aspect-square bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
+                  <IconPlus className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
                 </button>
               )}
             </PopoverTrigger>
@@ -1328,27 +1405,14 @@ const PurchaseDetailCard = React.memo(({
                   <>
                     <label className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded cursor-pointer font-medium outline-none focus-within:ring-1 focus-within:ring-primary">
                       <IconCamera className="size-4 text-primary" /> Take Camera Photo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden rounded-sm"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (file) onChange(index, "picture", await processImageFile(file))
-                        }}
+                      <input type="file" accept="image/*" capture="environment" className="hidden rounded-sm"
+                        onChange={async (e) => { const file = e.target.files?.[0]; if (file) onChange(index, "picture", await processImageFile(file)) }}
                       />
                     </label>
                     <label className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded cursor-pointer font-medium outline-none focus-within:ring-1 focus-within:ring-primary">
                       <IconPhoto className="size-4 text-emerald-600" /> Upload Existing
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden rounded-sm"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (file) onChange(index, "picture", await processImageFile(file))
-                        }}
+                      <input type="file" accept="image/*" className="hidden rounded-sm"
+                        onChange={async (e) => { const file = e.target.files?.[0]; if (file) onChange(index, "picture", await processImageFile(file)) }}
                       />
                     </label>
                   </>
@@ -1358,118 +1422,36 @@ const PurchaseDetailCard = React.memo(({
           </Popover>
         </div>
 
-        <div className="px-3 pt-3 pb-3">
-          <Label className="text-sm block mb-1.5">Tobacco Type</Label>
-          <Popover open={open} onOpenChange={(isOpen) => {
-            setOpen(isOpen)
-            if (!isOpen) {
-              const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
-              setSearch(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
-            }
-          }}>
-            <PopoverAnchor asChild>
-              <div className="relative group">
-                <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
-                <Input
-                  placeholder="Search item..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true) }}
-                  onFocus={() => { setSearch(""); setOpen(true) }}
-                  onClick={() => { setSearch(""); setOpen(true) }}
-                  disabled={isReadOnly}
-                  className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
-                />
-                <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
-              </div>
-            </PopoverAnchor>
-            <PopoverContent
-              className="w-(--radix-popover-trigger-width) p-0 border-black/20 z-100"
-              align="start"
-              sideOffset={4}
-              onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
-              onOpenAutoFocus={(e) => e.preventDefault()}
-              onInteractOutside={(e) => {
-                const target = e.target as HTMLElement
-                if (target.closest('.group')) e.preventDefault()
-              }}
-            >
-              <div className="max-h-62.5 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
-                {tobaccoTypes.length === 0 ? (
-                  <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
-                ) : tobaccoTypes
-                  .filter(t => {
-                    const s = search.toLowerCase()
-                    return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
-                  })
-                  .map((t) => (
-                    <button
-                      key={t.t_id}
-                      type="button"
-                      className={cn(
-                        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-[12px] outline-hidden hover:bg-accent",
-                        detail.tobacco_name === t.t_id && "bg-accent"
-                      )}
-                      onClick={() => {
-                        onChange(index, "tobacco_name", t.t_id)
-                        setSearch(`${t.t_name} | ${t.t_name_kh || ""}`)
-                        setOpen(false)
-                      }}
-                    >
-                      <IconCheck className={cn("mr-2 h-3 w-3", detail.tobacco_name === t.t_id ? "opacity-100" : "opacity-0")} />
-                      <div className="flex flex-col items-start">
-                        <span className="text-sm font-normal">{t.t_name}</span>
-                        <span className="text-sm font-normal text-gray-700">{t.t_name_kh || "-"}</span>
-                      </div>
-                    </button>
-                  ))
-                }
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      {/* Weight row: Gross Weight | Remork | Sack */}
-      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-black/20">
+        {/* Col 2 row 1: Gross Weight */}
         <div className="px-3 py-2.5 space-y-1">
           <Label className="text-sm">Gross Weight</Label>
           <div className="relative">
             <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number" step="1"
-              className="pl-8 h-8 text-[13px] rounded-sm font-medium bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
+              className="pl-8 h-8 text-[13px] rounded-sm font-medium bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
               value={detail.gross_weight ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "gross_weight", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
           </div>
         </div>
-        <div className="px-3 py-2.5 space-y-1">
+
+        {/* Col 2 row 2: Remork */}
+        <div className="border-t border-black/20 px-3 py-2.5 space-y-1">
           <Label className="text-sm">Remork</Label>
           <div className="relative">
             <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
             <Input type="number" step="1"
-              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
+              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
               value={detail.remork_in_kg ?? ""} disabled={isReadOnly}
               onChange={(e) => onChange(index, "remork_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
           </div>
         </div>
-      </div>
-      <div className="grid grid-cols-2 divide-x divide-border/30 border-b border-black/20 bg-slate-50/30">
-        <div className="px-3 py-2.5 space-y-1">
-          <Label className="text-sm">Sack</Label>
-          <div className="relative">
-            <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
-            <Input type="number" step="0.01"
-              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
-              value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
-              onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-            />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
-          </div>
-        </div>
-        <div className="px-3 py-2.5 space-y-1">
+
+        {/* Col 1 row 3: Price/Kg */}
+        <div className="border-t border-r border-black/20 px-3 py-2.5 space-y-1">
           <Label className="text-sm">Price/Kg</Label>
           <div className="relative">
             <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1481,10 +1463,25 @@ const PurchaseDetailCard = React.memo(({
             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
           </div>
         </div>
+
+        {/* Col 2 row 3: Sack */}
+        <div className="border-t border-black/20 px-3 py-2.5 space-y-1">
+          <Label className="text-sm">Sack</Label>
+          <div className="relative">
+            <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+            <Input type="number" step="0.01"
+              className="pl-8 h-8 text-[13px] rounded-sm bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
+              value={detail.sack_in_kg ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
+          </div>
+        </div>
+
       </div>
 
-      {/* Footer row: Net Weight | Total */}
-      <div className="grid grid-cols-2 divide-x divide-border/30">
+      {/* Footer: Net Weight | Total */}
+      <div className="grid grid-cols-2 divide-x divide-black/20">
         <div className="px-3 py-2.5 space-y-0.5 bg-input/50">
           <Label className="text-sm">Net Weight</Label>
           <p className="text-sm font-bold tabular-nums">{netWeight.toFixed(2)}</p>
