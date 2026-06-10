@@ -214,13 +214,16 @@ export const ReturnDetailCard = React.memo(({
         {/* Repay Leaf */}
         <div>
           <Label className="text-sm font-bold text-foreground block mb-1.5">
-            Return Leaf (Kg) <span className="text-sm">{remainingText}</span>
+            Return Leaf<span className="text-sm">{remainingText}</span>
           </Label>
-          <Input type="number" step="0.01"
-            className="h-8 text-sm rounded-md font-bold bg-white border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 px-2"
-            value={item.qty_repay ?? ""} disabled={isReadOnly}
-            onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-          />
+          <div className="relative">
+            <Input type="number" step="0.01"
+              className="h-8 text-sm rounded-md font-bold bg-white border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 px-2 pr-8"
+              value={item.qty_repay ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+          </div>
         </div>
 
       </div>
@@ -267,7 +270,7 @@ export const ReturnDetailDesktopCard = React.memo(({
   }, [item.con_num])
 
   const remainingText = selectedContract?.qty
-    ? `(${selectedContract.qty} / ${selectedContract.total_returned || 0} Kg Left)`
+    ? `(${selectedContract.qty} / ${selectedContract.total_returned || 0} Left)`
     : ""
 
   return (
@@ -421,10 +424,11 @@ export const ReturnDetailDesktopCard = React.memo(({
             <div className="relative">
               <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
-                className="h-8 text-sm rounded-md font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-2.5"
+                className="h-8 text-sm rounded-md font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
             </div>
           </div>
 

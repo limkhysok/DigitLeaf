@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import {
   IconLoader2,
   IconPlus,
+  IconSquareRoundedPlus,
   IconSeedling,
   IconSearch,
   IconCheck,
@@ -136,13 +137,13 @@ function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | n
   if (initialData) {
     return {
       title: "Edit Tobacco Purchase",
-      mobileTitle: "Edit",
+      mobileTitle: "Edit Tobacco",
       description: "Update the purchase information below.",
     }
   }
   return {
     title: "New Tobacco Purchase",
-    mobileTitle: "Add",
+    mobileTitle: "Add Tobacco",
     description: "Enter purchase details and item breakdown.",
   }
 }
@@ -1155,13 +1156,13 @@ export function AddPurchaseDialog({
               <div className="flex gap-2">
                 {!isReadOnly && (
                   <>
-                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                      className="h-8.5 px-4 text-[13px] font-medium rounded-sm bg-white hover:bg-slate-50 border-black/20 transition-all active:scale-95">
-                      <IconPlus className="mr-1.5 size-3.5 text-primary" /> Add Row
+                    <Button type="button" onClick={handleAddDetail}
+                      className="h-8.5 w-24 justify-center bg-white border border-black/20 text-foreground hover:bg-slate-50 rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+                      <IconSquareRoundedPlus className="size-3.5" /> Purchase
                     </Button>
-                    <Button type="button" variant="outline" size="sm" onClick={handleAddReturn}
-                      className="h-8.5 px-4 text-[13px] font-medium rounded-sm bg-white hover:bg-slate-50 transition-all active:scale-95 text-emerald-600 border-emerald-600/30">
-                      <IconPlus className="mr-1.5 size-3.5" /> Return
+                    <Button type="button" onClick={handleAddReturn}
+                      className="h-8.5 w-24 justify-center bg-white border border-black/20 text-foreground hover:bg-slate-50 rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+                      <IconSquareRoundedPlus className="size-3.5" /> Repay
                     </Button>
                   </>
                 )}
