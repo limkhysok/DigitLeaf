@@ -1306,12 +1306,9 @@ const PurchaseDetailCard = React.memo(({
   return (
     <div className="rounded-sm border border-black/20 bg-white overflow-hidden">
 
-      {/* Card header: item number + delete */}
-      <div className="flex items-center justify-between px-3 py-2 ">
-        <span className="text-sm font-medium">
-          Item {index + 1}
-        </span>
-        {!isReadOnly && (
+      {/* Card header: delete only */}
+      {!isReadOnly && (
+        <div className="flex items-center justify-end px-3 py-1.5">
           <button
             type="button"
             onClick={() => onRemove(index)}
@@ -1319,8 +1316,8 @@ const PurchaseDetailCard = React.memo(({
           >
             <IconX className="size-3.5" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Tobacco Type — full width */}
       <div className="px-3 pt-1 pb-1">
@@ -1402,13 +1399,15 @@ const PurchaseDetailCard = React.memo(({
       <div className="grid grid-cols-2 border-b border-black/20">
 
         {/* Col 1 rows 1-2: Image */}
-        <div className="row-span-2 px-3 py-2">
+        <div className="row-span-2 px-3 py-2 flex flex-col">
+          <span className="text-[11px] font-semibold text-foreground mb-1 leading-none">Item {index + 1}</span>
+          <div>
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (
                 <button
                   type="button"
-                  className="w-full aspect-square bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                  className="w-full h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -1423,7 +1422,7 @@ const PurchaseDetailCard = React.memo(({
                   )}
                 </button>
               ) : (
-                <button type="button" disabled={isReadOnly} className="w-full aspect-square bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
+                <button type="button" disabled={isReadOnly} className="w-full h-28 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
                   <IconPlus className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
                 </button>
               )}
@@ -1454,6 +1453,7 @@ const PurchaseDetailCard = React.memo(({
               </div>
             </PopoverContent>
           </Popover>
+          </div>
         </div>
 
         {/* Col 2 row 1: Gross Weight */}

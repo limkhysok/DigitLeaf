@@ -102,13 +102,13 @@ export function MobileFilterBar({
         {/* Add button */}
         <Button
           onClick={onAdd}
-          className="shrink-0 sm:hidden rounded-full h-9 w-9 p-0 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
+          className="shrink-0 sm:hidden rounded-sm h-9 w-9 p-0 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
         >
           <IconPlus className="size-4" />
         </Button>
         <Button
           onClick={onAdd}
-          className="shrink-0 hidden sm:flex rounded-full h-9 px-4 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
+          className="shrink-0 hidden sm:flex rounded-sm h-9 px-4 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
         >
           <IconPlus className="size-3.5" />
           Add
