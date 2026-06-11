@@ -1155,18 +1155,18 @@ export function AddPurchaseDialog({
             )}
             </div>
 
-            <DialogFooter className="mt-0 shrink-0 flex flex-col md:flex-row md:justify-between items-stretch md:items-center gap-2 px-0 py-4 border-t border-black/20 bg-background sm:space-x-0">
+            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-2 px-0 py-4 border-t border-black/20 bg-background sm:space-x-0">
               {/* Left: Add Row + Return */}
               <div className="flex gap-2">
                 {!isReadOnly && (
                   <>
                     <Button type="button" onClick={handleAddDetail}
-                      className="h-8.5 w-24 justify-center bg-white border border-black/20 text-foreground hover:bg-slate-50 rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-1.5">
-                      <IconSquareRoundedPlus className="size-3.5" /> Purchase
+                      className="h-8.5 px-2 md:px-3 justify-center bg-white border border-black/20 text-foreground hover:bg-slate-50 rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+                      <IconSquareRoundedPlus className="size-3.5 hidden md:block" /> Purchase
                     </Button>
                     <Button type="button" onClick={handleAddReturn}
-                      className="h-8.5 w-24 justify-center bg-white border border-black/20 text-foreground hover:bg-slate-50 rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-1.5">
-                      <IconSquareRoundedPlus className="size-3.5" /> Repay
+                      className="h-8.5 px-2 md:px-3 justify-center bg-white border border-black/20 text-foreground hover:bg-slate-50 rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+                      <IconSquareRoundedPlus className="size-3.5 hidden md:block" /> Repay
                     </Button>
                   </>
                 )}
@@ -1174,7 +1174,7 @@ export function AddPurchaseDialog({
               {/* Right: Cancel + Save & Print + Save Purchase */}
               <div className="flex gap-2 justify-end">
                 <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}
-                  className="h-8.5 px-4 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
+                  className="h-8.5 px-2 md:px-4 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200">
                   {isReadOnly ? "Close" : "Cancel"}
                 </Button>
                 {!isReadOnly && (
@@ -1187,24 +1187,25 @@ export function AddPurchaseDialog({
                           setPrintAfterSave(true)
                           handleSubmit(e, true)
                         }}
-                        className="h-8.5 px-4 bg-white border border-black/20 text-foreground rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
+                        className="h-8.5 px-2 md:px-4 bg-white border border-black/20 text-foreground rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2"
                       >
                         {isSubmitting && printAfterSave ? (
                           <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
-                          <IconPrinter className="h-3.5 w-3.5" />
+                          <IconPrinter className="h-3.5 w-3.5 hidden md:block" />
                         )}
                         Save &amp; Print
                       </Button>
                     )}
                     <Button type="submit" disabled={isSubmitting}
-                      className="h-8.5 px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
+                      className="h-8.5 px-2 md:px-5 bg-[#009640] hover:bg-[#008a3b] text-white rounded-sm text-[13px] font-medium transition-all duration-200 active:scale-95 flex items-center gap-2">
                       {isSubmitting && !printAfterSave ? (
                         <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <IconCheck className="h-3.5 w-3.5" />
+                        <IconCheck className="h-3.5 w-3.5 hidden md:block" />
                       )}
-                      {initialData ? "Update Purchase" : "Save Purchase"}
+                      <span className="md:hidden">{initialData ? "Update" : "Save"}</span>
+                      <span className="hidden md:inline">{initialData ? "Update Purchase" : "Save Purchase"}</span>
                     </Button>
                   </>
                 )}
