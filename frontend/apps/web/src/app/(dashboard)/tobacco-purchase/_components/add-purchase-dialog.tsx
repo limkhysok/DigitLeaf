@@ -107,17 +107,17 @@ function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemain
   if (displayRemainingQuota === null) return null;
   return (
     <div className="flex text-center  rounded-sm px-3 py-1 shrink-0">
-      <span className="block text-base font-medium">Quota: </span>
+      <span className="block text-base font-medium text-white">Quota: </span>
       <div className="flex items-baseline gap-0.5">
         <span className={cn("text-base font-medium",
-          displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
+          displayRemainingQuota >= 0 ? "text-white" : "text-red-600"
         )}>
           {displayRemainingQuota >= 0 ? "+" : ""}
           {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
         <span className={cn(
           "text-base font-medium",
-          displayRemainingQuota >= 0 ? "text-green-600" : "text-red-600"
+          displayRemainingQuota >= 0 ? "text-white" : "text-red-600"
         )}>
           kg
         </span>
@@ -579,7 +579,7 @@ export function AddPurchaseDialog({
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-sm border-black/20">
-          <DialogHeader className="mb-0 pb-2.5 shrink-0 border-b border-black/40">
+          <DialogHeader className="mb-0  shrink-0">
             <div className="flex items-center justify-between w-full">
               <div className="space-y-1">
                 <DialogTitle className="text-[18px] font-medium text-foreground">
@@ -598,7 +598,7 @@ export function AddPurchaseDialog({
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white mt-3 py-3 px-3 md:py-5 md:px-6 lg:px-7 lg:py-6 rounded-sm border border-black/20 space-y-2">
+            <div className="bg-white mt-3 py-3 px-3 md:py-5 md:px-6 lg:px-7 lg:py-4 rounded-sm border border-black/20 space-y-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
 
                 {/* Invoice No. */}
@@ -1068,10 +1068,10 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="space-y-3 mt-2 mb-4 px-7 py-2 rounded-sm border border-black/40 divide-y divide-black/40">
-                  <div className="flex items-center justify-between pt-2 pb-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-medium">Tobacco Purchase</h3>
+                <div className="rounded-sm border border-black/20">
+                  <div className="flex items-center justify-between rounded-t-sm bg-green-600">
+                    <div className="flex items-center gap-2 py-2 px-4">
+                      <h3 className="text-base font-medium text-white">Tobacco Purchase</h3>
                     </div>
                     <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
                   </div>
@@ -1089,39 +1089,35 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 border border-gray-200 rounded-sm py-2 px-3 flex flex-row justify-between items-center mt-5 mb-5">
-                    <span className="text-base font-medium text-white">
-                      Total ({details.length} Item)
-                    </span>
-                    <div className="flex items-center gap-10">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-base font-medium text-white">Total Weight</span>
-                        <span className="text-base font-medium text-white">
-                          {totalNetWeight.toFixed(2)} <span className="text-base font-medium text-white">Kg</span>
-                        </span>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-base font-medium text-white">Grand Total</span>
-                        <span className="text-base font-medium text-white">
-                          {Math.round(grandTotal).toLocaleString()} ៛
-                        </span>
-                      </div>
+                  <div className="bg-green-600 rounded-sm py-2 px-3 flex flex-row justify-between items-center w-[50%] ml-auto mb-5 mr-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90">Total</span>
+                      <span className="text-base font-semibold text-white">{details.length} Item</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90">Total Weight</span>
+                      <span className="text-base font-semibold text-white">{totalNetWeight.toFixed(2)} Kg</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90">Grand Total</span>
+                      <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {returns.length > 0 && (
-              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-medium">Tobacco Repay</h3>
+            {returns.length > 0 && (       
+              //  pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6
+              <div className="mt-3 mb-2 rounded-sm border border-black/20">
+                <div className="flex items-center justify-between rounded-t-sm bg-green-600">
+                  <div className="flex items-center gap-2 py-2 px-4">
+                    <h3 className="text-base font-medium text-white">Tobacco Repay</h3>
                   </div>
                 </div>
 
                 {/* Mobile & Tablet View */}
-                <div className="lg:hidden space-y-3">
+                <div className="lg:hidden space-y-0">
                   {returns.map((item, idx) => (
                     <ReturnDetailCard
                       key={item.tempId}
@@ -1155,7 +1151,7 @@ export function AddPurchaseDialog({
             )}
             </div>
 
-            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-2 px-0 py-4 border-t border-black/20 bg-background sm:space-x-0">
+            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-2 px-0 py-4 bg-background sm:space-x-0">
               {/* Left: Add Row + Return */}
               <div className="flex gap-2">
                 {!isReadOnly && (
@@ -1539,7 +1535,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative transition-all duration-200 pb-4 mb-3 mt-6",
+      "relative pl-4 pr-4 pt-2 pb-2 border-t border-black/20",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
