@@ -63,7 +63,7 @@ export const ReturnDetailCard = React.memo(({
     : ""
 
   return (
-    <div className="border-t border-black/20 overflow-hidden relative">
+    <div className="border-b border-black/20 overflow-hidden relative">
       {/* X button — mobile only, absolute top-right */}
       {!isReadOnly && (
         <button
@@ -74,7 +74,7 @@ export const ReturnDetailCard = React.memo(({
           <IconX className="size-3.5" />
         </button>
       )}
-      <div className="pl-4 pr-4 md:pl-4 md:pr-2 pt-3 pb-4">
+      <div className="px-3 md:pl-4 md:pr-2 pt-3 pb-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-end">
           {/* Row 1: No + Contract — own grid on mobile, transparent on md+ */}
           <div className="grid grid-cols-[1fr_9fr] gap-3 md:contents">
@@ -154,7 +154,7 @@ export const ReturnDetailCard = React.memo(({
           </div>{/* end row-1 wrapper */}
 
           {/* Row 2: Tobacco + Repay — own grid on mobile, transparent on md+ */}
-          <div className="grid grid-cols-2 gap-3 md:contents">
+          <div className="grid grid-cols-1 gap-3 md:contents">
 
           {/* col1 row2 — Tobacco Item */}
           <div className="min-w-0 space-y-1 md:w-[40%]">

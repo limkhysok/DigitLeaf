@@ -944,53 +944,59 @@ export function AddPurchaseDialog({
                 MOBILE ITEMS — (< 768px / below md)
                 Card-per-row, full-width stacked
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="md:hidden space-y-3">
-              {details.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
-                  <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
-                    <IconPlus className="size-5 text-muted-foreground/20" />
+            <div className="md:hidden border border-black/20 rounded-sm">
+              <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
+                <h3 className="flex items-center gap-2 py-2 px-4 text-white">Tobacco Purchase</h3>
+                <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
+              </div>
+              <div className="space-y-3 p-3">
+                {details.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
+                    <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
+                      <IconPlus className="size-5 text-muted-foreground/20" />
+                    </div>
+                    <p className="text-[13px] font-bold text-foreground">No items yet</p>
+                    <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+                    {!isReadOnly && (
+                      <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
+                        className="mt-1 h-8 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                        <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-[13px] font-bold text-foreground">No items yet</p>
-                  <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
-                  {!isReadOnly && (
-                    <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                      className="mt-1 h-8 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
-                      <IconPlus className="mr-1.5 size-3.5" /> Add First Item
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-3">
-                  {details.map((detail, idx) => (
-                    <PurchaseDetailCard
-                      key={detail.tempId}
-                      detail={detail}
-                      index={idx}
-                      isReadOnly={isReadOnly}
-                      tobaccoTypes={tobaccoTypes}
-                      onRemove={handleRemoveDetail}
-                      onChange={handleDetailChange}
-                      onPreviewImage={setPreviewImage}
-                    />
-                  ))}
-                </div>
-              )}
-              {details.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-sm bg-slate-50 border border-black/20">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground/60 tracking-wider">Total Weight</p>
-                    <p className="text-[15px] font-black text-primary tabular-nums">
-                      {totalNetWeight.toFixed(2)} <span className="text-[10px] font-bold">Kg</span>
-                    </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3">
+                    {details.map((detail, idx) => (
+                      <PurchaseDetailCard
+                        key={detail.tempId}
+                        detail={detail}
+                        index={idx}
+                        isReadOnly={isReadOnly}
+                        tobaccoTypes={tobaccoTypes}
+                        onRemove={handleRemoveDetail}
+                        onChange={handleDetailChange}
+                        onPreviewImage={setPreviewImage}
+                      />
+                    ))}
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase text-emerald-700/60 tracking-wider">Grand Total</p>
-                    <p className="text-[16px] font-black text-emerald-700 tabular-nums">
-                      ៛{Math.round(grandTotal).toLocaleString()}
-                    </p>
+                )}
+                {details.length > 0 && (
+                  <div className="bg-green-600 ml-auto rounded-sm py-2 px-3 flex flex-row justify-between items-center w-full md:w-[46%]">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
+                      <span className="text-base font-semibold text-white">{details.length} Item</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
+                      <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs font-medium text-white/90 uppercase">Grand Total</span>
+                      <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1136,14 +1142,14 @@ export function AddPurchaseDialog({
                   ))}
                 </div>
 
-                {/* Tablet Summary Bar */}
-                <div className="hidden md:flex lg:hidden bg-green-600 rounded-sm py-2 px-3 w-[46%] ml-auto mr-4 mb-4 flex-row justify-between items-center">
+                {/* Mobile & Tablet Summary Bar */}
+                <div className="flex lg:hidden bg-green-600 rounded-sm py-2 px-3 md:w-[46%] ml-3 mr-3 mb-3 mt-3 flex-row justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white/90 uppercase">Total</span>
+                    <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
                     <span className="text-base font-semibold text-white">{returns.length} Item</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-sm font-medium text-white/90 uppercase">Total Weight</span>
+                    <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
                     <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                   </div>
                 </div>
@@ -1301,7 +1307,7 @@ const PurchaseDetailCard = React.memo(({
     <div className="rounded-sm border border-black/20 bg-white overflow-hidden">
 
       {/* Card header: item number + delete */}
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-b border-black/20">
+      <div className="flex items-center justify-between px-3 py-2 ">
         <span className="text-sm font-medium">
           Item {index + 1}
         </span>
@@ -1317,7 +1323,7 @@ const PurchaseDetailCard = React.memo(({
       </div>
 
       {/* Tobacco Type — full width */}
-      <div className="px-3 pt-3 pb-3 border-b border-black/20">
+      <div className="px-3 pt-1 pb-1">
         <Label className="text-sm block mb-1.5">Tobacco Type</Label>
         <Popover open={open} onOpenChange={(isOpen) => {
           setOpen(isOpen)
@@ -1396,7 +1402,7 @@ const PurchaseDetailCard = React.memo(({
       <div className="grid grid-cols-2 border-b border-black/20">
 
         {/* Col 1 rows 1-2: Image */}
-        <div className="row-span-2 border-r border-black/20 p-3">
+        <div className="row-span-2 px-3 py-2">
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (
@@ -1451,7 +1457,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         {/* Col 2 row 1: Gross Weight */}
-        <div className="px-3 py-2.5 space-y-1">
+        <div className="px-3 pt-2 space-y-1">
           <Label className="text-sm">Gross Weight</Label>
           <div className="relative">
             <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1465,7 +1471,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         {/* Col 2 row 2: Remork */}
-        <div className="border-t border-black/20 px-3 py-2.5 space-y-1">
+        <div className=" px-3 pt-2 space-y-1">
           <Label className="text-sm">Remork</Label>
           <div className="relative">
             <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1479,7 +1485,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         {/* Col 1 row 3: Price/Kg */}
-        <div className="border-t border-r border-black/20 px-3 py-2.5 space-y-1">
+        <div className="px-3 pt-2 pb-2 space-y-1">
           <Label className="text-sm">Price/Kg</Label>
           <div className="relative">
             <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1493,7 +1499,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         {/* Col 2 row 3: Sack */}
-        <div className="border-t border-black/20 px-3 py-2.5 space-y-1">
+        <div className="px-3 pt-2 pb-2 space-y-1">
           <Label className="text-sm">Sack</Label>
           <div className="relative">
             <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
