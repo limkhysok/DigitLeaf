@@ -59,13 +59,13 @@ export const ReturnDetailCard = React.memo(({
   }, [item.con_num])
 
   const remainingText = selectedContract?.qty
-    ? ` Remaining ${selectedContract.qty} / ${selectedContract.total_returned || 0}`
+    ? ` (${selectedContract.qty} / ${selectedContract.total_returned || 0} Left)`
     : ""
 
   return (
     <div className="rounded-md border border-black/20 overflow-hidden">
       <div className="px-4 pt-3 pb-4">
-        <div className="flex gap-4 items-end">
+        <div className="flex gap-3 items-end">
           {/* Return # + Seedling icon */}
           <div className="shrink-0 space-y-1">
             <span className="text-xs font-semibold md:text-[13px] text-foreground block whitespace-nowrap">No {index + 1}</span>
@@ -75,7 +75,7 @@ export const ReturnDetailCard = React.memo(({
           </div>
 
           {/* Contract Selection */}
-          <div className="flex-1 min-w-0 space-y-1">
+          <div className="w-[20%] min-w-0 space-y-1">
             <Label className="text-xs md:text-[13px] font-semibold text-foreground">Contract ID</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
@@ -140,7 +140,7 @@ export const ReturnDetailCard = React.memo(({
           </div>
 
           {/* Tobacco Item */}
-          <div className="flex-1 min-w-0 space-y-1">
+          <div className="w-[40%] min-w-0 space-y-1">
             <Label className="text-xs md:text-[13px] font-semibold text-foreground">Tobacco Type</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
@@ -208,7 +208,7 @@ export const ReturnDetailCard = React.memo(({
           </div>
 
           {/* Repay Leaf */}
-          <div className="w-24 shrink-0 space-y-1">
+          <div className="w-[30%] min-w-0 space-y-1">
             <Label className="text-xs md:text-[13px] font-semibold text-foreground block">
               Repay<span className="text-xs md:text-[13px] font-semibold text-muted-foreground">{remainingText}</span>
             </Label>
@@ -287,9 +287,9 @@ export const ReturnDetailDesktopCard = React.memo(({
       "relative border-t border-black/40 hover:-translate-y-0.5 rounded-none transition-all duration-300 py-3 mt-2.5",
       "focus-within:border-black/20"
     )}>
-      <div className="flex gap-4 items-end">
+      <div className="flex gap-3 items-end">
           <div className="shrink-0 space-y-1">
-            <span className="text-sm font-medium text-foreground block">Item {index + 1}</span>
+            <span className="text-sm font-medium text-center text-foreground block tracking-tighter">No {index + 1}</span>
             <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-md bg-white">
               <IconReplace className="h-4 w-4 text-foreground/70" />
             </div>

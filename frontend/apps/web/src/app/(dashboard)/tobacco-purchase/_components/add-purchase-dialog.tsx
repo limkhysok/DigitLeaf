@@ -1113,7 +1113,7 @@ export function AddPurchaseDialog({
             </div>
 
             {returns.length > 0 && (
-              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-4 px-6">
+              <div className="space-y-3 mt-3 mb-2 rounded-sm border border-black/20 pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-medium">Tobacco Repay</h3>
