@@ -302,7 +302,7 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative border-t border-black/20 rounded-none transition-all pl-4 pr-2 py-3 mb-3",
+      "relative border-b border-black/20 rounded-none transition-all pl-4 pr-2 py-3 mb-3",
       "focus-within:border-black/20"
     )}>
       <div className="flex gap-3 items-end">
@@ -451,7 +451,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             <div className="relative">
               <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
-                className="h-8 text-sm rounded-md font-bold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
+                className="h-8 text-sm rounded-md font-semibold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />

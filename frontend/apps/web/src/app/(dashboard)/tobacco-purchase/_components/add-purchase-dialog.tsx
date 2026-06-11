@@ -106,18 +106,18 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="flex text-center  rounded-sm px-3 py-1 shrink-0">
-      <span className="block text-base font-medium text-white">Quota: </span>
+    <div className="flex shrink-0 mr-3">
+      <span className="block text-base font-medium text-white mr-1">Quota: </span>
       <div className="flex items-baseline gap-0.5">
-        <span className={cn("text-base font-medium",
-          displayRemainingQuota >= 0 ? "text-white" : "text-red-600"
+        <span className={cn("text-base font-bold",
+          displayRemainingQuota >= 0 ? "text-white" : "text-red-500"
         )}>
           {displayRemainingQuota >= 0 ? "+" : ""}
           {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
         <span className={cn(
-          "text-base font-medium",
-          displayRemainingQuota >= 0 ? "text-white" : "text-red-600"
+          "text-base font-bold",
+          displayRemainingQuota >= 0 ? "text-white" : "text-red-500"
         )}>
           kg
         </span>
@@ -556,6 +556,7 @@ export function AddPurchaseDialog({
   const totalNetWeight = details.reduce((sum, item) => {
     return sum + Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
   }, 0)
+  const totalRepayWeight = returns.reduce((sum, item) => sum + (Number(item.qty_repay) || 0), 0)
   const grandTotal = details.reduce((sum, item) => {
     const net = Math.max(0, (Number(item.gross_weight) || 0) - (Number(item.remork_in_kg) || 0) - (Number(item.sack_in_kg) || 0))
     return sum + net * (Number(item.price) || 0)
@@ -1069,7 +1070,7 @@ export function AddPurchaseDialog({
                 </div>
               ) : (
                 <div className="rounded-sm border border-black/20">
-                  <div className="flex items-center justify-between rounded-t-sm bg-green-600">
+                  <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
                     <div className="flex items-center gap-2 py-2 px-4">
                       <h3 className="text-base font-medium text-white">Tobacco Purchase</h3>
                     </div>
@@ -1089,7 +1090,7 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 rounded-sm py-2 px-3 flex flex-row justify-between items-center w-[50%] ml-auto mb-5 mr-4">
+                  <div className="bg-green-600 rounded-sm py-2 px-4 flex flex-row justify-between items-center w-[40%] ml-auto mb-4 mr-4 mt-4">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-white/90">Total</span>
                       <span className="text-base font-semibold text-white">{details.length} Item</span>
@@ -1110,7 +1111,7 @@ export function AddPurchaseDialog({
             {returns.length > 0 && (       
               //  pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6
               <div className="mt-3 mb-2 rounded-sm border border-black/20">
-                <div className="flex items-center justify-between rounded-t-sm bg-green-600">
+                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
                   <div className="flex items-center gap-2 py-2 px-4">
                     <h3 className="text-base font-medium text-white">Tobacco Repay</h3>
                   </div>
@@ -1146,6 +1147,18 @@ export function AddPurchaseDialog({
                       onChange={handleReturnChange}
                     />
                   ))}
+
+                  {/* Desktop Summary Bar */}
+                  <div className="bg-green-600 rounded-sm py-2 px-4 flex flex-row justify-between items-center w-[40%] ml-auto mb-4 mr-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90">Total</span>
+                      <span className="text-base font-semibold text-white">{returns.length} Item</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white/90">Total Weight</span>
+                      <span className="text-base font-semibold text-white">{totalRepayWeight.toFixed(2)} Kg</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1535,7 +1548,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative pl-4 pr-4 pt-2 pb-2 border-t border-black/20",
+      "relative pl-4 pr-4 pt-2 pb-2 border-b border-black/20",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
