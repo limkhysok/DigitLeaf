@@ -1033,18 +1033,18 @@ export function AddPurchaseDialog({
                 </div>
               )}
               {details.length > 0 && (
-                <div className="bg-green-600 rounded-sm py-2 px-3 w-[50%] ml-auto mr-4 mb-4 flex flex-row justify-between items-center">
+                <div className="bg-green-600 rounded-sm py-2 px-3 w-[46%] ml-auto mr-4 mb-4 flex flex-row justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-white/90 uppercase">Total</span>
+                    <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
                     <span className="text-base font-semibold text-white">{details.length} Item</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
-                    <span className="text-base font-semibold text-white">{totalNetWeight.toFixed(2)} Kg</span>
+                    <span className="text-xs font-medium text-white/90 uppercase text-right">Total Weight</span>
+                    <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-medium text-white/90 uppercase">Grand Total</span>
-                    <span className="text-base font-semibold text-white">{Math.round(grandTotal).toLocaleString()} ៛</span>
+                    <span className="text-xs font-medium text-white/90 uppercase text-right">Grand Total</span>
+                    <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                   </div>
                 </div>
               )}
@@ -1093,17 +1093,17 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 rounded-none py-2 px-4 flex flex-row justify-between items-center w-[40%] ml-auto mb-4 mr-4 mt-4">
+                  <div className="bg-green-600 rounded-sm py-2 px-4 flex flex-row justify-between items-center w-[41%] ml-auto mb-4 mr-4 mt-4">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase">Total</span>
+                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
                       <span className="text-base font-semibold text-white">{details.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
-                      <span className="text-base font-semibold text-white">{totalNetWeight.toFixed(2)} Kg</span>
+                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total Weight</span>
+                      <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase">Grand Total</span>
+                      <span className="text-xs font-medium text-white/90 uppercase text-right">Grand Total</span>
                       <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
@@ -1137,14 +1137,14 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Tablet Summary Bar */}
-                <div className="hidden md:flex lg:hidden bg-green-600 rounded-sm py-2 px-3 w-[50%] ml-auto mr-4 mb-4 flex-row justify-between items-center">
+                <div className="hidden md:flex lg:hidden bg-green-600 rounded-sm py-2 px-3 w-[46%] ml-auto mr-4 mb-4 flex-row justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-white/90 uppercase">Total</span>
                     <span className="text-base font-semibold text-white">{returns.length} Item</span>
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-medium text-white/90 uppercase">Total Weight</span>
-                    <span className="text-base font-semibold text-white">{totalRepayWeight.toFixed(2)} Kg</span>
+                    <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                   </div>
                 </div>
 
@@ -1164,14 +1164,14 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 rounded-none py-2 px-4 flex flex-row justify-between items-center w-[40%] ml-auto mb-4 mr-4">
+                  <div className="bg-green-600 rounded-sm py-2 px-4 flex flex-row justify-between items-center w-[41%] ml-auto mb-4 mr-4">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase">Total</span>
-                      <span className="text-base font-semibold text-white">{returns.length} Item</span>
+                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
+                      <span className="text-base font-semibold text-white text-right">{returns.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
-                      <span className="text-base font-semibold text-white">{totalRepayWeight.toFixed(2)} Kg</span>
+                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total Weight</span>
+                      <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                     </div>
                   </div>
                 </div>
