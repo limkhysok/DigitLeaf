@@ -426,7 +426,8 @@ export function AddPurchaseDialog({
   })
 
   const handleAddDetail = React.useCallback(() => {
-    setDetails(prev => [...prev, { tempId: crypto.randomUUID(), tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0 }])
+    const tempId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    setDetails(prev => [...prev, { tempId, tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0 }])
   }, [])
 
   const handleRemoveDetail = React.useCallback((index: number) => {
