@@ -368,8 +368,9 @@ export function AddPurchaseDialog({
     setOven(data.oven?.toString() || "")
     setRate(data.rate.toString())
     setTpCode(data.invoice_num || "")
-    setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: crypto.randomUUID() })) || [])
-    setReturns(data.returns?.map((r: Partial<TobaccoReturnCreate>) => ({ ...r, tempId: crypto.randomUUID() })) || [])
+    const genId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: genId() })) || [])
+    setReturns(data.returns?.map((r: Partial<TobaccoReturnCreate>) => ({ ...r, tempId: genId() })) || [])
 
     const b = purchasers.find(p => p.p_id === data.buyer)
     if (b) setBuyerSearch(`${b.p_name} | ${b.p_name_kh || ""}`)
@@ -444,7 +445,8 @@ export function AddPurchaseDialog({
   }, [])
 
   const handleAddReturn = React.useCallback(() => {
-    setReturns(prev => [...prev, { tempId: crypto.randomUUID(), con_id: undefined, tobac_type: undefined, qty_repay: '' as unknown as number }])
+    const tempId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    setReturns(prev => [...prev, { tempId, con_id: undefined, tobac_type: undefined, qty_repay: '' as unknown as number }])
   }, [])
 
   const handleRemoveReturn = React.useCallback((index: number) => {

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconCheck, IconSearch, IconX, IconFileInvoice, IconLeaf, IconWeight, IconReplace } from "@tabler/icons-react"
+import { IconCheck, IconSearch, IconX, IconFileInvoice, IconLeaf, IconWeight, IconReplace, IconSeedling } from "@tabler/icons-react"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Popover, PopoverContent, PopoverAnchor } from "@workspace/ui/components/popover"
@@ -64,33 +64,19 @@ export const ReturnDetailCard = React.memo(({
 
   return (
     <div className="rounded-md border border-black/20 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-black/10">
-        <div>
-          <span className="text-sm font-bold text-foreground block">
-            Return #{index + 1}
-          </span>
-          <div className="flex gap-1.5 mt-1">
-            <IconFileInvoice className="h-3 w-3 text-muted-foreground/50" />
-            <IconLeaf className="h-3 w-3 text-muted-foreground/50" />
-            <IconWeight className="h-3 w-3 text-muted-foreground/50" />
+      <div className="px-4 pt-3 pb-4">
+        <div className="flex gap-4 items-end">
+          {/* Return # + Seedling icon */}
+          <div className="shrink-0 space-y-1">
+            <span className="text-xs font-semibold md:text-[13px] text-foreground block whitespace-nowrap">No {index + 1}</span>
+            <div className="h-8 w-8 flex items-center justify-center border border-black/20 rounded-md bg-white">
+              <IconSeedling className="h-3.5 w-3.5 text-foreground/70" />
+            </div>
           </div>
-        </div>
-        {!isReadOnly && (
-          <button
-            type="button"
-            onClick={() => onRemove(index)}
-            className="p-1 rounded hover:bg-red-50 hover:text-red-500 transition-colors"
-          >
-            <IconX className="size-3.5" />
-          </button>
-        )}
-      </div>
 
-      <div className="px-3 pt-2 pb-3">
-        <div className="flex gap-2 items-end">
           {/* Contract Selection */}
           <div className="flex-1 min-w-0 space-y-1">
-            <Label className="text-xs font-bold text-foreground">Contract</Label>
+            <Label className="text-xs md:text-[13px] font-semibold text-foreground">Contract ID</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
               if (!isOpen) setSearchCon(item.con_num || "")
@@ -105,7 +91,7 @@ export const ReturnDetailCard = React.memo(({
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
                     onClick={() => { setSearchCon(""); setOpenCon(true) }}
                     disabled={isReadOnly}
-                    className="h-8 text-xs rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                    className="h-8 text-xs rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
                   />
                   <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -155,7 +141,7 @@ export const ReturnDetailCard = React.memo(({
 
           {/* Tobacco Item */}
           <div className="flex-1 min-w-0 space-y-1">
-            <Label className="text-xs font-bold text-foreground">Tobacco</Label>
+            <Label className="text-xs md:text-[13px] font-semibold text-foreground">Tobacco Type</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
               if (!isOpen) {
@@ -173,7 +159,7 @@ export const ReturnDetailCard = React.memo(({
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
                     onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
                     disabled={isReadOnly || !!item.con_id}
-                    className="h-8 text-xs rounded-md bg-white border border-border/60 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="h-8 text-xs rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
                   <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -223,8 +209,8 @@ export const ReturnDetailCard = React.memo(({
 
           {/* Repay Leaf */}
           <div className="w-24 shrink-0 space-y-1">
-            <Label className="text-xs font-bold text-foreground block">
-              Repay<span className="text-xs font-normal text-muted-foreground">{remainingText}</span>
+            <Label className="text-xs md:text-[13px] font-semibold text-foreground block">
+              Repay<span className="text-xs md:text-[13px] font-semibold text-muted-foreground">{remainingText}</span>
             </Label>
             <div className="relative">
               <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
@@ -236,6 +222,18 @@ export const ReturnDetailCard = React.memo(({
               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
             </div>
           </div>
+
+          {!isReadOnly && (
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <IconX className="size-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
