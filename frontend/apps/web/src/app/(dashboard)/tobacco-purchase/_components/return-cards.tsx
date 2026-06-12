@@ -81,7 +81,7 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col1 row1 — No + Seedling icon */}
           <div className="flex flex-col items-start gap-1 md:gap-0 shrink-0 md:space-y-1">
-            <span className="text-xs text-center font-medium md:text-[13px] text-foreground block whitespace-nowrap">No {index + 1}</span>
+            <span className="text-sm text-center font-medium text-foreground block whitespace-nowrap">No {index + 1}</span>
             <div className="h-8 w-8 flex items-center justify-center bg-white pr-1">
               <IconSeedling className="h-6 w-6 text-foreground/70" />
             </div>
@@ -89,7 +89,7 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col2 row1 — Contract Selection */}
           <div className="min-w-0 space-y-1 md:w-[30%]">
-            <Label className="text-xs md:text-[13px] font-medium text-foreground">Contract ID</Label>
+            <Label className="text-sm font-medium text-foreground">Contract ID</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
               if (!isOpen) setSearchCon(item.con_num || "")
@@ -104,7 +104,7 @@ export const ReturnDetailCard = React.memo(({
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
                     onClick={() => { setSearchCon(""); setOpenCon(true) }}
                     disabled={isReadOnly}
-                    className="h-8 text-xs rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
                   />
                   <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -129,7 +129,7 @@ export const ReturnDetailCard = React.memo(({
                         key={c.con_id}
                         type="button"
                         className={cn(
-                          "relative flex w-full cursor-pointer select-none items-center border-b border-black/20 px-3 py-2 text-xs md:text-[13px] outline-none ",
+                          "relative flex w-full cursor-pointer select-none items-center border-b border-black/20 px-3 py-2 text-sm outline-none ",
                           item.con_id === c.con_id && "bg-white"
                         )}
                         onClick={() => {
@@ -158,7 +158,7 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col1 row2 — Tobacco Item */}
           <div className="min-w-0 space-y-1 md:w-[40%]">
-            <Label className="text-xs md:text-[13px] font-medium text-foreground">Tobacco Type</Label>
+            <Label className="text-sm font-medium text-foreground">Tobacco Type</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
               if (!isOpen) {
@@ -176,7 +176,7 @@ export const ReturnDetailCard = React.memo(({
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
                     onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
                     disabled={isReadOnly || !!item.con_id}
-                    className="h-8 text-xs rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
                   <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -202,7 +202,7 @@ export const ReturnDetailCard = React.memo(({
                         key={t.t_id}
                         type="button"
                         className={cn(
-                          "relative flex w-full cursor-pointer select-none items-center px-3 py-2 text-xs md:text[13px] outline-none border-b border-black/20",
+                          "relative flex w-full cursor-pointer select-none items-center px-3 py-2 outline-none border-b border-black/20",
                           item.tobac_type === t.t_id && "bg-white"
                         )}
                         onClick={() => {
@@ -214,7 +214,7 @@ export const ReturnDetailCard = React.memo(({
                         <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
                         <div className="flex flex-col items-start">
                           <span className="font-medium">{t.t_name}</span>
-                          <span className="text-xs font-medium text-foreground">{t.t_name_kh || "-"}</span>
+                          <span className="text-sm font-medium text-foreground">{t.t_name_kh || "-"}</span>
                         </div>
                       </button>
                     ))
@@ -226,17 +226,17 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col2 row2 — Repay */}
           <div className="min-w-0 space-y-1 md:w-[30%]">
-            <Label className="text-xs md:text-[13px] font-medium text-foreground block">
-              Repay<span className="text-xs md:text-[13px] font-medium text-muted-foreground">{remainingText}</span>
+            <Label className="text-sm font-medium text-foreground block">
+              Repay<span className="text-sm font-medium text-muted-foreground">{remainingText}</span>
             </Label>
             <div className="relative">
               <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
-                className="h-8 text-xs rounded-sm font-bold bg-white border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                className="h-8 text-sm rounded-sm font-bold bg-white border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Kg</span>
             </div>
           </div>
           </div>{/* end row-2 wrapper */}
@@ -305,7 +305,7 @@ export const ReturnDetailDesktopCard = React.memo(({
       "relative border-b border-black/20 rounded-none transition-all pl-4 pr-2 py-4 mb-0",
       "focus-within:border-black/20"
     )}>
-      <div className="flex gap-3 items-end">
+      <div className="flex gap-4 items-end">
           <div className="shrink-0 space-y-1">
             <span className="text-sm font-medium text-center text-foreground block tracking-tighter">No {index + 1}</span>
             <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-sm bg-white">
@@ -455,7 +455,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Kg</span>
             </div>
           </div>
 

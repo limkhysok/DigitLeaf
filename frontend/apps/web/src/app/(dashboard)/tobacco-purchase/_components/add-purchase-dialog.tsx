@@ -1181,7 +1181,7 @@ export function AddPurchaseDialog({
             )}
             </div>
 
-            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-2 px-0 py-4 bg-background sm:space-x-0">
+            <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-0 px-0 py-4 bg-background sm:space-x-0">
               {/* Left: Add Row + Return */}
               <div className="flex gap-2">
                 {!isReadOnly && (
@@ -1421,10 +1421,10 @@ const PurchaseDetailCard = React.memo(({
                 </button>
               )}
             </PopoverTrigger>
-            <PopoverContent className="w-52 p-1 border-black/20 z-100" align="center" sideOffset={8}>
+            <PopoverContent className="w-42 p-0 border-black/20 z-100 rounded-sm" align="center" sideOffset={8}>
               <div className="flex flex-col">
                 {detail.picture && (
-                  <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
+                  <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded-sm text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
                     <IconSearch className="size-4" /> View Full Image
                   </button>
                 )}
