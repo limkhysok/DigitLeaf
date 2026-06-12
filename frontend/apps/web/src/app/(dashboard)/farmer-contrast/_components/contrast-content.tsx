@@ -67,7 +67,7 @@ export function ContrastContent({
 
   // Tablet list view (below lg screen, showing 2 columns)
   const tabletList = (
-    <div className="hidden md:grid lg:hidden grid-cols-2 gap-4">
+    <div className="hidden md:grid lg:hidden grid-cols-3 gap-4">
       {records.map((rec, idx) => (
         <FarmerContrastCard
           key={rec.mf_con_id}

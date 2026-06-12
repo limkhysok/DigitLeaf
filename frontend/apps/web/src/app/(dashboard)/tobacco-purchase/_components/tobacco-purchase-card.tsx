@@ -114,9 +114,9 @@ export const TobaccoPurchaseCard = React.memo(({
               {t.tobaccoPurchase.table.netWeight}
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-foreground">
-              {rec.total_net_weight != null
-                ? `${localizeNumber(rec.total_net_weight.toFixed(1))} kg`
-                : "—"}
+              {rec.total_net_weight == null
+                ? "—"
+                : `${localizeNumber(rec.total_net_weight.toFixed(1))} kg`}
             </span>
           </div>
           {/* Grand Total */}

@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/table"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
+import { TobaccoReturnCard } from "./_components/tobacco-return-card"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 
@@ -186,9 +187,33 @@ export default function TobaccoReturnPage() {
         </div>
       )}
 
-      {/* ── Data Table ── */}
+      {/* ════════════════════════════════════════════════════════════════════
+          MOBILE CONTENT — (< 768px / below md)
+      ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && sortedRecords.length > 0 && (
-        <div className="rounded-md border bg-white">
+        <div className="grid md:hidden grid-cols-1 gap-3">
+          {sortedRecords.map((rec, idx) => (
+            <TobaccoReturnCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
+          ))}
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TABLET CONTENT — (768px – 1023px / md → lg)
+      ════════════════════════════════════════════════════════════════════ */}
+      {!isLoading && sortedRecords.length > 0 && (
+        <div className="hidden md:grid lg:hidden grid-cols-2 gap-4">
+          {sortedRecords.map((rec, idx) => (
+            <TobaccoReturnCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
+          ))}
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          DESKTOP CONTENT — (≥ 1024px / lg and above)
+      ════════════════════════════════════════════════════════════════════ */}
+      {!isLoading && sortedRecords.length > 0 && (
+        <div className="hidden lg:block rounded-md border bg-white">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

@@ -3,7 +3,10 @@
 import * as React from "react"
 import { FarmerContrastItem } from "@/services/api-client"
 import { useLanguage } from "@/hooks/use-language"
-import { IconSeedling, IconUser, IconBook2 } from "@tabler/icons-react"
+import { IconSeedling, IconUser, IconBook2, IconId, IconScale, IconLeaf } from "@tabler/icons-react"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
+import { Badge } from "@workspace/ui/components/badge"
+import { cn } from "@workspace/ui/lib/utils"
 
 export interface FarmerContrastCardProps {
   readonly rec: FarmerContrastItem
@@ -13,88 +16,103 @@ export interface FarmerContrastCardProps {
 export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
   const { t } = useLanguage()
 
+  const isOverYield =
+    rec.purchased_weight != null &&
+    rec.expected_yield != null &&
+    rec.purchased_weight > rec.expected_yield
+
   return (
-    <div className="group relative flex flex-col justify-between rounded-sm bg-white border border-slate-200/70 hover:border-emerald-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)] transition-all duration-300 overflow-hidden p-4">
-
-      {/* Left bar accent */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#009640] group-hover:bg-emerald-500 transition-colors duration-300" />
-
-      {/* Book icon watermark */}
-      <div className="absolute -bottom-4 -right-4 z-0 text-[#009640]/8 group-hover:text-[#009640]/16 group-hover:-translate-y-1 transition-all duration-500 pointer-events-none">
-        <IconBook2 size={120} stroke={1} />
-      </div>
-
-      {/* Header: index + year badge */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-mono font-medium text-slate-400 bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 rounded shrink-0">
+    <Card
+      className={cn(
+        "group flex flex-col overflow-hidden border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm",
+        isOverYield && "border-red-300/60 hover:border-red-400/70"
+      )}
+    >
+      {/* ROW 1: Header (Index, Year badge) */}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2.5 px-3">
+        <span className="text-sm font-semibold text-foreground bg-muted/60 px-1.5 rounded-sm border border-border/50">
           #{index}
         </span>
-        <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold border border-[#009640]/20">
+        <Badge
+          variant="outline"
+          className="px-1.5 py-0.5 text-sm font-semibold rounded-sm bg-[#009640]/10 text-[#009640] border-[#009640]/20"
+        >
           {rec.year}
-        </span>
-      </div>
+        </Badge>
+      </CardHeader>
 
-      {/* Farmer name & code */}
-      <div className="flex flex-col gap-0.5 mb-3 min-w-0">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <IconUser className="size-3.5 text-slate-400 shrink-0" stroke={1.8} />
-          <h3 className="text-sm font-semibold text-slate-800 group-hover:text-[#009640] transition-colors truncate">
-            {rec.name}
-          </h3>
+      <CardContent className="flex flex-col gap-2.5 pb-3 px-3">
+        {/* ROW 2: Icon area */}
+        <div className="w-full h-20 bg-muted/20 rounded-md border border-border/50 flex flex-col items-center justify-center text-muted-foreground group-hover:bg-muted/40 transition-colors overflow-hidden">
+          <IconBook2 className="h-10 w-10 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" stroke={1.5} />
         </div>
-        <span className="text-[11px] text-slate-400 font-mono pl-5">{rec.mf_code}</span>
-      </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2 pt-2.5 border-t border-slate-100">
+        {/* ROW 3: Details */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none">
-            {t.farmerContrast.saplingKg}
-          </span>
-          <div className="flex items-baseline gap-0.5 mt-0.5">
-            <span className="text-sm font-bold text-slate-800 tabular-nums">
+          {/* Farmer Name */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconUser className="h-3.5 w-3.5" />
+              {t.farmerContrast.farmerName}
+            </span>
+            <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.name}>
+              {rec.name}
+            </span>
+          </div>
+
+          {/* ID Code */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconId className="h-3.5 w-3.5" />
+              {t.farmerContrast.idCard}
+            </span>
+            <span className="text-sm font-mono text-right text-foreground">
+              {rec.mf_code}
+            </span>
+          </div>
+
+          {/* Sapling */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconLeaf className="h-3.5 w-3.5" />
+              {t.farmerContrast.saplingKg}
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
               {rec.tobac_num !== undefined && rec.tobac_num !== null
                 ? rec.tobac_num.toLocaleString()
-                : <span className="text-slate-300">—</span>}
+                : <span className="text-muted-foreground/40">—</span>}
             </span>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-0.5 border-l border-slate-100 pl-3">
-          <div className="flex items-center gap-1">
-            <IconSeedling className="size-3 text-[#009640] shrink-0" stroke={1.8} />
-            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none">
-              {t.farmerContrast.expectedYield}
+          {/* Expected Yield */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconSeedling className="h-3.5 w-3.5" />
+              {t.farmerContrast.expectedYieldKg}
             </span>
-          </div>
-          <div className="flex items-baseline gap-0.5 mt-0.5">
-            <span className="text-sm font-bold text-[#009640] tabular-nums">
+            <span className="text-sm font-semibold tabular-nums text-right text-[#2c2c2c]">
               {rec.expected_yield !== undefined && rec.expected_yield !== null
-                ? rec.expected_yield.toLocaleString()
-                : <span className="text-slate-300">—</span>}
+                ? `${rec.expected_yield.toLocaleString()} kg`
+                : <span className="text-muted-foreground/40">—</span>}
             </span>
-            {rec.expected_yield !== undefined && rec.expected_yield !== null && (
-              <span className="text-[10px] font-medium text-slate-400 ml-0.5">kg</span>
-            )}
           </div>
-        </div>
 
-        <div className="flex flex-col gap-0.5 border-l border-slate-100 pl-3">
-          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold leading-none">
-            {t.farmerContrast.purchasedWeight}
-          </span>
-          <div className="flex items-baseline gap-0.5 mt-0.5">
-            <span className="text-sm font-bold text-blue-600 tabular-nums">
-              {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                ? rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                : <span className="text-slate-300">—</span>}
+          {/* Purchased Weight */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconScale className="h-3.5 w-3.5" />
+              {t.farmerContrast.purchasedWeightKg}
             </span>
-            {rec.purchased_weight !== undefined && rec.purchased_weight !== null && (
-              <span className="text-[10px] font-medium text-slate-400 ml-0.5">kg</span>
-            )}
+            <span className={cn(
+              "text-sm font-semibold tabular-nums text-right text-foreground"
+            )}>
+              {rec.purchased_weight !== undefined && rec.purchased_weight !== null
+                ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                : <span className="text-muted-foreground/40">—</span>}
+            </span>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
