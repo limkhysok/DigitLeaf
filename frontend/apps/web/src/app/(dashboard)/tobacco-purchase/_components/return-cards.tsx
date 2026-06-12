@@ -69,12 +69,12 @@ export const ReturnDetailCard = React.memo(({
         <button
           type="button"
           onClick={() => onRemove(index)}
-          className="absolute top-1 right-1 md:hidden h-8 w-6 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors z-10"
+          className="absolute top-1 right-1 md:hidden h-6 w-6 flex items-center justify-center rounded-sm text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors z-10"
         >
           <IconX className="size-3.5" />
         </button>
       )}
-      <div className="px-3 md:pl-4 md:pr-2 pt-3 pb-4">
+      <div className="px-4 md:pl-4 md:pr-2 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-end">
           {/* Row 1: No + Contract — own grid on mobile, transparent on md+ */}
           <div className="grid grid-cols-[1fr_9fr] gap-3 md:contents">
@@ -104,7 +104,7 @@ export const ReturnDetailCard = React.memo(({
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
                     onClick={() => { setSearchCon(""); setOpenCon(true) }}
                     disabled={isReadOnly}
-                    className="h-8 text-xs rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                    className="h-8 text-xs rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
                   />
                   <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -170,13 +170,13 @@ export const ReturnDetailCard = React.memo(({
                 <div className="relative group">
                   <IconLeaf className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
                   <Input
-                    placeholder="Search item..."
+                    placeholder="Search type..."
                     value={searchTobac}
                     onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
                     onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
                     disabled={isReadOnly || !!item.con_id}
-                    className="h-8 text-xs rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="h-8 text-xs rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
                   <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -232,7 +232,7 @@ export const ReturnDetailCard = React.memo(({
             <div className="relative">
               <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
-                className="h-8 text-xs rounded-md font-bold bg-white border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                className="h-8 text-xs rounded-sm font-bold bg-white border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -246,7 +246,7 @@ export const ReturnDetailCard = React.memo(({
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="h-8 w-6 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="h-8 w-6 flex items-center justify-center rounded-sm text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
                 <IconX className="size-3.5" />
               </button>
@@ -302,13 +302,13 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative border-b border-black/20 rounded-none transition-all pl-4 pr-2 py-3 mb-3",
+      "relative border-b border-black/20 rounded-none transition-all pl-4 pr-2 py-4 mb-0",
       "focus-within:border-black/20"
     )}>
       <div className="flex gap-3 items-end">
           <div className="shrink-0 space-y-1">
             <span className="text-sm font-medium text-center text-foreground block tracking-tighter">No {index + 1}</span>
-            <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-md bg-white">
+            <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-sm bg-white">
               <IconReplace className="h-4 w-4 text-foreground/70" />
             </div>
           </div>
@@ -329,7 +329,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
                     onClick={() => { setSearchCon(""); setOpenCon(true) }}
                     disabled={isReadOnly}
-                    className="h-8 text-sm rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10"
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10"
                   />
                   <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -396,7 +396,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
                     onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
                     disabled={isReadOnly || !!item.con_id}
-                    className="h-8 text-sm rounded-md bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10 disabled:opacity-70 disabled:cursor-not-allowed"
                   />
                   <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                 </div>
@@ -451,7 +451,7 @@ export const ReturnDetailDesktopCard = React.memo(({
             <div className="relative">
               <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
-                className="h-8 text-sm rounded-md font-semibold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
+                className="h-8 text-sm rounded-sm font-semibold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
@@ -464,7 +464,7 @@ export const ReturnDetailDesktopCard = React.memo(({
               <button
                 type="button"
                 onClick={() => onRemove(index)}
-                className="h-8 w-6 flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="h-8 w-6 flex items-center justify-center rounded-sm text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
                 <IconX className="size-3.5" />
               </button>

@@ -106,17 +106,17 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="flex shrink-0 mr-3">
-      <span className="block text-base font-medium text-white mr-1">Quota: </span>
+    <div className="flex shrink-0 mr-2">
+      <span className="block text-sm md:text-base lg:text-base font-medium text-white mr-1">Quota: </span>
       <div className="flex items-baseline gap-0.5">
-        <span className={cn("text-base font-bold",
+        <span className={cn("text-sm md:text-base lg:text-base font-medium",
           displayRemainingQuota >= 0 ? "text-white" : "text-red-500"
         )}>
           {displayRemainingQuota >= 0 ? "+" : ""}
           {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
         <span className={cn(
-          "text-base font-bold",
+          "text-sm md:text-base lg:text-base",
           displayRemainingQuota >= 0 ? "text-white" : "text-red-500"
         )}>
           kg
@@ -949,7 +949,7 @@ export function AddPurchaseDialog({
                 <h3 className="flex items-center gap-2 py-2 px-4 text-white">Tobacco Purchase</h3>
                 <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
               </div>
-              <div className="space-y-3 p-3">
+              <div className="space-y-3">
                 {details.length === 0 ? (
                   <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
                     <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
@@ -965,7 +965,7 @@ export function AddPurchaseDialog({
                     )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-0">
                     {details.map((detail, idx) => (
                       <PurchaseDetailCard
                         key={detail.tempId}
@@ -981,17 +981,17 @@ export function AddPurchaseDialog({
                   </div>
                 )}
                 {details.length > 0 && (
-                  <div className="bg-green-600 ml-auto rounded-sm py-2 px-3 flex flex-row justify-between items-center w-full md:w-[46%]">
+                  <div className="bg-green-600 ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%]">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
-                      <span className="text-base font-semibold text-white">{details.length} Item</span>
+                      <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                      <span className="text-base font-semibold text-white text-left">{details.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
+                      <span className="text-[11px] font-medium text-white uppercase">Total Weight</span>
                       <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-xs font-medium text-white/90 uppercase">Grand Total</span>
+                      <span className="text-[11px] font-medium text-white uppercase">Grand Total</span>
                       <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
@@ -1023,7 +1023,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-5 px-5 py-5">
+                <div className="grid grid-cols-2">
                   {details.map((detail, idx) => (
                     <PurchaseDetailCard
                       key={detail.tempId}
@@ -1039,17 +1039,17 @@ export function AddPurchaseDialog({
                 </div>
               )}
               {details.length > 0 && (
-                <div className="bg-green-600 rounded-sm py-2 px-3 w-[46%] ml-auto mr-4 mb-4 flex flex-row justify-between items-center">
+                <div className="bg-green-600 rounded-b-sm flex flex-row justify-between items-center px-5 py-3">
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
-                    <span className="text-base font-semibold text-white">{details.length} Item</span>
+                    <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                    <span className="text-base font-semibold text-white text-left">{details.length} Item</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-white/90 uppercase text-right">Total Weight</span>
-                    <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
+                    <span className="text-[11px] font-medium text-white uppercase text-center">Total Weight</span>
+                    <span className="text-base font-semibold text-white text-center">{totalNetWeight.toFixed(2)} Kg</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-medium text-white/90 uppercase text-right">Grand Total</span>
+                    <span className="text-[11px] font-medium text-white uppercase text-right">Grand Total</span>
                     <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                   </div>
                 </div>
@@ -1078,7 +1078,7 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="rounded-md border border-black/20">
+                <div className="rounded-md border border-black/20 mb-2">
                   <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
                     <div className="flex items-center gap-2 py-2 px-4">
                       <h3 className="text-base font-medium text-white">Tobacco Purchase</h3>
@@ -1099,17 +1099,17 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 rounded-sm py-2 px-4 flex flex-row justify-between items-center w-[41%] ml-auto mb-4 mr-4 mt-4">
+                  <div className="bg-green-600 rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
+                      <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
                       <span className="text-base font-semibold text-white">{details.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total Weight</span>
-                      <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
+                      <span className="text-[11px] font-medium text-white uppercase text-center">Total Weight</span>
+                      <span className="text-base font-semibold text-white text-center">{totalNetWeight.toFixed(2)} Kg</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase text-right">Grand Total</span>
+                      <span className="text-[11px] font-medium text-white uppercase text-right">Grand Total</span>
                       <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
@@ -1120,7 +1120,7 @@ export function AddPurchaseDialog({
             {returns.length > 0 && (       
               //  pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6
               <div className="mt-3 mb-2 rounded-md border border-black/20">
-                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
+                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-700">
                   <div className="flex items-center gap-2 py-2 px-4">
                     <h3 className="text-base font-medium text-white">Tobacco Repay</h3>
                   </div>
@@ -1143,13 +1143,13 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Mobile & Tablet Summary Bar */}
-                <div className="flex lg:hidden bg-green-600 rounded-sm py-2 px-3 md:w-[46%] ml-3 mr-3 mb-3 mt-3 flex-row justify-between items-center">
+                <div className="flex lg:hidden bg-green-700 rounded-b-sm py-3 px-5 flex-row justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
-                    <span className="text-base font-semibold text-white">{returns.length} Item</span>
+                    <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                    <span className="text-base font-semibold text-white text-left">{returns.length} Item</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-medium text-white/90 uppercase">Total Weight</span>
+                    <span className="text-[11px] font-medium text-white uppercase">Total Weight</span>
                     <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                   </div>
                 </div>
@@ -1170,13 +1170,13 @@ export function AddPurchaseDialog({
                   ))}
 
                   {/* Desktop Summary Bar */}
-                  <div className="bg-green-600 rounded-sm py-2 px-4 flex flex-row justify-between items-center w-[41%] ml-auto mb-4 mr-4">
+                  <div className="bg-green-700 rounded-b-sm flex flex-row justify-between items-center px-5 py-3">
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total</span>
-                      <span className="text-base font-semibold text-white text-right">{returns.length} Item</span>
+                      <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                      <span className="text-base font-semibold text-white text-left">{returns.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-medium text-white/90 uppercase text-right">Total Weight</span>
+                      <span className="text-[11px] font-medium text-white uppercase text-right">Total Weight</span>
                       <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                     </div>
                   </div>
@@ -1304,24 +1304,22 @@ const PurchaseDetailCard = React.memo(({
   const total = Math.round(netWeight * (Number(detail.price) || 0))
 
   return (
-    <div className="rounded-sm border border-black/20 bg-white overflow-hidden">
+    <div className="border border-black/20 bg-white overflow-hidden">
 
-      {/* Card header: delete only */}
-      {!isReadOnly && (
-        <div className="flex items-center justify-end px-3 py-1.5">
-          <button
-            type="button"
-            onClick={() => onRemove(index)}
-            className="p-1 rounded hover:bg-red-50 text-muted-foreground/30 hover:text-red-500 transition-colors"
-          >
-            <IconX className="size-3.5" />
-          </button>
+      {/* Tobacco Type — full width, X button on label row */}
+      <div className="px-4 pt-3 md:px-6 md:pt-4">
+        <div className="flex items-center justify-between mb-1.5">
+          <Label className="text-sm">Tobacco Type</Label>
+          {!isReadOnly && (
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="p-1 rounded hover:bg-red-50 text-muted-foreground/30 hover:text-red-500 transition-colors"
+            >
+              <IconX className="size-3.5" />
+            </button>
+          )}
         </div>
-      )}
-
-      {/* Tobacco Type — full width */}
-      <div className="px-3 pt-1 pb-1">
-        <Label className="text-sm block mb-1.5">Tobacco Type</Label>
         <Popover open={open} onOpenChange={(isOpen) => {
           setOpen(isOpen)
           if (!isOpen) {
@@ -1396,11 +1394,11 @@ const PurchaseDetailCard = React.memo(({
                            | Remork          ← row 2
             Price/Kg       | Sack            ← row 3 (aligned)
       */}
-      <div className="grid grid-cols-2 border-b border-black/20">
+      <div className="grid grid-cols-2 border-b border-black/20 px-1 py-1 md:px-3 md:py-2">
 
         {/* Col 1 rows 1-2: Image */}
         <div className="row-span-2 px-3 py-2 flex flex-col">
-          <span className="text-[11px] font-semibold text-foreground mb-1 leading-none">Item {index + 1}</span>
+          <span className="text-sm font-semibold text-foreground mb-1">Item {index + 1}</span>
           <div>
           <Popover>
             <PopoverTrigger asChild>
@@ -1515,14 +1513,14 @@ const PurchaseDetailCard = React.memo(({
       </div>
 
       {/* Footer: Net Weight | Total */}
-      <div className="grid grid-cols-2 divide-x divide-black/20">
-        <div className="px-3 py-2.5 space-y-0.5 bg-input/50">
-          <Label className="text-sm">Net Weight</Label>
-          <p className="text-sm font-bold tabular-nums">{netWeight.toFixed(2)}</p>
+      <div className="grid grid-cols-2">
+        <div className="px-6 py-3 space-y-0.5 bg-input/50">
+          <Label className="text-sm text-left">Net Weight</Label>
+          <p className="text-sm font-bold tabular-nums text-left">{netWeight.toFixed(2)}</p>
         </div>
-        <div className="px-3 py-2.5 space-y-0.5 bg-input/50">
-          <Label className="text-sm">Total</Label>
-          <p className="text-sm font-bold tabular-nums">
+        <div className="px-6 py-3 space-y-0.5 bg-input/50">
+          <Label className="block text-sm text-right">Total</Label>
+          <p className="text-sm font-bold tabular-nums text-right">
             ៛{total.toLocaleString()}
           </p>
         </div>
@@ -1569,7 +1567,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative pl-4 pr-4 pt-2 pb-2 border-b border-black/20",
+      "relative pl-4 pr-4 pt-3 pb-2 border-b border-black/20",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
