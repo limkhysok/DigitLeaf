@@ -2,160 +2,146 @@
 
 import * as React from "react"
 import {
-  IconCalendar,
-  IconPackage,
+  IconClock,
+  IconPencil,
   IconTrash,
   IconUser,
   IconBuildingStore,
-  IconFileText,
-  IconFlame,
-  IconLeaf
+  IconPackage,
+  IconDots,
+  IconLeaf,
+  IconCurrencyDollar,
 } from "@tabler/icons-react"
-import { TobaccoPurchase, PurchaserItem, OvenItem } from "@/services/api-client"
-import { formatPurchaseDate } from "./utils"
+import { format } from "date-fns"
+import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
+import { Badge } from "@workspace/ui/components/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+import { TobaccoPurchase, PurchaserItem } from "@/services/api-client"
+import { useLanguage } from "@/hooks/use-language"
 
 interface TobaccoPurchaseCardProps {
   rec: TobaccoPurchase
   index: number
   purchaser?: PurchaserItem
-  oven?: OvenItem
   onEdit: (rec: TobaccoPurchase) => void
   onDelete: (id: number) => void
 }
 
 export const TobaccoPurchaseCard = React.memo(({
-  rec, index, purchaser, oven, onEdit, onDelete
+  rec, index, purchaser, onEdit, onDelete
 }: TobaccoPurchaseCardProps) => {
+  const { t, localizeNumber } = useLanguage()
+
   return (
-    <div className="group relative flex flex-col justify-between rounded-sm bg-white border border-slate-200/70 hover:border-emerald-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)] transition-all duration-300 overflow-hidden p-4">
+    <Card
+      className="group flex flex-col overflow-hidden cursor-pointer border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm"
+      onClick={() => onEdit(rec)}
+    >
+      {/* ROW 1: Header (Number, Invoice, Menu) */}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2.5 px-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground bg-muted/60 px-1.5 rounded-sm border border-border/50">
+            #{localizeNumber(index)}
+          </span>
+          <Badge variant="outline" className="px-1.5 py-0.5 text-xs font-mono font-semibold rounded-sm border-opacity-50 truncate max-w-[120px]">
+            {rec.invoice_num}
+          </Badge>
+        </div>
 
-      {/* Left bar accent */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 group-hover:bg-emerald-500 rounded-l-xl transition-colors duration-300" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-foreground hover:bg-muted shrink-0 -mr-1 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <IconDots className="h-4 w-4" />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem onClick={() => onEdit(rec)}>
+              <IconPencil className="mr-2 h-4 w-4" />
+              {t.sackRegistration.dialog.edit}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(rec.tp_id)} className="text-destructive focus:text-destructive">
+              <IconTrash className="mr-2 h-4 w-4 text-destructive" />
+              {t.sackRegistration.dialog.delete}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardHeader>
 
-      {/* Background Leaf Watermark */}
-      <div className="absolute -bottom-6 -right-6 z-0 text-emerald-500/6 group-hover:text-emerald-500/12 group-hover:-translate-y-2 transition-all duration-500 pointer-events-none -rotate-12">
-        <IconLeaf size={160} stroke={1} />
-      </div>
+      <CardContent className="flex flex-col gap-2.5 pb-3 px-3">
+        {/* ROW 2: Leaf Icon */}
+        <div className="w-full h-20 bg-muted/20 rounded-md border border-border/50 flex flex-col items-center justify-center text-muted-foreground group-hover:bg-muted/40 transition-colors overflow-hidden">
+          <IconLeaf className="h-10 w-10 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" stroke={1.5} />
+        </div>
 
-      {/* Top Header section */}
-      <div className="flex items-start justify-between gap-3 mb-2.5">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            {/* Index Badge */}
-            <span className="text-[10px] font-mono font-medium text-slate-400 bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 rounded shrink-0">
-              #{index + 1}
+        {/* ROW 3: Details */}
+        <div className="flex flex-col gap-0.5">
+          {/* Buyer */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconUser className="h-3.5 w-3.5" />
+              {t.tobaccoPurchase.table.buyer}
             </span>
-            {/* Invoice ID */}
-            <div className="flex items-center gap-1 min-w-0">
-              <IconFileText className="size-4 text-slate-400 shrink-0" stroke={1.8} />
-              <span className="font-mono text-[13px] font-semibold text-slate-800 tracking-tight truncate">
-                {rec.invoice_num}
-              </span>
-            </div>
-          </div>
-          {/* Date display aligned under index and invoice */}
-          <div className="flex items-center gap-1 text-slate-400 pl-1.5">
-            <IconCalendar className="size-3 shrink-0" stroke={1.5} />
-            <span className="text-[10px] font-medium tracking-wide">
-              {formatPurchaseDate(rec.tp_date)}
+            <span className="text-sm font-semibold truncate text-right text-foreground" title={purchaser?.p_name_kh || purchaser?.p_name}>
+              {purchaser?.p_name_kh || purchaser?.p_name || "—"}
             </span>
           </div>
-        </div>
-
-        {/* Delete */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete(rec.tp_id)
-          }}
-          className="relative z-10 p-1.5 rounded-md text-slate-400 hover:bg-slate-50 hover:text-slate-700 md:opacity-0 group-hover:opacity-100 transition-all duration-150 mt-0.5 shrink-0"
-          aria-label="Delete purchase"
-        >
-          <IconTrash className="size-3.8" stroke={1.5} />
-        </button>
-      </div>
-
-      {/* Optimized Content Body: 2 Columns Side-by-Side to reduce height */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 border-t border-b border-slate-100 py-2.5 mb-3">
-
-        {/* Left Column: Buyer & Vendor */}
-        <div className="space-y-2 min-w-0">
-          <div className="flex items-start gap-2 min-w-0">
-            <IconUser className="size-4 text-slate-400 mt-0.5 shrink-0" stroke={1.8} />
-            <div className="min-w-0">
-              <span className="block text-[9px] text-slate-400 font-semibold uppercase tracking-wider leading-none">Buyer</span>
-              <span className="text-xs font-semibold text-slate-855 truncate block mt-0.5">
-                {purchaser?.p_name_kh || purchaser?.p_name || "—"}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2 min-w-0">
-            <IconBuildingStore className="size-4 text-slate-400 mt-0.5 shrink-0" stroke={1.8} />
-            <div className="min-w-0">
-              <span className="block text-[9px] text-slate-400 font-semibold uppercase tracking-wider leading-none">Vendor</span>
-              <span className="text-xs font-medium text-slate-700 truncate block mt-0.5">
-                {rec.vendor_name || "—"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Items & Oven */}
-        <div className="space-y-2 min-w-0 border-l border-slate-100 pl-4">
-          <div className="flex items-start gap-2 min-w-0">
-            <IconPackage className="size-4 text-slate-400 mt-0.5 shrink-0" stroke={1.8} />
-            <div className="min-w-0">
-              <span className="block text-[9px] text-slate-400 font-semibold uppercase tracking-wider leading-none">Items</span>
-              <span className="text-xs font-semibold text-slate-855 block mt-0.5">
-                {rec.tobacco_item_count ?? 0} Items
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2 min-w-0">
-            <IconFlame className="size-4 text-slate-400 mt-0.5 shrink-0" stroke={1.8} />
-            <div className="min-w-0">
-              <span className="block text-[9px] text-slate-400 font-semibold uppercase tracking-wider leading-none">Oven</span>
-              <span className="text-xs font-medium text-slate-700 truncate block mt-0.5">
-                {oven?.name_en || "—"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Footer Metrics Row */}
-      <div className="flex items-center justify-between pt-0.5">
-        <div>
-          <span className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Weight</span>
-          <div className="flex items-baseline gap-0.5 mt-0.5">
-            <span className="text-sm font-bold text-slate-800 tabular-nums">
-              {rec.total_net_weight?.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) ?? "0.0"}
+          {/* Vendor */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconBuildingStore className="h-3.5 w-3.5" />
+              {t.tobaccoPurchase.table.vendor}
             </span>
-            <span className="text-[10px] font-medium text-slate-400 ml-0.5">kg</span>
+            <span className="text-sm font-medium truncate text-right text-foreground" title={rec.vendor_name ?? undefined}>
+              {rec.vendor_name || "—"}
+            </span>
           </div>
-        </div>
-
-        <div className="text-right">
-          <span className="block text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Grand Total</span>
-          <div className="flex items-baseline gap-0.5 mt-0.5 text-emerald-600">
-            <span className="text-xs font-bold">៛</span>
-            <span className="text-sm font-bold tabular-nums">
-              {Math.round(rec.grand_total || 0).toLocaleString()}
+          {/* Net Weight */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconPackage className="h-3.5 w-3.5" />
+              {t.tobaccoPurchase.table.netWeight}
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+              {rec.total_net_weight != null
+                ? `${localizeNumber(rec.total_net_weight.toFixed(1))} kg`
+                : "—"}
+            </span>
+          </div>
+          {/* Grand Total */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconCurrencyDollar className="h-3.5 w-3.5" />
+              {t.tobaccoPurchase.table.grandTotal}
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+              ៛{localizeNumber(Math.round(rec.grand_total || 0).toLocaleString())}
+            </span>
+          </div>
+          {/* Date */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconClock className="h-3.5 w-3.5" />
+              {t.tobaccoPurchase.table.date}
+            </span>
+            <span className="text-sm font-medium tabular-nums text-right text-foreground">
+              {localizeNumber(format(new Date(rec.tp_date), "dd/MM/yyyy"))}
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Invisible overlay for edit trigger */}
-      <button
-        onClick={() => onEdit(rec)}
-        className="absolute inset-0 z-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-350 focus-visible:ring-inset"
-        aria-label={`Edit ${rec.invoice_num}`}
-      />
-    </div>
+      </CardContent>
+    </Card>
   )
 })
 

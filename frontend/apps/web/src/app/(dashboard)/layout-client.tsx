@@ -31,7 +31,7 @@ export function DashboardLayoutClient({
       <AppSidebar />
       <SidebarInset className="h-svh overflow-y-auto overflow-x-hidden">
         <TopNav />
-        <div className="flex-1 p-3 md:p-4 lg:p-5">
+        <div className="flex-1 p-4 md:p-5 lg:p-6">
           {children}
         </div>
       </SidebarInset>

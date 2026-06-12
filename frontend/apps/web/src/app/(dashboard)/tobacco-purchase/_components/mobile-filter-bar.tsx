@@ -108,7 +108,7 @@ export function MobileFilterBar({
         </Button>
         <Button
           onClick={onAdd}
-          className="shrink-0 hidden sm:flex rounded-sm h-9 px-4 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
+          className="shrink-0 hidden sm:flex rounded-sm h-8 px-2 text-xs font-semibold gap-1.5 bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
         >
           <IconPlus className="size-3.5" />
           Add
