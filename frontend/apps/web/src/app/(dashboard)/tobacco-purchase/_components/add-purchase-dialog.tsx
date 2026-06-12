@@ -71,6 +71,12 @@ function maskDate(raw: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
 }
 
+function parseMaskedDate(masked: string): string {
+  const digits = masked.replaceAll(/\D/g, "")
+  if (digits.length !== 8) return ""
+  return `${digits.slice(4, 8)}-${digits.slice(2, 4)}-${digits.slice(0, 2)}`
+}
+
 async function processImageFile(file: File, maxSize = 800): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -565,11 +571,9 @@ export function AddPurchaseDialog({
   const { title, mobileTitle, description } = getDialogLabels(isReadOnly, initialData)
 
   const selectedVendorItem = vendors.find((v) => String(v.mf_id) === String(vendor))
-  const displayTobacNum =
-    selectedVendorItem?.tobac_num !== undefined &&
-      selectedVendorItem?.tobac_num !== null
-      ? selectedVendorItem.tobac_num * 0.8
-      : null
+  const displayTobacNum = selectedVendorItem?.tobac_num == null
+    ? null
+    : selectedVendorItem.tobac_num * 0.8
 
   const displayPurchasedWeight = selectedVendorItem?.purchased_weight ?? 0
   const displayRemainingQuota = typeof displayTobacNum === "number"
@@ -919,15 +923,7 @@ export function AddPurchaseDialog({
                       onChange={(e) => {
                         const masked = maskDate(e.target.value)
                         setDateDisplay(masked)
-                        const digits = masked.replaceAll(/\D/g, "")
-                        if (digits.length === 8) {
-                          const d = digits.slice(0, 2)
-                          const m = digits.slice(2, 4)
-                          const y = digits.slice(4, 8)
-                          setTpDate(`${y}-${m}-${d}`)
-                        } else {
-                          setTpDate("")
-                        }
+                        setTpDate(parseMaskedDate(masked))
                       }}
                       placeholder="DD/MM/YYYY"
                       maxLength={10}
