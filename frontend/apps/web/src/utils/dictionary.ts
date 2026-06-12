@@ -10,7 +10,7 @@ export const translations = {
       leafWeighing: "Leaf Weighing",
       tobaccoPurchase: "Tobacco Purchase",
       invoice: "Invoice",
-      farmerContrast: "Farmer Contrast",
+      farmerContract: "Farmer Contract",
       tobaccoReturn: "Tobacco Return",
     },
     breadcrumb: {
@@ -189,7 +189,7 @@ export const translations = {
         average: "Avg / Reg",
       }
     },
-    farmerContrast: {
+    farmerContract: {
       subtitle: "View list of farmers who have a contract in 2026.",
       searchPlaceholder: "Search by Name or ID...",
       noRecordsFound: "No farmer contracts found.",
@@ -311,7 +311,7 @@ export const translations = {
       leafWeighing: "ការថ្លឹងស្លឹក",
       tobaccoPurchase: "ការទិញសន្លឹកថ្នាំ",
       invoice: "វិក្កយបត្រ",
-      farmerContrast: "កិច្ចសន្យាកសិករ",
+      farmerContract: "កិច្ចសន្យាកសិករ",
       tobaccoReturn: "ការសងសន្លឹកថ្នាំ",
     },
     breadcrumb: {
@@ -490,7 +490,7 @@ export const translations = {
         average: "មធ្យម / ករណី",
       }
     },
-    farmerContrast: {
+    farmerContract: {
       subtitle: "បង្ហាញបញ្ជីឈ្មោះកសិករដែលមានកិច្ចសន្យាក្នុងឆ្នាំ ២០២៦។",
       searchPlaceholder: "ស្វែងរកឈ្មោះ ឬអត្តសញ្ញាណប័ណ្ណ...",
       noRecordsFound: "រកមិនឃើញកិច្ចសន្យាកសិករទេ។",
@@ -614,7 +614,7 @@ export type TranslationType = {
     readonly leafWeighing: string;
     readonly tobaccoPurchase: string;
     readonly invoice: string;
-    readonly farmerContrast: string;
+    readonly farmerContract: string;
     readonly tobaccoReturn: string;
   };
   readonly breadcrumb: {
@@ -793,7 +793,7 @@ export type TranslationType = {
       readonly average: string;
     };
   };
-  readonly farmerContrast: {
+  readonly farmerContract: {
     readonly subtitle: string;
     readonly searchPlaceholder: string;
     readonly noRecordsFound: string;

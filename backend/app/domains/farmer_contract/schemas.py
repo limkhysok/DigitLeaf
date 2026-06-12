@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 
 
-class FarmerContrastPublic(BaseModel):
+class FarmerContractPublic(BaseModel):
     mf_con_id: int
     mf_id: int
     year: int
@@ -16,7 +16,7 @@ class FarmerContrastPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FarmerContrastListResponse(BaseModel):
-    items: List[FarmerContrastPublic]
+class FarmerContractListResponse(BaseModel):
+    items: List[FarmerContractPublic]
     total: int
     has_more: bool

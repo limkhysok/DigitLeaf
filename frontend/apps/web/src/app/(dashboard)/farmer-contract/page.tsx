@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
-import { apiClient, FarmerContrastItem } from "@/services/api-client"
+import { apiClient, FarmerContractItem } from "@/services/api-client"
 import { IconLoader2, IconClipboardList } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { FarmerContrastCard } from "./_components/farmer-contrast-card"
+import { FarmerContractCard } from "./_components/farmer-contract-card"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { useInfiniteQuery } from "@tanstack/react-query"
@@ -22,7 +22,7 @@ import { useInView } from "react-intersection-observer"
 
 const PAGE_SIZE = 20
 
-export default function FarmerContrastPage() {
+export default function FarmerContractPage() {
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0)
@@ -51,9 +51,9 @@ export default function FarmerContrastPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["farmer-contrasts", selectedYear],
+    queryKey: ["farmer-contracts", selectedYear],
     queryFn: ({ pageParam }) =>
-      apiClient.getFarmerContrasts(tokens!.access_token, {
+      apiClient.getFarmerContracts(tokens!.access_token, {
         year: selectedYear,
         page: pageParam,
         limit: PAGE_SIZE,
@@ -90,7 +90,7 @@ export default function FarmerContrastPage() {
 
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
-    const getSortVal = (rec: FarmerContrastItem) => {
+    const getSortVal = (rec: FarmerContractItem) => {
       if (sortBy === "sapling") return rec.tobac_num ?? 0
       if (sortBy === "purchased") return rec.purchased_weight ?? 0
       return rec.expected_yield ?? 0
@@ -103,7 +103,7 @@ export default function FarmerContrastPage() {
 
   if (!mounted) return null
 
-  const pageTitle = t.sidebar.farmerContrast || "Farmer Contrast"
+  const pageTitle = t.sidebar.farmerContract || "Farmer Contract"
 
   return (
     <div className="flex flex-col gap-4">
@@ -114,7 +114,7 @@ export default function FarmerContrastPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
-          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">            {t.farmerContrast.subtitle}
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">            {t.farmerContract.subtitle}
           </p>
         </div>
       </div>
@@ -162,7 +162,7 @@ export default function FarmerContrastPage() {
       {!isLoading && sortedRecords.length === 0 && (
         <div className="flex flex-col items-center justify-center h-40 gap-2 text-muted-foreground text-sm">
           <IconClipboardList className="h-8 w-8 text-[#9CA3AF] stroke-[1.5]" />
-          <span>{t.farmerContrast.noRecordsFound}</span>
+          <span>{t.farmerContract.noRecordsFound}</span>
         </div>
       )}
 
@@ -172,7 +172,7 @@ export default function FarmerContrastPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="grid md:hidden grid-cols-1 gap-3">
           {sortedRecords.map((rec, idx) => (
-            <FarmerContrastCard key={rec.mf_con_id} rec={rec} index={idx + 1} />
+            <FarmerContractCard key={rec.mf_con_id} rec={rec} index={idx + 1} />
           ))}
         </div>
       )}
@@ -183,7 +183,7 @@ export default function FarmerContrastPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden md:grid lg:hidden grid-cols-2 gap-4">
           {sortedRecords.map((rec, idx) => (
-            <FarmerContrastCard key={rec.mf_con_id} rec={rec} index={idx + 1} />
+            <FarmerContractCard key={rec.mf_con_id} rec={rec} index={idx + 1} />
           ))}
         </div>
       )}
@@ -198,12 +198,12 @@ export default function FarmerContrastPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">No.</TableHead>
-                  <TableHead>{t.farmerContrast.farmerName}</TableHead>
+                  <TableHead>{t.farmerContract.farmerName}</TableHead>
                   {columnVisibility.code && <TableHead>ID Card</TableHead>}
-                  {columnVisibility.sapling && <TableHead>{t.farmerContrast.saplingKg}</TableHead>}
-                  {columnVisibility.expected && <TableHead>{t.farmerContrast.expectedYieldKg}</TableHead>}
-                  {columnVisibility.purchased && <TableHead>{t.farmerContrast.purchasedWeightKg}</TableHead>}
-                  {columnVisibility.year && <TableHead className="text-center w-24">{t.farmerContrast.year}</TableHead>}
+                  {columnVisibility.sapling && <TableHead>{t.farmerContract.saplingKg}</TableHead>}
+                  {columnVisibility.expected && <TableHead>{t.farmerContract.expectedYieldKg}</TableHead>}
+                  {columnVisibility.purchased && <TableHead>{t.farmerContract.purchasedWeightKg}</TableHead>}
+                  {columnVisibility.year && <TableHead className="text-center w-24">{t.farmerContract.year}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>

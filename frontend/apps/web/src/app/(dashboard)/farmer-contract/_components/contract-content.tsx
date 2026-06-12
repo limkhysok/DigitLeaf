@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { FarmerContrastItem } from "@/services/api-client"
+import { FarmerContractItem } from "@/services/api-client"
 import { useLanguage } from "@/hooks/use-language"
 import {
   IconLoader2,
@@ -12,25 +12,25 @@ import {
 } from "@tabler/icons-react"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
-import { FarmerContrastCard } from "./farmer-contrast-card"
+import { FarmerContractCard } from "./farmer-contract-card"
 
-export interface ContrastContentProps {
+export interface ContractContentProps {
   readonly isLoading: boolean
-  readonly records: FarmerContrastItem[]
+  readonly records: FarmerContractItem[]
   readonly view: "list" | "grid"
   readonly sortBy: "sapling" | "yield" | null
   readonly sortOrder: "asc" | "desc"
   readonly onSort: (field: "sapling" | "yield") => void
 }
 
-export function ContrastContent({
+export function ContractContent({
   isLoading,
   records,
   view,
   sortBy,
   sortOrder,
   onSort,
-}: ContrastContentProps) {
+}: ContractContentProps) {
   const { t } = useLanguage()
 
   if (isLoading) {
@@ -46,7 +46,7 @@ export function ContrastContent({
       <Card className="border-gray-200">
         <CardContent className="flex flex-col items-center justify-center h-48 text-muted-foreground text-sm gap-2">
           <IconClipboardList className="h-8 w-8 text-[#9CA3AF] stroke-[1.5]" />
-          <span>{t.farmerContrast.noRecordsFound}</span>
+          <span>{t.farmerContract.noRecordsFound}</span>
         </CardContent>
       </Card>
     )
@@ -56,7 +56,7 @@ export function ContrastContent({
   const mobileList = (
     <div className="grid md:hidden grid-cols-1 gap-3">
       {records.map((rec, idx) => (
-        <FarmerContrastCard
+        <FarmerContractCard
           key={rec.mf_con_id}
           rec={rec}
           index={idx + 1}
@@ -69,7 +69,7 @@ export function ContrastContent({
   const tabletList = (
     <div className="hidden md:grid lg:hidden grid-cols-3 gap-4">
       {records.map((rec, idx) => (
-        <FarmerContrastCard
+        <FarmerContractCard
           key={rec.mf_con_id}
           rec={rec}
           index={idx + 1}
@@ -92,14 +92,14 @@ export function ContrastContent({
                       No.
                     </th>
                     <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
-                      {t.farmerContrast.farmerName}
+                      {t.farmerContract.farmerName}
                     </th>
                     <th
                       className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider cursor-pointer group select-none"
                       onClick={() => onSort("sapling")}
                     >
                       <div className="flex items-center gap-1 hover:text-[#111827] transition-colors">
-                        {t.farmerContrast.saplingKg}
+                        {t.farmerContract.saplingKg}
                         {sortBy === "sapling" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
                         {sortBy === "sapling" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
                         {sortBy !== "sapling" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
@@ -110,17 +110,17 @@ export function ContrastContent({
                       onClick={() => onSort("yield")}
                     >
                       <div className="flex items-center gap-1 hover:text-[#111827] transition-colors">
-                        {t.farmerContrast.expectedYieldKg}
+                        {t.farmerContract.expectedYieldKg}
                         {sortBy === "yield" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
                         {sortBy === "yield" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
                         {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
-                      {t.farmerContrast.purchasedWeightKg}
+                      {t.farmerContract.purchasedWeightKg}
                     </th>
                     <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-24">
-                      {t.farmerContrast.year}
+                      {t.farmerContract.year}
                     </th>
                   </tr>
                 </thead>
@@ -165,7 +165,7 @@ export function ContrastContent({
       ) : (
         <div className="grid grid-cols-3 xl:grid-cols-4 gap-4">
           {records.map((rec, idx) => (
-            <FarmerContrastCard
+            <FarmerContractCard
               key={rec.mf_con_id}
               rec={rec}
               index={idx + 1}

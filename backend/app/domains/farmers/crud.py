@@ -2,7 +2,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
 from app.domains.farmers.models import MemberFarmer, Represent
-from app.domains.farmer_contrast.models import MfConYear
+from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmers.schemas import RepresentPublic
 
 _ACTIVE_YEAR = 2026

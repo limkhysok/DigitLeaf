@@ -77,41 +77,41 @@ export function FilterBar({
           <DropdownMenuTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8">
               <IconAdjustmentsHorizontal className="mr-2 h-4 w-4" />
-              {t.farmerContrast.view}
+              {t.farmerContract.view}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuLabel>{t.farmerContrast.toggleColumns}</DropdownMenuLabel>
+            <DropdownMenuLabel>{t.farmerContract.toggleColumns}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={columnVisibility.code}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, code: v })}
             >
-              {t.farmerContrast.idCard}
+              {t.farmerContract.idCard}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.sapling}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, sapling: v })}
             >
-              {t.farmerContrast.saplingKg}
+              {t.farmerContract.saplingKg}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.expected}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, expected: v })}
             >
-              {t.farmerContrast.expectedYieldKg}
+              {t.farmerContract.expectedYieldKg}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.purchased}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, purchased: v })}
             >
-              {t.farmerContrast.purchasedWeightKg}
+              {t.farmerContract.purchasedWeightKg}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.year}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, year: v })}
             >
-              {t.farmerContrast.year}
+              {t.farmerContract.year}
             </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -121,7 +121,7 @@ export function FilterBar({
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              {t.farmerContrast.year}
+              {t.farmerContract.year}
               <Separator orientation="vertical" className="mx-2 h-4" />
               <Badge variant="secondary" className="rounded-sm px-1 font-normal">
                 {selectedYear}
@@ -149,7 +149,7 @@ export function FilterBar({
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              {t.farmerContrast.expectedYield}
+              {t.farmerContract.expectedYield}
               {sortBy === "yield" && (
                 <>
                   <Separator orientation="vertical" className="mx-2 h-4" />
@@ -157,7 +157,7 @@ export function FilterBar({
                     {sortOrder === "asc"
                       ? <IconSortAscending className="size-3" />
                       : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? t.farmerContrast.asc : t.farmerContrast.desc}
+                    {sortOrder === "asc" ? t.farmerContract.asc : t.farmerContract.desc}
                   </Badge>
                 </>
               )}
@@ -168,13 +168,13 @@ export function FilterBar({
               onClick={() => { setSortBy("yield"); setSortOrder("desc"); setYieldOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "yield" && sortOrder === "desc" && "bg-accent font-medium")}
             >
-              <IconSortDescending className="size-3.5" /> {t.farmerContrast.largestFirst}
+              <IconSortDescending className="size-3.5" /> {t.farmerContract.largestFirst}
             </button>
             <button
               onClick={() => { setSortBy("yield"); setSortOrder("asc"); setYieldOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "yield" && sortOrder === "asc" && "bg-accent font-medium")}
             >
-              <IconSortAscending className="size-3.5" /> {t.farmerContrast.smallestFirst}
+              <IconSortAscending className="size-3.5" /> {t.farmerContract.smallestFirst}
             </button>
           </PopoverContent>
         </Popover>
@@ -184,13 +184,13 @@ export function FilterBar({
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              {t.farmerContrast.purchasedWeight}
+              {t.farmerContract.purchasedWeight}
               {sortBy === "purchased" && (
                 <>
                   <Separator orientation="vertical" className="mx-2 h-4" />
                   <Badge variant="secondary" className="rounded-sm px-1 font-normal flex items-center gap-1">
                     {sortOrder === "asc" ? <IconSortAscending className="size-3" /> : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? t.farmerContrast.asc : t.farmerContrast.desc}
+                    {sortOrder === "asc" ? t.farmerContract.asc : t.farmerContract.desc}
                   </Badge>
                 </>
               )}
@@ -201,13 +201,13 @@ export function FilterBar({
               onClick={() => { setSortBy("purchased"); setSortOrder("desc"); setPurchasedOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "purchased" && sortOrder === "desc" && "bg-accent font-medium")}
             >
-              <IconSortDescending className="size-3.5" /> {t.farmerContrast.largestFirst}
+              <IconSortDescending className="size-3.5" /> {t.farmerContract.largestFirst}
             </button>
             <button
               onClick={() => { setSortBy("purchased"); setSortOrder("asc"); setPurchasedOpen(false) }}
               className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "purchased" && sortOrder === "asc" && "bg-accent font-medium")}
             >
-              <IconSortAscending className="size-3.5" /> {t.farmerContrast.smallestFirst}
+              <IconSortAscending className="size-3.5" /> {t.farmerContract.smallestFirst}
             </button>
           </PopoverContent>
         </Popover>
@@ -215,7 +215,7 @@ export function FilterBar({
         {/* Reset */}
         {isFiltered && (
           <Button variant="ghost" onClick={clearAll} className="h-8 px-2 lg:px-3 shrink-0">
-            {t.farmerContrast.reset}
+            {t.farmerContract.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -226,7 +226,7 @@ export function FilterBar({
 
         {/* Search */}
         <Input
-          placeholder={t.farmerContrast.searchPlaceholder}
+          placeholder={t.farmerContract.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-md h-8 w-62.5 text-xs placeholder:text-sm"

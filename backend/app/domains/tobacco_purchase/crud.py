@@ -7,7 +7,7 @@ from sqlmodel import select, func, col
 from .models import TobaccoPurchase, TobaccoPurchaseDetail, Purchaser, Region, Oven, Tobacco
 from app.domains.sack_registration.models import SackRegistration
 from app.domains.farmers.models import Represent, MemberFarmer
-from app.domains.farmer_contrast.models import MfConYear
+from app.domains.farmer_contract.models import MfConYear
 from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate
 from datetime import datetime
 
@@ -283,12 +283,17 @@ async def get_purchases(
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ) -> Tuple[List[TobaccoPurchase], int]:
-    base = select(TobaccoPurchase)
+    current_year = datetime.now(CAMBODIA_TZ).year
+    base = (
+        select(TobaccoPurchase)
+        .join(MfConYear, col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
+        .where(MfConYear.year == current_year)
+    )
     if search:
         base = base.join(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id, isouter=True)
         base = base.join(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id, isouter=True)
         base = base.where(
-            col(TobaccoPurchase.invoice_num).contains(search) | 
+            col(TobaccoPurchase.invoice_num).contains(search) |
             col(MemberFarmer.name).contains(search) |
             col(Purchaser.p_name).contains(search) |
             col(Purchaser.p_name_kh).contains(search)

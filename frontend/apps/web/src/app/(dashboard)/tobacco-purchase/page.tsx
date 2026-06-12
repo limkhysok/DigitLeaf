@@ -133,6 +133,7 @@ export default function TobaccoPurchasePage() {
       await apiClient.deleteTobaccoPurchase(tokens.access_token, deleteId)
       toast.success("Record deleted successfully")
       queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
+      queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -346,6 +347,7 @@ export default function TobaccoPurchasePage() {
         }}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
+          queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
         }}
         onPrint={handlePrint}
         accessToken={tokens?.access_token || ""}

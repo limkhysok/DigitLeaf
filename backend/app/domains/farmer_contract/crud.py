@@ -2,12 +2,12 @@ from typing import Any
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
-from app.domains.farmer_contrast.models import MfConYear
+from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmers.models import MemberFarmer
 from app.domains.tobacco_purchase.models import TobaccoPurchase
 
 
-async def get_farmer_contrasts(
+async def get_farmer_contracts(
     session: AsyncSession,
     year: int = 2026,
     skip: int = 0,

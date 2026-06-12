@@ -57,13 +57,13 @@ export function MobileFilterBar({
                 onClick={() => setSortBy(null)}
                 className="text-[10px] text-[#009640] font-medium hover:underline"
               >
-                {t.farmerContrast.resetSort}
+                {t.farmerContract.resetSort}
               </button>
             </div>
 
             {/* Year select */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.farmerContrast.year}</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.farmerContract.year}</span>
               <Popover open={yearOpen} onOpenChange={setYearOpen}>
                 <PopoverTrigger asChild>
                   <button className="flex h-8 w-full items-center justify-between rounded-md border border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
@@ -90,7 +90,7 @@ export function MobileFilterBar({
 
             {/* Sort by Sapling */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.farmerContrast.saplingKg}</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.farmerContract.saplingKg}</span>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => { setSortBy("sapling"); setSortOrder("asc") }}
@@ -119,7 +119,7 @@ export function MobileFilterBar({
 
             {/* Sort by Yield */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.farmerContrast.expectedYieldKg}</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.farmerContract.expectedYieldKg}</span>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => { setSortBy("yield"); setSortOrder("asc") }}
@@ -154,7 +154,7 @@ export function MobileFilterBar({
         <IconSearch className="size-3.5 shrink-0 text-muted-foreground" />
         <input
           className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
-          placeholder={t.farmerContrast.searchPlaceholder}
+          placeholder={t.farmerContract.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />

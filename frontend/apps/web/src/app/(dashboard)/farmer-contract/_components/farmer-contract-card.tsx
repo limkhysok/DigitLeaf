@@ -1,19 +1,19 @@
 "use client"
 
 import * as React from "react"
-import { FarmerContrastItem } from "@/services/api-client"
+import { FarmerContractItem } from "@/services/api-client"
 import { useLanguage } from "@/hooks/use-language"
 import { IconSeedling, IconUser, IconBook2, IconId, IconScale, IconLeaf } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
-export interface FarmerContrastCardProps {
-  readonly rec: FarmerContrastItem
+export interface FarmerContractCardProps {
+  readonly rec: FarmerContractItem
   readonly index: number
 }
 
-export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
+export function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
   const { t } = useLanguage()
 
   const isOverYield =
@@ -53,7 +53,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconUser className="h-3.5 w-3.5" />
-              {t.farmerContrast.farmerName}
+              {t.farmerContract.farmerName}
             </span>
             <span className="text-sm font-semibold truncate text-right text-foreground" title={rec.name}>
               {rec.name}
@@ -64,7 +64,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconId className="h-3.5 w-3.5" />
-              {t.farmerContrast.idCard}
+              {t.farmerContract.idCard}
             </span>
             <span className="text-sm font-mono text-right text-foreground">
               {rec.mf_code}
@@ -75,7 +75,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconLeaf className="h-3.5 w-3.5" />
-              {t.farmerContrast.saplingKg}
+              {t.farmerContract.saplingKg}
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-foreground">
               {rec.tobac_num !== undefined && rec.tobac_num !== null
@@ -88,7 +88,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconSeedling className="h-3.5 w-3.5" />
-              {t.farmerContrast.expectedYieldKg}
+              {t.farmerContract.expectedYieldKg}
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-[#2c2c2c]">
               {rec.expected_yield !== undefined && rec.expected_yield !== null
@@ -101,7 +101,7 @@ export function FarmerContrastCard({ rec, index }: FarmerContrastCardProps) {
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconScale className="h-3.5 w-3.5" />
-              {t.farmerContrast.purchasedWeightKg}
+              {t.farmerContract.purchasedWeightKg}
             </span>
             <span className={cn(
               "text-sm font-semibold tabular-nums text-right text-foreground"

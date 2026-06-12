@@ -10,7 +10,7 @@ import type {
   SackStatusCounts,
   SackStatusCountsParams,
   SackRegistrationStats,
-  FarmerContrastListResponse,
+  FarmerContractListResponse,
 } from "../types";
 
 export const sackRegistrationApi = {
@@ -212,21 +212,21 @@ export const sackRegistrationApi = {
     }
   },
 
-  async getFarmerContrasts(
+  async getFarmerContracts(
     accessToken: string,
     params: { year?: number; page?: number; limit?: number } = {}
-  ): Promise<FarmerContrastListResponse> {
+  ): Promise<FarmerContractListResponse> {
     const query = new URLSearchParams();
     if (params.year !== undefined) query.set("year", String(params.year));
     if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     const response = await fetch(
-      `${API_BASE_URL}/farmer-contrast/?${query}`,
+      `${API_BASE_URL}/farmer-contract/?${query}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Failed to fetch farmer contrasts");
+      throw new Error(errorData.detail || "Failed to fetch farmer contracts");
     }
     return response.json();
   },

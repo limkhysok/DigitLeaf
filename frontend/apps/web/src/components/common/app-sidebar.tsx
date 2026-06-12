@@ -41,8 +41,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: IconClover,
     },
     {
-      title: t.sidebar.farmerContrast,
-      url: "/farmer-contrast",
+      title: t.sidebar.farmerContract,
+      url: "/farmer-contract",
       icon: IconFileDescription,
     },
     {

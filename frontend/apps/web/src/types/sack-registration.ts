@@ -92,7 +92,7 @@ export interface SackRegistrationStats {
   }
 }
 
-export interface FarmerContrastItem {
+export interface FarmerContractItem {
   mf_con_id: number;
   mf_id: number;
   year: number;
@@ -104,8 +104,8 @@ export interface FarmerContrastItem {
   purchased_weight?: number | null;
 }
 
-export interface FarmerContrastListResponse {
-  items: FarmerContrastItem[];
+export interface FarmerContractListResponse {
+  items: FarmerContractItem[];
   total: number;
   has_more: boolean;
 }
