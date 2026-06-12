@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconCirclePlus, IconPlus, IconX } from "@tabler/icons-react"
+import { IconCirclePlus, IconCirclePlusFilled, IconX } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
 import { Input } from "@workspace/ui/components/input"
@@ -109,11 +109,12 @@ export function MobileFilterBar({
 
       {/* Add button */}
       <Button
+        size="sm"
         onClick={onAdd}
-        className="shrink-0 h-8 px-3 rounded-sm bg-[#009640] hover:bg-[#008a3b] text-white border-transparent transition-all"
+        className="h-8 px-2 flex gap-1.5 rounded-sm shrink-0"
       >
-        <IconPlus className="size-4" />
-        <span className="ml-1.5 text-xs font-semibold">{t.tobaccoPurchase.filters.add}</span>
+        <IconCirclePlusFilled className="h-4 w-4" />
+        <span>{t.tobaccoPurchase.filters.add}</span>
       </Button>
     </div>
   )
