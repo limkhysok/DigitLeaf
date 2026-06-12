@@ -86,7 +86,7 @@ export const TobaccoReturnCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconPackage className="h-3.5 w-3.5" />
-              Qty
+              Quantity
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-foreground">
               {rec.Quantity == null ? "—" : `${rec.Quantity.toLocaleString()} kg`}

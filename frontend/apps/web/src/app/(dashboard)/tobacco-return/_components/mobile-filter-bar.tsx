@@ -88,7 +88,7 @@ export function MobileFilterBar({
 
             {/* Sort by Qty */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Qty</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Quantity</span>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => { setSortBy("Quantity"); setSortOrder("asc") }}

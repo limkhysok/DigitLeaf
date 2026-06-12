@@ -83,7 +83,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
         const val = row.getValue("tobacco_item_count") as number | null
         if (val == null) return <span className="text-[#9CA3AF] text-xs">-</span>
         return (
-          <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-[#F3F4F6] text-[#374151] text-[11px] font-sm">
+          <span className="inline-flex items-center justify-center min-w-6 px-2 rounded-full bg-[#F3F4F6] text-[#374151] text-sm font-medium">
             {val}
           </span>
         )
@@ -132,7 +132,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
                 <span className="sr-only">Open menu</span>
                 <IconDots className="h-4 w-4" />
               </Button>

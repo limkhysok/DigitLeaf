@@ -224,7 +224,7 @@ export default function TobaccoReturnPage() {
                   {columnVisibility.representative && <TableHead>Representative</TableHead>}
                   {columnVisibility.tobaccoType && <TableHead>Tobacco Type</TableHead>}
                   {columnVisibility.year && <TableHead className="text-center">Year</TableHead>}
-                  {columnVisibility.qty && <TableHead className="text-right">Qty</TableHead>}
+                  {columnVisibility.qty && <TableHead className="text-right">Quantity</TableHead>}
                   {columnVisibility.totalReturned && <TableHead className="text-right">Total Returned</TableHead>}
                 </TableRow>
               </TableHeader>

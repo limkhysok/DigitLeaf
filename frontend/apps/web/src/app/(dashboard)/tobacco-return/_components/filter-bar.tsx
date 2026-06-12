@@ -115,7 +115,7 @@ export function FilterBar({
               checked={columnVisibility.qty}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, qty: v })}
             >
-              Qty
+              Quantity
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.totalReturned}
@@ -159,7 +159,7 @@ export function FilterBar({
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              Qty
+              Quantity
               {sortBy === "Quantity" && (
                 <>
                   <Separator orientation="vertical" className="mx-2 h-4" />

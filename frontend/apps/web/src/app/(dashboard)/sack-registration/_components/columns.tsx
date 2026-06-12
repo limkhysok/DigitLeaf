@@ -89,7 +89,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
         }
 
         return (
-          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-semibold border", status.className)}>
+          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold border", status.className)}>
             {getStatusLabel(statusVal)}
           </span>
         )
@@ -127,7 +127,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
                 <span className="sr-only">Open menu</span>
                 <IconDots className="h-4 w-4" />
               </Button>
