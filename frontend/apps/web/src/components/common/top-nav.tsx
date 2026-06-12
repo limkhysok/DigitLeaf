@@ -12,7 +12,7 @@
       <header
         className="flex h-13 shrink-0 items-center border-b border-gray-300 sticky top-0 z-30 bg-white"
       >
-        <div className="flex h-full w-full items-center gap-2 px-3">
+        <div className="flex h-full w-full items-center gap-2 px-2 md:px-3 lg:px-4">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <SidebarTrigger className="h-7 w-7 hover:bg-black/5 transition-colors text-black" />
           </div>

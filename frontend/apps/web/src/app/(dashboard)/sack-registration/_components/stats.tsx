@@ -29,7 +29,7 @@
     if (!stats) return null
 
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-3 lg:gap-4">
 
         {/* Total Registrations */}
         <Card className="rounded-sm shadow-xs">
