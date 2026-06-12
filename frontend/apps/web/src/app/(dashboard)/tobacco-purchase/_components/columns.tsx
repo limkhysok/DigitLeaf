@@ -35,7 +35,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
-          className="translate-y-[2px]"
+          className="translate-y-0.5"
         />
       ),
       cell: ({ row }) => (
@@ -43,7 +43,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-          className="translate-y-[2px]"
+          className="translate-y-0.5"
         />
       ),
       enableSorting: false,
@@ -74,7 +74,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
     {
       accessorKey: "vendor_name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor" />,
-      cell: ({ row }) => <div className="truncate min-w-[80px] max-w-[150px]">{row.original.vendor_name || "-"}</div>,
+      cell: ({ row }) => <div className="truncate min-w-20 max-w-37.5">{row.original.vendor_name || "-"}</div>,
     },
     {
       accessorKey: "tobacco_item_count",
@@ -137,7 +137,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
                 <IconDots className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => onView(rec)}>
                 <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
                 View

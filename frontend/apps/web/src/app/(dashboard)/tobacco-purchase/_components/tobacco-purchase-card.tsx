@@ -49,7 +49,7 @@ export const TobaccoPurchaseCard = React.memo(({
           <span className="text-sm font-semibold text-foreground bg-muted/60 px-1.5 rounded-sm border border-border/50">
             #{localizeNumber(index)}
           </span>
-          <Badge variant="outline" className="px-1.5 py-0.5 text-xs font-mono font-semibold rounded-sm border-opacity-50 truncate max-w-[120px]">
+          <Badge variant="outline" className="px-1.5 py-0.5 text-xs font-mono font-semibold rounded-sm border-opacity-50 truncate max-w-30">
             {rec.invoice_num}
           </Badge>
         </div>
