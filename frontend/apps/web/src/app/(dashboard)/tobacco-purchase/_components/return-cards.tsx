@@ -63,7 +63,7 @@ export const ReturnDetailCard = React.memo(({
     : ""
 
   return (
-    <div className="border-b border-black/40 overflow-hidden relative">
+    <div className="border-b border-l border-r border-black/40 overflow-hidden relative">
       {/* X button — mobile only, absolute top-right */}
       {!isReadOnly && (
         <button
@@ -302,7 +302,7 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative border-b border-black/40 rounded-none transition-all pl-5 pr-3 pt-4 pb-5 mb-0",
+      "relative border-b border-l border-r border-black/40 rounded-none transition-all pl-5 pr-3 pt-4 pb-5 mb-0",
       "focus-within:border-black/20"
     )}>
       <div className="flex gap-4 items-end">
