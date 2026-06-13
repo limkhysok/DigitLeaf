@@ -21,7 +21,6 @@ import {
   IconPlus,
   IconSquareRoundedPlus,
   IconSeedling,
-  IconSearch,
   IconCheck,
   IconX,
   IconCamera,
@@ -33,7 +32,7 @@ import {
   IconBuildingStore,
   IconHome,
   IconFlame,
-  IconCurrencyDollar,
+  IconCashPlus,
   IconNote,
   IconCalendar,
   IconLeaf,
@@ -112,7 +111,7 @@ function getPictureUrl(picture?: string | null): string {
 function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
   if (displayRemainingQuota === null) return null;
   return (
-    <div className="flex shrink-0 mr-2">
+    <div className="flex shrink-0 mr-5">
       <span className="block text-sm md:text-base lg:text-base font-medium text-white mr-1">Quota: </span>
       <div className="flex items-baseline gap-0.5">
         <span className={cn("text-sm md:text-base lg:text-base font-medium",
@@ -603,11 +602,11 @@ export function AddPurchaseDialog({
                 FORM FIELDS — shared across all breakpoints
                 grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="bg-white mt-3 py-3 px-3 md:py-5 md:px-6 lg:px-7 lg:py-4 rounded-md border border-black/20 space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-x-4 gap-y-3">
+            <div className="bg-white mt-3 py-3 px-3 md:py-5 md:px-6 lg:px-5 lg:py-5 rounded-md border border-black/40 space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[6fr_7fr_7fr] gap-x-3 gap-y-4">
 
                 {/* Invoice No. */}
-                <div className="lg:col-span-3 space-y-1.5">
+                <div className="lg:col-span-1 lg:order-1 space-y-1.5">
                   <Label className="text-sm">Invoice</Label>
                   <div className="relative">
                     <IconFileInvoice className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -620,7 +619,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Buyer */}
-                <div className="md:col-span-1 lg:col-span-4 space-y-1.5">
+                <div className="md:col-span-1 lg:col-span-1 lg:order-3 space-y-1.5">
                   <Label className="text-sm">Buyer</Label>
                   <Popover open={isBuyerOpen} onOpenChange={(open) => {
                     setIsBuyerOpen(open)
@@ -644,9 +643,8 @@ export function AddPurchaseDialog({
                           onFocus={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           onClick={() => { setBuyerSearch(""); setIsBuyerOpen(true) }}
                           disabled={isReadOnly}
-                          className="pl-8 pr-10 h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-2 h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
-                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
@@ -686,7 +684,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Region */}
-                <div className="lg:col-span-3 space-y-1.5">
+                <div className="lg:col-span-1 lg:order-2 space-y-1.5">
                   <Label className="text-sm">Region</Label>
                   <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                     <PopoverAnchor asChild>
@@ -704,9 +702,8 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsRegionOpen(true)}
                           onClick={() => setIsRegionOpen(true)}
                           disabled={isReadOnly}
-                          className="pl-8 pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-2 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
-                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
@@ -749,7 +746,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Vendor */}
-                <div className="lg:col-span-3 space-y-1.5">
+                <div className="lg:col-span-1 lg:order-6 space-y-1.5">
                   <Label className="text-sm">Vendor</Label>
                   <Popover open={isVendorOpen} onOpenChange={(open) => {
                     setIsVendorOpen(open)
@@ -772,9 +769,8 @@ export function AddPurchaseDialog({
                           onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                           disabled={isReadOnly || !isBuyerSelected}
-                          className="pl-8 pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-2 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
-                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
@@ -806,7 +802,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Vendor Address */}
-                <div className="md:col-span-2 lg:col-span-4 space-y-1.5">
+                <div className="md:col-span-2 lg:col-span-1 lg:order-5 space-y-1.5">
                   <Label className="text-sm">Address</Label>
                   <div className="relative">
                     <IconHome className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -821,7 +817,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Oven */}
-                <div className="lg:col-span-3 space-y-1.5">
+                <div className="lg:col-span-1 lg:order-4 space-y-1.5">
                   <Label className="text-sm">Oven</Label>
                   <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
                     <PopoverAnchor asChild>
@@ -837,9 +833,8 @@ export function AddPurchaseDialog({
                           onFocus={() => setIsOvenOpen(true)}
                           onClick={() => setIsOvenOpen(true)}
                           disabled={isReadOnly}
-                          className="pl-8 pr-10 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
+                          className="pl-8 pr-2 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                         />
-                        <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 group-focus-within:opacity-60 transition-opacity pointer-events-none" />
                       </div>
                     </PopoverAnchor>
                     <PopoverContent
@@ -882,10 +877,10 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Exchange Rate */}
-                <div className="lg:col-span-3 space-y-1.5">
+                <div className="lg:col-span-1 lg:order-9 space-y-1.5">
                   <Label className="text-sm">Exchange Rate</Label>
                   <div className="relative group">
-                    <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                    <IconCashPlus className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                     <Input
                       type="number"
                       value={rate}
@@ -899,7 +894,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Remark */}
-                <div className="md:col-span-1 lg:col-span-4 space-y-1.5">
+                <div className="md:col-span-1 lg:col-span-1 lg:order-8 space-y-1.5">
                   <Label className="text-sm">Remark (Optional)</Label>
                   <div className="relative">
                     <IconNote className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -914,7 +909,7 @@ export function AddPurchaseDialog({
                 </div>
 
                 {/* Purchase Date */}
-                <div className="lg:col-span-3 space-y-1.5">
+                <div className="lg:col-span-1 lg:order-7 space-y-1.5">
                   <Label className="text-sm">Purchase Date</Label>
                   <div className="relative">
                     <IconCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -945,7 +940,7 @@ export function AddPurchaseDialog({
                 <h3 className="flex items-center gap-2 py-2 px-4 text-white">Tobacco Purchase</h3>
                 <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-0">
                 {details.length === 0 ? (
                   <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
                     <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
@@ -979,15 +974,15 @@ export function AddPurchaseDialog({
                 {details.length > 0 && (
                   <div className="bg-green-600 ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%]">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                      <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
                       <span className="text-base font-semibold text-white text-left">{details.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase">Total Weight</span>
+                      <span className="text-[11px] font-bold text-white uppercase">Total Weight</span>
                       <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[11px] font-medium text-white uppercase">Grand Total</span>
+                      <span className="text-[11px] font-bold text-white uppercase">Grand Total</span>
                       <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
@@ -1001,7 +996,7 @@ export function AddPurchaseDialog({
               ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="hidden md:block lg:hidden border border-black/20 rounded-sm">
               <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
-                <h3 className="flex items-center gap-2 py-2 px-4 text-white">Tobacco Purchase</h3>
+                <h3 className="flex items-center gap-2 py-2 px-5 text-white">Tobacco Purchase</h3>
                 <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
               </div>
               {details.length === 0 ? (
@@ -1037,15 +1032,15 @@ export function AddPurchaseDialog({
               {details.length > 0 && (
                 <div className="bg-green-600 rounded-b-sm flex flex-row justify-between items-center px-5 py-3">
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                    <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
                     <span className="text-base font-semibold text-white text-left">{details.length} Item</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-medium text-white uppercase text-center">Total Weight</span>
+                    <span className="text-[11px] font-bold text-white uppercase text-center">Total Weight</span>
                     <span className="text-base font-semibold text-white text-center">{totalNetWeight.toFixed(2)} Kg</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[11px] font-medium text-white uppercase text-right">Grand Total</span>
+                    <span className="text-[11px] font-bold text-white uppercase text-right">Grand Total</span>
                     <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                   </div>
                 </div>
@@ -1074,9 +1069,9 @@ export function AddPurchaseDialog({
                   )}
                 </div>
               ) : (
-                <div className="rounded-md border border-black/20 mb-2">
-                  <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
-                    <div className="flex items-center gap-2 py-2 px-4">
+                <div className="rounded-md border border-black/40 mb-2">
+                  <div className="flex py-1 px-4 items-center justify-between rounded-t-sm bg-green-600">
+                    <div className="flex items-center gap-2 py-2 px-1">
                       <h3 className="text-base font-medium text-white">Tobacco Purchase</h3>
                     </div>
                     <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
@@ -1097,15 +1092,15 @@ export function AddPurchaseDialog({
                   {/* Desktop Summary Bar */}
                   <div className="bg-green-600 rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                      <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
                       <span className="text-base font-semibold text-white">{details.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase text-center">Total Weight</span>
+                      <span className="text-[11px] font-bold text-white uppercase text-center">Total Weight</span>
                       <span className="text-base font-semibold text-white text-center">{totalNetWeight.toFixed(2)} Kg</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase text-right">Grand Total</span>
+                      <span className="text-[11px] font-bold text-white uppercase text-right">Grand Total</span>
                       <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
@@ -1115,7 +1110,7 @@ export function AddPurchaseDialog({
 
             {returns.length > 0 && (       
               //  pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6
-              <div className="mt-3 mb-2 rounded-md border border-black/20">
+              <div className="mt-3 mb-2 rounded-md border border-black/40">
                 <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-700">
                   <div className="flex items-center gap-2 py-2 px-4">
                     <h3 className="text-base font-medium text-white">Tobacco Repay</h3>
@@ -1141,11 +1136,11 @@ export function AddPurchaseDialog({
                 {/* Mobile & Tablet Summary Bar */}
                 <div className="flex lg:hidden bg-green-700 rounded-b-sm py-3 px-5 flex-row justify-between items-center">
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                    <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
                     <span className="text-base font-semibold text-white text-left">{returns.length} Item</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[11px] font-medium text-white uppercase">Total Weight</span>
+                    <span className="text-[11px] font-bold text-white uppercase">Total Weight</span>
                     <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                   </div>
                 </div>
@@ -1168,11 +1163,11 @@ export function AddPurchaseDialog({
                   {/* Desktop Summary Bar */}
                   <div className="bg-green-700 rounded-b-sm flex flex-row justify-between items-center px-5 py-3">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase text-left">Total</span>
+                      <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
                       <span className="text-base font-semibold text-white text-left">{returns.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-medium text-white uppercase text-right">Total Weight</span>
+                      <span className="text-[11px] font-bold text-white uppercase text-right">Total Weight</span>
                       <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                     </div>
                   </div>
@@ -1333,9 +1328,8 @@ const PurchaseDetailCard = React.memo(({
                 onFocus={() => { setSearch(""); setOpen(true) }}
                 onClick={() => { setSearch(""); setOpen(true) }}
                 disabled={isReadOnly}
-                className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-10"
+                className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-2"
               />
-              <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
             </div>
           </PopoverAnchor>
           <PopoverContent
@@ -1384,30 +1378,31 @@ const PurchaseDetailCard = React.memo(({
         </Popover>
       </div>
 
-      {/* Middle: 2-col grid — all 5 cells are direct children so auto-placement is correct
-            Col 1          | Col 2
-            Image (r-span-3)| Gross Weight   ← row 1
-                           | Remork          ← row 2
-            Price/Kg       | Sack            ← row 3 (aligned)
+      {/* Middle: 2-col grid
+            Col 1            | Col 2
+            Image (r-span-3) | Gross Weight  ← row 1
+                             | Remork        ← row 2
+                             | Sack          ← row 3
+            Price/Kg (col-span-2)            ← row 4
       */}
       <div className="grid grid-cols-2 border-b border-black/20 px-1 py-1 md:px-3 md:py-2">
 
         {/* Col 1 rows 1-2: Image */}
-        <div className="row-span-2 px-3 py-2 flex flex-col">
-          <span className="text-sm font-semibold text-foreground mb-1">Item {index + 1}</span>
+        <div className="row-span-3 p-2 flex flex-col">
+          <span className="text-sm font-semibold text-foreground mb-2 md:mb-0.5">Item {index + 1}</span>
           <div>
           <Popover>
             <PopoverTrigger asChild>
               {detail.picture ? (
                 <button
                   type="button"
-                  className="w-full h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
+                  className="w-full aspect-square bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex items-center justify-center p-0 outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={getPictureUrl(detail.picture)}
                     alt="Tobacco item detail"
-                    className="w-full h-full object-cover group-hover/img:scale-105 transition-all duration-200"
+                    className="block w-full h-full object-cover group-hover/img:scale-105 transition-all duration-200"
                   />
                   {!isReadOnly && (
                     <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
@@ -1416,7 +1411,7 @@ const PurchaseDetailCard = React.memo(({
                   )}
                 </button>
               ) : (
-                <button type="button" disabled={isReadOnly} className="w-full h-28 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
+                <button type="button" disabled={isReadOnly} className="w-full aspect-square bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center hover:border-primary/40 transition-all group/img overflow-hidden relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed">
                   <IconPlus className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
                 </button>
               )}
@@ -1425,7 +1420,6 @@ const PurchaseDetailCard = React.memo(({
               <div className="flex flex-col">
                 {detail.picture && (
                   <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded-sm text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
-                    <IconSearch className="size-4" /> View Full Image
                   </button>
                 )}
                 {!isReadOnly && (
@@ -1451,7 +1445,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         {/* Col 2 row 1: Gross Weight */}
-        <div className="px-3 pt-2 space-y-1">
+        <div className="px-3 pt-3 space-y-1">
           <Label className="text-sm">Gross Weight</Label>
           <div className="relative">
             <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1465,7 +1459,7 @@ const PurchaseDetailCard = React.memo(({
         </div>
 
         {/* Col 2 row 2: Remork */}
-        <div className=" px-3 pt-2 space-y-1">
+        <div className=" px-3 pt-1.5 space-y-1">
           <Label className="text-sm">Remork</Label>
           <div className="relative">
             <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1478,22 +1472,8 @@ const PurchaseDetailCard = React.memo(({
           </div>
         </div>
 
-        {/* Col 1 row 3: Price/Kg */}
-        <div className="px-3 pt-2 pb-2 space-y-1">
-          <Label className="text-sm">Price/Kg</Label>
-          <div className="relative">
-            <IconCurrencyDollar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
-            <Input type="number"
-              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-5"
-              value={detail.price ?? ""} disabled={isReadOnly}
-              onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
-            />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
-          </div>
-        </div>
-
         {/* Col 2 row 3: Sack */}
-        <div className="px-3 pt-2 pb-2 space-y-1">
+        <div className="px-3 pt-1.5 pb-2 space-y-1">
           <Label className="text-sm">Sack</Label>
           <div className="relative">
             <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1503,6 +1483,20 @@ const PurchaseDetailCard = React.memo(({
               onChange={(e) => onChange(index, "sack_in_kg", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
             />
             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold opacity-40 pointer-events-none">Kg</span>
+          </div>
+        </div>
+
+        {/* Row 5: Price/Kg — full width */}
+        <div className="col-span-2 px-3 pt-0 pb-2 space-y-1">
+          <Label className="text-sm">Price/Kg</Label>
+          <div className="relative">
+            <IconCashPlus className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+            <Input type="number"
+              className="pl-8 h-8 text-[13px] rounded-sm font-bold bg-transparent border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-5"
+              value={detail.price ?? ""} disabled={isReadOnly}
+              onChange={(e) => onChange(index, "price", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold opacity-25">៛</span>
           </div>
         </div>
 
@@ -1563,7 +1557,7 @@ const PurchaseDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative pl-4 pr-4 pt-3 pb-2 border-b border-black/20",
+      "relative px-5 pb-3 pt-4 border-b border-black/40",
       index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
     )}>
 
@@ -1587,7 +1581,7 @@ const PurchaseDetailDesktopCard = React.memo(({
             <Label className="text-sm font-medium tracking-wider">Item {index + 1}</Label>
           </div>
           {detail.picture ? (
-            <div className="w-full flex-1 min-h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative">
+            <div className="w-full flex-1 min-h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex flex-col">
               <button
                 type="button"
                 onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
@@ -1597,7 +1591,7 @@ const PurchaseDetailDesktopCard = React.memo(({
                 <img
                   src={getPictureUrl(detail.picture)}
                   alt="Tobacco item detail"
-                  className="w-full h-full object-cover hover:scale-105 transition-all duration-200"
+                  className="block w-full h-full object-cover hover:scale-105 transition-all duration-200"
                 />
               </button>
               {!isReadOnly && (
@@ -1662,7 +1656,6 @@ const PurchaseDetailDesktopCard = React.memo(({
                       disabled={isReadOnly}
                       className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 pr-8"
                     />
-                    <IconSearch className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
                   </div>
                 </PopoverAnchor>
                 <PopoverContent

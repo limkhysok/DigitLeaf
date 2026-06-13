@@ -63,7 +63,7 @@ export const ReturnDetailCard = React.memo(({
     : ""
 
   return (
-    <div className="border-b border-black/20 overflow-hidden relative">
+    <div className="border-b border-black/40 overflow-hidden relative">
       {/* X button — mobile only, absolute top-right */}
       {!isReadOnly && (
         <button
@@ -236,7 +236,7 @@ export const ReturnDetailCard = React.memo(({
                 value={item.qty_repay ?? ""} disabled={isReadOnly}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Kg</span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
             </div>
           </div>
           </div>{/* end row-2 wrapper */}
@@ -302,7 +302,7 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   return (
     <div className={cn(
-      "relative border-b border-black/20 rounded-none transition-all pl-4 pr-2 py-4 mb-0",
+      "relative border-b border-black/40 rounded-none transition-all pl-5 pr-3 pt-4 pb-5 mb-0",
       "focus-within:border-black/20"
     )}>
       <div className="flex gap-4 items-end">
