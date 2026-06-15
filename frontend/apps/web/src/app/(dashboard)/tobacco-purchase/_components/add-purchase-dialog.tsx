@@ -111,7 +111,7 @@
   function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
     if (displayRemainingQuota === null) return null;
     return (
-      <div className="flex shrink-0 mr-5">
+      <div className="flex shrink-0 mr-1">
         <span className="block text-sm md:text-base lg:text-base font-medium text-white mr-1">Quota: </span>
         <div className="flex items-baseline gap-0.5">
           <span className={cn("text-sm md:text-base lg:text-base font-medium",
