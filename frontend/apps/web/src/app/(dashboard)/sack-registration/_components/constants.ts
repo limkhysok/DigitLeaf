@@ -3,17 +3,6 @@
 import { format, subDays } from "date-fns"
 import { SackRegistrationListParams } from "@/services/api-client"
 
-export const STATUS_MAP: Record<number, { label: string; className: string }> = {
-  0: { label: "Pending", className: "bg-amber-100 text-amber-700 border-amber-200" },
-  1: { label: "Confirmed", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-}
-
-export const STATUS_FILTER_OPTIONS: { label: string; value: number | null }[] = [
-  { label: "All", value: null },
-  { label: "Pending", value: 0 },
-  { label: "Confirmed", value: 1 },
-]
-
 export const DATE_PRESETS = [
   { label: "Today", value: "today" },
   { label: "This Week", value: "week" },
@@ -40,19 +29,15 @@ export function getDateRange(preset: string): { date_from?: string; date_to?: st
 }
 
 
-
 export function buildFetchParams(
   page: number,
   search: string,
-  statusFilter: number | null,
   datePreset: string,
   sortSackInKg: string | null = null,
   limit: number = 20
 ): SackRegistrationListParams {
   const params: SackRegistrationListParams = { page, limit }
   if (search.trim()) params.search = search.trim()
-  if (statusFilter !== null) params.status = statusFilter
   if (sortSackInKg) params.sort_sack_in_kg = sortSackInKg
   return { ...params, ...getDateRange(datePreset) }
 }
-

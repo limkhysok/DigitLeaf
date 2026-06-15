@@ -16,9 +16,6 @@ class SackRegistration(SQLModel, table=True):
     dl_user_id: int = Field(foreign_key="dl_user.id", index=True)
     dl_user_name: str = Field(max_length=255)
 
-    ## default is 0 for status which mean pending, 1 for confirmed
-    status: int = Field(default=0, index=True)
-
     sack_in_kg: Optional[float] = Field(default=None)
     notes: Optional[str] = Field(default=None, max_length=500)
     registered_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))

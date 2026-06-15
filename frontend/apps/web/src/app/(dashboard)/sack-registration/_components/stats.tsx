@@ -6,7 +6,7 @@
   import { useQuery } from "@tanstack/react-query"
   import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
   import { Skeleton } from "@workspace/ui/components/skeleton"
-  import { IconClipboardList, IconScale, IconTrendingUp, IconTrendingDown } from "@tabler/icons-react"
+  import { IconClipboardList, IconScale } from "@tabler/icons-react"
 
   export function SackRegistrationStatsPanel() {
     const { tokens, isLoading: isAuthLoading } = useAuth()
@@ -20,8 +20,8 @@
 
     if (isLoading) {
       return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24" />)}
+        <div className="grid grid-cols-2 gap-5">
+          {[1, 2].map((i) => <Skeleton key={i} className="h-24" />)}
         </div>
       )
     }
@@ -29,7 +29,7 @@
     if (!stats) return null
 
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-3 lg:gap-4">
 
         {/* Total Registrations */}
         <Card className="rounded-sm shadow-xs">
@@ -47,39 +47,7 @@
           </CardContent>
         </Card>
 
-        {/* Total Confirmed */}
-        <Card className="rounded-sm shadow-xs">
-          <CardHeader className="pb-1 pt-4 px-5">
-            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
-              {t.sackRegistration.stats.approved}
-              <IconTrendingDown className="h-5 w-5 text-gray-700" style={{ transform: 'scaleX(-1)' }} />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.status_breakdown.approved)}</span>
-              <span className="text-xs font-medium text-emerald-600">+{localizeNumber(stats.status_breakdown.approved_today)} {t.sackRegistration.stats.today}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total Pending */}
-        <Card className="rounded-sm shadow-xs">
-          <CardHeader className="pb-1 pt-4 px-5">
-            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
-              {t.sackRegistration.stats.pending}
-              <IconTrendingUp className="h-5 w-5 text-gray-700" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-5 pb-4">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-2xl font-bold">{localizeNumber(stats.status_breakdown.pending)}</span>
-              <span className="text-xs font-medium text-emerald-600">+{localizeNumber(stats.status_breakdown.pending_today)} {t.sackRegistration.stats.today}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pending Sack Weight */}
+        {/* Total Sack Weight */}
         <Card className="rounded-sm shadow-xs">
           <CardHeader className="pb-1 pt-4 px-5">
             <CardTitle className="text-base font-medium text-foreground flex items-center justify-between tracking-normal">
@@ -90,10 +58,10 @@
           <CardContent className="px-5 pb-4">
             <div className="flex flex-col gap-0.5">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.sack_weight_kg.pending)}</span>
+                <span className="text-2xl font-bold tabular-nums">{localizeNumber(stats.sack_weight_kg.total)}</span>
                 <span className="text-lg font-medium">Kg</span>
               </div>
-              <span className="text-xs font-medium text-emerald-600">+{localizeNumber(stats.sack_weight_kg.pending_today)} kg {t.sackRegistration.stats.today}</span>
+              <span className="text-xs font-medium text-emerald-600">+{localizeNumber(stats.sack_weight_kg.today)} kg {t.sackRegistration.stats.today}</span>
             </div>
           </CardContent>
         </Card>

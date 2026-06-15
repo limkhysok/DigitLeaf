@@ -74,7 +74,7 @@ export default function SackRegistrationPage() {
   } = useInfiniteQuery({
     queryKey: ["sack-registrations", debouncedSearch],
     queryFn: ({ pageParam }) => {
-      const params = buildFetchParams(pageParam, debouncedSearch, null, "all", null, PAGE_SIZE)
+      const params = buildFetchParams(pageParam, debouncedSearch, "all", null, PAGE_SIZE)
       return apiClient.getSackRegistrations(tokens!.access_token, params)
     },
     initialPageParam: 1,

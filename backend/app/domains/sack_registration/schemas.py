@@ -7,7 +7,6 @@ class SackRegistrationCreate(BaseModel):
     represent_id: int = Field(..., description="Selected represent ID from dropdown")
     member_farmer_name: Optional[str] = Field(default=None, max_length=255, description="Search farmer by name")
     member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Search farmer by identity card")
-    status: int = Field(default=0, description="0=pending, 1=approved")
     sack_in_kg: Optional[float] = Field(default=None, ge=0, description="Sack weight in kilograms")
     notes: Optional[str] = Field(default=None, max_length=500)
     registered_at: Optional[datetime] = Field(default=None, description="Date of registration (defaults to now)")
@@ -21,7 +20,6 @@ class SackRegistrationCreate(BaseModel):
 
 class SackRegistrationUpdate(BaseModel):
     member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Change farmer by mf_code")
-    status: Optional[int] = Field(default=None, description="0=pending, 1=approved")
     sack_in_kg: Optional[float] = Field(default=None, ge=0, description="Sack weight in kilograms")
     notes: Optional[str] = Field(default=None, max_length=500)
 
@@ -34,7 +32,6 @@ class SackRegistrationPublic(BaseModel):
     member_farmer_name: str
     dl_user_id: int
     dl_user_name: str
-    status: int
     sack_in_kg: Optional[float] = None
     notes: Optional[str] = None
     registered_at: datetime
@@ -50,30 +47,16 @@ class SackRegistrationListResponse(BaseModel):
     has_more: bool
 
 
-class SackRegistrationStatusCounts(BaseModel):
-    all: int
-    pending: int
-    approved: int
-
-
 class RegistrationCounts(BaseModel):
     total: int
     today: int
 
 
-class StatusBreakdown(BaseModel):
-    approved: int
-    approved_today: int
-    pending: int
-    pending_today: int
-
-
 class SackWeightKg(BaseModel):
-    pending: float
-    pending_today: float
+    total: float
+    today: float
 
 
 class SackRegistrationStats(BaseModel):
     registration_counts: RegistrationCounts
-    status_breakdown: StatusBreakdown
     sack_weight_kg: SackWeightKg

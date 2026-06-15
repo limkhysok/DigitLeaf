@@ -26,8 +26,6 @@ import {
   CommandList,
 } from "@workspace/ui/components/command"
 import { Command as CommandPrimitive } from "cmdk"
-import { cn } from "@workspace/ui/lib/utils"
-import { STATUS_MAP } from "./constants"
 import { useLanguage } from "@/hooks/use-language"
 
 export function EditDialog({
@@ -42,7 +40,6 @@ export function EditDialog({
   readonly accessToken?: string
 }) {
   const { t } = useLanguage()
-  const [status, setStatus] = React.useState("0")
   const [sackInKg, setSackInKg] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -55,7 +52,6 @@ export function EditDialog({
   React.useEffect(() => {
     if (target) {
       const timer = setTimeout(() => {
-        setStatus(String(target.status))
         setSackInKg(target.sack_in_kg !== null && target.sack_in_kg !== undefined ? String(target.sack_in_kg) : "")
         setNotes(target.notes ?? "")
         setFarmerQuery(target.member_farmer_name)
@@ -89,7 +85,6 @@ export function EditDialog({
     try {
       await apiClient.updateSackRegistration(accessToken, target.id, {
         ...(farmerResult ? { member_farmer_identity_card: farmerResult.mf_code } : {}),
-        status: Number(status),
         sack_in_kg: sackInKg ? Number(sackInKg) : null,
         notes: notes.trim() || undefined,
       })
@@ -194,35 +189,6 @@ export function EditDialog({
               )}
             </div>
 
-
-            <div className="space-y-1">
-              <Label className="text-sm font-medium">{t.sackRegistration.dialog.status}</Label>
-              <div className="flex gap-2">
-                {Object.entries(STATUS_MAP).map(([val, { label, className }]) => {
-                  const getStatusBtnLabel = (valStr: string) => {
-                    switch (Number(valStr)) {
-                      case 0: return t.sackRegistration.filters.statusPending
-                      case 1: return t.sackRegistration.filters.statusConfirmed
-                      default: return label
-                    }
-                  }
-                  const statusBtnLabel = getStatusBtnLabel(val)
-                  return (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setStatus(val)}
-                      className={cn(
-                        "flex-1 rounded-md py-1.5 text-sm font-medium border transition-all",
-                        status === val ? cn(className, "border-transparent") : "border-border text-muted-foreground hover:bg-muted"
-                      )}
-                    >
-                      {statusBtnLabel}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
 
             <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.sackWeightOptional}</Label>

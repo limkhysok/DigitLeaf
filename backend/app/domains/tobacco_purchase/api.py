@@ -67,9 +67,8 @@ async def get_vendor_sack(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    sack_kg = await crud.get_vendor_sack_kg(db=session, vendor_id=vendor_id)
-    total_sack_kg = await crud.get_vendor_total_active_sack_kg(db=session, vendor_id=vendor_id)
-    return {"sack_in_kg": sack_kg, "total_sack_in_kg": total_sack_kg}
+    available = await crud.get_vendor_available_sack_kg(db=session, vendor_id=vendor_id)
+    return {"sack_in_kg": available, "total_sack_in_kg": available}
 
 
 @router.get("/vendors", response_model=List[schemas.VendorItem])

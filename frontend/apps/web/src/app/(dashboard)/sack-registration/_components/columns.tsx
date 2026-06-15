@@ -14,8 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { SackRegistrationItem } from "@/services/api-client"
-import { cn } from "@workspace/ui/lib/utils"
-import { STATUS_MAP } from "./constants"
 
 
 interface ColumnHelpers {
@@ -71,32 +69,6 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       accessorKey: "member_farmer_name",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.farmer} />,
       cell: ({ row }) => <div className="font-medium">{row.getValue("member_farmer_name")}</div>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.status} />,
-      cell: ({ row }) => {
-        const statusVal = row.getValue("status") as number
-        const status = STATUS_MAP[statusVal] ?? { className: "bg-muted text-muted-foreground" }
-
-        const getStatusLabel = (val: number) => {
-          switch (val) {
-            case 0: return t.sackRegistration.filters.statusPending
-            case 1: return t.sackRegistration.filters.statusConfirmed
-            case 2: return t.sackRegistration.filters.statusRejected
-            default: return String(val)
-          }
-        }
-
-        return (
-          <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold border", status.className)}>
-            {getStatusLabel(statusVal)}
-          </span>
-        )
-      },
-      filterFn: (row, id, value) => {
-        return value.includes(String(row.getValue(id)))
-      },
     },
     {
       accessorKey: "sack_in_kg",

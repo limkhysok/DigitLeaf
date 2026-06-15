@@ -6,10 +6,13 @@ import { IconX } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { DataTableViewOptions } from "@workspace/ui/components/data-table-view-options"
-
-import { DataTableFacetedFilter } from "@workspace/ui/components/data-table-faceted-filter"
+import dynamic from "next/dynamic"
 import { useLanguage } from "@/hooks/use-language"
-import { ExportButton } from "./export-button"
+
+const ExportButton = dynamic(
+  () => import("./export-button").then((m) => ({ default: m.ExportButton })),
+  { ssr: false }
+)
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -27,21 +30,6 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0 || searchInput !== ""
   const { t } = useLanguage()
 
-  const statuses = [
-    {
-      value: "0",
-      label: t.sackRegistration.filters.statusPending,
-    },
-    {
-      value: "1",
-      label: t.sackRegistration.filters.statusConfirmed,
-    },
-    {
-      value: "2",
-      label: t.sackRegistration.filters.statusRejected,
-    },
-  ]
-
   return (
     <div className="flex w-full items-center justify-between gap-2">
       {/* Left Group */}
@@ -55,7 +43,6 @@ export function DataTableToolbar<TData>({
               no: t.sackRegistration.table.no,
               represent_name: t.sackRegistration.table.representative,
               member_farmer_name: t.sackRegistration.table.farmer,
-              status: t.sackRegistration.table.status,
               sack_in_kg: t.sackRegistration.table.sackWeight,
               registered_at: t.sackRegistration.table.date,
               actions: t.sackRegistration.table.actions,
@@ -63,13 +50,6 @@ export function DataTableToolbar<TData>({
             }}
           />
         </div>
-        {table.getColumn("status") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title={t.sackRegistration.filters.status}
-            options={statuses}
-          />
-        )}
         {isFiltered && (
           <Button
             variant="ghost"

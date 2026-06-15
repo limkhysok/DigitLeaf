@@ -40,83 +40,36 @@ async def generate_invoice_num(db: AsyncSession) -> str:
     return f"{prefix}{new_seq:04d}"
 
 
-async def get_vendor_total_active_sack_kg(db: AsyncSession, vendor_id: int) -> float:
-    result = await db.execute(
-        select(func.sum(SackRegistration.sack_in_kg))
+async def get_vendor_available_sack_kg(db: AsyncSession, vendor_id: int) -> float:
+    """Available sack = SUM(all registrations) - SUM(purchase details where farmer_own_sack=0).
+    Sack registration records are never mutated; quota is computed dynamically."""
+    registered_result = await db.execute(
+        select(func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0))
         .where(SackRegistration.member_farmer_id == vendor_id)
-        .where(SackRegistration.status == 0)
     )
-    total = result.scalar()
-    return float(total or 0.0)
+    registered_total = float(registered_result.scalar() or 0.0)
 
-
-async def _deduct_sacks(db: AsyncSession, vendor_id: int, to_deduct: float) -> None:
-    sack_result = await db.execute(
-        select(SackRegistration)
-        .where(SackRegistration.member_farmer_id == vendor_id)
-        .where(SackRegistration.status == 0)
-        .order_by(col(SackRegistration.registered_at).asc())
+    used_result = await db.execute(
+        select(func.coalesce(func.sum(TobaccoPurchaseDetail.sack_in_kg), 0.0))
+        .join(TobaccoPurchase, TobaccoPurchaseDetail.m_id == TobaccoPurchase.tp_id)
+        .where(TobaccoPurchase.vendor_id == vendor_id)
+        .where(TobaccoPurchaseDetail.farmer_own_sack == 0)
     )
-    active_sacks = sack_result.scalars().all()
-    for sack_reg in active_sacks:
-        if to_deduct <= 0:
-            break
-        current_weight = sack_reg.sack_in_kg or 0.0
-        if current_weight >= to_deduct:
-            # Deduct all remaining from this single registration
-            sack_reg.sack_in_kg = round(current_weight - to_deduct, 3)
-            sack_reg.status = 1 if sack_reg.sack_in_kg == 0 else 0
-            sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
-            db.add(sack_reg)
-            to_deduct = 0.0
-        else:
-            # Deplete this registration completely and carry over the remainder
-            to_deduct = round(to_deduct - current_weight, 3)
-            sack_reg.sack_in_kg = 0.0
-            sack_reg.status = 1
-            sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
-            db.add(sack_reg)
+    used_total = float(used_result.scalar() or 0.0)
+
+    return max(0.0, round(registered_total - used_total, 3))
 
 
-async def _refund_sacks(db: AsyncSession, vendor_id: int, to_refund: float) -> None:
-    sack_result = await db.execute(
-        select(SackRegistration)
-        .where(SackRegistration.member_farmer_id == vendor_id)
-        .order_by(col(SackRegistration.registered_at).desc())
-        .limit(1)
-    )
-    sack_reg = sack_result.scalars().first()
-    if sack_reg:
-        sack_reg.sack_in_kg = round((sack_reg.sack_in_kg or 0.0) + to_refund, 3)
-        sack_reg.status = 0
-        sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
-        db.add(sack_reg)
-
-
-async def _update_sack_registration(db: AsyncSession, vendor_id: int, net_sack_change: float) -> None:
-    if net_sack_change > 0:
-        await _deduct_sacks(db, vendor_id, net_sack_change)
-    elif net_sack_change < 0:
-        await _refund_sacks(db, vendor_id, abs(net_sack_change))
-
-
-async def _clear_existing_details(db: AsyncSession, tp_id: int) -> float:
-    """Clear existing purchase details and return the total sack weight from those deleted details."""
+async def _clear_existing_details(db: AsyncSession, tp_id: int) -> None:
     old_result = await db.execute(
-        select(TobaccoPurchaseDetail)
-        .where(TobaccoPurchaseDetail.m_id == tp_id)
+        select(TobaccoPurchaseDetail).where(TobaccoPurchaseDetail.m_id == tp_id)
     )
-    old_details = old_result.scalars().all()
-    old_sack_total = sum(d.sack_in_kg or 0.0 for d in old_details if not d.farmer_own_sack)
-
-    for d in old_details:
+    for d in old_result.scalars().all():
         db.expunge(d)
-
     await db.execute(
         sa_delete(TobaccoPurchaseDetail).where(col(TobaccoPurchaseDetail.m_id) == tp_id)
     )
     await db.flush()
-    return old_sack_total
 
 
 def _process_detail_picture(picture: Optional[str]) -> Optional[str]:
@@ -186,10 +139,11 @@ async def _sync_purchase_details(
     ip_address: str,
     delete_existing: bool = False,
 ) -> None:
-    old_sack_total = 0.0
     if delete_existing:
-        old_sack_total = await _clear_existing_details(db, db_obj.tp_id)
+        await _clear_existing_details(db, db_obj.tp_id)
 
+    # Compute totals and sack usage before inserting so the validation
+    # query runs against a clean DB state (old details already flushed away).
     total_net_weight = 0.0
     grand_total = 0.0
     new_sack_total = 0.0
@@ -201,19 +155,32 @@ async def _sync_purchase_details(
             - (detail_in.remork_in_kg or 0)
             - (detail_in.sack_in_kg or 0)
         )
-        total_amount = round(net * (detail_in.price or 0), 2)
-
         total_net_weight += net
-        grand_total += total_amount
+        grand_total += round(net * (detail_in.price or 0), 2)
         if not detail_in.farmer_own_sack:
             new_sack_total += detail_in.sack_in_kg or 0
 
-        picture_val = _process_detail_picture(detail_in.picture)
+    # Validate before any db.add so autoflush doesn't pollute the available query.
+    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and new_sack_total > 1e-9:
+        available = await get_vendor_available_sack_kg(db, int(db_obj.vendor_id))
+        if new_sack_total > available + 1e-9:
+            raise ValueError(
+                f"Insufficient sack stock: need {new_sack_total:.3f} kg but only "
+                f"{available:.3f} kg available. "
+                "Tick 'Own Sack' for items where the farmer brings their own sack."
+            )
 
+    for detail_in in details:
+        net = max(0.0,
+            (detail_in.gross_weight or 0)
+            - (detail_in.remork_in_kg or 0)
+            - (detail_in.sack_in_kg or 0)
+        )
+        total_amount = round(net * (detail_in.price or 0), 2)
+        picture_val = _process_detail_picture(detail_in.picture)
         detail_data = detail_in.model_dump(exclude={"invoice_num", "m_id", "picture"}, exclude_none=True)
         if picture_val:
             detail_data["picture"] = picture_val
-
         db.add(TobaccoPurchaseDetail(
             **detail_data,
             invoice_num=db_obj.invoice_num,
@@ -227,20 +194,6 @@ async def _sync_purchase_details(
 
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
-
-
-    net_sack_change = new_sack_total - old_sack_total
-    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit():
-        if net_sack_change > 1e-9:
-            available = await get_vendor_total_active_sack_kg(db, int(db_obj.vendor_id))
-            if net_sack_change > available + 1e-9:
-                raise ValueError(
-                    f"Insufficient sack stock: need {net_sack_change:.3f} kg but only "
-                    f"{available:.3f} kg registered. "
-                    "Tick 'Own Sack' for items where the farmer brings their own sack."
-                )
-        if net_sack_change != 0:
-            await _update_sack_registration(db, int(db_obj.vendor_id), net_sack_change)
 
 
 async def create_purchase(
@@ -368,12 +321,6 @@ async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
     db_obj = await get_purchase(db, tp_id)
     if not db_obj:
         return False
-
-    # Refund consumed sacks
-    total_sack_to_refund = sum(d.sack_in_kg or 0.0 for d in db_obj.details if not d.farmer_own_sack)
-    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and total_sack_to_refund > 0:
-        await _update_sack_registration(db, int(db_obj.vendor_id), -total_sack_to_refund)
-
     await db.delete(db_obj)
     await db.commit()
     return True
@@ -447,13 +394,5 @@ async def get_tobacco_types(db: AsyncSession) -> List[Tobacco]:
     return list(result.scalars().all())
 
 
-async def get_vendor_sack_kg(db: AsyncSession, vendor_id: int) -> Optional[float]:
-    result = await db.execute(
-        select(SackRegistration)
-        .where(SackRegistration.member_farmer_id == vendor_id)
-        .where(SackRegistration.status == 0)
-        .order_by(col(SackRegistration.registered_at).asc())
-        .limit(1)
-    )
-    sack = result.scalars().first()
-    return sack.sack_in_kg if sack else None
+async def get_vendor_sack_kg(db: AsyncSession, vendor_id: int) -> float:
+    return await get_vendor_available_sack_kg(db, vendor_id)

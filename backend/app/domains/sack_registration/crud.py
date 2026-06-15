@@ -1,6 +1,6 @@
 from typing import Any, Optional, cast
 from datetime import datetime, date
-from sqlalchemy import cast as sa_cast, Date, func, case, and_
+from sqlalchemy import cast as sa_cast, Date, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col
 from app.core.config import CAMBODIA_TZ
@@ -38,7 +38,6 @@ async def get_all(
     skip: int = 0,
     limit: int = 200,
     search: Optional[str] = None,
-    status: Optional[int] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     sort_sack_in_kg: Optional[str] = None,
@@ -63,10 +62,6 @@ async def get_all(
             .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
             .where(cond)
         )
-
-    if status is not None:
-        stmt = stmt.where(SackRegistration.status == status)
-        count_stmt = count_stmt.where(SackRegistration.status == status)
 
     if date_from is not None:
         stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) >= date_from)
@@ -97,70 +92,23 @@ async def get_all(
     return items, total
 
 
-async def get_status_counts(
-    session: AsyncSession,
-    search: Optional[str] = None,
-    date_from: Optional[date] = None,
-    date_to: Optional[date] = None,
-) -> dict[str, int]:
-    stmt = select(SackRegistration.status, func.count().label("cnt")).select_from(SackRegistration)
-
-    if search:
-        pattern = f"%{search}%"
-        cond = (
-            col(MemberFarmer.name).ilike(pattern)
-            | col(Represent.represent_name).ilike(pattern)
-        )
-        stmt = (
-            stmt
-            .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
-            .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
-            .where(cond)
-        )
-
-    if date_from is not None:
-        stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) >= date_from)
-
-    if date_to is not None:
-        stmt = stmt.where(sa_cast(SackRegistration.registered_at, Date) <= date_to)
-
-    stmt = stmt.group_by(col(SackRegistration.status))
-    result = await session.execute(stmt)
-    rows = result.all()
-
-    counts: dict[int, int] = {0: 0, 1: 0}
-    for row in rows:
-        counts[row[0]] = row[1]  # type: ignore[index, assignment]
-
-    return {
-        "all": sum(counts.values()),
-        "pending": counts[0],
-        "approved": counts[1],
-    }
-
-
 async def get_stats(session: AsyncSession) -> dict[str, Any]:
     now = datetime.now(CAMBODIA_TZ)
     today = now.date()
-
     reg_date = sa_cast(SackRegistration.registered_at, Date)
 
     count_stmt = select(
         func.count().label("total"),
         func.sum(case((reg_date == today, 1), else_=0)).label("today"),
-        func.sum(case((SackRegistration.status == 1, 1), else_=0)).label("approved"),
-        func.sum(case((and_(reg_date == today, SackRegistration.status == 1), 1), else_=0)).label("approved_today"),
-        func.sum(case((SackRegistration.status == 0, 1), else_=0)).label("pending"),
-        func.sum(case((and_(reg_date == today, SackRegistration.status == 0), 1), else_=0)).label("pending_today"),
     ).select_from(SackRegistration)
 
     weight_stmt = select(
-        func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0).label("pending_kg"),
+        func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0).label("total_kg"),
         func.coalesce(
             func.sum(case((reg_date == today, SackRegistration.sack_in_kg), else_=None)),
             0.0,
-        ).label("pending_today_kg"),
-    ).select_from(SackRegistration).where(SackRegistration.status == 0)
+        ).label("today_kg"),
+    ).select_from(SackRegistration)
 
     count_row = (await session.execute(count_stmt)).first()
     weight_row = (await session.execute(weight_stmt)).first()
@@ -170,15 +118,9 @@ async def get_stats(session: AsyncSession) -> dict[str, Any]:
             "total": (count_row.total or 0) if count_row else 0,
             "today": (count_row.today or 0) if count_row else 0,
         },
-        "status_breakdown": {
-            "approved": (count_row.approved or 0) if count_row else 0,
-            "approved_today": (count_row.approved_today or 0) if count_row else 0,
-            "pending": (count_row.pending or 0) if count_row else 0,
-            "pending_today": (count_row.pending_today or 0) if count_row else 0,
-        },
         "sack_weight_kg": {
-            "pending": round(float(weight_row.pending_kg), 2) if weight_row else 0.0,
-            "pending_today": round(float(weight_row.pending_today_kg), 2) if weight_row else 0.0,
+            "total": round(float(weight_row.total_kg), 2) if weight_row else 0.0,
+            "today": round(float(weight_row.today_kg), 2) if weight_row else 0.0,
         },
     }
 
@@ -209,7 +151,6 @@ async def create(
         member_farmer_id=farmer.mf_id,
         dl_user_id=current_user_id,
         dl_user_name=current_user_name,
-        status=data.status,
         sack_in_kg=data.sack_in_kg,
         notes=data.notes,
     )

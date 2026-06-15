@@ -21,7 +21,6 @@ export interface SackRegistrationItem {
   member_farmer_name: string;
   dl_user_id: number;
   dl_user_name: string;
-  status: number;
   sack_in_kg: number | null;
   notes: string | null;
   registered_at: string;
@@ -33,7 +32,6 @@ export interface SackRegistrationCreate {
   represent_id: number;
   member_farmer_name?: string;
   member_farmer_identity_card?: string;
-  status?: number;
   sack_in_kg?: number;
   notes?: string;
   registered_at?: string;
@@ -41,7 +39,6 @@ export interface SackRegistrationCreate {
 
 export interface SackRegistrationUpdate {
   member_farmer_identity_card?: string;
-  status?: number;
   sack_in_kg?: number | null;
   notes?: string;
 }
@@ -50,7 +47,6 @@ export interface SackRegistrationListParams {
   page?: number;
   limit?: number;
   search?: string;
-  status?: number;
   date_from?: string;
   date_to?: string;
   sort_sack_in_kg?: string | null;
@@ -62,32 +58,14 @@ export interface SackRegistrationListResponse {
   has_more: boolean;
 }
 
-export interface SackStatusCounts {
-  all: number;
-  pending: number;
-  approved: number;
-}
-
-export interface SackStatusCountsParams {
-  search?: string;
-  date_from?: string;
-  date_to?: string;
-}
-
 export interface SackRegistrationStats {
   registration_counts: {
     total: number
     today: number
   }
-  status_breakdown: {
-    approved: number
-    approved_today: number
-    pending: number
-    pending_today: number
-  }
   sack_weight_kg: {
-    pending: number
-    pending_today: number
+    total: number
+    today: number
   }
 }
 

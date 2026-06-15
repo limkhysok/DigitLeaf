@@ -6,15 +6,12 @@ import { IconClock, IconEye, IconPencil, IconTrash, IconUsers, IconPackage, Icon
 import { format } from "date-fns"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { cn } from "@workspace/ui/lib/utils"
-import { STATUS_MAP } from "./constants"
 import { useLanguage } from "@/hooks/use-language"
 
 export const SackRegistrationCard = React.memo(({
@@ -27,33 +24,18 @@ export const SackRegistrationCard = React.memo(({
   onDelete: (rec: SackRegistrationItem) => void
 }) => {
   const { t, localizeNumber } = useLanguage()
-  const status = STATUS_MAP[rec.status] ?? { className: "bg-gray-100 text-gray-800" }
-
-  const getStatusLabel = (statusVal: number) => {
-    switch (statusVal) {
-      case 0: return t.sackRegistration.filters.statusPending
-      case 1: return t.sackRegistration.filters.statusConfirmed
-      default: return String(statusVal)
-    }
-  }
-  const statusLabel = getStatusLabel(rec.status)
-
-
 
   return (
     <Card
       className="group flex flex-col overflow-hidden cursor-pointer border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm"
       onClick={() => onView(rec)}
     >
-      {/* ROW 1: Header (Number, Status, Menu) */}
+      {/* ROW 1: Header (Number, Menu) */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2.5 px-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-foreground bg-muted/60 px-1.5 rounded-sm border border-border/50">
             #{localizeNumber(index)}
           </span>
-          <Badge variant="outline" className={cn("px-1.5 py-0.5 text-sm font-semibold rounded-sm border-opacity-50", status.className)}>
-            {statusLabel}
-          </Badge>
         </div>
 
         <DropdownMenu>
