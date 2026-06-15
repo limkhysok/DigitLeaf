@@ -5,6 +5,7 @@ import { format } from "date-fns"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table-column-header"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import { IconEye, IconPencil, IconTrash, IconDots } from "@tabler/icons-react"
 import {
   DropdownMenu,
@@ -71,16 +72,36 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       cell: ({ row }) => <div className="font-medium">{row.getValue("member_farmer_name")}</div>,
     },
     {
-      accessorKey: "sack_in_kg",
+      id: "sack_in_kg",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.sackWeight} />,
       cell: ({ row }) => {
-        const val = row.getValue("sack_in_kg") as number | null
+        const registered = row.original.sack_in_kg
+        if (registered === null || registered === undefined) {
+          return <span className="text-muted-foreground/50">—</span>
+        }
         return (
           <div className="tabular-nums font-sm">
-            {val !== null && val !== undefined ? localizeNumber(val) : <span className="text-muted-foreground/50">—</span>}
+            {localizeNumber(registered)}
           </div>
         )
       },
+    },
+    {
+      id: "status",
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.status} />,
+      cell: ({ row }) => {
+        const isConfirmed = row.original.sack_in_kg === 0
+        return isConfirmed ? (
+          <Badge variant="outline" className="border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400">
+            {t.sackRegistration.filters.statusConfirmed}
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+            {t.sackRegistration.filters.statusPending}
+          </Badge>
+        )
+      },
+      enableSorting: false,
     },
     {
       accessorKey: "registered_at",

@@ -81,6 +81,9 @@ export default function SackRegistrationPage() {
     getNextPageParam: (lastPage, allPages) =>
       lastPage.has_more ? allPages.length + 1 : undefined,
     enabled: !!tokens?.access_token && !isAuthLoading,
+    staleTime: 30_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   })
 
   const records = React.useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data])

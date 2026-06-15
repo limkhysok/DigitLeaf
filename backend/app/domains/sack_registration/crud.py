@@ -1,6 +1,6 @@
 from typing import Any, Optional, cast
 from datetime import datetime, date
-from sqlalchemy import cast as sa_cast, Date, func, case
+from sqlalchemy import cast as sa_cast, Date, Integer, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col
 from app.core.config import CAMBODIA_TZ
@@ -8,6 +8,55 @@ from app.domains.sack_registration.models import SackRegistration
 from app.domains.farmers.models import Represent, MemberFarmer
 from app.domains.farmers.crud import search_member_farmer
 from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate
+from app.domains.tobacco_purchase.models import TobaccoPurchase, TobaccoPurchaseDetail
+
+
+async def _get_sack_status(
+    session: AsyncSession, farmer_ids: list[int]
+) -> dict[int, tuple[bool, float]]:
+    if not farmer_ids:
+        return {}
+
+    pool_subq = (
+        select(
+            sa_cast(TobaccoPurchase.vendor_id, Integer).label("farmer_id"),
+            func.coalesce(func.sum(TobaccoPurchaseDetail.sack_in_kg), 0.0).label("total_used"),
+        )
+        .join(TobaccoPurchaseDetail, col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
+        .where(col(TobaccoPurchaseDetail.farmer_own_sack) == 0)
+        .where(col(TobaccoPurchase.vendor_id).in_([str(fid) for fid in farmer_ids]))
+        .group_by(TobaccoPurchase.vendor_id)
+        .subquery()
+    )
+
+    prev_cumsum = func.coalesce(
+        func.sum(SackRegistration.sack_in_kg).over(
+            partition_by=col(SackRegistration.member_farmer_id),
+            order_by=col(SackRegistration.created_at).asc(),
+            rows=(None, -1),
+        ),
+        0.0,
+    )
+
+    remaining_expr = func.greatest(
+        0.0,
+        func.coalesce(SackRegistration.sack_in_kg, 0.0)
+        - func.greatest(0.0, func.coalesce(pool_subq.c.total_used, 0.0) - prev_cumsum),
+    )
+
+    result = await session.execute(
+        select(SackRegistration.id, remaining_expr.label("remaining"))
+        .outerjoin(pool_subq, pool_subq.c.farmer_id == SackRegistration.member_farmer_id)
+        .where(col(SackRegistration.member_farmer_id).in_(farmer_ids))
+        .order_by(col(SackRegistration.member_farmer_id), col(SackRegistration.created_at).asc())
+    )
+
+    status: dict[int, tuple[bool, float]] = {}
+    for sack_id, remaining in result.all():
+        remaining = round(float(remaining or 0.0), 6)
+        status[sack_id] = (remaining < 1e-9, remaining)
+
+    return status
 
 
 async def get_by_id(session: AsyncSession, sack_id: int) -> Optional[SackRegistration]:
@@ -27,9 +76,13 @@ async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict[str,
     if not row:
         return None
     sack, r_name, f_name = cast(tuple[SackRegistration, str, str], row)
+    assert sack.id is not None
+    sack_status = await _get_sack_status(session, [sack.member_farmer_id])
+    _, remaining = sack_status.get(sack.id, (False, float(sack.sack_in_kg or 0.0)))
     data: dict[str, Any] = sack.model_dump()
     data["represent_name"] = r_name
     data["member_farmer_name"] = f_name
+    data["sack_in_kg"] = remaining
     return data
 
 
@@ -81,12 +134,19 @@ async def get_all(
     total = (await session.scalar(count_stmt)) or 0
     result = await session.execute(stmt.offset(skip).limit(limit))
 
+    raw_rows = result.all()
+    farmer_ids = list({cast(tuple[SackRegistration, str, str], row)[0].member_farmer_id for row in raw_rows})
+    sack_status = await _get_sack_status(session, farmer_ids)
+
     items: list[dict[str, Any]] = []
-    for row in result.all():
+    for row in raw_rows:
         sack, r_name, f_name = cast(tuple[SackRegistration, str, str], row)
+        assert sack.id is not None
+        _, remaining = sack_status.get(sack.id, (False, float(sack.sack_in_kg or 0.0)))
         data: dict[str, Any] = sack.model_dump()
         data["represent_name"] = r_name
         data["member_farmer_name"] = f_name
+        data["sack_in_kg"] = remaining
         items.append(data)
 
     return items, total

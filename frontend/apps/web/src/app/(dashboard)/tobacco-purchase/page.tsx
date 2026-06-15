@@ -134,6 +134,8 @@ export default function TobaccoPurchasePage() {
       toast.success("Record deleted successfully")
       queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
       queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
+      queryClient.resetQueries({ queryKey: ["sack-registrations"] })
+      queryClient.invalidateQueries({ queryKey: ["sack-registration-stats"] })
     } catch (err) {
       toast.error((err as Error).message)
     } finally {

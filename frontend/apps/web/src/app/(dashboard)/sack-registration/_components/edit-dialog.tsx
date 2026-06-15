@@ -26,6 +26,7 @@ import {
   CommandList,
 } from "@workspace/ui/components/command"
 import { Command as CommandPrimitive } from "cmdk"
+import { cn } from "@workspace/ui/lib/utils"
 import { useLanguage } from "@/hooks/use-language"
 
 export function EditDialog({
