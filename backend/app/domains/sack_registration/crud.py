@@ -128,7 +128,7 @@ async def get_status_counts(
     result = await session.execute(stmt)
     rows = result.all()
 
-    counts: dict[int, int] = {0: 0, 1: 0, 2: 0}
+    counts: dict[int, int] = {0: 0, 1: 0}
     for row in rows:
         counts[row[0]] = row[1]  # type: ignore[index, assignment]
 
@@ -136,7 +136,6 @@ async def get_status_counts(
         "all": sum(counts.values()),
         "pending": counts[0],
         "approved": counts[1],
-        "rejected": counts[2],
     }
 
 

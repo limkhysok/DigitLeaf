@@ -16,7 +16,7 @@ class SackRegistration(SQLModel, table=True):
     dl_user_id: int = Field(foreign_key="dl_user.id", index=True)
     dl_user_name: str = Field(max_length=255)
 
-    ## default is 0 for status which mean pending, 1 for approved, 2 for rejected
+    ## default is 0 for status which mean pending, 1 for confirmed
     status: int = Field(default=0, index=True)
 
     sack_in_kg: Optional[float] = Field(default=None)

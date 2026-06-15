@@ -121,7 +121,6 @@ export function ExportButton() {
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="0">{t.sackRegistration.filters.statusPending}</SelectItem>
                 <SelectItem value="1">{t.sackRegistration.filters.statusConfirmed}</SelectItem>
-                <SelectItem value="2">{t.sackRegistration.filters.statusRejected}</SelectItem>
               </SelectContent>
             </Select>
           </div>

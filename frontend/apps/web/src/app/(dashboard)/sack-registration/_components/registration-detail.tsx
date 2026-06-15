@@ -14,7 +14,6 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
     switch (statusVal) {
       case 0: return t.sackRegistration.filters.statusPending
       case 1: return t.sackRegistration.filters.statusConfirmed
-      case 2: return t.sackRegistration.filters.statusRejected
       default: return String(statusVal)
     }
   }

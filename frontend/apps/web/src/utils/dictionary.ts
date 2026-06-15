@@ -99,7 +99,6 @@ export const translations = {
         statusAll: "All",
         statusPending: "Pending",
         statusConfirmed: "Confirmed",
-        statusRejected: "Rejected",
         timeRange: "Time Range",
         today: "Today",
         thisWeek: "This Week",
@@ -184,7 +183,6 @@ export const translations = {
         statusBreakdown: "Status",
         approved: "Approved",
         pending: "Pending",
-        rejected: "Rejected",
         sackWeight: "Pending Sack",
         average: "Avg / Reg",
       }
@@ -400,7 +398,6 @@ export const translations = {
         statusAll: "ទាំងអស់",
         statusPending: "កំពុងរង់ចាំ",
         statusConfirmed: "បានបញ្ជាក់",
-        statusRejected: "បានបដិសេធ",
         timeRange: "ចន្លោះពេល",
         today: "ថ្ងៃនេះ",
         thisWeek: "សប្តាហ៍នេះ",
@@ -485,7 +482,6 @@ export const translations = {
         statusBreakdown: "ស្ថានភាព",
         approved: "បានបញ្ជាក់",
         pending: "កំពុងរង់ចាំ",
-        rejected: "បានបដិសេធ",
         sackWeight: "ទម្ងន់បើកបាវ",
         average: "មធ្យម / ករណី",
       }
@@ -703,7 +699,6 @@ export type TranslationType = {
       readonly statusAll: string;
       readonly statusPending: string;
       readonly statusConfirmed: string;
-      readonly statusRejected: string;
       readonly timeRange: string;
       readonly today: string;
       readonly thisWeek: string;
@@ -788,7 +783,6 @@ export type TranslationType = {
       readonly statusBreakdown: string;
       readonly approved: string;
       readonly pending: string;
-      readonly rejected: string;
       readonly sackWeight: string;
       readonly average: string;
     };

@@ -29,6 +29,7 @@ class TobaccoPurchaseDetail(SQLModel, table=True):
     gross_weight: float = Field(default=0.0)
     total_amount: float = Field(default=0.0)
     picture: Optional[str] = Field(default=None)
+    farmer_own_sack: int = Field(default=0)
 
 
 

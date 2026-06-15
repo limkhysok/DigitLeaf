@@ -66,7 +66,6 @@ export interface SackStatusCounts {
   all: number;
   pending: number;
   approved: number;
-  rejected: number;
 }
 
 export interface SackStatusCountsParams {

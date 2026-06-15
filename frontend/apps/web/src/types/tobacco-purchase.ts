@@ -31,6 +31,7 @@ export interface TobaccoPurchaseDetail {
   price: number;
   remork_in_kg?: number;
   sack_in_kg?: number | null;
+  farmer_own_sack?: number;
   total_amount?: number;
   CreatedDate?: string;
   closing?: string;

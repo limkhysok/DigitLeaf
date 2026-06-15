@@ -81,7 +81,7 @@ async def export_registrations(
     headers = ["ID", "Represent Name", "Member Farmer", "Sack (KG)", "Status", "Registered At", "Notes"]
     ws.append(headers)
 
-    status_map = {0: "Pending", 1: "Approved", 2: "Rejected"}
+    status_map = {0: "Pending", 1: "Approved"}
     total_sack = 0.0
 
     for item in items:

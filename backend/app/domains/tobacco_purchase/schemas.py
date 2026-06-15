@@ -29,6 +29,7 @@ class PurchaseDetailBase(BaseModel):
     price: float
     remork_in_kg: Optional[float] = None
     sack_in_kg: Optional[float] = None
+    farmer_own_sack: int = 0
     CreatedDate: Optional[date] = Field(default_factory=date.today)
     closing: ClosingStatus = ClosingStatus.NO
     buyer: int = 0

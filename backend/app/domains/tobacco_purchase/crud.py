@@ -88,7 +88,7 @@ async def _refund_sacks(db: AsyncSession, vendor_id: int, to_refund: float) -> N
     sack_reg = sack_result.scalars().first()
     if sack_reg:
         sack_reg.sack_in_kg = round((sack_reg.sack_in_kg or 0.0) + to_refund, 3)
-        sack_reg.status = 0  # Re-activate registration
+        sack_reg.status = 0
         sack_reg.updated_at = datetime.now(CAMBODIA_TZ)
         db.add(sack_reg)
 
@@ -107,7 +107,7 @@ async def _clear_existing_details(db: AsyncSession, tp_id: int) -> float:
         .where(TobaccoPurchaseDetail.m_id == tp_id)
     )
     old_details = old_result.scalars().all()
-    old_sack_total = sum(d.sack_in_kg or 0.0 for d in old_details)
+    old_sack_total = sum(d.sack_in_kg or 0.0 for d in old_details if not d.farmer_own_sack)
 
     for d in old_details:
         db.expunge(d)
@@ -205,7 +205,8 @@ async def _sync_purchase_details(
 
         total_net_weight += net
         grand_total += total_amount
-        new_sack_total += detail_in.sack_in_kg or 0
+        if not detail_in.farmer_own_sack:
+            new_sack_total += detail_in.sack_in_kg or 0
 
         picture_val = _process_detail_picture(detail_in.picture)
 
@@ -229,8 +230,17 @@ async def _sync_purchase_details(
 
 
     net_sack_change = new_sack_total - old_sack_total
-    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and net_sack_change != 0:
-        await _update_sack_registration(db, int(db_obj.vendor_id), net_sack_change)
+    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit():
+        if net_sack_change > 1e-9:
+            available = await get_vendor_total_active_sack_kg(db, int(db_obj.vendor_id))
+            if net_sack_change > available + 1e-9:
+                raise ValueError(
+                    f"Insufficient sack stock: need {net_sack_change:.3f} kg but only "
+                    f"{available:.3f} kg registered. "
+                    "Tick 'Own Sack' for items where the farmer brings their own sack."
+                )
+        if net_sack_change != 0:
+            await _update_sack_registration(db, int(db_obj.vendor_id), net_sack_change)
 
 
 async def create_purchase(
@@ -338,7 +348,7 @@ async def update_purchase(
     ip_address: str,
 ) -> Optional[TobaccoPurchase]:
     assert db_obj.tp_id is not None
-    update_data = obj_in.model_dump(exclude_unset=True, exclude={"details"}, exclude_none=True)
+    update_data = obj_in.model_dump(exclude_unset=True, exclude={"details", "vendor_id"}, exclude_none=True)
     for key, value in update_data.items():
         setattr(db_obj, key, value)
 
@@ -360,7 +370,7 @@ async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
         return False
 
     # Refund consumed sacks
-    total_sack_to_refund = sum(d.sack_in_kg or 0.0 for d in db_obj.details)
+    total_sack_to_refund = sum(d.sack_in_kg or 0.0 for d in db_obj.details if not d.farmer_own_sack)
     if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and total_sack_to_refund > 0:
         await _update_sack_registration(db, int(db_obj.vendor_id), -total_sack_to_refund)
 

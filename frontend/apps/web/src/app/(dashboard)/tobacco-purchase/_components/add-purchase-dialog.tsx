@@ -433,7 +433,7 @@
 
     const handleAddDetail = React.useCallback(() => {
       const tempId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
-      setDetails(prev => [...prev, { tempId, tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0 }])
+      setDetails(prev => [...prev, { tempId, tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0, farmer_own_sack: 0 }])
     }, [])
 
     const handleRemoveDetail = React.useCallback((index: number) => {
@@ -501,6 +501,7 @@
           price: Number(d.price) || 0,
           remork_in_kg: Number(d.remork_in_kg) || 0,
           sack_in_kg: Number(d.sack_in_kg) || 0,
+          farmer_own_sack: Number(d.farmer_own_sack) || 0,
           picture: d.picture || null,
         })) as TobaccoPurchaseDetail[],
         returns: returns.length > 0 ? returns.map(r => ({
@@ -768,7 +769,7 @@
                             }}
                             onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                             onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
-                            disabled={isReadOnly || !isBuyerSelected}
+                            disabled={isReadOnly || !isBuyerSelected || !!initialData}
                             className="pl-8 pr-2 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                           />
                         </div>
@@ -1474,7 +1475,39 @@
 
           {/* Col 2 row 3: Sack */}
           <div className="px-3 pt-1.5 pb-2 space-y-1">
-            <Label className="text-sm">Sack</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Sack</Label>
+              <div className="flex items-center gap-1.5">
+                <span className={cn("text-[10px] font-medium transition-colors", detail.farmer_own_sack ? "text-green-600" : "text-muted-foreground/40")}>Own</span>
+                {isReadOnly ? (
+                  <div className={cn(
+                    "relative inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent cursor-not-allowed opacity-70",
+                    detail.farmer_own_sack ? "bg-green-500" : "bg-gray-300"
+                  )}>
+                    <span className={cn(
+                      "pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
+                      detail.farmer_own_sack ? "translate-x-3" : "translate-x-0"
+                    )} />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={!!detail.farmer_own_sack}
+                    onClick={() => onChange(index, "farmer_own_sack", detail.farmer_own_sack ? 0 : 1)}
+                    className={cn(
+                      "relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1",
+                      detail.farmer_own_sack ? "bg-green-500" : "bg-gray-300"
+                    )}
+                  >
+                    <span className={cn(
+                      "pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
+                      detail.farmer_own_sack ? "translate-x-3" : "translate-x-0"
+                    )} />
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="relative">
               <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
@@ -1746,7 +1779,39 @@
               </div>
 
               <div className="w-[25%] pr-4 space-y-1">
-                <Label className="text-sm">Sack</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Sack</Label>
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn("text-[10px] font-medium transition-colors", detail.farmer_own_sack ? "text-green-600" : "text-muted-foreground/40")}>Own</span>
+                    {isReadOnly ? (
+                      <div className={cn(
+                        "relative inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent cursor-not-allowed opacity-70",
+                        detail.farmer_own_sack ? "bg-green-500" : "bg-gray-300"
+                      )}>
+                        <span className={cn(
+                          "pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
+                          detail.farmer_own_sack ? "translate-x-3" : "translate-x-0"
+                        )} />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={!!detail.farmer_own_sack}
+                        onClick={() => onChange(index, "farmer_own_sack", detail.farmer_own_sack ? 0 : 1)}
+                        className={cn(
+                          "relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1",
+                          detail.farmer_own_sack ? "bg-green-500" : "bg-gray-300"
+                        )}
+                      >
+                        <span className={cn(
+                          "pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
+                          detail.farmer_own_sack ? "translate-x-3" : "translate-x-0"
+                        )} />
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <div className="relative">
                   <IconPackage className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input type="number" step="0.01"
