@@ -49,24 +49,12 @@ export interface SackRegistrationListParams {
   search?: string;
   date_from?: string;
   date_to?: string;
-  sort_sack_in_kg?: string | null;
 }
 
 export interface SackRegistrationListResponse {
   items: SackRegistrationItem[];
   total: number;
   has_more: boolean;
-}
-
-export interface SackRegistrationStats {
-  registration_counts: {
-    total: number
-    today: number
-  }
-  sack_weight_kg: {
-    total: number
-    today: number
-  }
 }
 
 export interface FarmerContractItem {

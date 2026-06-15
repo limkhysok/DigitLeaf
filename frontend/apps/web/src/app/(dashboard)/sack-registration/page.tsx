@@ -12,26 +12,18 @@ import {
 import { IconLoader2, IconCirclePlusFilled } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
-  ColumnFiltersState,
-  SortingState,
   VisibilityState,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
 } from "@tanstack/react-table"
 import { useReactTable } from "@/utils/table-utils"
 import { DataTable } from "./_components/data-table"
 import { DataTableToolbar } from "./_components/data-table-toolbar"
 import { getColumns } from "./_components/columns"
-import { buildFetchParams } from "./_components/constants"
 import { EditDialog } from "./_components/edit-dialog"
 import { DeleteDialog } from "./_components/delete-dialog"
 import { ViewDialog } from "./_components/view-dialog"
 import { RegisterDialog } from "./_components/register-dialog"
 import { SackRegistrationCard } from "./_components/sack-registration-card"
-import { SackRegistrationStatsPanel } from "./_components/stats"
 
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useQueryState, parseAsString } from "nuqs"
@@ -53,18 +45,15 @@ export default function SackRegistrationPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
 
-  // ── Search (server-side via nuqs + debounce) ──
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
   const [debouncedSearch] = useDebounce(searchInput, 400)
 
-  // ── Represents lookup ──
   const { data: represents = [] } = useQuery({
     queryKey: ["represents"],
     queryFn: () => apiClient.getRepresents(tokens!.access_token),
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
 
-  // ── Infinite Query (server-side search, client-side status filter) ──
   const {
     data,
     isLoading,
@@ -73,10 +62,12 @@ export default function SackRegistrationPage() {
     hasNextPage,
   } = useInfiniteQuery({
     queryKey: ["sack-registrations", debouncedSearch],
-    queryFn: ({ pageParam }) => {
-      const params = buildFetchParams(pageParam, debouncedSearch, "all", null, PAGE_SIZE)
-      return apiClient.getSackRegistrations(tokens!.access_token, params)
-    },
+    queryFn: ({ pageParam }) =>
+      apiClient.getSackRegistrations(tokens!.access_token, {
+        page: pageParam,
+        limit: PAGE_SIZE,
+        search: debouncedSearch || undefined,
+      }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.has_more ? allPages.length + 1 : undefined,
@@ -89,7 +80,6 @@ export default function SackRegistrationPage() {
   const records = React.useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data])
   const total = data?.pages[0]?.total ?? 0
 
-  // ── Infinite scroll sentinel ──
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "200px" })
   React.useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
@@ -99,7 +89,6 @@ export default function SackRegistrationPage() {
 
   const refetch = () => {
     queryClient.resetQueries({ queryKey: ["sack-registrations"] })
-    queryClient.invalidateQueries({ queryKey: ["sack-registration-stats"] })
   }
 
   const columns = getColumns({
@@ -112,31 +101,21 @@ export default function SackRegistrationPage() {
     onDelete: (rec, index) => setDeleteTarget({ id: rec.id, no: index })
   })
 
-  // ── Table State ──
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = React.useState<SortingState>([])
 
   const table = useReactTable({
     data: records,
     columns,
     state: {
-      sorting,
       columnVisibility,
       rowSelection,
-      columnFilters,
     },
     enableRowSelection: true,
+    enableSorting: false,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
     manualPagination: true,
   })
 
@@ -150,9 +129,6 @@ export default function SackRegistrationPage() {
   return (
     <div className="flex flex-col gap-4">
 
-      {/* ════════════════════════════════════════════════════════════════════
-          HEADER
-      ════════════════════════════════════════════════════════════════════ */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{t.sackRegistration.title}</h1>
@@ -162,14 +138,6 @@ export default function SackRegistrationPage() {
         </div>
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          STATS
-      ════════════════════════════════════════════════════════════════════ */}
-      <SackRegistrationStatsPanel />
-
-      {/* ════════════════════════════════════════════════════════════════════
-          LOADING / EMPTY STATES
-      ════════════════════════════════════════════════════════════════════ */}
       {isLoading && (
         <div className="flex flex-col gap-4 mt-4">
           <div className="flex items-center justify-between">
@@ -189,9 +157,7 @@ export default function SackRegistrationPage() {
           </div>
         </div>
       )}
-      {/* ════════════════════════════════════════════════════════════════════
-          TOOLBAR
-      ════════════════════════════════════════════════════════════════════ */}
+
       {!isLoading && (
         <DataTableToolbar
           table={table}
@@ -207,9 +173,6 @@ export default function SackRegistrationPage() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          MOBILE CONTENT — (< 768px / below md)
-      ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
         <div className="grid md:hidden grid-cols-1 gap-3">
           {table.getRowModel().rows.map((row) => (
@@ -225,9 +188,6 @@ export default function SackRegistrationPage() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          TABLET CONTENT — (768px – 1023px / md → lg)
-      ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
         <div className="hidden md:grid lg:hidden grid-cols-3 gap-4">
           {table.getRowModel().rows.map((row) => (
@@ -243,9 +203,6 @@ export default function SackRegistrationPage() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════
-          DESKTOP CONTENT — (≥ 1024px / lg and above)
-      ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && records.length > 0 && (
         <div className="hidden lg:block">
           {view === "list" ? (
@@ -270,7 +227,6 @@ export default function SackRegistrationPage() {
         </div>
       )}
 
-      {/* ── Infinite scroll sentinel ── */}
       <div ref={sentinelRef} className="h-1" />
       {isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">

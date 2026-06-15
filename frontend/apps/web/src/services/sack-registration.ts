@@ -7,9 +7,6 @@ import type {
   SackRegistrationUpdate,
   SackRegistrationListParams,
   SackRegistrationListResponse,
-  SackStatusCounts,
-  SackStatusCountsParams,
-  SackRegistrationStats,
   FarmerContractListResponse,
 } from "../types";
 
@@ -91,10 +88,8 @@ export const sackRegistrationApi = {
     if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.search) query.set("search", params.search);
-    if (params.status !== undefined) query.set("status", String(params.status));
     if (params.date_from) query.set("date_from", params.date_from);
     if (params.date_to) query.set("date_to", params.date_to);
-    if (params.sort_sack_in_kg) query.set("sort_sack_in_kg", params.sort_sack_in_kg);
     const response = await fetch(
       `${API_BASE_URL}/sack-registrations/?${query}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -112,10 +107,9 @@ export const sackRegistrationApi = {
   ): Promise<Blob> {
     const query = new URLSearchParams();
     if (params.search) query.set("search", params.search);
-    if (params.status !== undefined) query.set("status", String(params.status));
     if (params.date_from) query.set("date_from", params.date_from);
     if (params.date_to) query.set("date_to", params.date_to);
-    
+
     const response = await fetch(
       `${API_BASE_URL}/sack-registrations/export?${query}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -156,36 +150,6 @@ export const sackRegistrationApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to update registration");
-    }
-    return response.json();
-  },
-
-  async getSackStatusCounts(
-    accessToken: string,
-    params: SackStatusCountsParams = {}
-  ): Promise<SackStatusCounts> {
-    const query = new URLSearchParams();
-    if (params.search) query.set("search", params.search);
-    if (params.date_from) query.set("date_from", params.date_from);
-    if (params.date_to) query.set("date_to", params.date_to);
-    const response = await fetch(
-      `${API_BASE_URL}/sack-registrations/status-counts?${query}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Failed to fetch status counts");
-    }
-    return response.json();
-  },
-
-  async getSackRegistrationStats(accessToken: string): Promise<SackRegistrationStats> {
-    const response = await fetch(`${API_BASE_URL}/sack-registrations/stats`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Failed to fetch stats");
     }
     return response.json();
   },

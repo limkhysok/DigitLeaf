@@ -135,7 +135,6 @@ export default function TobaccoPurchasePage() {
       queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
       queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
       queryClient.resetQueries({ queryKey: ["sack-registrations"] })
-      queryClient.invalidateQueries({ queryKey: ["sack-registration-stats"] })
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -351,7 +350,6 @@ export default function TobaccoPurchasePage() {
           queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
           queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
           queryClient.resetQueries({ queryKey: ["sack-registrations"] })
-          queryClient.invalidateQueries({ queryKey: ["sack-registration-stats"] })
         }}
         onPrint={handlePrint}
         accessToken={tokens?.access_token || ""}
