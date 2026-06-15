@@ -1555,6 +1555,54 @@
 
   PurchaseDetailCard.displayName = "PurchaseDetailCard"
 
+  function DesktopImageColumn({ index, picture, isReadOnly, onChange, onPreviewImage }: Readonly<{
+    index: number
+    picture?: string | null
+    isReadOnly?: boolean
+    onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+    onPreviewImage: (url: string) => void
+  }>) {
+    return (
+      <div className="shrink-0 w-24 flex flex-col">
+        <div className="mb-1">
+          <Label className="text-sm font-medium tracking-wider">Item {index + 1}</Label>
+        </div>
+        {picture ? (
+          <div className="w-full flex-1 min-h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex flex-col">
+            <button
+              type="button"
+              onClick={() => onPreviewImage(getPictureUrl(picture))}
+              className="w-full flex-1 p-0 border-none outline-none bg-transparent cursor-zoom-in focus-visible:ring-1 focus-visible:ring-primary"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={getPictureUrl(picture)} alt="Tobacco item detail" className="block w-full h-full object-cover hover:scale-105 transition-all duration-200" />
+            </button>
+            {!isReadOnly && (
+              <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
+                <IconPlus className="size-7 text-white" />
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={async (e) => { const file = e.target.files?.[0]; if (file) onChange(index, "picture", await processImageFile(file)) }}
+                />
+              </label>
+            )}
+          </div>
+        ) : (
+          <label className={cn(
+            "w-full flex-1 min-h-20 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center transition-all group/img",
+            isReadOnly ? "cursor-default" : "cursor-pointer hover:border-primary/40"
+          )}>
+            <IconSeedling className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
+            {!isReadOnly && (
+              <input type="file" accept="image/*" className="hidden"
+                onChange={async (e) => { const file = e.target.files?.[0]; if (file) onChange(index, "picture", await processImageFile(file)) }}
+              />
+            )}
+          </label>
+        )}
+      </div>
+    )
+  }
+
   // ━━━ PurchaseDetailDesktopCard — desktop spacious horizontal card layout ━━━
 
   const PurchaseDetailDesktopCard = React.memo(({
@@ -1609,59 +1657,13 @@
         <div className="flex gap-5 items-stretch mb-2">
 
           {/* Image column — "Item N" label sits above image like other field labels */}
-          <div className="shrink-0 w-24 flex flex-col">
-            <div className="mb-1">
-              <Label className="text-sm font-medium tracking-wider">Item {index + 1}</Label>
-            </div>
-            {detail.picture ? (
-              <div className="w-full flex-1 min-h-20 bg-white rounded-sm border border-black/20 overflow-hidden group/img relative flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => onPreviewImage(getPictureUrl(detail.picture))}
-                  className="w-full flex-1 p-0 border-none outline-none bg-transparent cursor-zoom-in focus-visible:ring-1 focus-visible:ring-primary"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={getPictureUrl(detail.picture)}
-                    alt="Tobacco item detail"
-                    className="block w-full h-full object-cover hover:scale-105 transition-all duration-200"
-                  />
-                </button>
-                {!isReadOnly && (
-                  <label className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
-                    <IconPlus className="size-7 text-white" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0]
-                        if (file) onChange(index, "picture", await processImageFile(file))
-                      }}
-                    />
-                  </label>
-                )}
-              </div>
-            ) : (
-              <label className={cn(
-                "w-full flex-1 min-h-20 bg-slate-50/50 rounded-sm border border-dashed border-black/20 flex flex-col items-center justify-center transition-all group/img",
-                isReadOnly ? "cursor-default" : "cursor-pointer hover:border-primary/40"
-              )}>
-                <IconSeedling className="size-8 text-muted-foreground/20 group-hover/img:text-primary/40" />
-                {!isReadOnly && (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0]
-                      if (file) onChange(index, "picture", await processImageFile(file))
-                    }}
-                  />
-                )}
-              </label>
-            )}
-          </div>
+          <DesktopImageColumn
+            index={index}
+            picture={detail.picture}
+            isReadOnly={isReadOnly}
+            onChange={onChange}
+            onPreviewImage={onPreviewImage}
+          />
 
           {/* Fields — 2 rows */}
           <div className="flex-1 flex flex-col gap-2.5">
