@@ -956,7 +956,7 @@
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-0 border-l border-r border-black/40 divide-x divide-y divide-black/40">
+                    <div className="grid grid-cols-1 gap-0 border-l border-r border-black/40 divide-y divide-black/40">
                       {details.map((detail, idx) => (
                         <PurchaseDetailCard
                           key={detail.tempId}
@@ -1014,7 +1014,7 @@
                     )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 border-l border-r border-black/40 divide-y divide-x divide-black/40">
+                  <div className="grid grid-cols-2 border-l border-r border-black/40 divide-x divide-black/40">
                     {details.map((detail, idx) => (
                       <PurchaseDetailCard
                         key={detail.tempId}
