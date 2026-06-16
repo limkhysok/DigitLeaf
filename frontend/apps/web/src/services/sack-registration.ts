@@ -8,6 +8,9 @@ import type {
   SackRegistrationListParams,
   SackRegistrationListResponse,
   FarmerContractListResponse,
+  FarmerContractFormMetadata,
+  FarmerContractCreate,
+  FarmerContractCreated,
 } from "../types";
 
 export const sackRegistrationApi = {
@@ -192,6 +195,38 @@ export const sackRegistrationApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to fetch farmer contracts");
+    }
+    return response.json();
+  },
+
+  async getFarmerContractFormMetadata(
+    accessToken: string
+  ): Promise<FarmerContractFormMetadata> {
+    const response = await fetch(`${API_BASE_URL}/farmer-contract/form-metadata`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch form metadata");
+    }
+    return response.json();
+  },
+
+  async createFarmerContract(
+    accessToken: string,
+    data: FarmerContractCreate
+  ): Promise<FarmerContractCreated> {
+    const response = await fetch(`${API_BASE_URL}/farmer-contract/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to create farmer contract");
     }
     return response.json();
   },

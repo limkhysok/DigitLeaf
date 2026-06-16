@@ -3,8 +3,9 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
 from app.domains.farmer_contract.models import MfConYear
+from app.domains.farmer_contract.schemas import FarmerContractCreate
 from app.domains.farmers.models import MemberFarmer
-from app.domains.tobacco_purchase.models import TobaccoPurchase
+from app.domains.tobacco_purchase.models import TobaccoPurchase, Tobacco
 
 
 async def get_farmer_contracts(
@@ -40,14 +41,14 @@ async def get_farmer_contracts(
     ).where(col(MfConYear.year) == year)
 
     count_result = await session.execute(
-        select(func.count()).select_from(base_stmt.subquery())
+        select(func.count()).select_from(base_stmt.subquery())  # type: ignore[arg-type]
     )
     total = count_result.scalar() or 0
 
-    result = await session.execute(
-        base_stmt.order_by(col(MfConYear.mf_con_id).desc()).offset(skip).limit(limit)
+    result = await session.execute(  # type: ignore[arg-type]
+        base_stmt.order_by(col(MfConYear.mf_con_id).desc()).offset(skip).limit(limit)  # type: ignore[union-attr]
     )
-    rows = result.all()
+    rows = result.all()  # type: ignore[union-attr]
     items: list[dict[str, Any]] = [
         {
             "mf_con_id": r[0],
@@ -60,6 +61,37 @@ async def get_farmer_contracts(
             "expected_yield": round(r[6] * 0.8, 2) if r[6] is not None else None,
             "purchased_weight": round(r[7], 2),
         }
-        for r in rows
+        for r in rows  # type: ignore[union-attr]
     ]
     return {"items": items, "total": total}
+
+
+async def get_form_metadata(session: AsyncSession) -> dict[str, Any]:
+    result = await session.execute(
+        select(Tobacco)
+        .where(Tobacco.discontinue == 0)
+        .order_by(Tobacco.t_name)
+    )
+    tobaccos = result.scalars().all()
+    return {
+        "tobacco_types": [
+            {"t_id": t.t_id, "t_name": t.t_name, "t_name_kh": t.t_name_kh}
+            for t in tobaccos
+        ]
+    }
+
+
+async def create_farmer_contract(
+    session: AsyncSession,
+    data: FarmerContractCreate,
+) -> MfConYear:
+    contract = MfConYear(
+        mf_id=data.mf_id,
+        year=data.year,
+        land=data.land,
+        tobac_num=data.tobac_num,
+    )
+    session.add(contract)
+    await session.commit()
+    await session.refresh(contract)
+    return contract

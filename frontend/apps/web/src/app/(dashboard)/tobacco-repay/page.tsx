@@ -167,6 +167,7 @@ export default function TobaccoRepayPage() {
         selectedYear={effectiveYear}
         setSelectedYear={setSelectedYear}
         availableYears={availableYears}
+        onAdd={() => { setSelectedRecord(null); setCreateOpen(true) }}
       />
 
       {/* ── Desktop Filter Bar ── */}
@@ -218,7 +219,6 @@ export default function TobaccoRepayPage() {
               key={`${rec.id}-${idx}`}
               rec={rec}
               index={idx + 1}
-              onAdd={() => { setSelectedRecord(rec); setCreateOpen(true) }}
             />
           ))}
         </div>
@@ -234,7 +234,6 @@ export default function TobaccoRepayPage() {
               key={`${rec.id}-${idx}`}
               rec={rec}
               index={idx + 1}
-              onAdd={() => { setSelectedRecord(rec); setCreateOpen(true) }}
             />
           ))}
         </div>

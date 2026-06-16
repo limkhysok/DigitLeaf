@@ -76,3 +76,22 @@ export interface FarmerContractListResponse {
   total: number;
   has_more: boolean;
 }
+
+export interface FarmerContractFormMetadata {
+  tobacco_types: { t_id: number; t_name: string; t_name_kh?: string }[];
+}
+
+export interface FarmerContractCreate {
+  mf_id: number;
+  year: number;
+  land?: number | null;
+  tobac_num?: number | null;
+}
+
+export interface FarmerContractCreated {
+  mf_con_id: number;
+  mf_id: number;
+  year: number;
+  land?: number | null;
+  tobac_num?: number | null;
+}
