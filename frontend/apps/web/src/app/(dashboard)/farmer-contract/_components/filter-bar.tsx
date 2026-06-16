@@ -42,6 +42,7 @@ interface FilterBarProps {
   setSelectedYear: (v: number) => void
   columnVisibility: ColumnVisibility
   setColumnVisibility: (v: ColumnVisibility) => void
+  onAddClick: () => void
 }
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027]
@@ -53,6 +54,7 @@ export function FilterBar({
   sortOrder, setSortOrder,
   selectedYear, setSelectedYear,
   columnVisibility, setColumnVisibility,
+  onAddClick,
 }: Readonly<FilterBarProps>) {
   const { t } = useLanguage()
   const [yearOpen, setYearOpen] = React.useState(false)
@@ -231,6 +233,11 @@ export function FilterBar({
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-md h-8 w-62.5 text-xs placeholder:text-sm"
         />
+
+        <Button onClick={onAddClick} size="sm" className="h-8 bg-[#009640] hover:bg-[#007a33] text-white">
+          <IconCirclePlus className="mr-2 h-4 w-4" />
+          Add
+        </Button>
       </div>
     </div>
   )

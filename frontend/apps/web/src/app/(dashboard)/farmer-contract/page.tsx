@@ -17,6 +17,7 @@ import {
 import { FarmerContractCard } from "./_components/farmer-contract-card"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
+import { CreateFarmerContractDialog } from "./_components/create-farmer-contract-dialog"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 
@@ -43,6 +44,7 @@ export default function FarmerContractPage() {
     purchased: true,
     year: true,
   })
+  const [addDialogOpen, setAddDialogOpen] = React.useState(false)
 
   const {
     data,
@@ -132,6 +134,7 @@ export default function FarmerContractPage() {
         setSortOrder={setSortOrder}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
+        onAddClick={() => setAddDialogOpen(true)}
       />
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -149,6 +152,7 @@ export default function FarmerContractPage() {
         setSelectedYear={setSelectedYear}
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
+        onAddClick={() => setAddDialogOpen(true)}
       />
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -255,6 +259,8 @@ export default function FarmerContractPage() {
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
+
+      <CreateFarmerContractDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
     </div>
   )
 }

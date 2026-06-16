@@ -200,3 +200,67 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[st
         }
         for row in rows
     ]
+
+
+async def get_tobacco_repay_history(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 20,
+    year: Optional[int] = None,
+) -> dict[str, Any]:
+    year_expr = ":year_val" if year is not None else "YEAR(CURDATE()) - 1"
+    bind = {"skip": skip, "limit": limit}
+    if year is not None:
+        bind["year_val"] = year
+
+    count_query = text(f"""
+        SELECT COUNT(r.repay_id)
+        FROM kaic_db.t_contract_repay AS r
+        INNER JOIN kaic_db.t_contract AS c ON r.con_id = c.con_id
+        INNER JOIN kaic_db.mf_con_year AS mcy ON mcy.mf_id = c.f_id AND mcy.year = YEAR(c.date)
+        WHERE mcy.year = {year_expr}
+    """)
+    count_result = await db.execute(count_query, bind)
+    total = count_result.scalar() or 0
+
+    query = text(f"""
+        SELECT
+            r.repay_id,
+            r.date AS repay_date,
+            r.repay_num,
+            c.con_num,
+            m.name AS farmer_name,
+            t.tobacco AS tobacco_type,
+            r.qty_repay,
+            r.note,
+            r.user
+        FROM
+            kaic_db.t_contract_repay AS r
+        INNER JOIN kaic_db.t_contract AS c ON r.con_id = c.con_id
+        INNER JOIN kaic_db.member_farmer AS m ON c.f_id = m.mf_id
+        INNER JOIN kaic_db.mf_con_year AS mcy ON mcy.mf_id = c.f_id AND mcy.year = YEAR(c.date)
+        LEFT JOIN kaic_db.con_tobacco AS t ON c.tobac_type = t.t_id
+        WHERE
+            mcy.year = {year_expr}
+        ORDER BY
+            r.date DESC, r.repay_id DESC
+        LIMIT :limit OFFSET :skip
+    """)
+    result = await db.execute(query, bind)
+    rows = result.fetchall()
+
+    items: list[dict[str, Any]] = [
+        {
+            "repay_id": row.repay_id,
+            "repay_date": row.repay_date,
+            "repay_num": row.repay_num,
+            "con_num": row.con_num,
+            "farmer_name": row.farmer_name,
+            "tobacco_type": row.tobacco_type,
+            "qty_repay": float(row.qty_repay) if row.qty_repay is not None else 0.0,
+            "note": row.note,
+            "user": row.user,
+        }
+        for row in rows
+    ]
+    return {"items": items, "total": total}

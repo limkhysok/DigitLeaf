@@ -20,6 +20,23 @@ export const tobaccoRepayApi = {
     }
     return res.json();
   },
+  getTobaccoRepayHistory: async (
+    token: string,
+    params: { page?: number; limit?: number; year?: string } = {}
+  ): Promise<import("../types").RepayHistoryListResponse> => {
+    const query = new URLSearchParams();
+    if (params.page !== undefined) query.set("page", String(params.page));
+    if (params.limit !== undefined) query.set("limit", String(params.limit));
+    if (params.year) query.set("year", params.year);
+    const res = await fetch(`${BASE_URL}/tobacco-repays/history?${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch tobacco repay history");
+    }
+    return res.json();
+  },
   getAvailableYears: async (token: string): Promise<string[]> => {
     const res = await fetch(`${BASE_URL}/tobacco-repays/years`, {
       headers: {

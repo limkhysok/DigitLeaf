@@ -45,3 +45,21 @@ class TContractRepayRead(BaseModel):
     note: Optional[str]
     user: Optional[str]
     do_date: Optional[_datetime]
+
+
+class RepayHistoryItem(BaseModel):
+    repay_id: int
+    repay_date: Optional[_date]
+    repay_num: Optional[str]
+    con_num: Optional[str]
+    farmer_name: Optional[str]
+    tobacco_type: Optional[str]
+    qty_repay: Optional[float]
+    note: Optional[str]
+    user: Optional[str]
+
+
+class RepayHistoryListResponse(BaseModel):
+    items: List[RepayHistoryItem]
+    total: int
+    has_more: bool

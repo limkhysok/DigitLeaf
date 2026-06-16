@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import {
-  IconFilter, IconSearch, IconSortAscending, IconSortDescending, IconChevronDown
+  IconFilter, IconSearch, IconSortAscending, IconSortDescending, IconChevronDown, IconCirclePlus
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
@@ -19,6 +19,7 @@ interface MobileFilterBarProps {
   setSortOrder: (v: "asc" | "desc") => void
   selectedYear: number
   setSelectedYear: (v: number) => void
+  onAddClick: () => void
 }
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027]
@@ -29,6 +30,7 @@ export function MobileFilterBar({
   sortBy, setSortBy,
   sortOrder, setSortOrder,
   selectedYear, setSelectedYear,
+  onAddClick,
 }: Readonly<MobileFilterBarProps>) {
   const { t } = useLanguage()
   const [yearOpen, setYearOpen] = React.useState(false)
@@ -162,6 +164,10 @@ export function MobileFilterBar({
           <button onClick={() => setSearchInput("")} className="text-muted-foreground hover:text-foreground text-xs leading-none">✕</button>
         )}
       </div>
+
+      <Button onClick={onAddClick} size="sm" className="h-9 w-9 p-0 rounded-full bg-[#009640] hover:bg-[#007a33] text-white shrink-0">
+        <IconCirclePlus className="h-5 w-5" />
+      </Button>
     </div>
   )
 }

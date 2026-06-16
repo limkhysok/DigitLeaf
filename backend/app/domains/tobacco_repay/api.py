@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from app.domains.tobacco_repay.schemas import TobaccoRepayItem, TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead
+from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse
 from app.domains.tobacco_repay import crud
 
 router = APIRouter()
@@ -21,6 +21,23 @@ async def read_tobacco_repays(
     skip = (page - 1) * limit
     result = await crud.get_tobacco_repays(session, skip=skip, limit=limit, year=year)
     return TobaccoRepayListResponse(
+        items=result["items"],
+        total=result["total"],
+        has_more=(skip + len(result["items"])) < result["total"],
+    )
+
+
+@router.get("/history", response_model=RepayHistoryListResponse)
+async def read_tobacco_repay_history(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=200),
+    year: Optional[int] = Query(None),
+):
+    skip = (page - 1) * limit
+    result = await crud.get_tobacco_repay_history(session, skip=skip, limit=limit, year=year)
+    return RepayHistoryListResponse(
         items=result["items"],
         total=result["total"],
         has_more=(skip + len(result["items"])) < result["total"],

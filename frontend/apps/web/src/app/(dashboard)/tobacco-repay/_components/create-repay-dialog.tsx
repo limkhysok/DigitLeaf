@@ -62,13 +62,19 @@ export function CreateRepayDialog({
   })
 
   React.useEffect(() => {
-    if (open && nextRepayNum) setRepayNum(nextRepayNum)
+    if (open && nextRepayNum) {
+      const t = setTimeout(() => setRepayNum(nextRepayNum), 0)
+      return () => clearTimeout(t)
+    }
   }, [open, nextRepayNum])
 
   // Pre-fill quantity with remaining when dialog opens or record changes
   React.useEffect(() => {
-    if (open && remaining != null) setQuantity(String(remaining))
-  }, [open, record])
+    if (open && remaining != null) {
+      const t = setTimeout(() => setQuantity(String(remaining)), 0)
+      return () => clearTimeout(t)
+    }
+  }, [open, record, remaining])
 
   // Fetch ovens — reuses existing tobacco-purchase endpoint
   const { data: ovens = [] } = useQuery({
@@ -79,7 +85,7 @@ export function CreateRepayDialog({
 
   const effectiveOvenId = ovens.length === 1 ? String(ovens[0]?.id) : ovenId
 
-  const parsedQty = parseFloat(quantity)
+  const parsedQty = Number.parseFloat(quantity)
 
   const { mutate, isPending } = useMutation({
     mutationFn: () =>
@@ -114,7 +120,7 @@ export function CreateRepayDialog({
 
   function handleSubmit() {
     if (!record?.id || !record?.f_id || !record?.contract_number) return
-    if (isNaN(parsedQty) || parsedQty <= 0) {
+    if (Number.isNaN(parsedQty) || parsedQty <= 0) {
       toast.error("Enter a valid quantity to repay")
       return
     }
@@ -214,18 +220,6 @@ export function CreateRepayDialog({
             />
           </div>
 
-          {/* Date */}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="repay_date">Date</Label>
-            <Input
-              id="repay_date"
-              type="date"
-              value={repayDate}
-              onChange={(e) => setRepayDate(e.target.value)}
-              required
-            />
-          </div>
-
           {/* Oven */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="oven">
@@ -243,6 +237,18 @@ export function CreateRepayDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Date */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="repay_date">Date</Label>
+            <Input
+              id="repay_date"
+              type="date"
+              value={repayDate}
+              onChange={(e) => setRepayDate(e.target.value)}
+              required
+            />
           </div>
 
           {/* Note */}
@@ -264,7 +270,7 @@ export function CreateRepayDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isPending || !record?.f_id || isNaN(parsedQty) || parsedQty <= 0}
+              disabled={isPending || !record?.f_id || Number.isNaN(parsedQty) || parsedQty <= 0}
               className="bg-[#009640] hover:bg-[#007a33] text-white"
             >
               {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}

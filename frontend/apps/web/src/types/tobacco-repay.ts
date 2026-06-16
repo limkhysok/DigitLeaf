@@ -17,3 +17,21 @@ export interface TobaccoRepayListResponse {
   total: number;
   has_more: boolean;
 }
+
+export interface RepayHistoryItem {
+  repay_id: number;
+  repay_date: string | null;
+  repay_num: string | null;
+  con_num: string | null;
+  farmer_name: string | null;
+  tobacco_type: string | null;
+  qty_repay: number | null;
+  note: string | null;
+  user: string | null;
+}
+
+export interface RepayHistoryListResponse {
+  items: RepayHistoryItem[];
+  total: number;
+  has_more: boolean;
+}

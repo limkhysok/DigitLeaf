@@ -20,6 +20,8 @@ import { TobaccoRepayCard } from "./_components/tobacco-repay-card"
 import { CreateRepayDialog } from "./_components/create-repay-dialog"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import { TobaccoRepayHistory } from "./_components/tobacco-repay-history"
 
 const PAGE_SIZE = 20
 
@@ -146,8 +148,15 @@ export default function TobaccoRepayPage() {
         selectedYear={effectiveYear}
       />
 
-      {/* ── Mobile Filter Bar ── */}
-      <MobileFilterBar
+      <Tabs defaultValue="summary" className="w-full">
+        <TabsList className="mb-4 bg-white/60">
+          <TabsTrigger value="summary">Summary</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="summary" className="mt-0 space-y-4">
+          {/* ── Mobile Filter Bar ── */}
+          <MobileFilterBar
         className="flex lg:hidden"
         searchInput={searchInput}
         setSearchInput={setSearchInput}
@@ -294,6 +303,17 @@ export default function TobaccoRepayPage() {
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-0">
+          <TobaccoRepayHistory
+            token={tokens?.access_token ?? ""}
+            selectedYear={effectiveYear}
+            setSelectedYear={setSelectedYear}
+            availableYears={availableYears}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
