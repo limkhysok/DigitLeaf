@@ -125,7 +125,7 @@ export function CreateFarmerContractDialog({
     },
   })
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     if (!selectedFarmer) {
       toast.error("Please select a farmer")
@@ -141,9 +141,9 @@ export function CreateFarmerContractDialog({
     }
     createContract({
       mf_id: selectedFarmer.mf_id,
-      year: parseInt(year),
-      land: parseFloat(land),
-      tobac_num: parseInt(sapling),
+      year: Number.parseInt(year),
+      land: Number.parseFloat(land),
+      tobac_num: Number.parseInt(sapling),
     })
   }
 
