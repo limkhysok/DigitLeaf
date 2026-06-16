@@ -27,7 +27,7 @@ async def read_tobacco_repays(
     )
 
 
-@router.get("/years", response_model=List[str])
+@router.get("/years", response_model=List[int])
 async def read_available_years(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],

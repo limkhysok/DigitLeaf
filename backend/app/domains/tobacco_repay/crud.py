@@ -1,4 +1,5 @@
 from typing import Any, List, Optional
+from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func
 from sqlalchemy import text
@@ -7,6 +8,7 @@ from .models.t_contract_return import TContractReturn
 from .schemas import TContractRepayCreate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
+from app.domains.farmer_contract.models.mf_con_year import MfConYear
 
 async def get_tobacco_repays(
     db: AsyncSession,
@@ -95,15 +97,16 @@ async def get_tobacco_repays(
     ]
     return {"items": items, "total": total}
 
-async def get_available_years(db: AsyncSession) -> List[str]:
+async def get_available_years(db: AsyncSession) -> List[int]:
+    last_year = date.today().year - 1
     stmt = (
-        select(TContract.note)
-        .where(TContract.note.is_not(None))  # type: ignore[union-attr]
+        select(MfConYear.year)
+        .where(MfConYear.year <= last_year)
         .distinct()
-        .order_by(TContract.note.desc())  # type: ignore[union-attr]
+        .order_by(MfConYear.year.desc())  # type: ignore[union-attr]
     )
     result = await db.execute(stmt)
-    return [row for row in result.scalars().all() if str(row).isdigit()]
+    return list(result.scalars().all())
 
 async def create_repay(db: AsyncSession, obj_in: TContractRepayCreate) -> TContractReturn:
     stmt = select(TContract.con_id).where(TContract.con_num == obj_in.con_num)
