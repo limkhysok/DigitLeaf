@@ -4,14 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from app.domains.tobacco_return.schemas import TobaccoReturnItem, TobaccoReturnListResponse, TContractReturnCreate
-from app.domains.tobacco_return import crud
+from app.domains.tobacco_repay.schemas import TobaccoRepayItem, TobaccoRepayListResponse, TContractRepayCreate
+from app.domains.tobacco_repay import crud
 
 router = APIRouter()
 
 
-@router.get("/", response_model=TobaccoReturnListResponse)
-async def read_tobacco_returns(
+@router.get("/", response_model=TobaccoRepayListResponse)
+async def read_tobacco_repays(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     page: int = Query(1, ge=1),
@@ -19,8 +19,8 @@ async def read_tobacco_returns(
     year: Optional[int] = Query(None),
 ):
     skip = (page - 1) * limit
-    result = await crud.get_tobacco_returns(session, skip=skip, limit=limit, year=year)
-    return TobaccoReturnListResponse(
+    result = await crud.get_tobacco_repays(session, skip=skip, limit=limit, year=year)
+    return TobaccoRepayListResponse(
         items=result["items"],
         total=result["total"],
         has_more=(skip + len(result["items"])) < result["total"],
@@ -36,13 +36,13 @@ async def read_available_years(
 
 
 @router.post("/")
-async def create_tobacco_return(
-    data: TContractReturnCreate,
+async def create_tobacco_repay(
+    data: TContractRepayCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     try:
-        return await crud.create_return(session, data)
+        return await crud.create_repay(session, data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

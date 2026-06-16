@@ -60,10 +60,10 @@ export interface TobaccoPurchase {
   total_net_weight?: number | null;
   grand_total?: number | null;
   details?: TobaccoPurchaseDetail[];
-  returns?: TobaccoReturnCreate[];
+  returns?: TobaccoRepayCreate[];
 }
 
-export interface TobaccoReturnCreate {
+export interface TobaccoRepayCreate {
   con_id: number;
   tobac_type: number;
   qty_repay: number;
@@ -91,7 +91,7 @@ export interface TobaccoPurchaseCreate {
   oven?: number;
   rate: number;
   details: TobaccoPurchaseDetail[];
-  returns?: TobaccoReturnCreate[];
+  returns?: TobaccoRepayCreate[];
 }
 
 export interface TobaccoPurchaseListResponse {

@@ -4,11 +4,11 @@ from sqlmodel import select, func
 from sqlalchemy import text
 from .models.t_contract import TContract
 from .models.t_contract_return import TContractReturn
-from .schemas import TContractReturnCreate
+from .schemas import TContractRepayCreate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 
-async def get_tobacco_returns(
+async def get_tobacco_repays(
     db: AsyncSession,
     skip: int = 0,
     limit: int = 20,
@@ -105,7 +105,7 @@ async def get_available_years(db: AsyncSession) -> List[str]:
     result = await db.execute(stmt)
     return [row for row in result.scalars().all() if str(row).isdigit()]
 
-async def create_return(db: AsyncSession, obj_in: TContractReturnCreate) -> TContractReturn:
+async def create_repay(db: AsyncSession, obj_in: TContractRepayCreate) -> TContractReturn:
     stmt = select(TContract.con_id).where(TContract.con_num == obj_in.con_num)
     result = await db.execute(stmt)
     con_id = result.scalar_first()

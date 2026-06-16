@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
-import { apiClient, TobaccoReturnItem } from "@/services/api-client"
+import { apiClient, TobaccoRepayItem } from "@/services/api-client"
 import { toast } from "sonner"
 import { IconCash, IconLoader2 } from "@tabler/icons-react"
 import {
@@ -16,13 +16,13 @@ import {
 } from "@workspace/ui/components/table"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
-import { TobaccoReturnCard } from "./_components/tobacco-return-card"
+import { TobaccoRepayCard } from "./_components/tobacco-repay-card"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 
 const PAGE_SIZE = 20
 
-export default function TobaccoReturnPage() {
+export default function TobaccoRepayPage() {
   const [mounted, setMounted] = React.useState(false)
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
@@ -51,7 +51,7 @@ export default function TobaccoReturnPage() {
 
   // Fetch available years
   const { data: yearsData } = useQuery({
-    queryKey: ["tobacco-return-years"],
+    queryKey: ["tobacco-repay-years"],
     queryFn: () => apiClient.getAvailableYears(tokens!.access_token),
     enabled: !!tokens?.access_token && !isAuthLoading,
   })
@@ -70,9 +70,9 @@ export default function TobaccoReturnPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["tobacco-returns", effectiveYear],
+    queryKey: ["tobacco-repays", effectiveYear],
     queryFn: ({ pageParam }) =>
-      apiClient.getTobaccoReturns(tokens!.access_token, {
+      apiClient.getTobaccoRepays(tokens!.access_token, {
         page: pageParam,
         limit: PAGE_SIZE,
         year: effectiveYear,
@@ -110,7 +110,7 @@ export default function TobaccoReturnPage() {
 
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
-    const getSortVal = (rec: TobaccoReturnItem) => {
+    const getSortVal = (rec: TobaccoRepayItem) => {
       if (sortBy === "Quantity") return rec.Quantity ?? 0
       if (sortBy === "total_repaid") return rec.total_repaid ?? 0
       return 0
@@ -123,7 +123,7 @@ export default function TobaccoReturnPage() {
 
   if (!mounted) return null
 
-  const pageTitle = t.sidebar?.tobaccoReturn || "Tobacco Return"
+  const pageTitle = t.sidebar?.tobaccoRepay || "Tobacco Repay"
 
   return (
     <div className="flex flex-col gap-4">
@@ -131,7 +131,7 @@ export default function TobaccoReturnPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-semibold tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
-          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">Manage and track tobacco return records from {currentYearMinusOne} - {new Date().getFullYear()}.</p>
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">Manage and track tobacco repay records from {currentYearMinusOne} - {new Date().getFullYear()}.</p>
         </div>
       </div>
 
@@ -179,9 +179,9 @@ export default function TobaccoReturnPage() {
             <IconCash className="h-10 w-10 text-[#009640] stroke-[1.5]" />
           </div>
           <div className="flex flex-col items-center text-center px-4">
-            <h3 className="text-xl font-medium text-gray-900">No Return Records</h3>
+            <h3 className="text-xl font-medium text-gray-900">No Repay Records</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              There are no tobacco return records for {selectedYear} currently.
+              There are no tobacco repay records for {selectedYear} currently.
             </p>
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function TobaccoReturnPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="grid md:hidden grid-cols-1 gap-3">
           {sortedRecords.map((rec, idx) => (
-            <TobaccoReturnCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
+            <TobaccoRepayCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
           ))}
         </div>
       )}
@@ -204,7 +204,7 @@ export default function TobaccoReturnPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden md:grid lg:hidden grid-cols-2 gap-4">
           {sortedRecords.map((rec, idx) => (
-            <TobaccoReturnCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
+            <TobaccoRepayCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
           ))}
         </div>
       )}
@@ -225,7 +225,7 @@ export default function TobaccoReturnPage() {
                   {columnVisibility.tobaccoType && <TableHead>Tobacco Type</TableHead>}
                   {columnVisibility.year && <TableHead className="text-center">Year</TableHead>}
                   {columnVisibility.qty && <TableHead className="text-right">Quantity</TableHead>}
-                  {columnVisibility.totalReturned && <TableHead className="text-right">Total Returned</TableHead>}
+                  {columnVisibility.totalReturned && <TableHead className="text-right">Total Repaid</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-white text-black">

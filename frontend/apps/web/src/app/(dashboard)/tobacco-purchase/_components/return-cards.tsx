@@ -6,10 +6,10 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Popover, PopoverContent, PopoverAnchor } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import { TobaccoItem, TobaccoReturnCreate } from "@/services/api-client"
+import { TobaccoItem, TobaccoRepayCreate } from "@/services/api-client"
 import { VendorContractItem } from "@/types/tobacco-purchase"
 
-export type ReturnItemType = Partial<TobaccoReturnCreate> & { tempId: string, con_num?: string }
+export type ReturnItemType = Partial<TobaccoRepayCreate> & { tempId: string, con_num?: string }
 
 interface ReturnCardProps {
   item: ReturnItemType

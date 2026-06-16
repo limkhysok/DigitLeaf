@@ -12,7 +12,7 @@
     TobaccoPurchase,
     TobaccoPurchaseCreate,
     TobaccoPurchaseDetail,
-    TobaccoReturnCreate,
+    TobaccoRepayCreate,
   } from "@/services/api-client"
   import { useQuery } from "@tanstack/react-query"
   import { toast } from "sonner"
@@ -375,7 +375,7 @@
       setTpCode(data.invoice_num || "")
       const genId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
       setDetails(data.details?.map((d: Partial<TobaccoPurchaseDetail>) => ({ ...d, tempId: genId() })) || [])
-      setReturns(data.returns?.map((r: Partial<TobaccoReturnCreate>) => ({ ...r, tempId: genId() })) || [])
+      setReturns(data.returns?.map((r: Partial<TobaccoRepayCreate>) => ({ ...r, tempId: genId() })) || [])
 
       const b = purchasers.find(p => p.p_id === data.buyer)
       if (b) setBuyerSearch(`${b.p_name} | ${b.p_name_kh || ""}`)

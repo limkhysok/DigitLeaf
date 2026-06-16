@@ -11,7 +11,7 @@ export const translations = {
       tobaccoPurchase: "Tobacco Purchase",
       invoice: "Invoice",
       farmerContract: "Farmer Contract",
-      tobaccoReturn: "Tobacco Return",
+      tobaccoRepay: "Tobacco Repay",
     },
     breadcrumb: {
       workspace: "Workspace",
@@ -311,7 +311,7 @@ export const translations = {
       tobaccoPurchase: "ការទិញសន្លឹកថ្នាំ",
       invoice: "វិក្កយបត្រ",
       farmerContract: "កិច្ចសន្យាកសិករ",
-      tobaccoReturn: "ការសងសន្លឹកថ្នាំ",
+      tobaccoRepay: "ការសងសន្លឹកថ្នាំ",
     },
     breadcrumb: {
       workspace: "កន្លែងធ្វើការ",
@@ -613,7 +613,7 @@ export type TranslationType = {
     readonly tobaccoPurchase: string;
     readonly invoice: string;
     readonly farmerContract: string;
-    readonly tobaccoReturn: string;
+    readonly tobaccoRepay: string;
   };
   readonly breadcrumb: {
     readonly workspace: string;

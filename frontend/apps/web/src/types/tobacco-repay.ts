@@ -1,4 +1,4 @@
-export interface TobaccoReturnItem {
+export interface TobaccoRepayItem {
   id: number | null;
   contract_number: string | null;
   contract_contractor_name: string | null;
@@ -10,8 +10,8 @@ export interface TobaccoReturnItem {
   total_repaid: number | null;
 }
 
-export interface TobaccoReturnListResponse {
-  items: TobaccoReturnItem[];
+export interface TobaccoRepayListResponse {
+  items: TobaccoRepayItem[];
   total: number;
   has_more: boolean;
 }

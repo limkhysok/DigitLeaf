@@ -1,16 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { TobaccoReturnItem } from "@/services/api-client"
+import { TobaccoRepayItem } from "@/services/api-client"
 import { IconCash, IconUser, IconUsers, IconLeaf, IconPackage, IconReceipt } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 
-export const TobaccoReturnCard = React.memo(({
+export const TobaccoRepayCard = React.memo(({
   rec,
   index,
 }: {
-  rec: TobaccoReturnItem
+  rec: TobaccoRepayItem
   index: number
 }) => {
   return (
@@ -93,11 +93,11 @@ export const TobaccoReturnCard = React.memo(({
             </span>
           </div>
 
-          {/* Total Returned */}
+          {/* Total Repaid */}
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconCash className="h-3.5 w-3.5" />
-              Total Returned
+              Total Repaid
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-[#009640]">
               {rec.total_repaid == null ? "—" : `${rec.total_repaid.toLocaleString()} kg`}
@@ -109,4 +109,4 @@ export const TobaccoReturnCard = React.memo(({
   )
 })
 
-TobaccoReturnCard.displayName = "TobaccoReturnCard"
+TobaccoRepayCard.displayName = "TobaccoRepayCard"

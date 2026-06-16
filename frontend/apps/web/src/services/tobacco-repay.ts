@@ -1,27 +1,27 @@
-import { TobaccoReturnListResponse, VendorContractItem } from "../types";
+import { TobaccoRepayListResponse, VendorContractItem } from "../types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api/v1";
 
-export const tobaccoReturnApi = {
-  getTobaccoReturns: async (
+export const tobaccoRepayApi = {
+  getTobaccoRepays: async (
     token: string,
     params: { page?: number; limit?: number; year?: string } = {}
-  ): Promise<TobaccoReturnListResponse> => {
+  ): Promise<TobaccoRepayListResponse> => {
     const query = new URLSearchParams();
     if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.year) query.set("year", params.year);
-    const res = await fetch(`${BASE_URL}/tobacco-returns/?${query}`, {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Failed to fetch tobacco returns");
+      throw new Error(errorData.detail || "Failed to fetch tobacco repays");
     }
     return res.json();
   },
   getAvailableYears: async (token: string): Promise<string[]> => {
-    const res = await fetch(`${BASE_URL}/tobacco-returns/years`, {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/years`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -31,8 +31,8 @@ export const tobaccoReturnApi = {
     }
     return res.json();
   },
-  createTobaccoReturn: async (token: string, payload: { con_num: string, tobac_type: number, qty_repay: number }): Promise<unknown> => {
-    const res = await fetch(`${BASE_URL}/tobacco-returns/`, {
+  createTobaccoRepay: async (token: string, payload: { con_num: string, tobac_type: number, qty_repay: number }): Promise<unknown> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -42,12 +42,12 @@ export const tobaccoReturnApi = {
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Failed to create tobacco return");
+      throw new Error(errorData.detail || "Failed to create tobacco repay");
     }
     return res.json();
   },
   getVendorContracts: async (token: string, vendorId: number): Promise<VendorContractItem[]> => {
-    const res = await fetch(`${BASE_URL}/tobacco-returns/contracts?vendor_id=${vendorId}`, {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/contracts?vendor_id=${vendorId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
