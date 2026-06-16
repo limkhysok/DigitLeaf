@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func
 from sqlalchemy import text
@@ -13,7 +13,7 @@ async def get_tobacco_repays(
     skip: int = 0,
     limit: int = 20,
     year: Optional[int] = None,
-) -> dict:
+) -> dict[str, Any]:
     year_expr = ":year_val" if year is not None else "YEAR(CURDATE()) - 1"
     bind = {"skip": skip, "limit": limit}
     if year is not None:
@@ -79,7 +79,7 @@ async def get_tobacco_repays(
     result = await db.execute(query, bind)
     rows = result.fetchall()
 
-    items = [
+    items: list[dict[str, Any]] = [
         {
             "id": row.id,
             "contract_number": row.contract_number,
@@ -98,9 +98,9 @@ async def get_tobacco_repays(
 async def get_available_years(db: AsyncSession) -> List[str]:
     stmt = (
         select(TContract.note)
-        .where(TContract.note.is_not(None))
+        .where(TContract.note.is_not(None))  # type: ignore[union-attr]
         .distinct()
-        .order_by(TContract.note.desc())
+        .order_by(TContract.note.desc())  # type: ignore[union-attr]
     )
     result = await db.execute(stmt)
     return [row for row in result.scalars().all() if str(row).isdigit()]
@@ -108,7 +108,7 @@ async def get_available_years(db: AsyncSession) -> List[str]:
 async def create_repay(db: AsyncSession, obj_in: TContractRepayCreate) -> TContractReturn:
     stmt = select(TContract.con_id).where(TContract.con_num == obj_in.con_num)
     result = await db.execute(stmt)
-    con_id = result.scalar_first()
+    con_id = result.scalars().first()
     
     if not con_id:
         raise ValueError(f"Contract number {obj_in.con_num} not found")
@@ -123,7 +123,7 @@ async def create_repay(db: AsyncSession, obj_in: TContractRepayCreate) -> TContr
     await db.refresh(db_obj)
     return db_obj
 
-async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
+async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[str, Any]]:
     mf = await db.get(MemberFarmer, vendor_id)
     if not mf:
         return []
@@ -133,7 +133,7 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
             TContractReturn.con_id,
             func.sum(TContractReturn.qty_repay).label("total_qty_repay")
         )
-        .group_by(TContractReturn.con_id)
+        .group_by(TContractReturn.con_id)  # type: ignore[arg-type]
     ).subquery()
 
     stmt = (
@@ -144,8 +144,8 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> List[dict]:
             func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_returned")
         )
         .where(TContract.contractor == mf.name)
-        .outerjoin(Tobacco, TContract.tobac_type == Tobacco.t_id)
-        .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)
+        .outerjoin(Tobacco, TContract.tobac_type == Tobacco.t_id)  # type: ignore[arg-type]
+        .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)  # type: ignore[arg-type]
     )
     result = await db.execute(stmt)
     rows = result.all()
