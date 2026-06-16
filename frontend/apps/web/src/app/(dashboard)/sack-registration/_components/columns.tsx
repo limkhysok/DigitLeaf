@@ -92,11 +92,11 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       cell: ({ row }) => {
         const isConfirmed = row.original.sack_in_kg === 0
         return isConfirmed ? (
-          <Badge variant="outline" className="border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400">
+          <Badge variant="outline" className=" bg-green-500/15 text-green-700 dark:border-green-400/50 dark:bg-green-400/15 dark:text-green-300 px-3 py-1 text-[13px] font-semibold">
             {t.sackRegistration.filters.statusConfirmed}
           </Badge>
         ) : (
-          <Badge variant="outline" className="border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+          <Badge variant="outline" className=" bg-yellow-500/15 text-yellow-700 dark:border-yellow-400/50 dark:bg-yellow-400/15 dark:text-yellow-300 px-3 py-1 text-sm font-semibold tracking-wide">
             {t.sackRegistration.filters.statusPending}
           </Badge>
         )
