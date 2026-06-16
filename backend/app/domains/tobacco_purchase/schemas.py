@@ -134,8 +134,35 @@ class Purchase(PurchaseBase):
     class Config:
         from_attributes = True
 
+class PurchaseListItem(BaseModel):
+    """Lean list-row schema — no detail records, count from SQL."""
+    tp_id: int
+    invoice_num: Optional[str] = None
+    buyer: Optional[int] = None
+    vendor_id: Optional[Union[int, str]] = None
+    vendor_name: Optional[str] = None
+    v_addr: Optional[str] = None
+    region: Optional[int] = None
+    tp_date: date = Field(default_factory=date.today)
+    tp_note: Optional[str] = None
+    closing: ClosingStatus = ClosingStatus.NO
+    oven: Optional[int] = None
+    rate: int = 0
+    user: Optional[str] = None
+    do_date: Optional[datetime] = None
+    total_net_weight: Optional[float] = None
+    grand_total: Optional[float] = None
+    tobacco_item_count: int = 0
+
+    @field_validator("do_date", mode="before")
+    @classmethod
+    def parse_zero_date(cls, v):
+        if str(v) == "0000-00-00 00:00:00":
+            return None
+        return v
+
 class PurchaseList(BaseModel):
-    items: List[Purchase]
+    items: List[PurchaseListItem]
     total: int
     has_more: bool
 

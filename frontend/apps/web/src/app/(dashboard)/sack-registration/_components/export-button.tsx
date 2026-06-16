@@ -10,9 +10,17 @@ import {
 } from "@workspace/ui/components/popover"
 import { Label } from "@workspace/ui/components/label"
 import { Calendar } from "@workspace/ui/components/calendar"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { apiClient } from "@/services/api-client"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/hooks/use-language"
 import { format } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -24,11 +32,13 @@ function toLocalYMD(d: Date) {
 
 export function ExportButton() {
   const { tokens } = useAuth()
+  const { t } = useLanguage()
   const accessToken = tokens?.access_token
   const [open, setOpen] = React.useState(false)
   const [calendarOpen, setCalendarOpen] = React.useState(false)
   const today = new Date()
   const [selectedDate, setSelectedDate] = React.useState<Date>(today)
+  const [selectedStatus, setSelectedStatus] = React.useState<"all" | "pending" | "confirmed">("all")
   const [isExporting, setIsExporting] = React.useState(false)
 
   const handleExport = async () => {
@@ -39,12 +49,14 @@ export function ExportButton() {
       const blob = await apiClient.exportSackRegistrations(accessToken, {
         date_from: dateYMD,
         date_to: dateYMD,
+        ...(selectedStatus !== "all" && { status: selectedStatus }),
       })
 
       const url = globalThis.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `sack_registrations_${dateYMD}.xlsx`
+      const statusSuffix = selectedStatus !== "all" ? `_${selectedStatus}` : ""
+      a.download = `sack_registrations_${dateYMD}${statusSuffix}.xlsx`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -71,7 +83,7 @@ export function ExportButton() {
         <div className="flex flex-col gap-4">
           <div className="space-y-1">
             <h4 className="text-sm font-semibold">Export Data</h4>
-            <p className="text-xs text-muted-foreground">Choose a date to export.</p>
+            <p className="text-xs text-muted-foreground">Choose a date and status to export.</p>
           </div>
 
           <div className="grid gap-2">
@@ -103,6 +115,20 @@ export function ExportButton() {
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium">{t.sackRegistration.filters.status}</Label>
+            <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as "all" | "pending" | "confirmed")}>
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.sackRegistration.filters.statusAll}</SelectItem>
+                <SelectItem value="pending">{t.sackRegistration.filters.statusPending}</SelectItem>
+                <SelectItem value="confirmed">{t.sackRegistration.filters.statusConfirmed}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Button

@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Tuple
+from typing import Any, List, Literal, Optional, Tuple
 from datetime import date
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -245,29 +245,62 @@ async def get_purchases(
     buyer: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
-) -> Tuple[List[TobaccoPurchase], int]:
+) -> Tuple[List[Any], int]:
     current_year = datetime.now(CAMBODIA_TZ).year
-    base = (
-        select(TobaccoPurchase)
+
+    # Correlated subquery replaces selectinload(details): one indexed COUNT per row
+    # instead of fetching all detail columns (incl. picture paths) for the whole page.
+    detail_count_subq = (
+        select(func.count(TobaccoPurchaseDetail.tpd_id))
+        .where(TobaccoPurchaseDetail.m_id == TobaccoPurchase.tp_id)
+        .correlate(TobaccoPurchase)
+        .scalar_subquery()
+    )
+
+    # Data query: vendor_name from an outer join instead of a separate selectinload batch.
+    data_base = (
+        select(
+            TobaccoPurchase,
+            MemberFarmer.name.label("vendor_name"),
+            detail_count_subq.label("detail_count"),
+        )
+        .join(MfConYear, col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
+        .outerjoin(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id)
+        .where(MfConYear.year == current_year)
+    )
+
+    # Count query: selects only tp_id — no correlated subqueries, no extra columns.
+    count_base = (
+        select(TobaccoPurchase.tp_id)
         .join(MfConYear, col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
         .where(MfConYear.year == current_year)
     )
+
     if search:
-        base = base.join(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id, isouter=True)
-        base = base.join(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id, isouter=True)
-        base = base.where(
-            col(TobaccoPurchase.invoice_num).contains(search) |
-            col(MemberFarmer.name).contains(search) |
-            col(Purchaser.p_name).contains(search) |
-            col(Purchaser.p_name_kh).contains(search)
+        search_filter = (
+            col(TobaccoPurchase.invoice_num).contains(search)
+            | col(MemberFarmer.name).contains(search)
+            | col(Purchaser.p_name).contains(search)
+            | col(Purchaser.p_name_kh).contains(search)
         )
+        data_base = (
+            data_base
+            .outerjoin(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id)
+            .where(search_filter)
+        )
+        count_base = (
+            count_base
+            .outerjoin(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id)
+            .outerjoin(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id)
+            .where(search_filter)
+        )
+
     if buyer is not None:
-        base = base.where(col(TobaccoPurchase.buyer) == buyer)
+        data_base = data_base.where(col(TobaccoPurchase.buyer) == buyer)
+        count_base = count_base.where(col(TobaccoPurchase.buyer) == buyer)
 
-    count_statement = select(func.count()).select_from(base.subquery())
-    total = await db.scalar(count_statement)
+    total = await db.scalar(select(func.count()).select_from(count_base.subquery()))
 
-    # Determine ordering
     if sort_grand_total == "asc":
         order_col = col(TobaccoPurchase.grand_total).asc()
     elif sort_grand_total == "desc":
@@ -279,17 +312,8 @@ async def get_purchases(
     else:
         order_col = col(TobaccoPurchase.tp_id).desc()
 
-    fetch_statement = (
-        base.options(selectinload(TobaccoPurchase.details))  # type: ignore[arg-type]
-        .options(selectinload(TobaccoPurchase.vendor))  # type: ignore[arg-type]
-        .order_by(order_col)
-        .offset(skip)
-        .limit(limit)
-    )
-    result = await db.execute(fetch_statement)
-    items = list(result.scalars().all())
-
-    return items, total or 0
+    result = await db.execute(data_base.order_by(order_col).offset(skip).limit(limit))
+    return result.all(), total or 0
 
 
 

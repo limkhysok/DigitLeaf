@@ -113,7 +113,7 @@ async def list_purchases(
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ):
     skip = (page - 1) * limit
-    items, total = await crud.get_purchases(
+    rows, total = await crud.get_purchases(
         db=session,
         skip=skip,
         limit=limit,
@@ -122,7 +122,31 @@ async def list_purchases(
         sort_grand_total=sort_grand_total,
         sort_net_weight=sort_net_weight,
     )
-    return schemas.PurchaseList(items=items, total=total, has_more=(skip + len(items)) < total)  # type: ignore[arg-type]
+    items = [
+        schemas.PurchaseListItem(
+            tp_id=tp.tp_id,
+            invoice_num=tp.invoice_num,
+            buyer=tp.buyer,
+            vendor_id=tp.vendor_id,
+            vendor_name=vendor_name or (
+                str(tp.vendor_id) if tp.vendor_id and not str(tp.vendor_id).isdigit() else None
+            ),
+            v_addr=tp.v_addr,
+            region=tp.region,
+            tp_date=tp.tp_date,
+            tp_note=tp.tp_note,
+            closing=tp.closing,
+            oven=tp.oven,
+            rate=tp.rate,
+            user=tp.user,
+            do_date=tp.do_date,
+            total_net_weight=tp.total_net_weight,
+            grand_total=tp.grand_total,
+            tobacco_item_count=detail_count,
+        )
+        for tp, vendor_name, detail_count in rows
+    ]
+    return schemas.PurchaseList(items=items, total=total, has_more=(skip + len(items)) < total)
 
 
 @router.get("/{tp_id}", response_model=schemas.Purchase, responses={404: {"description": _NOT_FOUND}})

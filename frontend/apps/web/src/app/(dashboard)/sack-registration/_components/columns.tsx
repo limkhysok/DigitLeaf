@@ -73,6 +73,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
     },
     {
       id: "sack_in_kg",
+      accessorFn: (row) => row.sack_in_kg,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.sackWeight} />,
       cell: ({ row }) => {
         const registered = row.original.sack_in_kg
@@ -88,6 +89,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
     },
     {
       id: "status",
+      accessorFn: (row) => row.sack_in_kg === 0 ? "confirmed" : "pending",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.status} />,
       cell: ({ row }) => {
         const isConfirmed = row.original.sack_in_kg === 0
@@ -101,6 +103,13 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
           </Badge>
         )
       },
+      enableSorting: false,
+    },
+    {
+      id: "registered_by",
+      accessorFn: (row) => row.dl_user_name,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.registeredBy} />,
+      cell: ({ row }) => <div className="font-medium">{row.original.dl_user_name}</div>,
       enableSorting: false,
     },
     {
