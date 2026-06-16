@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  IconSortAscending, IconSortDescending,
   IconCirclePlus, IconX, IconAdjustmentsHorizontal,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
@@ -35,10 +34,8 @@ interface FilterBarProps {
   searchClassName?: string
   searchInput: string
   setSearchInput: (v: string) => void
-  sortBy: "sapling" | "yield" | "purchased" | null
-  setSortBy: (v: "sapling" | "yield" | "purchased" | null) => void
-  sortOrder: "asc" | "desc"
-  setSortOrder: (v: "asc" | "desc") => void
+  sortBy: "land" | "sapling" | "yield" | "purchased" | null
+  setSortBy: (v: "land" | "sapling" | "yield" | "purchased" | null) => void
   selectedYear: number
   setSelectedYear: (v: number) => void
   columnVisibility: ColumnVisibility
@@ -52,15 +49,12 @@ export function FilterBar({
   className,
   searchInput, setSearchInput,
   sortBy, setSortBy,
-  sortOrder, setSortOrder,
   selectedYear, setSelectedYear,
   columnVisibility, setColumnVisibility,
   onAddClick,
 }: Readonly<FilterBarProps>) {
   const { t } = useLanguage()
   const [yearOpen, setYearOpen] = React.useState(false)
-  const [yieldOpen, setYieldOpen] = React.useState(false)
-  const [purchasedOpen, setPurchasedOpen] = React.useState(false)
 
   const isFiltered = sortBy !== null || searchInput !== ""
 
@@ -150,74 +144,6 @@ export function FilterBar({
                 {yr}
               </button>
             ))}
-          </PopoverContent>
-        </Popover>
-
-        {/* Sort by Yield */}
-        <Popover open={yieldOpen} onOpenChange={setYieldOpen}>
-          <PopoverTrigger asChild>
-            <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
-              <IconCirclePlus className="mr-2 h-4 w-4" />
-              {t.farmerContract.expectedYield}
-              {sortBy === "yield" && (
-                <>
-                  <Separator orientation="vertical" className="mx-2 h-4" />
-                  <Badge variant="secondary" className="rounded-sm px-1 font-normal flex items-center gap-1">
-                    {sortOrder === "asc"
-                      ? <IconSortAscending className="size-3" />
-                      : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? t.farmerContract.asc : t.farmerContract.desc}
-                  </Badge>
-                </>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-36 p-1" align="start">
-            <button
-              onClick={() => { setSortBy("yield"); setSortOrder("desc"); setYieldOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "yield" && sortOrder === "desc" && "bg-accent font-medium")}
-            >
-              <IconSortDescending className="size-3.5" /> {t.farmerContract.largestFirst}
-            </button>
-            <button
-              onClick={() => { setSortBy("yield"); setSortOrder("asc"); setYieldOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "yield" && sortOrder === "asc" && "bg-accent font-medium")}
-            >
-              <IconSortAscending className="size-3.5" /> {t.farmerContract.smallestFirst}
-            </button>
-          </PopoverContent>
-        </Popover>
-
-        {/* Sort by Purchased Weight */}
-        <Popover open={purchasedOpen} onOpenChange={setPurchasedOpen}>
-          <PopoverTrigger asChild>
-            <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
-              <IconCirclePlus className="mr-2 h-4 w-4" />
-              {t.farmerContract.purchasedWeight}
-              {sortBy === "purchased" && (
-                <>
-                  <Separator orientation="vertical" className="mx-2 h-4" />
-                  <Badge variant="secondary" className="rounded-sm px-1 font-normal flex items-center gap-1">
-                    {sortOrder === "asc" ? <IconSortAscending className="size-3" /> : <IconSortDescending className="size-3" />}
-                    {sortOrder === "asc" ? t.farmerContract.asc : t.farmerContract.desc}
-                  </Badge>
-                </>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-36 p-1" align="start">
-            <button
-              onClick={() => { setSortBy("purchased"); setSortOrder("desc"); setPurchasedOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "purchased" && sortOrder === "desc" && "bg-accent font-medium")}
-            >
-              <IconSortDescending className="size-3.5" /> {t.farmerContract.largestFirst}
-            </button>
-            <button
-              onClick={() => { setSortBy("purchased"); setSortOrder("asc"); setPurchasedOpen(false) }}
-              className={cn("w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors hover:bg-accent", sortBy === "purchased" && sortOrder === "asc" && "bg-accent font-medium")}
-            >
-              <IconSortAscending className="size-3.5" /> {t.farmerContract.smallestFirst}
-            </button>
           </PopoverContent>
         </Popover>
 

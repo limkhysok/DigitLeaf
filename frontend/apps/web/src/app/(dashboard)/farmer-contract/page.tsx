@@ -4,7 +4,7 @@ import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, FarmerContractItem } from "@/services/api-client"
-import { IconLoader2, IconClipboardList, IconDotsVertical, IconEye, IconPencil, IconTrash } from "@tabler/icons-react"
+import { IconLoader2, IconClipboardList, IconDotsVertical, IconEye, IconPencil, IconTrash, IconArrowsSort, IconSortAscending, IconSortDescending } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   Table,
@@ -54,7 +54,7 @@ export default function FarmerContractPage() {
   const queryClient = useQueryClient()
 
   const [searchInput, setSearchInput] = React.useState("")
-  const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | "purchased" | null>(null)
+  const [sortBy, setSortBy] = React.useState<"land" | "sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [selectedYear, setSelectedYear] = React.useState(2026)
   const [columnVisibility, setColumnVisibility] = React.useState({
@@ -110,10 +110,19 @@ export default function FarmerContractPage() {
   // Sentinel for infinite scroll
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage && !searchInput.trim()) {
       fetchNextPage()
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, searchInput])
+
+  const handleColumnSort = (field: "land" | "sapling" | "yield" | "purchased") => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortBy(field)
+      setSortOrder("desc")
+    }
+  }
 
   // Client-side search + sort on loaded records
   const filteredRecords = React.useMemo(() => {
@@ -129,6 +138,7 @@ export default function FarmerContractPage() {
   const sortedRecords = React.useMemo(() => {
     if (!sortBy) return filteredRecords
     const getSortVal = (rec: FarmerContractItem) => {
+      if (sortBy === "land") return rec.land ?? 0
       if (sortBy === "sapling") return rec.tobac_num ?? 0
       if (sortBy === "purchased") return rec.purchased_weight ?? 0
       return rec.expected_yield ?? 0
@@ -182,8 +192,6 @@ export default function FarmerContractPage() {
         setSearchInput={setSearchInput}
         sortBy={sortBy}
         setSortBy={setSortBy}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
         columnVisibility={columnVisibility}
@@ -237,13 +245,49 @@ export default function FarmerContractPage() {
             <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[4%]">No.</TableHead>
+                  <TableHead className="w-[4%]">No</TableHead>
                   <TableHead className="w-[12%]">{t.farmerContract.farmerName}</TableHead>
                   {columnVisibility.code && <TableHead className="w-[10%]">Farmer ID</TableHead>}
-                  {columnVisibility.land && <TableHead className="w-[10%]">{t.farmerContract.land}</TableHead>}
-                  {columnVisibility.sapling && <TableHead className="w-[10%]">{t.farmerContract.saplingKg}</TableHead>}
-                  {columnVisibility.expected && <TableHead className="w-[12%]">{t.farmerContract.expectedYieldKg}</TableHead>}
-                  {columnVisibility.purchased && <TableHead className="w-[12%]">{t.farmerContract.purchasedWeightKg}</TableHead>}
+                  {columnVisibility.land && (
+                    <TableHead className="w-[10%] cursor-pointer select-none group" onClick={() => handleColumnSort("land")}>
+                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {t.farmerContract.land}
+                        {sortBy === "land" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
+                        {sortBy === "land" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
+                        {sortBy !== "land" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {columnVisibility.sapling && (
+                    <TableHead className="w-[10%] cursor-pointer select-none group" onClick={() => handleColumnSort("sapling")}>
+                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {t.farmerContract.saplingKg}
+                        {sortBy === "sapling" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
+                        {sortBy === "sapling" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
+                        {sortBy !== "sapling" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {columnVisibility.expected && (
+                    <TableHead className="w-[12%] cursor-pointer select-none group" onClick={() => handleColumnSort("yield")}>
+                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {t.farmerContract.expectedYieldKg}
+                        {sortBy === "yield" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
+                        {sortBy === "yield" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
+                        {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                      </div>
+                    </TableHead>
+                  )}
+                  {columnVisibility.purchased && (
+                    <TableHead className="w-[12%] cursor-pointer select-none group" onClick={() => handleColumnSort("purchased")}>
+                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {t.farmerContract.purchasedWeightKg}
+                        {sortBy === "purchased" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
+                        {sortBy === "purchased" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
+                        {sortBy !== "purchased" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                      </div>
+                    </TableHead>
+                  )}
                   {columnVisibility.year && <TableHead className="w-[8%] text-center">{t.farmerContract.year}</TableHead>}
                   <TableHead className="w-[10%] text-center">Date</TableHead>
                   <TableHead className="w-[10%] text-center">Actions</TableHead>
@@ -334,7 +378,7 @@ export default function FarmerContractPage() {
 
       {/* ── Infinite scroll sentinel ── */}
       <div ref={sentinelRef} className="h-1" />
-      {isFetchingNextPage && (
+      {isFetchingNextPage && !searchInput.trim() && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>

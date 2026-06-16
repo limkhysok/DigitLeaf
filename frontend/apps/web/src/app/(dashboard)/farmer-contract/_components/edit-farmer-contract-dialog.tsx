@@ -62,11 +62,16 @@ export function EditFarmerContractDialog({
 
   const [tobaccoOpen, setTobaccoOpen] = React.useState(false)
   const [tobaccoSearch, setTobaccoSearch] = React.useState("")
-  const [selectedTobacco, setSelectedTobacco] = React.useState<TobaccoItem | null>(null)
+  // Tracks an explicit user selection; null means fall back to the derived default
+  const [tobaccoOverride, setTobaccoOverride] = React.useState<TobaccoItem | null>(null)
 
   const [land, setLand] = React.useState("")
   const [sapling, setSapling] = React.useState("")
   const [year, setYear] = React.useState("")
+
+  // Sentinel state for the "adjust during render" pattern (replaces useEffect sync)
+  const [prevContractKey, setPrevContractKey] = React.useState<string | null>(null)
+  const [prevDerivedId, setPrevDerivedId] = React.useState<number | null>(null)
 
   // Fetch tobacco types when dialog opens
   const { data: formMeta, isFetching: isFetchingTobacco } = useQuery({
@@ -75,27 +80,44 @@ export function EditFarmerContractDialog({
     enabled: open && !!tokens?.access_token,
     staleTime: 5 * 60 * 1000,
   })
-  const tobaccoTypes = formMeta?.tobacco_types ?? []
 
-  // Pre-populate fields when contract changes
-  React.useEffect(() => {
-    if (!contract || !open) return
-    setLand(contract.land != null ? String(contract.land) : "")
-    setSapling(contract.tobac_num != null ? String(contract.tobac_num) : "")
-    setYear(String(contract.year))
-    setTobaccoSearch("")
-    setSelectedTobacco(null)
-  }, [contract, open])
+  const tobaccoTypes = React.useMemo(
+    () => formMeta?.tobacco_types ?? [],
+    [formMeta]
+  )
 
-  // Once tobacco types are loaded and contract has t_id, auto-select
-  React.useEffect(() => {
-    if (!contract?.t_id || tobaccoTypes.length === 0) return
-    const match = tobaccoTypes.find((t) => t.t_id === contract.t_id)
-    if (match) {
-      setSelectedTobacco(match)
-      setTobaccoSearch(match.t_name_kh ?? match.t_name)
+  // Tobacco that matches the contract's t_id (available once types load)
+  const derivedTobacco = React.useMemo(
+    () => tobaccoTypes.find((t) => t.t_id === contract?.t_id) ?? null,
+    [contract?.t_id, tobaccoTypes]
+  )
+
+  // Effective selection: explicit user pick takes priority over the derived default
+  const selectedTobacco = tobaccoOverride ?? derivedTobacco
+
+  // Reset form fields when the active contract or open state changes.
+  // Using the "adjust during render" pattern avoids setState-in-effect cascades.
+  const contractKey = contract && open ? String(contract.mf_con_id) : null
+  if (contractKey !== prevContractKey) {
+    setPrevContractKey(contractKey)
+    setPrevDerivedId(null) // force the derived-tobacco block to re-run after reset
+    if (contract && open) {
+      setLand(contract.land == null ? "" : String(contract.land))
+      setSapling(contract.tobac_num == null ? "" : String(contract.tobac_num))
+      setYear(String(contract.year))
+      setTobaccoSearch("")
+      setTobaccoOverride(null)
     }
-  }, [contract?.t_id, tobaccoTypes])
+  }
+
+  // Sync the search input with the derived tobacco once types finish loading,
+  // but only when the user hasn't made an explicit selection.
+  if ((derivedTobacco?.t_id ?? null) !== prevDerivedId) {
+    setPrevDerivedId(derivedTobacco?.t_id ?? null)
+    if (derivedTobacco && !tobaccoOverride) {
+      setTobaccoSearch(derivedTobacco.t_name_kh ?? derivedTobacco.t_name)
+    }
+  }
 
   const filteredTobacco = React.useMemo(() => {
     if (!tobaccoSearch.trim()) return tobaccoTypes
@@ -110,7 +132,7 @@ export function EditFarmerContractDialog({
   function handleClose() {
     setTobaccoOpen(false)
     setTobaccoSearch("")
-    setSelectedTobacco(null)
+    setTobaccoOverride(null)
     setLand("")
     setSapling("")
     setYear("")
@@ -171,9 +193,9 @@ export function EditFarmerContractDialog({
             <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
               <Popover
                 open={tobaccoOpen}
-                onOpenChange={(open) => {
-                  setTobaccoOpen(open)
-                  if (!open && selectedTobacco)
+                onOpenChange={(isOpen) => {
+                  setTobaccoOpen(isOpen)
+                  if (!isOpen && selectedTobacco)
                     setTobaccoSearch(selectedTobacco.t_name_kh ?? selectedTobacco.t_name)
                 }}
               >
@@ -185,7 +207,7 @@ export function EditFarmerContractDialog({
                       onValueChange={(val) => {
                         setTobaccoSearch(val)
                         setTobaccoOpen(true)
-                        if (selectedTobacco) setSelectedTobacco(null)
+                        if (tobaccoOverride) setTobaccoOverride(null)
                       }}
                       onFocus={() => setTobaccoOpen(true)}
                       onClick={(e) => {
@@ -217,7 +239,7 @@ export function EditFarmerContractDialog({
                           key={t.t_id}
                           value={`${t.t_name_kh ?? ""} ${t.t_name}`}
                           onSelect={() => {
-                            setSelectedTobacco(t)
+                            setTobaccoOverride(t)
                             setTobaccoSearch(t.t_name_kh ?? t.t_name)
                             setTobaccoOpen(false)
                           }}
