@@ -233,7 +233,8 @@ async def get_tobacco_repay_history(
             t.tobacco AS tobacco_type,
             r.qty_repay,
             r.note,
-            r.user
+            r.user,
+            mcy.year AS contract_year
         FROM
             kaic_db.t_contract_repay AS r
         INNER JOIN kaic_db.t_contract AS c ON r.con_id = c.con_id
@@ -260,6 +261,7 @@ async def get_tobacco_repay_history(
             "qty_repay": float(row.qty_repay) if row.qty_repay is not None else 0.0,
             "note": row.note,
             "user": row.user,
+            "contract_year": row.contract_year,
         }
         for row in rows
     ]

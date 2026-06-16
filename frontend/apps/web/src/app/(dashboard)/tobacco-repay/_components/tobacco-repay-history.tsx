@@ -150,20 +150,19 @@ export function TobaccoRepayHistory({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">No.</TableHead>
-                  <TableHead>Date</TableHead>
                   <TableHead>Repay No.</TableHead>
                   <TableHead>Contract No.</TableHead>
                   <TableHead>Farmer</TableHead>
                   <TableHead>Tobacco</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead>User</TableHead>
+                  <TableHead className="text-center">Year</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-white text-black">
                 {filteredRecords.map((rec, idx) => (
                   <TableRow key={rec.repay_id}>
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell className="whitespace-nowrap">{rec.repay_date || "—"}</TableCell>
                     <TableCell className="font-medium">{rec.repay_num || "—"}</TableCell>
                     <TableCell>{rec.con_num || "—"}</TableCell>
                     <TableCell>{rec.farmer_name || "—"}</TableCell>
@@ -173,7 +172,8 @@ export function TobaccoRepayHistory({
                         ? `${rec.qty_repay.toLocaleString()} kg`
                         : "—"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">{rec.user || "—"}</TableCell>
+                    <TableCell className="text-center font-medium">{rec.contract_year || "—"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{rec.repay_date || "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -57,6 +57,7 @@ class RepayHistoryItem(BaseModel):
     qty_repay: Optional[float]
     note: Optional[str]
     user: Optional[str]
+    contract_year: Optional[int]
 
 
 class RepayHistoryListResponse(BaseModel):

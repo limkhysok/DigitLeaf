@@ -28,6 +28,7 @@ export interface RepayHistoryItem {
   qty_repay: number | null;
   note: string | null;
   user: string | null;
+  contract_year: number | null;
 }
 
 export interface RepayHistoryListResponse {
