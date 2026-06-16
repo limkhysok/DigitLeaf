@@ -32,13 +32,15 @@ class TobaccoPurchase(SQLModel, table=True):
     grand_total: float = Field(default=0.0, index=True)
 
     # Relationships
+    # lazy="noload" prevents automatic selectin queries on every fetch.
+    # Use explicit selectinload() in get_purchase() where details are needed.
     details: List["TobaccoPurchaseDetail"] = Relationship(
-        sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"}
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "noload"}
     )
     vendor: Optional["MemberFarmer"] = Relationship(
         sa_relationship_kwargs={
             "primaryjoin": "foreign(TobaccoPurchase.vendor_id) == MemberFarmer.mf_id",
-            "lazy": "selectin"
+            "lazy": "noload"
         }
     )
 

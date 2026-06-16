@@ -20,7 +20,7 @@ import { TobaccoReturnCard } from "./_components/tobacco-return-card"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 
-const PAGE_SIZE = 30
+const PAGE_SIZE = 20
 
 export default function TobaccoReturnPage() {
   const [mounted, setMounted] = React.useState(false)

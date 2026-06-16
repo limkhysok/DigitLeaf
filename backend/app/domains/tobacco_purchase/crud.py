@@ -51,9 +51,9 @@ async def get_vendor_available_sack_kg(db: AsyncSession, vendor_id: int) -> floa
 
     used_result = await db.execute(
         select(func.coalesce(func.sum(TobaccoPurchaseDetail.sack_in_kg), 0.0))
-        .join(TobaccoPurchase, TobaccoPurchaseDetail.m_id == TobaccoPurchase.tp_id)
-        .where(TobaccoPurchase.vendor_id == vendor_id)
-        .where(TobaccoPurchaseDetail.farmer_own_sack == 0)
+        .join(TobaccoPurchase, col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
+        .where(col(TobaccoPurchase.vendor_id) == str(vendor_id))
+        .where(col(TobaccoPurchaseDetail.farmer_own_sack) == 0)
     )
     used_total = float(used_result.scalar() or 0.0)
 
@@ -131,6 +131,71 @@ def _process_detail_picture(picture: Optional[str]) -> Optional[str]:
             return picture
 
 
+def _compute_net(detail_in: PurchaseDetailCreate) -> float:
+    return max(0.0,
+        (detail_in.gross_weight or 0)
+        - (detail_in.remork_in_kg or 0)
+        - (detail_in.sack_in_kg or 0)
+    )
+
+
+def _compute_purchase_totals(
+    details: List[PurchaseDetailCreate],
+) -> Tuple[float, float, float]:
+    """Returns (total_net_weight, grand_total, new_sack_total)."""
+    total_net_weight = 0.0
+    grand_total = 0.0
+    new_sack_total = 0.0
+    for detail_in in details:
+        net = _compute_net(detail_in)
+        total_net_weight += net
+        grand_total += round(net * (detail_in.price or 0), 2)
+        if not detail_in.farmer_own_sack:
+            new_sack_total += detail_in.sack_in_kg or 0
+    return total_net_weight, grand_total, new_sack_total
+
+
+async def _validate_sack_quota(
+    db: AsyncSession,
+    vendor_id: Any,
+    new_sack_total: float,
+) -> None:
+    if not (vendor_id and str(vendor_id).isdigit() and new_sack_total > 1e-9):
+        return
+    available = await get_vendor_available_sack_kg(db, int(vendor_id))
+    if new_sack_total > available + 1e-9:
+        raise ValueError(
+            f"Insufficient sack stock: need {new_sack_total:.3f} kg but only "
+            f"{available:.3f} kg available. "
+            "Tick 'Own Sack' for items where the farmer brings their own sack."
+        )
+
+
+def _build_detail(
+    detail_in: PurchaseDetailCreate,
+    invoice_num: str,
+    tp_id: int,
+    user_name: str,
+    ip_address: str,
+) -> TobaccoPurchaseDetail:
+    net = _compute_net(detail_in)
+    total_amount = round(net * (detail_in.price or 0), 2)
+    picture_val = _process_detail_picture(detail_in.picture)
+    detail_data = detail_in.model_dump(exclude={"invoice_num", "m_id", "picture"}, exclude_none=True)
+    if picture_val:
+        detail_data["picture"] = picture_val
+    return TobaccoPurchaseDetail(
+        **detail_data,
+        invoice_num=invoice_num,
+        m_id=tp_id,
+        qty=round(net, 3),
+        user=user_name,
+        ip_address=ip_address,
+        do_date=datetime.now(CAMBODIA_TZ),
+        total_amount=total_amount,
+    )
+
+
 async def _sync_purchase_details(
     db: AsyncSession,
     db_obj: TobaccoPurchase,
@@ -139,58 +204,18 @@ async def _sync_purchase_details(
     ip_address: str,
     delete_existing: bool = False,
 ) -> None:
-    if delete_existing:
-        await _clear_existing_details(db, db_obj.tp_id)
-
-    # Compute totals and sack usage before inserting so the validation
-    # query runs against a clean DB state (old details already flushed away).
-    total_net_weight = 0.0
-    grand_total = 0.0
-    new_sack_total = 0.0
-
     assert db_obj.tp_id is not None
-    for detail_in in details:
-        net = max(0.0,
-            (detail_in.gross_weight or 0)
-            - (detail_in.remork_in_kg or 0)
-            - (detail_in.sack_in_kg or 0)
-        )
-        total_net_weight += net
-        grand_total += round(net * (detail_in.price or 0), 2)
-        if not detail_in.farmer_own_sack:
-            new_sack_total += detail_in.sack_in_kg or 0
+    tp_id: int = db_obj.tp_id
+    if delete_existing:
+        await _clear_existing_details(db, tp_id)
 
-    # Validate before any db.add so autoflush doesn't pollute the available query.
-    if db_obj.vendor_id and str(db_obj.vendor_id).isdigit() and new_sack_total > 1e-9:
-        available = await get_vendor_available_sack_kg(db, int(db_obj.vendor_id))
-        if new_sack_total > available + 1e-9:
-            raise ValueError(
-                f"Insufficient sack stock: need {new_sack_total:.3f} kg but only "
-                f"{available:.3f} kg available. "
-                "Tick 'Own Sack' for items where the farmer brings their own sack."
-            )
+    # Compute totals before inserting so the validation query runs against
+    # a clean DB state (old details already flushed away).
+    total_net_weight, grand_total, new_sack_total = _compute_purchase_totals(details)
+    await _validate_sack_quota(db, db_obj.vendor_id, new_sack_total)
 
     for detail_in in details:
-        net = max(0.0,
-            (detail_in.gross_weight or 0)
-            - (detail_in.remork_in_kg or 0)
-            - (detail_in.sack_in_kg or 0)
-        )
-        total_amount = round(net * (detail_in.price or 0), 2)
-        picture_val = _process_detail_picture(detail_in.picture)
-        detail_data = detail_in.model_dump(exclude={"invoice_num", "m_id", "picture"}, exclude_none=True)
-        if picture_val:
-            detail_data["picture"] = picture_val
-        db.add(TobaccoPurchaseDetail(
-            **detail_data,
-            invoice_num=db_obj.invoice_num,
-            m_id=db_obj.tp_id,
-            qty=round(net, 3),
-            user=user_name,
-            ip_address=ip_address,
-            do_date=datetime.now(CAMBODIA_TZ),
-            total_amount=total_amount,
-        ))
+        db.add(_build_detail(detail_in, db_obj.invoice_num, tp_id, user_name, ip_address))
 
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
@@ -251,21 +276,23 @@ async def get_purchases(
     # Correlated subquery replaces selectinload(details): one indexed COUNT per row
     # instead of fetching all detail columns (incl. picture paths) for the whole page.
     detail_count_subq = (
-        select(func.count(TobaccoPurchaseDetail.tpd_id))
-        .where(TobaccoPurchaseDetail.m_id == TobaccoPurchase.tp_id)
+        select(func.count(col(TobaccoPurchaseDetail.tpd_id)))
+        .where(col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
         .correlate(TobaccoPurchase)
         .scalar_subquery()
     )
 
     # Data query: vendor_name from an outer join instead of a separate selectinload batch.
-    data_base = (
+    # Annotated as Any because col(...).label(...) on Optional columns produces Label[Unknown]
+    # in Pylance — the underlying SQLAlchemy expression is correct at runtime.
+    data_base: Any = (  # pyright: ignore[reportUnknownVariableType]
         select(
             TobaccoPurchase,
-            MemberFarmer.name.label("vendor_name"),
+            col(MemberFarmer.name).label("vendor_name"),  # type: ignore[arg-type]
             detail_count_subq.label("detail_count"),
         )
         .join(MfConYear, col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
-        .outerjoin(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id)
+        .outerjoin(MemberFarmer, col(TobaccoPurchase.vendor_id) == col(MemberFarmer.mf_id))
         .where(MfConYear.year == current_year)
     )
 
@@ -285,13 +312,13 @@ async def get_purchases(
         )
         data_base = (
             data_base
-            .outerjoin(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id)
+            .outerjoin(Purchaser, col(TobaccoPurchase.buyer) == col(Purchaser.p_id))
             .where(search_filter)
         )
         count_base = (
             count_base
-            .outerjoin(MemberFarmer, TobaccoPurchase.vendor_id == MemberFarmer.mf_id)
-            .outerjoin(Purchaser, TobaccoPurchase.buyer == Purchaser.p_id)
+            .outerjoin(MemberFarmer, col(TobaccoPurchase.vendor_id) == col(MemberFarmer.mf_id))
+            .outerjoin(Purchaser, col(TobaccoPurchase.buyer) == col(Purchaser.p_id))
             .where(search_filter)
         )
 
@@ -313,7 +340,7 @@ async def get_purchases(
         order_col = col(TobaccoPurchase.tp_id).desc()
 
     result = await db.execute(data_base.order_by(order_col).offset(skip).limit(limit))
-    return result.all(), total or 0
+    return list(result.all()), total or 0
 
 
 
@@ -355,9 +382,9 @@ async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorIt
     start_date = date(current_year, 1, 1)
     end_date = date(current_year, 12, 31)
 
-    weight_subquery = (
+    weight_subquery: Any = (
         select(
-            TobaccoPurchase.vendor_id.label("vendor_id"),
+            col(TobaccoPurchase.vendor_id).label("vendor_id"),  # type: ignore[arg-type]
             func.sum(TobaccoPurchase.total_net_weight).label("total_weight")
         )
         .where(TobaccoPurchase.tp_date >= start_date)

@@ -66,7 +66,7 @@ async def get_by_id(session: AsyncSession, sack_id: int) -> Optional[SackRegistr
 
 async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict[str, Any]]:
     stmt = (
-        select(SackRegistration, Represent.represent_name, MemberFarmer.name)
+        select(SackRegistration, Represent.represent_name, MemberFarmer.name, MemberFarmer.mf_code)
         .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
         .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
         .where(SackRegistration.id == sack_id)
@@ -75,13 +75,14 @@ async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict[str,
     row = result.first()
     if not row:
         return None
-    sack, r_name, f_name = cast(tuple[SackRegistration, str, str], row)
+    sack, r_name, f_name, mf_code = cast(tuple[SackRegistration, str, str, str], row)
     assert sack.id is not None
     sack_status = await _get_sack_status(session, [sack.member_farmer_id])
     _, remaining = sack_status.get(sack.id, (False, float(sack.sack_in_kg or 0.0)))
     data: dict[str, Any] = sack.model_dump()
     data["represent_name"] = r_name
     data["member_farmer_name"] = f_name
+    data["member_farmer_mf_code"] = mf_code
     data["sack_in_kg"] = remaining
     return data
 
@@ -96,7 +97,7 @@ async def get_all(
     sort_sack_in_kg: Optional[str] = None,
 ) -> tuple[list[dict[str, Any]], int]:
     stmt = (
-        select(SackRegistration, Represent.represent_name, MemberFarmer.name)
+        select(SackRegistration, Represent.represent_name, MemberFarmer.name, MemberFarmer.mf_code)
         .join(Represent, col(SackRegistration.represent_id) == col(Represent.represent_id))
         .join(MemberFarmer, col(SackRegistration.member_farmer_id) == col(MemberFarmer.mf_id))
     )
@@ -106,6 +107,7 @@ async def get_all(
         pattern = f"%{search}%"
         cond = (
             col(MemberFarmer.name).ilike(pattern)
+            | col(MemberFarmer.mf_code).ilike(pattern)
             | col(Represent.represent_name).ilike(pattern)
         )
         stmt = stmt.where(cond)
@@ -135,17 +137,18 @@ async def get_all(
     result = await session.execute(stmt.offset(skip).limit(limit))
 
     raw_rows = result.all()
-    farmer_ids = list({cast(tuple[SackRegistration, str, str], row)[0].member_farmer_id for row in raw_rows})
+    farmer_ids = list({cast(tuple[SackRegistration, str, str, str], row)[0].member_farmer_id for row in raw_rows})
     sack_status = await _get_sack_status(session, farmer_ids)
 
     items: list[dict[str, Any]] = []
     for row in raw_rows:
-        sack, r_name, f_name = cast(tuple[SackRegistration, str, str], row)
+        sack, r_name, f_name, mf_code = cast(tuple[SackRegistration, str, str, str], row)
         assert sack.id is not None
         _, remaining = sack_status.get(sack.id, (False, float(sack.sack_in_kg or 0.0)))
         data: dict[str, Any] = sack.model_dump()
         data["represent_name"] = r_name
         data["member_farmer_name"] = f_name
+        data["member_farmer_mf_code"] = mf_code
         data["sack_in_kg"] = remaining
         items.append(data)
 

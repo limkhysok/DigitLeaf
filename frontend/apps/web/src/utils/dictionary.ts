@@ -121,6 +121,7 @@ export const translations = {
         no: "No.",
         representative: "Representative",
         farmer: "Farmer",
+        farmerId: "Farmer ID",
         status: "Status",
         sackWeight: "Sack (Kg)",
         registeredBy: "Registered By",
@@ -420,6 +421,7 @@ export const translations = {
         no: "ល.រ",
         representative: "អ្នកតំណាង",
         farmer: "កសិករ",
+        farmerId: "លេខកសិករ",
         status: "ស្ថានភាព",
         sackWeight: "បាវ(គីឡូក្រាម)",
         registeredBy: "ចុះឈ្មោះដោយ",
@@ -721,6 +723,7 @@ export type TranslationType = {
       readonly no: string;
       readonly representative: string;
       readonly farmer: string;
+      readonly farmerId: string;
       readonly status: string;
       readonly sackWeight: string;
       readonly registeredBy: string;

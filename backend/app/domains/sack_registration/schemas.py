@@ -30,6 +30,7 @@ class SackRegistrationPublic(BaseModel):
     represent_name: str
     member_farmer_id: int
     member_farmer_name: str
+    member_farmer_mf_code: str
     dl_user_id: int
     dl_user_name: str
     sack_in_kg: Optional[float] = None

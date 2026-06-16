@@ -72,6 +72,12 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       cell: ({ row }) => <div className="font-medium">{row.getValue("member_farmer_name")}</div>,
     },
     {
+      accessorKey: "member_farmer_mf_code",
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.farmerId} />,
+      cell: ({ row }) => <div className="font-medium">{row.getValue("member_farmer_mf_code")}</div>,
+      enableSorting: false,
+    },
+    {
       id: "sack_in_kg",
       accessorFn: (row) => row.sack_in_kg,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.sackWeight} />,

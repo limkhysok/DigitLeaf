@@ -45,7 +45,7 @@ type SortDir = "asc" | "desc" | null
 export default function TobaccoPurchasePage() {
 
 
-  const { tokens, isLoading: isAuthLoading } = useAuth()
+  const { tokens } = useAuth()
   const { t } = useLanguage()
   const queryClient = useQueryClient()
 
@@ -97,7 +97,7 @@ export default function TobaccoPurchasePage() {
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.has_more ? allPages.length + 1 : undefined,
-    enabled: !!tokens?.access_token && !isAuthLoading,
+    enabled: !!tokens?.access_token,
   })
 
   const records = React.useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data])

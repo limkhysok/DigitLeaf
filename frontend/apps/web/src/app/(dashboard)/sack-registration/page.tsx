@@ -31,7 +31,7 @@ import { useDebounce } from "use-debounce"
 import { useInView } from "react-intersection-observer"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-const PAGE_SIZE = 30
+const PAGE_SIZE = 20
 
 export default function SackRegistrationPage() {
 

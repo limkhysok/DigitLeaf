@@ -19,6 +19,7 @@ export interface SackRegistrationItem {
   represent_name: string;
   member_farmer_id: number;
   member_farmer_name: string;
+  member_farmer_mf_code: string;
   dl_user_id: number;
   dl_user_name: string;
   sack_in_kg: number | null;
