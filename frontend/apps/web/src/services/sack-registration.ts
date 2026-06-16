@@ -7,10 +7,13 @@ import type {
   SackRegistrationUpdate,
   SackRegistrationListParams,
   SackRegistrationListResponse,
+  FarmerContractItem,
   FarmerContractListResponse,
   FarmerContractFormMetadata,
   FarmerContractCreate,
   FarmerContractCreated,
+  FarmerContractUpdate,
+  FarmerContractPatch,
 } from "../types";
 
 export const sackRegistrationApi = {
@@ -229,5 +232,73 @@ export const sackRegistrationApi = {
       throw new Error(errorData.detail || "Failed to create farmer contract");
     }
     return response.json();
+  },
+
+  async getFarmerContract(
+    accessToken: string,
+    mfConId: number
+  ): Promise<FarmerContractItem> {
+    const response = await fetch(`${API_BASE_URL}/farmer-contract/${mfConId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Farmer contract not found");
+    }
+    return response.json();
+  },
+
+  async updateFarmerContract(
+    accessToken: string,
+    mfConId: number,
+    data: FarmerContractUpdate
+  ): Promise<FarmerContractCreated> {
+    const response = await fetch(`${API_BASE_URL}/farmer-contract/${mfConId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to update farmer contract");
+    }
+    return response.json();
+  },
+
+  async patchFarmerContract(
+    accessToken: string,
+    mfConId: number,
+    data: FarmerContractPatch
+  ): Promise<FarmerContractCreated> {
+    const response = await fetch(`${API_BASE_URL}/farmer-contract/${mfConId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to patch farmer contract");
+    }
+    return response.json();
+  },
+
+  async deleteFarmerContract(
+    accessToken: string,
+    mfConId: number
+  ): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/farmer-contract/${mfConId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to delete farmer contract");
+    }
   },
 };

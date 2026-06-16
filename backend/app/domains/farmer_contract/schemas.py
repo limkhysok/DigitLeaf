@@ -8,10 +8,12 @@ class FarmerContractPublic(BaseModel):
     year: int
     name: str
     mf_code: str
+    t_id: Optional[int] = None
     land: Optional[float] = None
     tobac_num: Optional[int] = None
     expected_yield: Optional[float] = None
     purchased_weight: Optional[float] = None
+    do_date: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -34,7 +36,24 @@ class FarmerContractFormMetadata(BaseModel):
 
 class FarmerContractCreate(BaseModel):
     mf_id: int
+    t_id: int
     year: int
+    land: Optional[float] = None
+    tobac_num: Optional[int] = None
+
+
+class FarmerContractUpdate(BaseModel):
+    mf_id: int
+    t_id: int
+    year: int
+    land: Optional[float] = None
+    tobac_num: Optional[int] = None
+
+
+class FarmerContractPatch(BaseModel):
+    mf_id: Optional[int] = None
+    t_id: Optional[int] = None
+    year: Optional[int] = None
     land: Optional[float] = None
     tobac_num: Optional[int] = None
 

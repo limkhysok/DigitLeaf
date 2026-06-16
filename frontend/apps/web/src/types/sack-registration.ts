@@ -65,10 +65,12 @@ export interface FarmerContractItem {
   year: number;
   name: string;
   mf_code: string;
+  t_id?: number | null;
   land?: number | null;
   tobac_num?: number | null;
   expected_yield?: number | null;
   purchased_weight?: number | null;
+  do_date?: string | null;
 }
 
 export interface FarmerContractListResponse {
@@ -83,6 +85,7 @@ export interface FarmerContractFormMetadata {
 
 export interface FarmerContractCreate {
   mf_id: number;
+  t_id: number;
   year: number;
   land?: number | null;
   tobac_num?: number | null;
@@ -92,6 +95,22 @@ export interface FarmerContractCreated {
   mf_con_id: number;
   mf_id: number;
   year: number;
+  land?: number | null;
+  tobac_num?: number | null;
+}
+
+export interface FarmerContractUpdate {
+  mf_id: number;
+  t_id: number;
+  year: number;
+  land?: number | null;
+  tobac_num?: number | null;
+}
+
+export interface FarmerContractPatch {
+  mf_id?: number;
+  t_id?: number;
+  year?: number;
   land?: number | null;
   tobac_num?: number | null;
 }

@@ -3,12 +3,12 @@
 import * as React from "react"
 import {
   IconLoader2,
-  IconUserPlus,
   IconMeterSquare,
   IconSeeding,
   IconCalendar,
   IconChevronDown,
   IconCheck,
+  IconPencil,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -42,54 +42,33 @@ import {
 import { Command as CommandPrimitive } from "cmdk"
 import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { useDebounce } from "use-debounce"
-import { apiClient, MemberFarmerItem, TobaccoItem } from "@/services/api-client"
+import { apiClient, FarmerContractItem, TobaccoItem } from "@/services/api-client"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@workspace/ui/lib/utils"
 
-interface CreateFarmerContractDialogProps {
+interface EditFarmerContractDialogProps {
   open: boolean
   onOpenChange: (v: boolean) => void
+  contract: FarmerContractItem | null
 }
 
-export function CreateFarmerContractDialog({
+export function EditFarmerContractDialog({
   open,
   onOpenChange,
-}: Readonly<CreateFarmerContractDialogProps>) {
+  contract,
+}: Readonly<EditFarmerContractDialogProps>) {
   const { tokens } = useAuth()
   const queryClient = useQueryClient()
 
-  // Farmer search state
-  const [farmerOpen, setFarmerOpen] = React.useState(false)
-  const [farmerQuery, setFarmerQuery] = React.useState("")
-  const [selectedFarmer, setSelectedFarmer] = React.useState<MemberFarmerItem | null>(null)
-  const [debouncedFarmerQuery] = useDebounce(farmerQuery, 350)
-
-  // Tobacco type state
   const [tobaccoOpen, setTobaccoOpen] = React.useState(false)
   const [tobaccoSearch, setTobaccoSearch] = React.useState("")
   const [selectedTobacco, setSelectedTobacco] = React.useState<TobaccoItem | null>(null)
 
-  // Manual inputs
   const [land, setLand] = React.useState("")
   const [sapling, setSapling] = React.useState("")
-  const [year, setYear] = React.useState(new Date().getFullYear().toString())
+  const [year, setYear] = React.useState("")
 
-  // Reset on close
-  function handleClose() {
-    setFarmerOpen(false)
-    setFarmerQuery("")
-    setSelectedFarmer(null)
-    setTobaccoOpen(false)
-    setTobaccoSearch("")
-    setSelectedTobacco(null)
-    setLand("")
-    setSapling("")
-    setYear(new Date().getFullYear().toString())
-    onOpenChange(false)
-  }
-
-  // Fetch tobacco types once when dialog opens
+  // Fetch tobacco types when dialog opens
   const { data: formMeta, isFetching: isFetchingTobacco } = useQuery({
     queryKey: ["farmer-contract-form-metadata"],
     queryFn: () => apiClient.getFarmerContractFormMetadata(tokens!.access_token),
@@ -98,7 +77,26 @@ export function CreateFarmerContractDialog({
   })
   const tobaccoTypes = formMeta?.tobacco_types ?? []
 
-  // Client-side filter for tobacco
+  // Pre-populate fields when contract changes
+  React.useEffect(() => {
+    if (!contract || !open) return
+    setLand(contract.land != null ? String(contract.land) : "")
+    setSapling(contract.tobac_num != null ? String(contract.tobac_num) : "")
+    setYear(String(contract.year))
+    setTobaccoSearch("")
+    setSelectedTobacco(null)
+  }, [contract, open])
+
+  // Once tobacco types are loaded and contract has t_id, auto-select
+  React.useEffect(() => {
+    if (!contract?.t_id || tobaccoTypes.length === 0) return
+    const match = tobaccoTypes.find((t) => t.t_id === contract.t_id)
+    if (match) {
+      setSelectedTobacco(match)
+      setTobaccoSearch(match.t_name_kh ?? match.t_name)
+    }
+  }, [contract?.t_id, tobaccoTypes])
+
   const filteredTobacco = React.useMemo(() => {
     if (!tobaccoSearch.trim()) return tobaccoTypes
     const q = tobaccoSearch.toLowerCase()
@@ -109,49 +107,40 @@ export function CreateFarmerContractDialog({
     )
   }, [tobaccoTypes, tobaccoSearch])
 
-  // Search farmers as user types
-  const { data: farmers = [], isFetching: isFetchingFarmers } = useQuery({
-    queryKey: ["farmer-contract-farmer-search", debouncedFarmerQuery],
-    queryFn: () =>
-      apiClient.queryMemberFarmers(tokens!.access_token, debouncedFarmerQuery, undefined, 20),
-    enabled: farmerOpen && !!tokens?.access_token,
-    staleTime: 30_000,
-  })
+  function handleClose() {
+    setTobaccoOpen(false)
+    setTobaccoSearch("")
+    setSelectedTobacco(null)
+    setLand("")
+    setSapling("")
+    setYear("")
+    onOpenChange(false)
+  }
 
-  // Create contract mutation
-  const { mutate: createContract, isPending } = useMutation({
-    mutationFn: (data: Parameters<typeof apiClient.createFarmerContract>[1]) =>
-      apiClient.createFarmerContract(tokens!.access_token, data),
+  const { mutate: patchContract, isPending } = useMutation({
+    mutationFn: (data: Parameters<typeof apiClient.patchFarmerContract>[2]) =>
+      apiClient.patchFarmerContract(tokens!.access_token, contract!.mf_con_id, data),
     onSuccess: () => {
-      toast.success("Farmer contract added successfully")
+      toast.success("Farmer contract updated successfully")
       queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
       handleClose()
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to create farmer contract")
+      toast.error(err.message || "Failed to update farmer contract")
     },
   })
 
   function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
-    if (!selectedFarmer) {
-      toast.error("Please select a farmer")
-      return
-    }
     if (!selectedTobacco) {
       toast.error("Please select a tobacco type")
       return
     }
-    if (!land || !sapling) {
-      toast.error("Please fill in all fields")
-      return
-    }
-    createContract({
-      mf_id: selectedFarmer.mf_id,
+    patchContract({
       t_id: selectedTobacco.t_id,
       year: Number.parseInt(year),
-      land: Number.parseFloat(land),
-      tobac_num: Number.parseInt(sapling),
+      land: land ? Number.parseFloat(land) : null,
+      tobac_num: sapling ? Number.parseInt(sapling) : null,
     })
   }
 
@@ -160,96 +149,20 @@ export function CreateFarmerContractDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconUserPlus className="h-5 w-5 text-[#009640]" />
-            Add Farmer Contract
+            <IconPencil className="h-5 w-5 text-[#009640]" />
+            Edit Farmer Contract
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
 
-          {/* Farmer search */}
-          <div className="space-y-1 flex flex-col">
-            <Label className="text-sm font-medium">Farmer</Label>
-            <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
-              <Popover
-                open={farmerOpen}
-                onOpenChange={(open) => {
-                  setFarmerOpen(open)
-                  if (!open && selectedFarmer) setFarmerQuery(selectedFarmer.name)
-                }}
-              >
-                <PopoverTrigger asChild>
-                  <div className="relative">
-                    <CommandPrimitive.Input
-                      className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      value={farmerQuery}
-                      onValueChange={(val) => {
-                        setFarmerQuery(val)
-                        setFarmerOpen(true)
-                        if (selectedFarmer) setSelectedFarmer(null)
-                      }}
-                      onFocus={() => setFarmerOpen(true)}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFarmerOpen(true)
-                      }}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      placeholder="Search farmer..."
-                    />
-                    <IconChevronDown className="absolute right-3 top-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-[--radix-popover-trigger-width] p-0"
-                  align="start"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                  <CommandList>
-                    {isFetchingFarmers ? (
-                      <div className="flex items-center justify-center py-3">
-                        <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : (
-                      <CommandEmpty>No farmer found.</CommandEmpty>
-                    )}
-                    <CommandGroup>
-                      {farmers.map((f) => (
-                        <CommandItem
-                          key={f.mf_id}
-                          value={`${f.name} ${f.mf_code}`}
-                          onSelect={() => {
-                            setSelectedFarmer(f)
-                            setFarmerQuery(f.name)
-                            setFarmerOpen(false)
-                          }}
-                        >
-                          <IconCheck
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedFarmer?.mf_id === f.mf_id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <span>
-                            {f.name}{" "}
-                            <span className="text-muted-foreground">({f.mf_code})</span>
-                          </span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </PopoverContent>
-              </Popover>
-            </Command>
-
-            {selectedFarmer && !farmerOpen && (
-              <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-1">
-                <div className="flex flex-col">
-                  <span className="font-medium text-green-700 dark:text-green-400">{selectedFarmer.name}</span>
-                  <span className="text-muted-foreground text-xs">ID: {selectedFarmer.mf_code}</span>
-                </div>
-                <IconCheck className="h-4 w-4 text-green-500" />
-              </div>
-            )}
+          {/* Farmer (read-only) */}
+          <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="font-medium text-green-700 dark:text-green-400">{contract?.name}</span>
+              <span className="text-muted-foreground text-xs">ID: {contract?.mf_code}</span>
+            </div>
+            <IconCheck className="h-4 w-4 text-green-500" />
           </div>
 
           {/* Tobacco type */}
@@ -333,36 +246,21 @@ export function CreateFarmerContractDialog({
                 </PopoverContent>
               </Popover>
             </Command>
-
-            {selectedTobacco && !tobaccoOpen && (
-              <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-1">
-                <div className="flex flex-col">
-                  <span className="font-medium text-green-700 dark:text-green-400">
-                    {selectedTobacco.t_name_kh ?? selectedTobacco.t_name}
-                  </span>
-                  {selectedTobacco.t_name_kh && (
-                    <span className="text-muted-foreground text-xs">{selectedTobacco.t_name}</span>
-                  )}
-                </div>
-                <IconCheck className="h-4 w-4 text-green-500" />
-              </div>
-            )}
           </div>
 
           {/* Land */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="land">Land</Label>
+            <Label htmlFor="edit-land">Land</Label>
             <div className="relative">
               <IconMeterSquare className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="land"
+                id="edit-land"
                 type="number"
                 min={0.01}
                 step="any"
                 value={land}
                 onChange={(e) => setLand(e.target.value)}
                 placeholder="Enter land area..."
-                required
                 className="pl-9"
               />
             </div>
@@ -370,18 +268,17 @@ export function CreateFarmerContractDialog({
 
           {/* Sapling (Kg) */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="sapling">Sapling (Kg)</Label>
+            <Label htmlFor="edit-sapling">Sapling (Kg)</Label>
             <div className="relative">
               <IconSeeding className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="sapling"
+                id="edit-sapling"
                 type="number"
                 min={1}
                 step="1"
                 value={sapling}
                 onChange={(e) => setSapling(e.target.value)}
                 placeholder="Enter sapling weight..."
-                required
                 className="pl-9"
               />
             </div>
@@ -389,11 +286,11 @@ export function CreateFarmerContractDialog({
 
           {/* Year */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="year">Year</Label>
+            <Label htmlFor="edit-year">Year</Label>
             <div className="relative">
               <IconCalendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
               <Select value={year} onValueChange={setYear}>
-                <SelectTrigger id="year" className="w-full pl-9">
+                <SelectTrigger id="edit-year" className="w-full pl-9">
                   <SelectValue placeholder="Select year..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -417,7 +314,7 @@ export function CreateFarmerContractDialog({
               className="bg-[#009640] hover:bg-[#007a33] text-white"
             >
               {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save
+              Save Changes
             </Button>
           </DialogFooter>
         </form>

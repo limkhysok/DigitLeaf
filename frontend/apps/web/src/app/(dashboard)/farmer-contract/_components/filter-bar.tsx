@@ -23,6 +23,7 @@ import {
 
 type ColumnVisibility = {
   code: boolean
+  land: boolean
   sapling: boolean
   expected: boolean
   purchased: boolean
@@ -90,6 +91,12 @@ export function FilterBar({
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, code: v })}
             >
               {t.farmerContract.idCard}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.land}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, land: v })}
+            >
+              {t.farmerContract.land}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.sapling}

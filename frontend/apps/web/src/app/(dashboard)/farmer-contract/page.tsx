@@ -4,7 +4,7 @@ import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, FarmerContractItem } from "@/services/api-client"
-import { IconLoader2, IconClipboardList } from "@tabler/icons-react"
+import { IconLoader2, IconClipboardList, IconDotsVertical, IconEye, IconPencil, IconTrash } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   Table,
@@ -14,12 +14,31 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { FarmerContractCard } from "./_components/farmer-contract-card"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { CreateFarmerContractDialog } from "./_components/create-farmer-contract-dialog"
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { EditFarmerContractDialog } from "./_components/edit-farmer-contract-dialog"
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
+import { toast } from "sonner"
 
 const PAGE_SIZE = 20
 
@@ -32,6 +51,7 @@ export default function FarmerContractPage() {
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t } = useLanguage()
+  const queryClient = useQueryClient()
 
   const [searchInput, setSearchInput] = React.useState("")
   const [sortBy, setSortBy] = React.useState<"sapling" | "yield" | "purchased" | null>(null)
@@ -39,12 +59,15 @@ export default function FarmerContractPage() {
   const [selectedYear, setSelectedYear] = React.useState(2026)
   const [columnVisibility, setColumnVisibility] = React.useState({
     code: true,
+    land: true,
     sapling: true,
     expected: true,
     purchased: true,
     year: true,
   })
   const [addDialogOpen, setAddDialogOpen] = React.useState(false)
+  const [editTarget, setEditTarget] = React.useState<FarmerContractItem | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<FarmerContractItem | null>(null)
 
   const {
     data,
@@ -64,6 +87,19 @@ export default function FarmerContractPage() {
     getNextPageParam: (lastPage, allPages) =>
       lastPage.has_more ? allPages.length + 1 : undefined,
     enabled: !!tokens?.access_token && !isAuthLoading,
+  })
+
+  const { mutate: deleteContract, isPending: isDeleting } = useMutation({
+    mutationFn: (mfConId: number) =>
+      apiClient.deleteFarmerContract(tokens!.access_token, mfConId),
+    onSuccess: () => {
+      toast.success("Farmer contract deleted")
+      queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
+      setDeleteTarget(null)
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to delete farmer contract")
+    },
   })
 
   const allRecords = React.useMemo(
@@ -198,16 +234,19 @@ export default function FarmerContractPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden lg:block">
           <div className="rounded-md border">
-            <Table>
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">No.</TableHead>
-                  <TableHead>{t.farmerContract.farmerName}</TableHead>
-                  {columnVisibility.code && <TableHead>ID Card</TableHead>}
-                  {columnVisibility.sapling && <TableHead>{t.farmerContract.saplingKg}</TableHead>}
-                  {columnVisibility.expected && <TableHead>{t.farmerContract.expectedYieldKg}</TableHead>}
-                  {columnVisibility.purchased && <TableHead>{t.farmerContract.purchasedWeightKg}</TableHead>}
-                  {columnVisibility.year && <TableHead className="text-center w-24">{t.farmerContract.year}</TableHead>}
+                  <TableHead className="w-[4%]">No.</TableHead>
+                  <TableHead className="w-[12%]">{t.farmerContract.farmerName}</TableHead>
+                  {columnVisibility.code && <TableHead className="w-[10%]">Farmer ID</TableHead>}
+                  {columnVisibility.land && <TableHead className="w-[10%]">{t.farmerContract.land}</TableHead>}
+                  {columnVisibility.sapling && <TableHead className="w-[10%]">{t.farmerContract.saplingKg}</TableHead>}
+                  {columnVisibility.expected && <TableHead className="w-[12%]">{t.farmerContract.expectedYieldKg}</TableHead>}
+                  {columnVisibility.purchased && <TableHead className="w-[12%]">{t.farmerContract.purchasedWeightKg}</TableHead>}
+                  {columnVisibility.year && <TableHead className="w-[8%] text-center">{t.farmerContract.year}</TableHead>}
+                  <TableHead className="w-[10%] text-center">Date</TableHead>
+                  <TableHead className="w-[10%] text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -216,6 +255,13 @@ export default function FarmerContractPage() {
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                     <TableCell className="font-semibold">{rec.name}</TableCell>
                     {columnVisibility.code && <TableCell className="text-sm">{rec.mf_code}</TableCell>}
+                    {columnVisibility.land && (
+                      <TableCell className="text-sm">
+                        {rec.land !== undefined && rec.land !== null
+                          ? rec.land.toLocaleString()
+                          : <span className="text-muted-foreground/40">—</span>}
+                      </TableCell>
+                    )}
                     {columnVisibility.sapling && (
                       <TableCell className="text-sm">
                         {rec.tobac_num !== undefined && rec.tobac_num !== null
@@ -244,6 +290,40 @@ export default function FarmerContractPage() {
                         </span>
                       </TableCell>
                     )}
+                    <TableCell className="text-center text-sm font-mono">
+                      {rec.do_date
+                        ? (() => { const [y, m, d] = rec.do_date.split("T")[0]!.split("-"); return `${d ?? ""}/${m ?? ""}/${y ?? ""}` })()
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <IconDotsVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="gap-2 cursor-pointer" disabled>
+                            <IconEye className="h-4 w-4" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="gap-2 cursor-pointer"
+                            onSelect={() => setEditTarget(rec)}
+                          >
+                            <IconPencil className="h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                            onSelect={() => setDeleteTarget(rec)}
+                          >
+                            <IconTrash className="h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -261,6 +341,36 @@ export default function FarmerContractPage() {
       )}
 
       <CreateFarmerContractDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+
+      <EditFarmerContractDialog
+        open={editTarget !== null}
+        onOpenChange={(open) => { if (!open) setEditTarget(null) }}
+        contract={editTarget}
+      />
+
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete farmer contract?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the contract for{" "}
+              <span className="font-medium text-foreground">{deleteTarget?.name}</span>
+              {" "}({deleteTarget?.mf_code}). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-row justify-end gap-2 sm:space-x-0">
+            <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => deleteTarget && deleteContract(deleteTarget.mf_con_id)}
+            >
+              {isDeleting && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

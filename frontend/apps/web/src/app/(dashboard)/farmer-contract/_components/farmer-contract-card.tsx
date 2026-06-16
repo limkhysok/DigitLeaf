@@ -3,7 +3,7 @@
 import * as React from "react"
 import { FarmerContractItem } from "@/services/api-client"
 import { useLanguage } from "@/hooks/use-language"
-import { IconSeedling, IconUser, IconBook2, IconId, IconScale, IconLeaf } from "@tabler/icons-react"
+import { IconSeedling, IconUser, IconBook2, IconId, IconScale, IconLeaf, IconMeterSquare } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
@@ -68,6 +68,19 @@ export function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
             </span>
             <span className="text-sm font-mono text-right text-foreground">
               {rec.mf_code}
+            </span>
+          </div>
+
+          {/* Land */}
+          <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
+            <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
+              <IconMeterSquare className="h-3.5 w-3.5" />
+              {t.farmerContract.land}
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-right text-foreground">
+              {rec.land !== undefined && rec.land !== null
+                ? rec.land.toLocaleString()
+                : <span className="text-muted-foreground/40">—</span>}
             </span>
           </div>
 

@@ -122,6 +122,9 @@ export function ContractContent({
                     <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-24">
                       {t.farmerContract.year}
                     </th>
+                    <th className="px-4 py-3 text-center font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-28">
+                      Date
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -154,6 +157,14 @@ export function ContractContent({
                         <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
                           {rec.year}
                         </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-[#374151] text-xs font-mono">
+                        {rec.do_date
+                          ? (() => {
+                              const [y, m, d] = rec.do_date.split("-")
+                              return `${d}/${m}/${y?.slice(2)}`
+                            })()
+                          : <span className="text-[#D1D5DB]">—</span>}
                       </td>
                     </tr>
                   ))}

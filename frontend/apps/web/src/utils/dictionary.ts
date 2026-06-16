@@ -198,11 +198,12 @@ export const translations = {
       year: "Year",
       farmerName: "Farmer Name",
       idCard: "ID Card",
-      saplingKg: "Sapling(Kg)",
-      expectedYield: "Expected Yield",
-      expectedYieldKg: "Expected Leaf (kg)",
-      purchasedWeight: "Purchased",
-      purchasedWeightKg: "Purchased Weight (kg)",
+      saplingKg: "Sapling",
+      expectedYield: "Expected",
+      expectedYieldKg: "Expected (kg)",
+      purchasedWeight: "Actual",
+      purchasedWeightKg: "Actual (kg)",
+      land: "Land (m²)",
       view: "View",
       toggleColumns: "Toggle columns",
       largestFirst: "Largest first",
@@ -503,6 +504,7 @@ export const translations = {
       expectedYieldKg: "ទិន្នផលរំពឹងទុក (គីឡូក្រាម)",
       purchasedWeight: "ទម្ងន់ទិញ",
       purchasedWeightKg: "ទម្ងន់ទិញ (គីឡូក្រាម)",
+      land: "ដីស្រែ (ម²)",
       view: "មើល",
       toggleColumns: "បង្ហាញ/លាក់ជួរឈរ",
       largestFirst: "ច្រើនបំផុតមុន",
@@ -805,6 +807,7 @@ export type TranslationType = {
     readonly expectedYieldKg: string;
     readonly purchasedWeight: string;
     readonly purchasedWeightKg: string;
+    readonly land: string;
     readonly view: string;
     readonly toggleColumns: string;
     readonly largestFirst: string;
