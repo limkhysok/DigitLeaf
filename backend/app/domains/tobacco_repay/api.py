@@ -1,10 +1,10 @@
 from typing import Annotated, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from app.domains.tobacco_repay.schemas import TobaccoRepayItem, TobaccoRepayListResponse, TContractRepayCreate
+from app.domains.tobacco_repay.schemas import TobaccoRepayItem, TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead
 from app.domains.tobacco_repay import crud
 
 router = APIRouter()
@@ -35,16 +35,30 @@ async def read_available_years(
     return await crud.get_available_years(session)
 
 
-@router.post("/")
+@router.post("/", response_model=TContractRepayRead, status_code=201)
 async def create_tobacco_repay(
+    request: Request,
     data: TContractRepayCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     try:
-        return await crud.create_repay(session, data)
+        return await crud.create_repay(
+            session,
+            data,
+            user_name=current_user.user_name,
+            ip_address=request.client.host if request.client else None,
+        )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/next-repay-num", response_model=str)
+async def get_next_repay_num(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    return await crud.generate_repay_num(session)
 
 
 @router.get("/contracts")

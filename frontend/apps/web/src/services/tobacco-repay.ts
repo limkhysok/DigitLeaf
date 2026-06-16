@@ -29,9 +29,10 @@ export const tobaccoRepayApi = {
     if (!res.ok) {
       return [];
     }
-    return res.json();
+    const data: number[] = await res.json();
+    return data.map(String);
   },
-  createTobaccoRepay: async (token: string, payload: { con_num: string, tobac_type: number, qty_repay: number }): Promise<unknown> => {
+  createTobaccoRepay: async (token: string, payload: { con_id: number; con_num: string; f_id: number; repay_num?: string; repay_date: string; qty_repay: number; note?: string; oven?: number }): Promise<unknown> => {
     const res = await fetch(`${BASE_URL}/tobacco-repays/`, {
       method: "POST",
       headers: {
@@ -44,6 +45,13 @@ export const tobaccoRepayApi = {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to create tobacco repay");
     }
+    return res.json();
+  },
+  getNextRepayNum: async (token: string): Promise<string> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/next-repay-num`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return "";
     return res.json();
   },
   getVendorContracts: async (token: string, vendorId: number): Promise<VendorContractItem[]> => {

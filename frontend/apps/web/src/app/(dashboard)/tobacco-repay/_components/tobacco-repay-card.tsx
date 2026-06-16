@@ -2,16 +2,18 @@
 
 import * as React from "react"
 import { TobaccoRepayItem } from "@/services/api-client"
-import { IconCash, IconUser, IconUsers, IconLeaf, IconPackage, IconReceipt } from "@tabler/icons-react"
+import { IconCash, IconUser, IconUsers, IconLeaf, IconPackage, IconReceipt, IconPlus } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 
 export const TobaccoRepayCard = React.memo(({
   rec,
   index,
+  onAdd,
 }: {
   rec: TobaccoRepayItem
   index: number
+  onAdd: () => void
 }) => {
   return (
     <Card className="group flex flex-col overflow-hidden border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm">
@@ -20,14 +22,23 @@ export const TobaccoRepayCard = React.memo(({
         <span className="text-sm font-semibold text-foreground bg-muted/60 px-1.5 rounded-sm border border-border/50">
           #{index}
         </span>
-        {rec.contract_year != null && (
-          <Badge
-            variant="outline"
-            className="px-1.5 py-0.5 text-sm font-semibold rounded-sm bg-[#009640]/10 text-[#009640] border-[#009640]/20"
+        <div className="flex items-center gap-2">
+          {rec.contract_year != null && (
+            <Badge
+              variant="outline"
+              className="px-1.5 py-0.5 text-sm font-semibold rounded-sm bg-[#009640]/10 text-[#009640] border-[#009640]/20"
+            >
+              {rec.contract_year}
+            </Badge>
+          )}
+          <button
+            onClick={onAdd}
+            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium text-[#009640] border border-[#009640]/30 hover:bg-[#009640]/10 transition-colors"
           >
-            {rec.contract_year}
-          </Badge>
-        )}
+            <IconPlus className="h-3 w-3" />
+            Add
+          </button>
+        </div>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-2.5 pb-3 px-3">

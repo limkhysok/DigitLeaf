@@ -17,6 +17,7 @@ import {
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { TobaccoRepayCard } from "./_components/tobacco-repay-card"
+import { CreateRepayDialog } from "./_components/create-repay-dialog"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 
@@ -31,6 +32,8 @@ export default function TobaccoRepayPage() {
   const currentYearMinusOne = (new Date().getFullYear() - 1).toString()
   const [selectedYear, setSelectedYear] = React.useState(currentYearMinusOne)
 
+  const [createOpen, setCreateOpen] = React.useState(false)
+  const [selectedRecord, setSelectedRecord] = React.useState<TobaccoRepayItem | null>(null)
   const [searchInput, setSearchInput] = React.useState("")
   const [sortBy, setSortBy] = React.useState<"Quantity" | "total_repaid" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
@@ -135,6 +138,14 @@ export default function TobaccoRepayPage() {
         </div>
       </div>
 
+      <CreateRepayDialog
+        open={createOpen}
+        onOpenChange={(v) => { if (!v) { setSelectedRecord(null) } setCreateOpen(v) }}
+        token={tokens?.access_token ?? ""}
+        record={selectedRecord}
+        selectedYear={effectiveYear}
+      />
+
       {/* ── Mobile Filter Bar ── */}
       <MobileFilterBar
         className="flex lg:hidden"
@@ -163,6 +174,7 @@ export default function TobaccoRepayPage() {
         availableYears={availableYears}
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
+        onAdd={() => { setSelectedRecord(null); setCreateOpen(true) }}
       />
 
       {/* ── Loading State ── */}
@@ -193,7 +205,12 @@ export default function TobaccoRepayPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="grid md:hidden grid-cols-1 gap-3">
           {sortedRecords.map((rec, idx) => (
-            <TobaccoRepayCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
+            <TobaccoRepayCard
+              key={`${rec.id}-${idx}`}
+              rec={rec}
+              index={idx + 1}
+              onAdd={() => { setSelectedRecord(rec); setCreateOpen(true) }}
+            />
           ))}
         </div>
       )}
@@ -204,7 +221,12 @@ export default function TobaccoRepayPage() {
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden md:grid lg:hidden grid-cols-2 gap-4">
           {sortedRecords.map((rec, idx) => (
-            <TobaccoRepayCard key={`${rec.id}-${idx}`} rec={rec} index={idx + 1} />
+            <TobaccoRepayCard
+              key={`${rec.id}-${idx}`}
+              rec={rec}
+              index={idx + 1}
+              onAdd={() => { setSelectedRecord(rec); setCreateOpen(true) }}
+            />
           ))}
         </div>
       )}

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import {
-  IconFilter, IconSearch, IconSortAscending, IconSortDescending, IconChevronDown
+  IconFilter, IconSearch, IconSortAscending, IconSortDescending, IconChevronDown,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
@@ -131,6 +131,7 @@ export function MobileFilterBar({
           <button onClick={() => setSearchInput("")} className="text-muted-foreground hover:text-foreground text-xs leading-none">✕</button>
         )}
       </div>
+
     </div>
   )
 }

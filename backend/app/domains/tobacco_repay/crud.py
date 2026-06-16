@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select, func
+from sqlmodel import select, func, col
 from sqlalchemy import text
 from .models.t_contract import TContract
 from .models.t_contract_return import TContractReturn
@@ -9,6 +9,30 @@ from .schemas import TContractRepayCreate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
 from app.domains.farmer_contract.models.mf_con_year import MfConYear
+from app.core.config import CAMBODIA_TZ
+
+async def generate_repay_num(db: AsyncSession) -> str:
+    today_str = datetime.now(CAMBODIA_TZ).strftime("%d%m%y")
+    prefix = f"{today_str}-"
+
+    statement = (
+        select(TContractReturn.repay_num)
+        .order_by(col(TContractReturn.repay_id).desc())
+        .limit(1)
+    )
+    last_num = await db.scalar(statement)
+
+    if last_num and "-" in last_num:
+        try:
+            last_seq = int(last_num.split("-")[-1])
+            new_seq = last_seq + 1
+        except (ValueError, IndexError):
+            new_seq = 0
+    else:
+        new_seq = 0
+
+    return f"{prefix}{new_seq:04d}"
+
 
 async def get_tobacco_repays(
     db: AsyncSession,
@@ -39,6 +63,8 @@ async def get_tobacco_repays(
             r.represent_name AS representative,
             mcy.year AS contract_year,
             mcy.mf_con_id,
+            c.f_id,
+            m.name AS farmer_name,
             t.tobacco AS tobacco_type,
             SUM(c.qty) AS Quantity,
             IFNULL(repay.total_qty_repay, 0) AS total_repaid
@@ -67,10 +93,10 @@ async def get_tobacco_repays(
             r.represent_name,
             c.f_id,
             m.mf_id,
+            m.name,
             mcy.mf_id,
             mcy.mf_con_id,
             c.contractor,
-            m.name,
             mcy.year,
             c.tobac_type,
             t.tobacco
@@ -89,6 +115,8 @@ async def get_tobacco_repays(
             "representative": row.representative,
             "contract_year": row.contract_year,
             "mf_con_id": row.mf_con_id,
+            "f_id": row.f_id,
+            "farmer_name": row.farmer_name,
             "tobacco_type": row.tobacco_type,
             "Quantity": float(row.Quantity) if row.Quantity is not None else 0.0,
             "total_repaid": float(row.total_repaid) if row.total_repaid is not None else 0.0,
@@ -108,18 +136,28 @@ async def get_available_years(db: AsyncSession) -> List[int]:
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
-async def create_repay(db: AsyncSession, obj_in: TContractRepayCreate) -> TContractReturn:
-    stmt = select(TContract.con_id).where(TContract.con_num == obj_in.con_num)
-    result = await db.execute(stmt)
-    con_id = result.scalars().first()
-    
-    if not con_id:
-        raise ValueError(f"Contract number {obj_in.con_num} not found")
-        
+async def create_repay(
+    db: AsyncSession,
+    obj_in: TContractRepayCreate,
+    user_name: str,
+    ip_address: Optional[str] = None,
+) -> TContractReturn:
+    contract = await db.get(TContract, obj_in.con_id)
+    if not contract:
+        raise ValueError(f"Contract id {obj_in.con_id} not found")
+
     db_obj = TContractReturn(
-        con_id=con_id,
-        tobac_type=obj_in.tobac_type,
-        qty_repay=obj_in.qty_repay
+        con_id=obj_in.con_id,
+        con_num=obj_in.con_num,
+        f_id=obj_in.f_id,
+        repay_num=obj_in.repay_num,
+        repay_date=obj_in.repay_date,
+        qty_repay=obj_in.qty_repay,
+        note=obj_in.note,
+        oven=obj_in.oven,
+        user=user_name,
+        do_date=datetime.now(),
+        ip_address=ip_address,
     )
     db.add(db_obj)
     await db.commit()

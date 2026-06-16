@@ -3,7 +3,7 @@
 import * as React from "react"
 import {
   IconSortAscending, IconSortDescending,
-  IconCirclePlus, IconX, IconAdjustmentsHorizontal,
+  IconCirclePlus, IconX, IconAdjustmentsHorizontal, IconPlus,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
@@ -43,6 +43,7 @@ interface FilterBarProps {
   availableYears: string[]
   columnVisibility: ColumnVisibility
   setColumnVisibility: (v: ColumnVisibility) => void
+  onAdd: () => void
 }
 
 export function FilterBar({
@@ -53,6 +54,7 @@ export function FilterBar({
   selectedYear, setSelectedYear,
   availableYears,
   columnVisibility, setColumnVisibility,
+  onAdd,
 }: Readonly<FilterBarProps>) {
   const [yearOpen, setYearOpen] = React.useState(false)
   const [qtyOpen, setQtyOpen] = React.useState(false)
@@ -210,6 +212,17 @@ export function FilterBar({
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-md h-8 w-64 text-xs placeholder:text-sm"
         />
+
+        {/* Add button */}
+        <Button
+          size="sm"
+          className="h-8 bg-[#009640] hover:bg-[#007a33] text-white"
+          onClick={onAdd}
+        >
+          <IconPlus className="mr-1.5 h-3.5 w-3.5" />
+          Add
+        </Button>
+
       </div>
     </div>
   )
