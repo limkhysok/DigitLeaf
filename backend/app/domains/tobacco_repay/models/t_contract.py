@@ -1,8 +1,11 @@
+from datetime import date as _date
 from typing import Optional
+from sqlalchemy import Column, Date
 from sqlmodel import Field, SQLModel
 
+
 class TContract(SQLModel, table=True):
-    __tablename__ = "t_contract" # type: ignore[assignment]
+    __tablename__ = "t_contract"  # type: ignore[assignment]
 
     con_id: Optional[int] = Field(default=None, primary_key=True)
     con_num: Optional[str] = Field(default=None, max_length=255)
@@ -12,3 +15,5 @@ class TContract(SQLModel, table=True):
     qty: Optional[float] = Field(default=None)
     price: Optional[float] = Field(default=None)
     note: Optional[str] = Field(default=None, max_length=255)
+    f_id: Optional[int] = Field(default=None)
+    con_date: Optional[_date] = Field(default=None, sa_column=Column("date", Date, nullable=True))
