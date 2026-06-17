@@ -17,7 +17,7 @@ class SackRegistration(SQLModel, table=True):
     farmer_id: int = Field(index=True, foreign_key="member_farmer.mf_id")
     action_by_id: int = Field(index=True, foreign_key="dl_user.id")
     # Timestamps
-    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ), index=True)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
 
     def __str__(self):

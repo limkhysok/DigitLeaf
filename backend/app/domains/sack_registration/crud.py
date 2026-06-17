@@ -1,5 +1,5 @@
 from typing import Any, Optional, cast
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from sqlalchemy import cast as sa_cast, Date, Integer, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col
@@ -24,7 +24,9 @@ async def _get_sack_status(
         )
         .join(TobaccoPurchaseDetail, col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
         .where(col(TobaccoPurchaseDetail.farmer_own_sack) == 0)
-        .where(sa_cast(col(TobaccoPurchase.vendor_id), Integer).in_(farmer_ids))
+        # Compare against the raw string column (matches ix_tp_vendor) instead of
+        # casting vendor to Integer, which would force a full table scan.
+        .where(col(TobaccoPurchase.vendor_id).in_([str(fid) for fid in farmer_ids]))
         .group_by(TobaccoPurchase.vendor_id)
         .subquery()
     )
@@ -112,24 +114,30 @@ async def get_all(
         stmt = stmt.where(cond)
 
     if date_from is not None:
-        stmt = stmt.where(sa_cast(SackRegistration.created_at, Date) >= date_from)
+        # Compare the raw column (no CAST) so an index on created_at can be used.
+        stmt = stmt.where(col(SackRegistration.created_at) >= datetime.combine(date_from, datetime.min.time()))
 
     if date_to is not None:
-        stmt = stmt.where(sa_cast(SackRegistration.created_at, Date) <= date_to)
+        next_day = datetime.combine(date_to + timedelta(days=1), datetime.min.time())
+        stmt = stmt.where(col(SackRegistration.created_at) < next_day)
 
+    total_count = func.count().over().label("total_count")
     stmt = stmt.order_by(col(SackRegistration.created_at).desc())
-
-    count_stmt = select(func.count()).select_from(stmt.subquery())
-    total = (await session.scalar(count_stmt)) or 0
-    result = await session.execute(stmt.offset(skip).limit(limit))
+    result = await session.execute(stmt.add_columns(total_count).offset(skip).limit(limit))
 
     raw_rows = result.all()
+    if raw_rows:
+        total = raw_rows[0][-1]
+    else:
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await session.scalar(count_stmt)) or 0
+
     farmer_ids = list({cast(tuple[SackRegistration, str, str, str], row)[0].farmer_id for row in raw_rows})
     sack_status = await _get_sack_status(session, farmer_ids)
 
     items: list[dict[str, Any]] = []
     for row in raw_rows:
-        sack, r_name, f_name, mf_code = cast(tuple[SackRegistration, str, str, str], row)
+        sack, r_name, f_name, mf_code = cast(tuple[SackRegistration, str, str, str], row[:4])
         if sack.id is None:
             raise ValueError("SackRegistration has no id")
         _, remaining = sack_status.get(sack.id, (False, float(sack.sack_in_kg or 0.0)))
