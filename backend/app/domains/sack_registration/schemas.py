@@ -17,7 +17,8 @@ class SackRegistrationCreate(BaseModel):
 
 
 class SackRegistrationUpdate(BaseModel):
-    member_farmer_identity_card: str | None = Field(default=None, max_length=100, description="Change farmer by mf_code")
+    represent_id: int | None = Field(default=None, description="Change represent; if provided, farmer must belong to this represent")
+    member_farmer_mf_code: str | None = Field(default=None, max_length=100, description="Change farmer by mf_code; must belong to the effective represent")
     sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
     notes: str | None = Field(default=None, max_length=500)
 
@@ -29,11 +30,10 @@ class SackRegistrationPublic(BaseModel):
     farmer_id: int
     member_farmer_name: str
     member_farmer_mf_code: str
-    dl_user_id: int
-    dl_user_name: str
+    action_by_id: int
+    action_by: str
     sack_in_kg: float | None = None
     notes: str | None = None
-    created_at: datetime
     created_at: datetime
     updated_at: datetime
 

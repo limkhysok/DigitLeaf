@@ -12,11 +12,11 @@ class SackRegistration(SQLModel, table=True):
     # Properties
     sack_in_kg: Optional[float] = Field(default=None)
     notes: Optional[str] = Field(default=None, max_length=500)
-    dl_user_name: str = Field(max_length=255)
+    action_by: str = Field(max_length=255)
     # FK
     represent_id: int = Field(index=True, foreign_key="represent.represent_id")
     farmer_id: int = Field(index=True, foreign_key="member_farmer.mf_id")
-    dl_user_id: int = Field(foreign_key="dl_user.id", index=True)
+    action_by_id: int = Field(foreign_key="dl_user.id", index=True)
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))

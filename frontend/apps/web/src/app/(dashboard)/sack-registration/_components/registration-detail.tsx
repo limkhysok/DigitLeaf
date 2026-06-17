@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconUsers, IconUser, IconCalendar, IconPackage } from "@tabler/icons-react"
+import { IconUsers, IconUser, IconCalendar, IconPackage, IconCircleCheck, IconNotes } from "@tabler/icons-react"
 import { format } from "date-fns"
 import { Badge } from "@workspace/ui/components/badge"
 import { SackRegistrationItem } from "@/services/api-client"
@@ -26,13 +26,6 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
             <span className="text-sm font-medium truncate">{target.member_farmer_name}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3 px-3 py-2">
-          <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.date}</span>
-            <span className="text-sm font-normal">{localizeDateString(format(new Date(target.created_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
-          </div>
-        </div>
         {target.sack_in_kg !== null && target.sack_in_kg !== undefined && (
           <div className="flex items-center gap-3 px-3 py-2">
             <IconPackage className="size-3.5 shrink-0 text-muted-foreground" />
@@ -43,7 +36,7 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
           </div>
         )}
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="size-3.5 shrink-0" />
+          <IconCircleCheck className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0 gap-1">
             <span className="text-sm text-muted-foreground">{t.sackRegistration.table.status}</span>
             {target.sack_in_kg === 0 ? (
@@ -58,18 +51,19 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
           </div>
         </div>
         <div className="flex items-center gap-3 px-3 py-2">
-          <IconUser className="size-3.5 shrink-0 text-muted-foreground" />
+          <IconNotes className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
-            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.registeredBy}</span>
-            <span className="text-sm font-normal">{target.dl_user_name}</span>
+            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.notes}</span>
+            <span className="text-sm font-normal">{target.notes ?? "—"}</span>
           </div>
         </div>
-        {target.notes && (
-          <div className="px-3 py-2">
-            <span className="text-sm text-muted-foreground block mb-0.5">{t.sackRegistration.table.notes}</span>
-            <span className="text-sm">{target.notes}</span>
+        <div className="flex items-center gap-3 px-3 py-2">
+          <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm text-muted-foreground">{t.sackRegistration.table.date}</span>
+            <span className="text-sm font-normal">{localizeDateString(format(new Date(target.created_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

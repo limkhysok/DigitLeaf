@@ -23,6 +23,7 @@ router = APIRouter(route_class=AuditLogRoute)
 
 _NOT_FOUND = "Sack registration not found"
 _FARMER_NOT_FOUND = "Member farmer not found"
+_FARMER_NOT_IN_REPRESENT = "Farmer does not belong to the selected represent; update the farmer too"
 
 
 @router.get("/", response_model=SackRegistrationListResponse)
@@ -171,9 +172,21 @@ async def update_registration(
     record = await crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    updated, error = await crud.update(session=session, record=record, data=data)
+    if current_user.id is None:
+        raise HTTPException(status_code=500, detail="Authenticated user has no id")
+    updated, error = await crud.update(
+        session=session,
+        record=record,
+        data=data,
+        current_user_id=current_user.id,
+        current_user_name=current_user.user_name,
+    )
+    if error == "represent_not_found":
+        raise HTTPException(status_code=404, detail="Represent not found")
     if error == "farmer_not_found":
         raise HTTPException(status_code=404, detail=_FARMER_NOT_FOUND)
+    if error == "farmer_not_in_represent":
+        raise HTTPException(status_code=422, detail=_FARMER_NOT_IN_REPRESENT)
     return updated
 
 

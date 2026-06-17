@@ -112,13 +112,6 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       enableSorting: false,
     },
     {
-      id: "registered_by",
-      accessorFn: (row) => row.dl_user_name,
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.registeredBy} />,
-      cell: ({ row }) => <div className="font-medium">{row.original.dl_user_name}</div>,
-      enableSorting: false,
-    },
-    {
       accessorKey: "created_at",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.date} />,
       cell: ({ row }) => (

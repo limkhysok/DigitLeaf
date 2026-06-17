@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { apiClient, SackRegistrationItem, MemberFarmerItem } from "@/services/api-client"
+import { apiClient, SackRegistrationItem, MemberFarmerItem, RepresentItem } from "@/services/api-client"
 import { toast } from "sonner"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
@@ -34,27 +34,42 @@ export function EditDialog({
   onClose,
   onSuccess,
   accessToken,
+  represents,
 }: {
   readonly target: SackRegistrationItem | null
   readonly onClose: () => void
   readonly onSuccess: () => void
   readonly accessToken?: string
+  readonly represents: readonly RepresentItem[]
 }) {
   const { t } = useLanguage()
   const [sackInKg, setSackInKg] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const [representId, setRepresentId] = React.useState("")
+  const [representSearch, setRepresentSearch] = React.useState("")
+  const [representOpen, setRepresentOpen] = React.useState(false)
+
   const [farmerQuery, setFarmerQuery] = React.useState("")
   const [debouncedFarmerQuery] = useDebounce(farmerQuery, 300)
   const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
   const [farmerOpen, setFarmerOpen] = React.useState(false)
-  const farmerRef = React.useRef<HTMLDivElement>(null)
+
+  const filteredRepresents = React.useMemo(() => {
+    if (!representSearch.trim()) return represents
+    const q = representSearch.toLowerCase()
+    return represents.filter((r) => r.represent_name.toLowerCase().includes(q))
+  }, [represents, representSearch])
 
   React.useEffect(() => {
     if (target) {
       const timer = setTimeout(() => {
         setSackInKg(target.sack_in_kg !== null && target.sack_in_kg !== undefined ? String(target.sack_in_kg) : "")
         setNotes(target.notes ?? "")
+        setRepresentId(String(target.represent_id))
+        setRepresentSearch(target.represent_name)
+        setRepresentOpen(false)
         setFarmerQuery(target.member_farmer_name)
         setFarmerResult(null)
         setFarmerOpen(false)
@@ -64,28 +79,20 @@ export function EditDialog({
   }, [target])
 
   const { data: farmerResults = [], isFetching: isFarmerSearching } = useQuery({
-    queryKey: ["farmers", debouncedFarmerQuery],
-    queryFn: () => apiClient.queryMemberFarmers(accessToken!, debouncedFarmerQuery),
-    enabled: !!accessToken && !!debouncedFarmerQuery.trim() && farmerResult?.name !== debouncedFarmerQuery,
+    queryKey: ["farmers", debouncedFarmerQuery, representId],
+    queryFn: () => apiClient.queryMemberFarmers(accessToken!, debouncedFarmerQuery, Number(representId) || undefined),
+    enabled: !!accessToken && !!representId && !!debouncedFarmerQuery.trim() && farmerResult?.name !== debouncedFarmerQuery,
   })
-
-  React.useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (farmerRef.current && !farmerRef.current.contains(e.target as Node)) {
-        setFarmerOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     if (!accessToken || !target) return
+    if (!representId) { toast.error(t.sackRegistration.dialog.errSelectRep); return }
     setIsSubmitting(true)
     try {
       await apiClient.updateSackRegistration(accessToken, target.id, {
-        ...(farmerResult ? { member_farmer_identity_card: farmerResult.mf_code } : {}),
+        ...(Number(representId) !== target.represent_id ? { represent_id: Number(representId) } : {}),
+        ...(farmerResult ? { member_farmer_mf_code: farmerResult.mf_code } : {}),
         sack_in_kg: sackInKg ? Number(sackInKg) : null,
         notes: notes.trim() || undefined,
       })
@@ -98,9 +105,12 @@ export function EditDialog({
       setIsSubmitting(false)
     }
   }
+
   let farmerEmptyMessage = t.sackRegistration.dialog.typeToSearch
   if (isFarmerSearching) {
     farmerEmptyMessage = t.sackRegistration.dialog.searching
+  } else if (!representId) {
+    farmerEmptyMessage = t.sackRegistration.dialog.selectRepFirst
   } else if (farmerQuery.trim()) {
     farmerEmptyMessage = t.sackRegistration.dialog.noFarmersFound
   }
@@ -116,6 +126,73 @@ export function EditDialog({
         </DialogHeader>
         {target && (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1 flex flex-col">
+              <Label className="text-sm font-medium">{t.sackRegistration.dialog.representative}</Label>
+              <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
+                <Popover open={representOpen} onOpenChange={setRepresentOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="relative">
+                      <CommandPrimitive.Input
+                        className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        value={representSearch}
+                        onValueChange={(val) => {
+                          setRepresentSearch(val)
+                          setRepresentOpen(true)
+                          if (representId) setRepresentId("")
+                        }}
+                        onFocus={() => setRepresentOpen(true)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setRepresentOpen(true)
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        placeholder={t.sackRegistration.dialog.searchRepPlaceholder}
+                      />
+                      <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[--radix-popover-trigger-width] p-0"
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <CommandList>
+                      <CommandEmpty>{t.sackRegistration.dialog.noResultsFound}</CommandEmpty>
+                      <CommandGroup>
+                        {filteredRepresents.map((r) => (
+                          <CommandItem
+                            key={r.represent_id}
+                            value={r.represent_name}
+                            onSelect={() => {
+                              const changed = String(r.represent_id) !== representId
+                              setRepresentId(String(r.represent_id))
+                              setRepresentSearch(r.represent_name)
+                              setRepresentOpen(false)
+                              if (changed) {
+                                setFarmerQuery("")
+                                setFarmerResult(null)
+                              }
+                            }}
+                          >
+                            <IconCheck
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                representId === String(r.represent_id) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {r.represent_name}
+                            <span className="text-muted-foreground text-sm ml-auto">
+                              {t.sackRegistration.dialog.membersCount.replace("{count}", String(r.farmer_count))}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </PopoverContent>
+                </Popover>
+              </Command>
+            </div>
+
             <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.farmerMember}</Label>
               <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
@@ -137,6 +214,7 @@ export function EditDialog({
                         }}
                         onPointerDown={(e) => e.stopPropagation()}
                         placeholder={t.sackRegistration.dialog.searchPlaceholder}
+                        disabled={!representId}
                       />
                       <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
                     </div>
@@ -189,7 +267,6 @@ export function EditDialog({
                 </div>
               )}
             </div>
-
 
             <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.sackWeightOptional}</Label>

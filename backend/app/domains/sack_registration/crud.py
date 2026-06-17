@@ -203,8 +203,8 @@ async def create(
     record = SackRegistration(
         represent_id=represent.represent_id,
         farmer_id=farmer.mf_id,
-        dl_user_id=current_user_id,
-        dl_user_name=current_user_name,
+        action_by_id=current_user_id,
+        action_by=current_user_name,
         sack_in_kg=data.sack_in_kg,
         notes=data.notes,
     )
@@ -222,20 +222,42 @@ async def update(
     session: AsyncSession,
     record: SackRegistration,
     data: SackRegistrationUpdate,
+    current_user_id: int,
+    current_user_name: str,
 ) -> tuple[Optional[dict[str, Any]], Optional[str]]:
     update_data = data.model_dump(exclude_unset=True)
 
-    if "member_farmer_identity_card" in update_data:
-        farmer = await search_member_farmer(session, identity_card=update_data.pop("member_farmer_identity_card"))
-        if not farmer:
+    represent_changed = "represent_id" in update_data
+    if represent_changed:
+        new_represent_id = update_data.pop("represent_id")
+        result = await session.execute(select(Represent).where(Represent.represent_id == new_represent_id))
+        if not result.scalars().first():
+            return None, "represent_not_found"
+        record.represent_id = new_represent_id
+
+    effective_represent_id = record.represent_id
+
+    mf_code = update_data.pop("member_farmer_mf_code", None)
+    if mf_code:
+        farmer = await search_member_farmer(session, identity_card=mf_code)
+        if not farmer or farmer.represent != effective_represent_id:
             return None, "farmer_not_found"
         if farmer.mf_id is None:
             raise ValueError("MemberFarmer record has no id")
         record.farmer_id = farmer.mf_id
+    elif represent_changed:
+        # Represent changed but farmer wasn't updated — ensure existing farmer still belongs to the new represent
+        existing_farmer = (
+            await session.execute(select(MemberFarmer).where(MemberFarmer.mf_id == record.farmer_id))
+        ).scalars().first()
+        if not existing_farmer or existing_farmer.represent != effective_represent_id:
+            return None, "farmer_not_in_represent"
 
     for key, value in update_data.items():
         setattr(record, key, value)
 
+    record.action_by_id = current_user_id
+    record.action_by = current_user_name
     record.updated_at = datetime.now(CAMBODIA_TZ)
     session.add(record)
     await session.commit()

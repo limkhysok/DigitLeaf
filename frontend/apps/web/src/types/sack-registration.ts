@@ -20,8 +20,8 @@ export interface SackRegistrationItem {
   farmer_id: number;
   member_farmer_name: string;
   member_farmer_mf_code: string;
-  dl_user_id: number;
-  dl_user_name: string;
+  action_by_id: number;
+  action_by: string;
   sack_in_kg: number | null;
   notes: string | null;
   created_at: string;
@@ -37,7 +37,8 @@ export interface SackRegistrationCreate {
 }
 
 export interface SackRegistrationUpdate {
-  member_farmer_identity_card?: string;
+  represent_id?: number;
+  member_farmer_mf_code?: string;
   sack_in_kg?: number | null;
   notes?: string;
 }
