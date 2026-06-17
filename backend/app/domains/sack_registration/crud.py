@@ -240,7 +240,7 @@ async def update(
     mf_code = update_data.pop("member_farmer_mf_code", None)
     if mf_code:
         farmer = await search_member_farmer(session, identity_card=mf_code)
-        if not farmer or farmer.represent != effective_represent_id:
+        if not farmer or str(farmer.represent) != str(effective_represent_id):
             return None, "farmer_not_found"
         if farmer.mf_id is None:
             raise ValueError("MemberFarmer record has no id")
@@ -250,7 +250,7 @@ async def update(
         existing_farmer = (
             await session.execute(select(MemberFarmer).where(MemberFarmer.mf_id == record.farmer_id))
         ).scalars().first()
-        if not existing_farmer or existing_farmer.represent != effective_represent_id:
+        if not existing_farmer or str(existing_farmer.represent) != str(effective_represent_id):
             return None, "farmer_not_in_represent"
 
     for key, value in update_data.items():
