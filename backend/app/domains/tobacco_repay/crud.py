@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func, col
 from .models.con_tobacco import ConTobacco
 from .models.t_contract import TContract
-from .models.t_contract_return import TContractReturn
+from .models.t_contract_repay import TContractRepay
 from .schemas import TContractRepayCreate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
@@ -18,8 +18,8 @@ async def generate_repay_num(db: AsyncSession) -> str:
     prefix = f"{today_str}-"
 
     statement = (
-        select(TContractReturn.repay_num)
-        .order_by(col(TContractReturn.repay_id).desc())
+        select(TContractRepay.repay_num)
+        .order_by(col(TContractRepay.repay_id).desc())
         .limit(1)
     )
     last_num = await db.scalar(statement)
@@ -50,10 +50,10 @@ async def get_tobacco_repays(
 
     repay_subq = (
         select(
-            TContractReturn.con_id,
-            func.sum(TContractReturn.qty_repay).label("total_qty_repay"),
+            TContractRepay.con_id,
+            func.sum(TContractRepay.qty_repay).label("total_qty_repay"),
         )
-        .group_by(TContractReturn.con_id)  # type: ignore[arg-type]
+        .group_by(TContractRepay.con_id)  # type: ignore[arg-type]
     ).subquery()
 
     count_stmt = (
@@ -149,12 +149,12 @@ async def create_repay(
     obj_in: TContractRepayCreate,
     user_name: str,
     ip_address: str | None = None,
-) -> TContractReturn:
+) -> TContractRepay:
     contract = await db.get(TContract, obj_in.con_id)
     if not contract:
         raise ValueError(f"Contract id {obj_in.con_id} not found")
 
-    db_obj = TContractReturn(
+    db_obj = TContractRepay(
         con_id=obj_in.con_id,
         con_num=obj_in.con_num,
         f_id=obj_in.f_id,
@@ -179,10 +179,10 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[st
 
     repay_subq = (
         select(
-            TContractReturn.con_id,
-            func.sum(TContractReturn.qty_repay).label("total_qty_repay")
+            TContractRepay.con_id,
+            func.sum(TContractRepay.qty_repay).label("total_qty_repay")
         )
-        .group_by(TContractReturn.con_id)  # type: ignore[arg-type]
+        .group_by(TContractRepay.con_id)  # type: ignore[arg-type]
     ).subquery()
 
     stmt = (
@@ -223,8 +223,8 @@ async def get_tobacco_repay_history(
     )
 
     count_stmt = (
-        select(func.count(col(TContractReturn.repay_id)))
-        .join(TContract, TContractReturn.con_id == TContract.con_id)  # type: ignore[arg-type]
+        select(func.count(col(TContractRepay.repay_id)))
+        .join(TContract, TContractRepay.con_id == TContract.con_id)  # type: ignore[arg-type]
         .join(
             MfConYear,
             (MfConYear.mf_id == TContract.f_id)  # type: ignore[arg-type]
@@ -236,18 +236,18 @@ async def get_tobacco_repay_history(
 
     stmt = cast(Select[Any], (
         select(  # type: ignore[call-overload]
-            col(TContractReturn.repay_id).label("repay_id"),
-            col(TContractReturn.repay_date).label("repay_date"),
-            col(TContractReturn.repay_num).label("repay_num"),
+            col(TContractRepay.repay_id).label("repay_id"),
+            col(TContractRepay.repay_date).label("repay_date"),
+            col(TContractRepay.repay_num).label("repay_num"),
             col(TContract.con_num).label("con_num"),
             col(MemberFarmer.name).label("farmer_name"),
             col(ConTobacco.tobacco).label("tobacco_type"),
-            col(TContractReturn.qty_repay).label("qty_repay"),
-            col(TContractReturn.note).label("note"),
-            col(TContractReturn.user).label("user"),
+            col(TContractRepay.qty_repay).label("qty_repay"),
+            col(TContractRepay.note).label("note"),
+            col(TContractRepay.user).label("user"),
             col(MfConYear.year).label("contract_year"),
         )
-        .join(TContract, TContractReturn.con_id == TContract.con_id)  # type: ignore[arg-type]
+        .join(TContract, TContractRepay.con_id == TContract.con_id)  # type: ignore[arg-type]
         .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)  # type: ignore[arg-type]
         .join(  # type: ignore[arg-type]
             MfConYear,
@@ -256,7 +256,7 @@ async def get_tobacco_repay_history(
         )
         .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
         .where(year_filter)
-        .order_by(col(TContractReturn.repay_date).desc(), col(TContractReturn.repay_id).desc())
+        .order_by(col(TContractRepay.repay_date).desc(), col(TContractRepay.repay_id).desc())
         .limit(limit)
         .offset(skip)
     ))

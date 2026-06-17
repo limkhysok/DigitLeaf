@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, TobaccoRepayItem } from "@/services/api-client"
 import { toast } from "sonner"
-import { IconCash, IconLoader2 } from "@tabler/icons-react"
+import { IconCash, IconLoader2, IconSortAscending, IconSortDescending, IconArrowsSort } from "@tabler/icons-react"
 import {
   Table,
   TableBody,
@@ -93,13 +93,15 @@ export default function TobaccoRepayPage() {
     [data]
   )
 
+  const hasActiveSearch = searchInput.trim() !== ""
+
   // Sentinel for infinite scroll
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage && !hasActiveSearch) {
       fetchNextPage().catch(() => toast.error("Failed to load more records"))
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [inView, hasNextPage, isFetchingNextPage, hasActiveSearch, fetchNextPage])
 
   // Client-side search + sort on loaded records
   const filteredRecords = React.useMemo(() => {
@@ -125,6 +127,15 @@ export default function TobaccoRepayPage() {
       return sortOrder === "asc" ? diff : -diff
     })
   }, [filteredRecords, sortBy, sortOrder])
+
+  const toggleQuantitySort = () => {
+    if (sortBy === "Quantity") {
+      setSortOrder(sortOrder === "desc" ? "asc" : "desc")
+    } else {
+      setSortBy("Quantity")
+      setSortOrder("desc")
+    }
+  }
 
   if (!mounted) return null
 
@@ -177,8 +188,6 @@ export default function TobaccoRepayPage() {
         setSearchInput={setSearchInput}
         sortBy={sortBy}
         setSortBy={setSortBy}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
         selectedYear={effectiveYear}
         setSelectedYear={setSelectedYear}
         availableYears={availableYears}
@@ -254,7 +263,24 @@ export default function TobaccoRepayPage() {
                   {columnVisibility.representative && <TableHead>Representative</TableHead>}
                   {columnVisibility.tobaccoType && <TableHead>Tobacco Type</TableHead>}
                   {columnVisibility.year && <TableHead className="text-center">Year</TableHead>}
-                  {columnVisibility.qty && <TableHead className="text-right">Quantity</TableHead>}
+                  {columnVisibility.qty && (
+                    <TableHead className="text-right">
+                      <button
+                        onClick={toggleQuantitySort}
+                        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        Quantity
+                        {(() => {
+                          if (sortBy !== "Quantity") {
+                            return <IconArrowsSort className="size-3.5 text-muted-foreground/50" />
+                          }
+                          return sortOrder === "asc"
+                            ? <IconSortAscending className="size-3.5" />
+                            : <IconSortDescending className="size-3.5" />
+                        })()}
+                      </button>
+                    </TableHead>
+                  )}
                   {columnVisibility.totalReturned && <TableHead className="text-right">Total Repaid</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -297,7 +323,7 @@ export default function TobaccoRepayPage() {
 
       {/* ── Infinite scroll sentinel ── */}
       <div ref={sentinelRef} className="h-1" />
-      {isFetchingNextPage && (
+      {!hasActiveSearch && isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>

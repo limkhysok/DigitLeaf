@@ -3,7 +3,7 @@ from sqlalchemy import Column, Date, DateTime, Text
 from sqlmodel import Field, SQLModel
 
 
-class TContractReturn(SQLModel, table=True):
+class TContractRepay(SQLModel, table=True):
     __tablename__ = "t_contract_repay"  # type: ignore[assignment]
 
     repay_id: int | None = Field(default=None, primary_key=True)
