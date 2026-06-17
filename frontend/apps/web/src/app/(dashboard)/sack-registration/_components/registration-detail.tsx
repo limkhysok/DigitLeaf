@@ -30,7 +30,7 @@ export function RegistrationDetail({ target }: Readonly<{ target: SackRegistrati
           <IconCalendar className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="flex flex-col min-w-0">
             <span className="text-sm text-muted-foreground">{t.sackRegistration.table.date}</span>
-            <span className="text-sm font-normal">{localizeDateString(format(new Date(target.registered_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
+            <span className="text-sm font-normal">{localizeDateString(format(new Date(target.created_at), "dd/MM/yyyy 'at' h:mm a"))}</span>
           </div>
         </div>
         {target.sack_in_kg !== null && target.sack_in_kg !== undefined && (

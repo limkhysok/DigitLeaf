@@ -119,11 +119,11 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       enableSorting: false,
     },
     {
-      accessorKey: "registered_at",
+      accessorKey: "created_at",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.date} />,
       cell: ({ row }) => (
         <div className="tabular-nums font-sm">
-          {localizeDateString(format(new Date(row.getValue("registered_at")), "dd/MM/yyyy"))}
+          {localizeDateString(format(new Date(row.getValue("created_at")), "dd/MM/yyyy"))}
         </div>
       ),
       sortingFn: "datetime",

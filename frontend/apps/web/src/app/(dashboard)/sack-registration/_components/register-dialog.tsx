@@ -5,7 +5,7 @@ import { apiClient, RepresentItem, MemberFarmerItem } from "@/services/api-clien
 import { toast } from "sonner"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
-import { IconChevronDown, IconLoader2, IconCheck, IconCalendar } from "@tabler/icons-react"
+import { IconChevronDown, IconLoader2, IconCheck } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -26,8 +26,6 @@ import {
   CommandList,
 } from "@workspace/ui/components/command"
 import { Command as CommandPrimitive } from "cmdk"
-import { Calendar } from "@workspace/ui/components/calendar"
-import { format } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useLanguage } from "@/hooks/use-language"
@@ -54,12 +52,6 @@ export function RegisterDialog({
   const [debouncedFarmerQuery] = useDebounce(farmerQuery, 300)
   const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
   const [farmerOpen, setFarmerOpen] = React.useState(false)
-  const [registeredAt, setRegisteredAt] = React.useState<Date | null>(null)
-  React.useEffect(() => {
-    const timer = setTimeout(() => setRegisteredAt(new Date()), 0)
-    return () => clearTimeout(timer)
-  }, [])
-  const [registeredAtOpen, setRegisteredAtOpen] = React.useState(false)
   const [sackInKg, setSackInKg] = React.useState("1")
   const [notes, setNotes] = React.useState("")
 
@@ -95,7 +87,6 @@ export function RegisterDialog({
     if (!accessToken) return
     if (!representId) { toast.error(t.sackRegistration.dialog.errSelectRep); return }
     if (!farmerResult) { toast.error(t.sackRegistration.dialog.errSelectFarmer); return }
-    if (!registeredAt) { toast.error(t.sackRegistration.dialog.errSelectDate); return }
 
     const sackKg = Number.parseFloat(sackInKg)
     if (Number.isNaN(sackKg) || sackKg < 0) { toast.error(t.sackRegistration.dialog.errInvalidWeight); return }
@@ -105,7 +96,6 @@ export function RegisterDialog({
       await apiClient.createSackRegistration(accessToken, {
         represent_id: Number(representId),
         member_farmer_identity_card: farmerResult.mf_code,
-        registered_at: format(registeredAt, "yyyy-MM-dd'T'HH:mm:ss"),
         sack_in_kg: sackKg,
         notes: notes.trim() || undefined,
       })
@@ -114,7 +104,7 @@ export function RegisterDialog({
       onClose()
       // reset
       setRepresentId(""); setRepresentSearch(""); setFarmerQuery(""); setFarmerResult(null)
-      setSackInKg("1"); setNotes(""); setRegisteredAt(new Date())
+      setSackInKg("1"); setNotes("")
     } catch (err) {
       toast.error((err as Error).message)
     } finally {
@@ -270,27 +260,6 @@ export function RegisterDialog({
                 <IconCheck className="h-4 w-4 text-green-500" />
               </div>
             )}
-          </div>
-
-          <div className="space-y-1">
-            <Label className="text-sm font-medium">{t.sackRegistration.dialog.registrationDate}</Label>
-            <Popover open={registeredAtOpen} onOpenChange={setRegisteredAtOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal rounded-md",
-                    !registeredAt && "text-muted-foreground"
-                  )}
-                >
-                  <IconCalendar className="mr-2 h-4 w-4" />
-                  {registeredAt ? format(registeredAt, "dd/MM/yyyy") : t.sackRegistration.dialog.selectDatePlaceholder}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={registeredAt ?? undefined} onSelect={(date) => { if (date) { const now = new Date(); date.setHours(now.getHours(), now.getMinutes(), now.getSeconds()); setRegisteredAt(date); setRegisteredAtOpen(false) } }} autoFocus />
-              </PopoverContent>
-            </Popover>
           </div>
 
           <div className="space-y-1">

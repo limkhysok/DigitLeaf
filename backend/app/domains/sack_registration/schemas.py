@@ -8,7 +8,6 @@ class SackRegistrationCreate(BaseModel):
     member_farmer_identity_card: str | None = Field(default=None, max_length=100, description="Search farmer by identity card")
     sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
     notes: str | None = Field(default=None, max_length=500)
-    registered_at: datetime | None = Field(default=None, description="Date of registration (defaults to now)")
 
     @model_validator(mode="after")
     def require_farmer_lookup(self):
@@ -27,14 +26,14 @@ class SackRegistrationPublic(BaseModel):
     id: int
     represent_id: int
     represent_name: str
-    member_farmer_id: int
+    farmer_id: int
     member_farmer_name: str
     member_farmer_mf_code: str
     dl_user_id: int
     dl_user_name: str
     sack_in_kg: float | None = None
     notes: str | None = None
-    registered_at: datetime
+    created_at: datetime
     created_at: datetime
     updated_at: datetime
 

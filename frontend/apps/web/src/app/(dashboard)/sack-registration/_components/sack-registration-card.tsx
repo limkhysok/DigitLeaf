@@ -115,7 +115,7 @@ export const SackRegistrationCard = React.memo(({
               {t.sackRegistration.table.date}
             </span>
             <span className="text-sm font-medium tabular-nums text-right text-foreground">
-              {localizeNumber(format(new Date(rec.registered_at), "dd/MM/yyyy"))}
+              {localizeNumber(format(new Date(rec.created_at), "dd/MM/yyyy"))}
             </span>
           </div>
         </div>

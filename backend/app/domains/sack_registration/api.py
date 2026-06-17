@@ -1,10 +1,11 @@
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
 import openpyxl
+from app.core.config import CAMBODIA_TZ
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
@@ -33,7 +34,7 @@ async def list_registrations(
     search: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-    sort_sack_in_kg: Optional[str] = None,
+    sort_sack_in_kg: Optional[Literal["asc", "desc"]] = None,
 ):
     skip = (page - 1) * limit
     items, total = await crud.get_all(
@@ -60,17 +61,23 @@ async def export_registrations(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
 ):
-    items, _ = await crud.get_all(
+    _EXPORT_LIMIT = 10_000
+    items, total = await crud.get_all(
         session=session,
         skip=0,
-        limit=1000000,
+        limit=_EXPORT_LIMIT,
         search=search,
         date_from=date_from,
         date_to=date_to,
     )
+    if total > _EXPORT_LIMIT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({total:,} matched). Apply filters to narrow the result.",
+        )
 
     wb = openpyxl.Workbook()
-    ws = wb.active
+    ws = wb.worksheets[0]
     ws.title = "Sack Registrations"
 
     headers = ["ID", "Represent Name", "Member Farmer", "Sack (KG)", "Registered At", "Notes"]
@@ -80,8 +87,10 @@ async def export_registrations(
     for item in items:
         sack_val = item.get("sack_in_kg") or 0.0
         total_sack += sack_val
-        reg_at = item.get("registered_at")
+        reg_at = item.get("created_at")
         if reg_at:
+            if reg_at.tzinfo is not None:
+                reg_at = reg_at.astimezone(CAMBODIA_TZ)
             reg_at = reg_at.strftime("%Y-%m-%d %H:%M:%S")
         ws.append([
             item.get("id"), item.get("represent_name"), item.get("member_farmer_name"),
@@ -133,7 +142,8 @@ async def create_registration(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    assert current_user.id is not None
+    if current_user.id is None:
+        raise HTTPException(status_code=500, detail="Authenticated user has no id")
     record, error = await crud.create(
         session=session,
         data=data,

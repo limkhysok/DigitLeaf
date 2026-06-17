@@ -49,7 +49,7 @@ export function DataTableToolbar<TData>({
               sack_in_kg: t.sackRegistration.table.sackWeight,
               status: t.sackRegistration.table.status,
               registered_by: t.sackRegistration.table.registeredBy,
-              registered_at: t.sackRegistration.table.date,
+              created_at: t.sackRegistration.table.date,
               actions: t.sackRegistration.table.actions,
             }}
           />

@@ -45,7 +45,7 @@ async def get_vendor_available_sack_kg(db: AsyncSession, vendor_id: int) -> floa
     Sack registration records are never mutated; quota is computed dynamically."""
     registered_result = await db.execute(
         select(func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0))
-        .where(SackRegistration.member_farmer_id == vendor_id)
+        .where(SackRegistration.farmer_id == vendor_id)
     )
     registered_total = float(registered_result.scalar() or 0.0)
 

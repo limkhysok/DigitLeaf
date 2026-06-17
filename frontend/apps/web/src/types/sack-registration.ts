@@ -17,14 +17,13 @@ export interface SackRegistrationItem {
   id: number;
   represent_id: number;
   represent_name: string;
-  member_farmer_id: number;
+  farmer_id: number;
   member_farmer_name: string;
   member_farmer_mf_code: string;
   dl_user_id: number;
   dl_user_name: string;
   sack_in_kg: number | null;
   notes: string | null;
-  registered_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,7 +34,6 @@ export interface SackRegistrationCreate {
   member_farmer_identity_card?: string;
   sack_in_kg?: number;
   notes?: string;
-  registered_at?: string;
 }
 
 export interface SackRegistrationUpdate {
