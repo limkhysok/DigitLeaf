@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
 
 
 class FarmerContractPublic(BaseModel):
@@ -8,18 +7,18 @@ class FarmerContractPublic(BaseModel):
     year: int
     name: str
     mf_code: str
-    t_id: Optional[int] = None
-    land: Optional[float] = None
-    tobac_num: Optional[int] = None
-    expected_yield: Optional[float] = None
-    purchased_weight: Optional[float] = None
-    do_date: Optional[str] = None
+    t_id: int | None = None
+    land: float | None = None
+    tobac_num: int | None = None
+    expected_yield: float | None = None
+    purchased_weight: float | None = None
+    do_date: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class FarmerContractListResponse(BaseModel):
-    items: List[FarmerContractPublic]
+    items: list[FarmerContractPublic]
     total: int
     has_more: bool
 
@@ -27,42 +26,42 @@ class FarmerContractListResponse(BaseModel):
 class TobaccoTypeItem(BaseModel):
     t_id: int
     t_name: str
-    t_name_kh: Optional[str] = None
+    t_name_kh: str | None = None
 
 
 class FarmerContractFormMetadata(BaseModel):
-    tobacco_types: List[TobaccoTypeItem]
+    tobacco_types: list[TobaccoTypeItem]
 
 
 class FarmerContractCreate(BaseModel):
     mf_id: int
     t_id: int
     year: int
-    land: Optional[float] = None
-    tobac_num: Optional[int] = None
+    land: float | None = None
+    tobac_num: int | None = None
 
 
 class FarmerContractUpdate(BaseModel):
     mf_id: int
     t_id: int
     year: int
-    land: Optional[float] = None
-    tobac_num: Optional[int] = None
+    land: float | None = None
+    tobac_num: int | None = None
 
 
 class FarmerContractPatch(BaseModel):
-    mf_id: Optional[int] = None
-    t_id: Optional[int] = None
-    year: Optional[int] = None
-    land: Optional[float] = None
-    tobac_num: Optional[int] = None
+    mf_id: int | None = None
+    t_id: int | None = None
+    year: int | None = None
+    land: float | None = None
+    tobac_num: int | None = None
 
 
 class FarmerContractCreated(BaseModel):
     mf_con_id: int
     mf_id: int
     year: int
-    land: Optional[float] = None
-    tobac_num: Optional[int] = None
+    land: float | None = None
+    tobac_num: int | None = None
 
     model_config = ConfigDict(from_attributes=True)

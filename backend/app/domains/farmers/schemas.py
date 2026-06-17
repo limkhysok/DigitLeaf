@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
 
 
 class RepresentPublic(BaseModel):
@@ -14,6 +13,6 @@ class MemberFarmerPublic(BaseModel):
     mf_id: int
     name: str
     mf_code: str
-    address: Optional[str] = None
+    address: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

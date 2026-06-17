@@ -1,15 +1,14 @@
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 from datetime import datetime
-from typing import Optional
 
 
 class SackRegistrationCreate(BaseModel):
     represent_id: int = Field(..., description="Selected represent ID from dropdown")
-    member_farmer_name: Optional[str] = Field(default=None, max_length=255, description="Search farmer by name")
-    member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Search farmer by identity card")
-    sack_in_kg: Optional[float] = Field(default=None, ge=0, description="Sack weight in kilograms")
-    notes: Optional[str] = Field(default=None, max_length=500)
-    registered_at: Optional[datetime] = Field(default=None, description="Date of registration (defaults to now)")
+    member_farmer_name: str | None = Field(default=None, max_length=255, description="Search farmer by name")
+    member_farmer_identity_card: str | None = Field(default=None, max_length=100, description="Search farmer by identity card")
+    sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
+    notes: str | None = Field(default=None, max_length=500)
+    registered_at: datetime | None = Field(default=None, description="Date of registration (defaults to now)")
 
     @model_validator(mode="after")
     def require_farmer_lookup(self):
@@ -19,9 +18,9 @@ class SackRegistrationCreate(BaseModel):
 
 
 class SackRegistrationUpdate(BaseModel):
-    member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Change farmer by mf_code")
-    sack_in_kg: Optional[float] = Field(default=None, ge=0, description="Sack weight in kilograms")
-    notes: Optional[str] = Field(default=None, max_length=500)
+    member_farmer_identity_card: str | None = Field(default=None, max_length=100, description="Change farmer by mf_code")
+    sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
+    notes: str | None = Field(default=None, max_length=500)
 
 
 class SackRegistrationPublic(BaseModel):
@@ -33,8 +32,8 @@ class SackRegistrationPublic(BaseModel):
     member_farmer_mf_code: str
     dl_user_id: int
     dl_user_name: str
-    sack_in_kg: Optional[float] = None
-    notes: Optional[str] = None
+    sack_in_kg: float | None = None
+    notes: str | None = None
     registered_at: datetime
     created_at: datetime
     updated_at: datetime
