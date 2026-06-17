@@ -1,4 +1,4 @@
-from typing import Annotated, List, Optional
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
@@ -16,7 +16,7 @@ async def read_tobacco_repays(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
-    year: Optional[int] = Query(None),
+    year: int | None = Query(None),
 ):
     skip = (page - 1) * limit
     result = await crud.get_tobacco_repays(session, skip=skip, limit=limit, year=year)
@@ -33,7 +33,7 @@ async def read_tobacco_repay_history(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
-    year: Optional[int] = Query(None),
+    year: int | None = Query(None),
 ):
     skip = (page - 1) * limit
     result = await crud.get_tobacco_repay_history(session, skip=skip, limit=limit, year=year)
@@ -44,7 +44,7 @@ async def read_tobacco_repay_history(
     )
 
 
-@router.get("/years", response_model=List[int])
+@router.get("/years", response_model=list[int])
 async def read_available_years(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],

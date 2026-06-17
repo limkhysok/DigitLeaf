@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, cast
+from typing import Any, cast
 from datetime import date, datetime
 from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +40,7 @@ async def get_tobacco_repays(
     db: AsyncSession,
     skip: int = 0,
     limit: int = 20,
-    year: Optional[int] = None,
+    year: int | None = None,
 ) -> dict[str, Any]:
     year_filter = (
         MfConYear.year == year
@@ -132,7 +132,7 @@ async def get_tobacco_repays(
     ]
     return {"items": items, "total": total}
 
-async def get_available_years(db: AsyncSession) -> List[int]:
+async def get_available_years(db: AsyncSession) -> list[int]:
     last_year = date.today().year - 1
     stmt = (
         select(MfConYear.year)
@@ -147,7 +147,7 @@ async def create_repay(
     db: AsyncSession,
     obj_in: TContractRepayCreate,
     user_name: str,
-    ip_address: Optional[str] = None,
+    ip_address: str | None = None,
 ) -> TContractReturn:
     contract = await db.get(TContract, obj_in.con_id)
     if not contract:
@@ -213,7 +213,7 @@ async def get_tobacco_repay_history(
     db: AsyncSession,
     skip: int = 0,
     limit: int = 20,
-    year: Optional[int] = None,
+    year: int | None = None,
 ) -> dict[str, Any]:
     year_filter = (
         MfConYear.year == year
