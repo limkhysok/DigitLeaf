@@ -36,7 +36,7 @@ class TobaccoPurchase(SQLModel, table=True):
     details: list["TobaccoPurchaseDetail"] = Relationship(
         sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "noload"}
     )
-    vendor: "MemberFarmer | None" = Relationship(
+    vendor: MemberFarmer | None = Relationship(
         sa_relationship_kwargs={
             "primaryjoin": "foreign(TobaccoPurchase.vendor_id) == MemberFarmer.mf_id",
             "lazy": "noload"
