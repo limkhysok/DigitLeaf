@@ -139,6 +139,7 @@ async def get_available_years(db: AsyncSession) -> list[int]:
         .where(MfConYear.year <= last_year)
         .distinct()
         .order_by(MfConYear.year.desc())  # type: ignore[union-attr]
+        .limit(7)
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())
