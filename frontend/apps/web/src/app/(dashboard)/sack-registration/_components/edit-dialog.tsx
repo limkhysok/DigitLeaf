@@ -88,6 +88,10 @@ export function EditDialog({
     e.preventDefault()
     if (!accessToken || !target) return
     if (!representId) { toast.error(t.sackRegistration.dialog.errSelectRep); return }
+    if (sackInKg) {
+      const parts = sackInKg.split(".")
+      if (parts.length === 2 && parts[1].length > 2) { toast.error(t.sackRegistration.dialog.errInvalidWeightPrecision); return }
+    }
     setIsSubmitting(true)
     try {
       await apiClient.updateSackRegistration(accessToken, target.id, {

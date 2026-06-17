@@ -90,6 +90,8 @@ export function RegisterDialog({
 
     const sackKg = Number.parseFloat(sackInKg)
     if (Number.isNaN(sackKg) || sackKg < 0) { toast.error(t.sackRegistration.dialog.errInvalidWeight); return }
+    const sackKgParts = sackInKg.split(".")
+    if (sackKgParts.length === 2 && sackKgParts[1].length > 2) { toast.error(t.sackRegistration.dialog.errInvalidWeightPrecision); return }
 
     setIsSubmitting(true)
     try {

@@ -173,6 +173,7 @@ export const translations = {
         errSelectFarmer: "Please search and select a member farmer",
         errSelectDate: "Please select a date",
         errInvalidWeight: "Please enter a valid sack weight (0 or more)",
+        errInvalidWeightPrecision: "Sack weight must have at most 2 decimal places",
         registerSuccessToast: "Sack registered successfully",
       },
       stats: {
@@ -474,6 +475,7 @@ export const translations = {
         errSelectFarmer: "សូមស្វែងរក និងជ្រើសរើសសមាជិកកសិករ",
         errSelectDate: "សូមជ្រើសរើសកាលបរិច្ឆេទ",
         errInvalidWeight: "សូមបញ្ចូលទម្ងន់បាវឱ្យបានត្រឹមត្រូវ (ចាប់ពី ០ ឡើងទៅ)",
+        errInvalidWeightPrecision: "ទម្ងន់បាវត្រូវតែមានខ្ទង់ទសភាគច្រើនបំផុត ២ ខ្ទង់",
         registerSuccessToast: "បានចុះឈ្មោះបាវដោយជោគជ័យ",
       },
       stats: {
@@ -777,6 +779,7 @@ export type TranslationType = {
       readonly errSelectFarmer: string;
       readonly errSelectDate: string;
       readonly errInvalidWeight: string;
+      readonly errInvalidWeightPrecision: string;
       readonly registerSuccessToast: string;
     };
     readonly stats: {

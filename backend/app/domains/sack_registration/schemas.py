@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+from pydantic import BaseModel, Field, ConfigDict, model_validator, field_validator
 from datetime import datetime
 
 
@@ -8,6 +8,15 @@ class SackRegistrationCreate(BaseModel):
     member_farmer_identity_card: str | None = Field(default=None, max_length=100, description="Search farmer by identity card")
     sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
     notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("sack_in_kg")
+    @classmethod
+    def validate_sack_kg_precision(cls, v: float | None) -> float | None:
+        if v is not None:
+            parts = str(v).split(".")
+            if len(parts) == 2 and len(parts[1]) > 2:
+                raise ValueError("sack_in_kg must have at most 2 decimal places")
+        return v
 
     @model_validator(mode="after")
     def require_farmer_lookup(self):
@@ -21,6 +30,15 @@ class SackRegistrationUpdate(BaseModel):
     member_farmer_mf_code: str | None = Field(default=None, max_length=100, description="Change farmer by mf_code; must belong to the effective represent")
     sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
     notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("sack_in_kg")
+    @classmethod
+    def validate_sack_kg_precision(cls, v: float | None) -> float | None:
+        if v is not None:
+            parts = str(v).split(".")
+            if len(parts) == 2 and len(parts[1]) > 2:
+                raise ValueError("sack_in_kg must have at most 2 decimal places")
+        return v
 
 
 class SackRegistrationPublic(BaseModel):
