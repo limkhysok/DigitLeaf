@@ -1,4 +1,3 @@
-from typing import Optional
 from sqlmodel import Field, SQLModel
 from datetime import date, datetime
 from app.core.config import CAMBODIA_TZ
@@ -7,7 +6,7 @@ from ..constants import ClosingStatus
 class TobaccoPurchaseDetail(SQLModel, table=True):
     __tablename__ = "tobacco_purchase_detail" # type: ignore[assignment]
 
-    tpd_id: Optional[int] = Field(default=None, primary_key=True)
+    tpd_id: int | None = Field(default=None, primary_key=True)
     invoice_num: str = Field(max_length=255, index=True)
     tobacco_name: int = Field(index=True) # Linked to tobacco.t_id
     qty: float = Field() # Required
@@ -28,7 +27,7 @@ class TobaccoPurchaseDetail(SQLModel, table=True):
     sack_in_kg: float = Field(default=0.0)
     gross_weight: float = Field(default=0.0)
     total_amount: float = Field(default=0.0)
-    picture: Optional[str] = Field(default=None)
+    picture: str | None = Field(default=None)
     farmer_own_sack: int = Field(default=0)
 
 
