@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse
+from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse, TContractCreate, TContractRead, ConTobaccoItem
 from app.domains.tobacco_repay import crud
 
 router = APIRouter()
@@ -78,6 +78,22 @@ async def get_next_repay_num(
     return await crud.generate_repay_num(session)
 
 
+@router.get("/next-contract-num", response_model=str)
+async def get_next_contract_num(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    return await crud.generate_contract_num(session)
+
+
+@router.get("/tobacco-types", response_model=list[ConTobaccoItem])
+async def get_tobacco_types(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    return await crud.get_con_tobacco_types(session)
+
+
 @router.get("/contracts")
 async def get_contracts(
     vendor_id: int,
@@ -85,3 +101,23 @@ async def get_contracts(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     return await crud.get_vendor_contracts(session, vendor_id)
+
+
+@router.post("/contracts", response_model=TContractRead, status_code=201)
+async def create_contract(
+    request: Request,
+    data: TContractCreate,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    try:
+        return await crud.create_contract(
+            session,
+            data,
+            user_name=current_user.user_name,
+            ip_address=request.client.host if request.client else None,
+        )
+    except ValueError as e:
+        if "already exists" in str(e):
+            raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))

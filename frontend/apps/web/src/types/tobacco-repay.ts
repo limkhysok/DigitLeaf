@@ -36,3 +36,39 @@ export interface RepayHistoryListResponse {
   total: number;
   has_more: boolean;
 }
+
+export interface ConTobaccoItem {
+  t_id: number;
+  tobacco: string | null;
+}
+
+export interface TContractCreate {
+  con_num?: string;
+  contractor: string;
+  f_id: number;
+  tobac_type: number;
+  qty: number;
+  price: number;
+  con_date: string;
+  rate?: number;
+  year?: number;
+  represent?: string;
+  note?: string;
+}
+
+export interface TContractRead {
+  con_id: number | null;
+  con_num: string | null;
+  contractor: string | null;
+  f_id: number | null;
+  tobac_type: number | null;
+  qty: number | null;
+  price: number | null;
+  rate: number | null;
+  year: number | null;
+  represent: string | null;
+  con_date: string | null;
+  note: string | null;
+  user: string | null;
+  do_date: string | null;
+}

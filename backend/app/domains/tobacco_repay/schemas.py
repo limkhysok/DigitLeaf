@@ -63,3 +63,63 @@ class RepayHistoryListResponse(BaseModel):
     items: list[RepayHistoryItem]
     total: int
     has_more: bool
+
+
+class ConTobaccoItem(BaseModel):
+    t_id: int
+    tobacco: str | None
+
+
+class TContractCreate(BaseModel):
+    con_num: str | None = None
+    contractor: str
+    f_id: int
+    tobac_type: int
+    qty: float
+    price: float
+    con_date: _date
+    rate: float | None = None
+    year: int | None = None
+    gender: str | None = None
+    age: int | None = None
+    home_num: str | None = None
+    road_num: str | None = None
+    village: str | None = None
+    commune: str | None = None
+    district: str | None = None
+    province: str | None = None
+    job: str | None = None
+    identify_num: str | None = None
+    identify_date: _date | None = None
+    represent: str | None = None
+    note: str | None = None
+    repay: str | None = None
+
+
+class TContractRead(BaseModel):
+    con_id: int | None
+    con_num: str | None
+    contractor: str | None
+    f_id: int | None
+    tobac_type: int | None
+    qty: float | None
+    price: float | None
+    rate: float | None
+    year: int | None
+    gender: str | None
+    age: int | None
+    home_num: str | None
+    road_num: str | None
+    village: str | None
+    commune: str | None
+    district: str | None
+    province: str | None
+    job: str | None
+    identify_num: str | None
+    identify_date: _date | None
+    represent: str | None
+    con_date: _date | None
+    note: str | None
+    repay: str | None
+    user: str | None
+    do_date: _datetime | None

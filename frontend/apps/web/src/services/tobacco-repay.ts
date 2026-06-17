@@ -1,4 +1,4 @@
-import { TobaccoRepayListResponse, VendorContractItem } from "../types";
+import { TobaccoRepayListResponse, VendorContractItem, TContractCreate, TContractRead, ConTobaccoItem } from "../types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api/v1";
 
@@ -79,6 +79,35 @@ export const tobaccoRepayApi = {
     });
     if (!res.ok) {
       return [];
+    }
+    return res.json();
+  },
+  getNextContractNum: async (token: string): Promise<string> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/next-contract-num`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return "";
+    return res.json();
+  },
+  getContractTobaccoTypes: async (token: string): Promise<ConTobaccoItem[]> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/tobacco-types`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  },
+  createContract: async (token: string, payload: TContractCreate): Promise<TContractRead> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/contracts`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to create contract");
     }
     return res.json();
   },

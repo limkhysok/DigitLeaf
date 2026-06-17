@@ -6,7 +6,7 @@ from sqlmodel import select, func, col
 from .models.con_tobacco import ConTobacco
 from .models.t_contract import TContract
 from .models.t_contract_repay import TContractRepay
-from .schemas import TContractRepayCreate
+from .schemas import TContractRepayCreate, TContractCreate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
@@ -20,6 +20,29 @@ async def generate_repay_num(db: AsyncSession) -> str:
     statement = (
         select(TContractRepay.repay_num)
         .order_by(col(TContractRepay.repay_id).desc())
+        .limit(1)
+    )
+    last_num = await db.scalar(statement)
+
+    if last_num and "-" in last_num:
+        try:
+            last_seq = int(last_num.split("-")[-1])
+            new_seq = last_seq + 1
+        except (ValueError, IndexError):
+            new_seq = 0
+    else:
+        new_seq = 0
+
+    return f"{prefix}{new_seq:04d}"
+
+
+async def generate_contract_num(db: AsyncSession) -> str:
+    today_str = datetime.now(CAMBODIA_TZ).strftime("%d%m%y")
+    prefix = f"{today_str}-"
+
+    statement = (
+        select(TContract.con_num)
+        .order_by(col(TContract.con_id).desc())
         .limit(1)
     )
     last_num = await db.scalar(statement)
@@ -171,6 +194,72 @@ async def create_repay(
     await db.commit()
     await db.refresh(db_obj)
     return db_obj
+
+async def get_con_tobacco_types(db: AsyncSession) -> list[ConTobacco]:
+    stmt = select(ConTobacco).order_by(col(ConTobacco.tobacco))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+def _fallback(value: Any, default: Any) -> Any:
+    return default if value is None else value
+
+
+async def create_contract(
+    db: AsyncSession,
+    obj_in: TContractCreate,
+    user_name: str,
+    ip_address: str | None = None,
+) -> TContract:
+    farmer = await db.get(MemberFarmer, obj_in.f_id)
+    if not farmer:
+        raise ValueError(f"Farmer id {obj_in.f_id} not found")
+
+    tobacco_type = await db.get(ConTobacco, obj_in.tobac_type)
+    if not tobacco_type:
+        raise ValueError(f"Tobacco type id {obj_in.tobac_type} not found")
+
+    con_num = obj_in.con_num or await generate_contract_num(db)
+    existing = await db.scalar(select(TContract.con_id).where(TContract.con_num == con_num))
+    if existing is not None:
+        raise ValueError(f"Contract number '{con_num}' already exists")
+
+    # t_contract has NOT NULL constraints (no DB defaults) on most columns; this dialog
+    # only collects the business-relevant fields, so the demographic snapshot fields
+    # default to empty values when not supplied.
+    db_obj = TContract(
+        con_num=con_num,
+        contractor=obj_in.contractor,
+        gender=_fallback(obj_in.gender, ""),
+        age=_fallback(obj_in.age, 0),
+        home_num=_fallback(obj_in.home_num, ""),
+        road_num=_fallback(obj_in.road_num, ""),
+        village=_fallback(obj_in.village, ""),
+        commune=_fallback(obj_in.commune, ""),
+        district=_fallback(obj_in.district, ""),
+        province=_fallback(obj_in.province, ""),
+        job=_fallback(obj_in.job, ""),
+        identify_num=_fallback(obj_in.identify_num, ""),
+        identify_date=_fallback(obj_in.identify_date, obj_in.con_date),
+        represent=_fallback(obj_in.represent, ""),
+        con_date=obj_in.con_date,
+        note=_fallback(obj_in.note, ""),
+        repay=_fallback(obj_in.repay, "NO"),
+        tobac_type=obj_in.tobac_type,
+        qty=obj_in.qty,
+        price=obj_in.price,
+        rate=_fallback(obj_in.rate, 0.0),
+        f_id=obj_in.f_id,
+        year=_fallback(obj_in.year, obj_in.con_date.year),
+        user=user_name,
+        do_date=datetime.now(),
+        ip_address=ip_address,
+    )
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj
+
 
 async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[str, Any]]:
     mf = await db.get(MemberFarmer, vendor_id)
