@@ -48,17 +48,17 @@ async def list_tobacco_types(
 async def get_form_metadata(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-):
+) -> schemas.FormMetadataResponse:
     purchasers = await crud.get_purchasers(db=session)
     regions = await crud.get_regions(db=session)
     ovens = await crud.get_ovens(db=session)
     tobacco_types = await crud.get_tobacco_types(db=session)
-    return {
-        "purchasers": purchasers,
-        "regions": regions,
-        "ovens": ovens,
-        "tobacco_types": tobacco_types,
-    }
+    return schemas.FormMetadataResponse(
+        purchasers=purchasers,
+        regions=regions,
+        ovens=ovens,
+        tobacco_types=[schemas.TobaccoItem.model_validate(t) for t in tobacco_types],
+    )
 
 
 @router.get("/vendor-sack")
