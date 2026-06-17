@@ -3,7 +3,7 @@ from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy import Column, String
 from datetime import date, datetime
 from app.core.config import CAMBODIA_TZ
-from .purchase_detail import TobaccoPurchaseDetail
+from .tobacco_purchase_detail import TobaccoPurchaseDetail
 from ..constants import ClosingStatus
 from app.domains.farmers.models.member_farmer import MemberFarmer
 
