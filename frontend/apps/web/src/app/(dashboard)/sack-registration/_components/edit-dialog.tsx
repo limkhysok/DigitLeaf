@@ -91,7 +91,7 @@ export function EditDialog({
     setIsSubmitting(true)
     try {
       await apiClient.updateSackRegistration(accessToken, target.id, {
-        ...(Number(representId) !== target.represent_id ? { represent_id: Number(representId) } : {}),
+        ...(Number(representId) === target.represent_id ? {} : { represent_id: Number(representId) }),
         ...(farmerResult ? { member_farmer_mf_code: farmerResult.mf_code } : {}),
         sack_in_kg: sackInKg ? Number(sackInKg) : null,
         notes: notes.trim() || undefined,
