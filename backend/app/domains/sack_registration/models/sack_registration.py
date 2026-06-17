@@ -1,4 +1,3 @@
-from typing import Optional
 from sqlmodel import Field, SQLModel
 from datetime import datetime
 from app.core.config import CAMBODIA_TZ
@@ -8,10 +7,10 @@ class SackRegistration(SQLModel, table=True):
     # Table 'dl_sack_registration'
     __tablename__ = "dl_sack_registration"  # type: ignore[assignment]
     # PK
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     # Properties
-    sack_in_kg: Optional[float] = Field(default=None)
-    notes: Optional[str] = Field(default=None, max_length=500)
+    sack_in_kg: float | None = Field(default=None)
+    notes: str | None = Field(default=None, max_length=500)
     action_by: str = Field(max_length=255)
     # FK
     represent_id: int = Field(index=True, foreign_key="represent.represent_id")
