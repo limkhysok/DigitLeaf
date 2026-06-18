@@ -1,4 +1,4 @@
-import { TobaccoRepayListResponse, VendorContractItem, TContractCreate, TContractRead, ConTobaccoItem } from "../types";
+import { TobaccoRepayListResponse, VendorContractItem, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate } from "../types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api/v1";
 
@@ -36,6 +36,21 @@ export const tobaccoRepayApi = {
       throw new Error(errorData.detail || "Failed to fetch tobacco repay history");
     }
     return res.json();
+  },
+  exportTobaccoRepayHistory: async (
+    token: string,
+    params: { year?: string } = {}
+  ): Promise<Blob> => {
+    const query = new URLSearchParams();
+    if (params.year) query.set("year", params.year);
+    const res = await fetch(`${BASE_URL}/tobacco-repays/history/export?${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to export tobacco repay history");
+    }
+    return res.blob();
   },
   getAvailableYears: async (token: string): Promise<string[]> => {
     const res = await fetch(`${BASE_URL}/tobacco-repays/years`, {
@@ -110,5 +125,40 @@ export const tobaccoRepayApi = {
       throw new Error(errorData.detail || "Failed to create contract");
     }
     return res.json();
+  },
+  getRepayDetail: async (token: string, repayId: number): Promise<RepayHistoryDetail> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/${repayId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch repay record");
+    }
+    return res.json();
+  },
+  updateTobaccoRepay: async (token: string, repayId: number, payload: TContractRepayUpdate): Promise<unknown> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/${repayId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to update repay record");
+    }
+    return res.json();
+  },
+  deleteTobaccoRepay: async (token: string, repayId: number): Promise<void> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/${repayId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to delete repay record");
+    }
   },
 };

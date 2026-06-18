@@ -80,7 +80,7 @@ async def list_vendors_by_buyer(
     return await crud.get_vendors_by_buyer(db=session, buyer_id=buyer_id)
 
 
-@router.post("/", response_model=schemas.Purchase, status_code=201)
+@router.post("/", response_model=Optional[schemas.Purchase], status_code=201)
 async def create_purchase(
     data: schemas.PurchaseCreate,
     request: Request,

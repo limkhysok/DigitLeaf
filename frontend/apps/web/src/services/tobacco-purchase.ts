@@ -114,7 +114,7 @@ export const tobaccoPurchaseApi = {
     return response.json();
   },
 
-  async createTobaccoPurchase(accessToken: string, data: TobaccoPurchaseCreate): Promise<TobaccoPurchase> {
+  async createTobaccoPurchase(accessToken: string, data: TobaccoPurchaseCreate): Promise<TobaccoPurchase | null> {
     const response = await fetch(`${API_BASE_URL}/tobacco-purchases/`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },

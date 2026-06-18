@@ -23,6 +23,7 @@ export interface RepayHistoryItem {
   repay_date: string | null;
   repay_num: string | null;
   con_num: string | null;
+  representative: string | null;
   farmer_name: string | null;
   tobacco_type: string | null;
   qty_repay: number | null;
@@ -35,6 +36,21 @@ export interface RepayHistoryListResponse {
   items: RepayHistoryItem[];
   total: number;
   has_more: boolean;
+}
+
+export interface RepayHistoryDetail extends RepayHistoryItem {
+  con_id: number | null;
+  f_id: number | null;
+  oven: number | null;
+  edit_user: string | null;
+  edit_do_date: string | null;
+}
+
+export interface TContractRepayUpdate {
+  repay_date?: string;
+  qty_repay?: number;
+  note?: string;
+  oven?: number;
 }
 
 export interface ConTobaccoItem {

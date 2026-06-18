@@ -51,6 +51,7 @@ class RepayHistoryItem(BaseModel):
     repay_date: _date | None
     repay_num: str | None
     con_num: str | None
+    representative: str | None
     farmer_name: str | None
     tobacco_type: str | None
     qty_repay: float | None
@@ -63,6 +64,21 @@ class RepayHistoryListResponse(BaseModel):
     items: list[RepayHistoryItem]
     total: int
     has_more: bool
+
+
+class RepayHistoryDetail(RepayHistoryItem):
+    con_id: int | None
+    f_id: int | None
+    oven: int | None
+    edit_user: str | None
+    edit_do_date: _datetime | None
+
+
+class TContractRepayUpdate(BaseModel):
+    repay_date: _date | None = None
+    qty_repay: float | None = None
+    note: str | None = None
+    oven: int | None = None
 
 
 class ConTobaccoItem(BaseModel):

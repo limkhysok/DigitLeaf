@@ -6,7 +6,7 @@ from sqlmodel import select, func, col
 from .models.con_tobacco import ConTobacco
 from .models.t_contract import TContract
 from .models.t_contract_repay import TContractRepay
-from .schemas import TContractRepayCreate, TContractCreate
+from .schemas import TContractRepayCreate, TContractCreate, TContractRepayUpdate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
 from app.domains.tobacco_purchase.models.tobacco import Tobacco
@@ -195,6 +195,95 @@ async def create_repay(
     await db.refresh(db_obj)
     return db_obj
 
+async def get_repay_detail(db: AsyncSession, repay_id: int) -> dict[str, Any] | None:
+    stmt = cast(Select[Any], (
+        select(  # type: ignore[call-overload]
+            col(TContractRepay.repay_id).label("repay_id"),
+            col(TContractRepay.repay_date).label("repay_date"),
+            col(TContractRepay.repay_num).label("repay_num"),
+            col(TContractRepay.con_id).label("con_id"),
+            col(TContractRepay.f_id).label("f_id"),
+            col(TContractRepay.oven).label("oven"),
+            col(TContract.con_num).label("con_num"),
+            col(Represent.represent_name).label("representative"),
+            col(MemberFarmer.name).label("farmer_name"),
+            col(ConTobacco.tobacco).label("tobacco_type"),
+            col(TContractRepay.qty_repay).label("qty_repay"),
+            col(TContractRepay.note).label("note"),
+            col(TContractRepay.user).label("user"),
+            col(TContractRepay.edit_user).label("edit_user"),
+            col(TContractRepay.edit_do_date).label("edit_do_date"),
+            col(MfConYear.year).label("contract_year"),
+        )
+        .join(TContract, TContractRepay.con_id == TContract.con_id)  # type: ignore[arg-type]
+        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)  # type: ignore[arg-type]
+        .join(  # type: ignore[arg-type]
+            MfConYear,
+            (MfConYear.mf_id == TContract.f_id)
+            & (MfConYear.year == func.year(TContract.con_date)),
+        )
+        .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
+        .outerjoin(Represent, TContract.represent == Represent.represent_id)  # type: ignore[arg-type]
+        .where(TContractRepay.repay_id == repay_id)
+    ))
+    result = await db.execute(stmt)
+    row = result.first()
+    if not row:
+        return None
+    return {
+        "repay_id": row.repay_id,
+        "repay_date": row.repay_date,
+        "repay_num": row.repay_num,
+        "con_id": row.con_id,
+        "f_id": row.f_id,
+        "oven": row.oven,
+        "con_num": row.con_num,
+        "representative": row.representative,
+        "farmer_name": row.farmer_name,
+        "tobacco_type": row.tobacco_type,
+        "qty_repay": float(row.qty_repay) if row.qty_repay is not None else 0.0,
+        "note": row.note,
+        "user": row.user,
+        "edit_user": row.edit_user,
+        "edit_do_date": row.edit_do_date,
+        "contract_year": row.contract_year,
+    }
+
+
+async def update_repay(
+    db: AsyncSession,
+    repay_id: int,
+    obj_in: TContractRepayUpdate,
+    user_name: str,
+    ip_address: str | None = None,
+) -> TContractRepay:
+    db_obj = await db.get(TContractRepay, repay_id)
+    if not db_obj:
+        raise ValueError(f"Repay id {repay_id} not found")
+
+    update_data = obj_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_obj, key, value)
+
+    db_obj.edit_user = user_name
+    db_obj.edit_do_date = datetime.now()
+    db_obj.edit_ip_address = ip_address
+
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj
+
+
+async def delete_repay(db: AsyncSession, repay_id: int) -> bool:
+    db_obj = await db.get(TContractRepay, repay_id)
+    if not db_obj:
+        return False
+    await db.delete(db_obj)
+    await db.commit()
+    return True
+
+
 async def get_con_tobacco_types(db: AsyncSession) -> list[ConTobacco]:
     stmt = select(ConTobacco).order_by(col(ConTobacco.tobacco))
     result = await db.execute(stmt)
@@ -329,6 +418,7 @@ async def get_tobacco_repay_history(
             col(TContractRepay.repay_date).label("repay_date"),
             col(TContractRepay.repay_num).label("repay_num"),
             col(TContract.con_num).label("con_num"),
+            col(Represent.represent_name).label("representative"),
             col(MemberFarmer.name).label("farmer_name"),
             col(ConTobacco.tobacco).label("tobacco_type"),
             col(TContractRepay.qty_repay).label("qty_repay"),
@@ -344,6 +434,7 @@ async def get_tobacco_repay_history(
             & (MfConYear.year == func.year(TContract.con_date)),
         )
         .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
+        .outerjoin(Represent, TContract.represent == Represent.represent_id)  # type: ignore[arg-type]
         .where(year_filter)
         .order_by(col(TContractRepay.repay_date).desc(), col(TContractRepay.repay_id).desc())
         .limit(limit)
@@ -358,6 +449,7 @@ async def get_tobacco_repay_history(
             "repay_date": row.repay_date,
             "repay_num": row.repay_num,
             "con_num": row.con_num,
+            "representative": row.representative,
             "farmer_name": row.farmer_name,
             "tobacco_type": row.tobacco_type,
             "qty_repay": float(row.qty_repay) if row.qty_repay is not None else 0.0,

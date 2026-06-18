@@ -226,14 +226,18 @@ async def _sync_purchase_details(
 
 async def _sync_purchase_returns(
     db: AsyncSession,
-    db_obj: TobaccoPurchase,
     returns: Optional[List[PurchaseReturnCreate]],
+    tp_date: date,
+    oven: Optional[int],
+    tp_note: Optional[str],
     user_name: str,
     ip_address: str,
 ) -> None:
-    """Persist tobacco repay entries created alongside a purchase. Each repay
-    num must be generated and flushed one at a time so the next sequence read
-    sees the row just inserted in this same transaction."""
+    """Persist tobacco repay entries. These are standalone t_contract_repay rows
+    (no FK to tobacco_purchase) so they can be created with or without an
+    accompanying purchase invoice. Each repay num must be generated and flushed
+    one at a time so the next sequence read sees the row just inserted in this
+    same transaction."""
     if not returns:
         return
     for return_in in returns:
@@ -246,10 +250,10 @@ async def _sync_purchase_returns(
             con_num=contract.con_num,
             f_id=contract.f_id,
             repay_num=repay_num,
-            repay_date=db_obj.tp_date,
+            repay_date=tp_date,
             qty_repay=return_in.qty_repay,
-            note=db_obj.tp_note,
-            oven=db_obj.oven,
+            note=tp_note,
+            oven=oven,
             user=user_name,
             do_date=datetime.now(CAMBODIA_TZ),
             ip_address=ip_address,
@@ -263,6 +267,16 @@ async def create_purchase(
     user_name: str,
     ip_address: str,
 ) -> Optional[TobaccoPurchase]:
+    if not obj_in.details:
+        # No purchase items were submitted — this is a repay-only invoice, so we
+        # don't touch tobacco_purchase / tobacco_purchase_detail at all (and don't
+        # burn an invoice number). Only t_contract_repay rows are created.
+        await _sync_purchase_returns(
+            db, obj_in.returns, obj_in.tp_date, obj_in.oven, obj_in.tp_note, user_name, ip_address
+        )
+        await db.commit()
+        return None
+
     invoice_num = await generate_invoice_num(db)
     db_obj = TobaccoPurchase(
         **obj_in.model_dump(exclude={"details", "invoice_num", "returns"}, exclude_none=True),
@@ -276,7 +290,9 @@ async def create_purchase(
     assert db_obj.tp_id is not None
 
     await _sync_purchase_details(db, db_obj, obj_in.details, user_name, ip_address)
-    await _sync_purchase_returns(db, db_obj, obj_in.returns, user_name, ip_address)
+    await _sync_purchase_returns(
+        db, obj_in.returns, db_obj.tp_date, db_obj.oven, db_obj.tp_note, user_name, ip_address
+    )
 
     await db.commit()
     return await get_purchase(db, db_obj.tp_id)
@@ -397,7 +413,9 @@ async def update_purchase(
         await _sync_purchase_details(db, db_obj, obj_in.details, user_name, ip_address, delete_existing=True)
 
     if obj_in.returns is not None:
-        await _sync_purchase_returns(db, db_obj, obj_in.returns, user_name, ip_address)
+        await _sync_purchase_returns(
+            db, obj_in.returns, db_obj.tp_date, db_obj.oven, db_obj.tp_note, user_name, ip_address
+        )
 
     db_obj.edit_user = user_name
     db_obj.edit_ip_address = ip_address

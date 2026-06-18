@@ -553,7 +553,7 @@
           toast.success("Purchase updated successfully")
         } else {
           savedRecord = await apiClient.createTobaccoPurchase(accessToken, payload)
-          toast.success("Purchase recorded successfully")
+          toast.success(savedRecord ? "Purchase recorded successfully" : "Repay recorded successfully")
         }
         onSuccess()
         onClose()

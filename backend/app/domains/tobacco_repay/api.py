@@ -1,10 +1,13 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+import io
+import openpyxl
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse, TContractCreate, TContractRead, ConTobaccoItem
+from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate
 from app.domains.tobacco_repay import crud
 
 router = APIRouter()
@@ -41,6 +44,63 @@ async def read_tobacco_repay_history(
         items=result["items"],
         total=result["total"],
         has_more=(skip + len(result["items"])) < result["total"],
+    )
+
+
+@router.get("/history/export")
+async def export_tobacco_repay_history(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    year: int | None = Query(None),
+):
+    _EXPORT_LIMIT = 10_000
+    result = await crud.get_tobacco_repay_history(session, skip=0, limit=_EXPORT_LIMIT, year=year)
+    items = result["items"]
+    total = result["total"]
+    if total > _EXPORT_LIMIT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({total:,} matched). Apply filters to narrow the result.",
+        )
+
+    wb = openpyxl.Workbook()
+    ws = wb.worksheets[0]
+    ws.title = "Repay History"
+
+    headers = ["No.", "Repay No.", "Contract No.", "Representative", "Farmer", "Tobacco", "Quantity (KG)", "Year", "Date", "Note", "Recorded By"]
+    ws.append(headers)
+
+    total_qty = 0.0
+    for idx, item in enumerate(items, start=1):
+        qty = item.get("qty_repay") or 0.0
+        total_qty += qty
+        repay_date = item.get("repay_date")
+        ws.append([
+            idx,
+            item.get("repay_num"),
+            item.get("con_num"),
+            item.get("representative"),
+            item.get("farmer_name"),
+            item.get("tobacco_type"),
+            qty,
+            item.get("contract_year"),
+            repay_date.strftime("%Y-%m-%d") if repay_date else None,
+            item.get("note"),
+            item.get("user"),
+        ])
+
+    ws.append([])
+    ws.append(["", "", "", "", "", "Total:", total_qty, "", "", "", ""])
+
+    stream = io.BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    filename = f"tobacco_repay_history_{year}.xlsx" if year else "tobacco_repay_history.xlsx"
+    return StreamingResponse(
+        stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
@@ -121,3 +181,47 @@ async def create_contract(
         if "already exists" in str(e):
             raise HTTPException(status_code=409, detail=str(e))
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{repay_id}", response_model=RepayHistoryDetail)
+async def read_repay_detail(
+    repay_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    detail = await crud.get_repay_detail(session, repay_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Repay record not found")
+    return detail
+
+
+@router.patch("/{repay_id}", response_model=TContractRepayRead)
+async def update_tobacco_repay(
+    repay_id: int,
+    data: TContractRepayUpdate,
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    try:
+        return await crud.update_repay(
+            session,
+            repay_id,
+            data,
+            user_name=current_user.user_name,
+            ip_address=request.client.host if request.client else None,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete("/{repay_id}", status_code=204)
+async def delete_tobacco_repay(
+    repay_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    success = await crud.delete_repay(session, repay_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Repay record not found")
+    return None

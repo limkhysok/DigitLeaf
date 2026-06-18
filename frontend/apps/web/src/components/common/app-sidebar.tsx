@@ -89,7 +89,7 @@
                         />
                       </div>
                       <div className="flex flex-col gap-0 overflow-hidden transition-[opacity,max-width] duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:opacity-0 group-data-[collapsible=icon]/sidebar:max-w-0">
-                        <span className="text-md font-medium text-foreground leading-tight">
+                        <span className="text-md font-semibold text-foreground leading-tight ">
                           KAIC
                         </span>
                         <span className="text-[10px] font-semibold uppercase text-muted-foreground leading-tight">
