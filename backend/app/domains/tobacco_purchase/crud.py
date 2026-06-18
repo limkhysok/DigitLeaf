@@ -8,7 +8,10 @@ from .models import TobaccoPurchase, TobaccoPurchaseDetail, Purchaser, Region, O
 from app.domains.sack_registration.models import SackRegistration
 from app.domains.farmers.models import Represent, MemberFarmer
 from app.domains.farmer_contract.models import MfConYear
-from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate
+from app.domains.tobacco_repay.models.t_contract import TContract
+from app.domains.tobacco_repay.models.t_contract_repay import TContractRepay
+from app.domains.tobacco_repay.crud import generate_repay_num
+from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate
 from datetime import datetime
 
 from app.core.config import CAMBODIA_TZ
@@ -221,6 +224,39 @@ async def _sync_purchase_details(
     db_obj.grand_total = round(grand_total, 2)
 
 
+async def _sync_purchase_returns(
+    db: AsyncSession,
+    db_obj: TobaccoPurchase,
+    returns: Optional[List[PurchaseReturnCreate]],
+    user_name: str,
+    ip_address: str,
+) -> None:
+    """Persist tobacco repay entries created alongside a purchase. Each repay
+    num must be generated and flushed one at a time so the next sequence read
+    sees the row just inserted in this same transaction."""
+    if not returns:
+        return
+    for return_in in returns:
+        contract = await db.get(TContract, return_in.con_id)
+        if not contract:
+            raise ValueError(f"Contract id {return_in.con_id} not found")
+        repay_num = await generate_repay_num(db)
+        db.add(TContractRepay(
+            con_id=return_in.con_id,
+            con_num=contract.con_num,
+            f_id=contract.f_id,
+            repay_num=repay_num,
+            repay_date=db_obj.tp_date,
+            qty_repay=return_in.qty_repay,
+            note=db_obj.tp_note,
+            oven=db_obj.oven,
+            user=user_name,
+            do_date=datetime.now(CAMBODIA_TZ),
+            ip_address=ip_address,
+        ))
+        await db.flush()
+
+
 async def create_purchase(
     db: AsyncSession,
     obj_in: PurchaseCreate,
@@ -229,7 +265,7 @@ async def create_purchase(
 ) -> Optional[TobaccoPurchase]:
     invoice_num = await generate_invoice_num(db)
     db_obj = TobaccoPurchase(
-        **obj_in.model_dump(exclude={"details", "invoice_num"}, exclude_none=True),
+        **obj_in.model_dump(exclude={"details", "invoice_num", "returns"}, exclude_none=True),
         invoice_num=invoice_num,
         user=user_name,
         ip_address=ip_address,
@@ -240,6 +276,7 @@ async def create_purchase(
     assert db_obj.tp_id is not None
 
     await _sync_purchase_details(db, db_obj, obj_in.details, user_name, ip_address)
+    await _sync_purchase_returns(db, db_obj, obj_in.returns, user_name, ip_address)
 
     await db.commit()
     return await get_purchase(db, db_obj.tp_id)
@@ -352,12 +389,15 @@ async def update_purchase(
     ip_address: str,
 ) -> Optional[TobaccoPurchase]:
     assert db_obj.tp_id is not None
-    update_data = obj_in.model_dump(exclude_unset=True, exclude={"details", "vendor_id"}, exclude_none=True)
+    update_data = obj_in.model_dump(exclude_unset=True, exclude={"details", "vendor_id", "returns"}, exclude_none=True)
     for key, value in update_data.items():
         setattr(db_obj, key, value)
 
     if obj_in.details is not None:
         await _sync_purchase_details(db, db_obj, obj_in.details, user_name, ip_address, delete_existing=True)
+
+    if obj_in.returns is not None:
+        await _sync_purchase_returns(db, db_obj, obj_in.returns, user_name, ip_address)
 
     db_obj.edit_user = user_name
     db_obj.edit_ip_address = ip_address

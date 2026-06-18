@@ -137,6 +137,7 @@ export function CreateRepayDialog({
     onSuccess: () => {
       toast.success("Repayment recorded successfully")
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
+      queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       handleClose()
     },
     onError: (err: Error) => {

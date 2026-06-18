@@ -112,17 +112,17 @@
     if (displayRemainingQuota === null) return null;
     return (
       <div className="flex shrink-0 mr-1">
-        <span className="block text-sm md:text-base lg:text-base font-medium text-white mr-1">Quota: </span>
+        <span className="block text-sm md:text-base lg:text-base font-medium text-foreground mr-1">Quota: </span>
         <div className="flex items-baseline gap-0.5">
           <span className={cn("text-sm md:text-base lg:text-base font-medium",
-            displayRemainingQuota >= 0 ? "text-white" : "text-red-500"
+            displayRemainingQuota >= 0 ? "text-foreground" : "text-red-500"
           )}>
             {displayRemainingQuota >= 0 ? "+" : ""}
             {displayRemainingQuota.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
           <span className={cn(
             "text-sm md:text-base lg:text-base",
-            displayRemainingQuota >= 0 ? "text-white" : "text-red-500"
+            displayRemainingQuota >= 0 ? "text-foreground" : "text-red-500"
           )}>
             kg
           </span>
@@ -165,12 +165,19 @@
 
   type VendorIdType = number | string | null;
 
+  // The form always seeds one placeholder purchase row. If the user never touches
+  // it (e.g. they only want to record a repay), it must not count as a "real" item.
+  function isBlankDetail(d: Partial<TobaccoPurchaseDetail>): boolean {
+    return !d.tobacco_name && !d.gross_weight && !d.price
+  }
+
   function validatePurchaseForm(
     buyer: string,
     vendor: VendorIdType,
     region: string,
     rate: string,
-    details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[]
+    details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[],
+    returns: ReturnItemType[]
   ): boolean {
     if (!buyer) {
       toast.error("Please select a Buyer")
@@ -188,12 +195,17 @@
       toast.error("Please enter a valid exchange rate")
       return false
     }
-    if (details.length === 0) {
-      toast.error("Please add at least one tobacco purchase item")
+    const realDetails = details.filter(d => !isBlankDetail(d))
+    if (realDetails.length === 0 && returns.length === 0) {
+      toast.error("Please add at least one tobacco purchase or repay item")
       return false
     }
-    if (details.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
+    if (realDetails.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
       toast.error("Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg")
+      return false
+    }
+    if (returns.some(r => !r.con_id || !r.tobac_type || !r.qty_repay)) {
+      toast.error("Please ensure all repay items have a Contract, Tobacco Grade, and Quantity")
       return false
     }
     return true
@@ -495,7 +507,7 @@
         tp_note: tpNote,
         oven: oven ? Number.parseInt(oven, 10) : undefined,
         rate: Number.parseInt(rate, 10),
-        details: details.map(d => ({
+        details: details.filter(d => !isBlankDetail(d)).map(d => ({
           tobacco_name: d.tobacco_name as number,
           gross_weight: Number(d.gross_weight) || 0,
           price: Number(d.price) || 0,
@@ -528,7 +540,7 @@
 
     const handleSubmit = async (e: React.BaseSyntheticEvent, shouldPrint = false) => {
       e.preventDefault()
-      if (!validatePurchaseForm(buyer, vendor, region, rate, details)) {
+      if (!validatePurchaseForm(buyer, vendor, region, rate, details, returns)) {
         return
       }
 
@@ -586,7 +598,7 @@
           <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-sm border-black/20">
             <DialogHeader className="mb-0  shrink-0">
               <div className="flex items-center justify-between w-full">
-                <div className="space-y-1">
+                <div className="space-y-0">
                   <DialogTitle className="text-[18px] font-medium text-foreground">
                     <span className="md:hidden">{mobileTitle}</span>
                     <span className="hidden md:inline">{title}</span>
@@ -937,8 +949,8 @@
                   Card-per-row, full-width stacked
                 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
               <div className="md:hidden rounded-sm">
-                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
-                  <h3 className="flex items-center gap-2 py-2 px-4 text-white">Tobacco Purchase</h3>
+                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
+                  <h3 className="flex items-center gap-2 py-2 px-4 text-foreground font-medium">Tobacco Purchase</h3>
                   <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
                 </div>
                 <div className="space-y-0">
@@ -973,18 +985,18 @@
                     </div>
                   )}
                   {details.length > 0 && (
-                    <div className="bg-green-600 ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%]">
+                    <div className="bg-white ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%] border-t border-b border-l border-r border-black/40">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
-                        <span className="text-base font-semibold text-white text-left">{details.length} Item</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                        <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase">Total Weight</span>
-                        <span className="text-base font-semibold text-white text-right">{totalNetWeight.toFixed(2)} Kg</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
+                        <span className="text-base font-semibold text-foreground text-right">{totalNetWeight.toFixed(2)} Kg</span>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[11px] font-bold text-white uppercase">Grand Total</span>
-                        <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase">Grand Total</span>
+                        <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                       </div>
                     </div>
                   )}
@@ -996,8 +1008,8 @@
                   2-column card grid
                 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
               <div className="hidden md:block lg:hidden rounded-sm">
-                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-600">
-                  <h3 className="flex items-center gap-2 py-2 px-5 text-white">Tobacco Purchase</h3>
+                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
+                  <h3 className="flex items-center gap-2 py-2 px-5 text-foreground font-medium">Tobacco Purchase</h3>
                   <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
                 </div>
                 {details.length === 0 ? (
@@ -1031,18 +1043,18 @@
                   </div>
                 )}
                 {details.length > 0 && (
-                  <div className="bg-green-600 rounded-b-sm flex flex-row justify-between items-center px-5 py-3">
+                  <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-t border-b border-l border-r border-black/40">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
-                      <span className="text-base font-semibold text-white text-left">{details.length} Item</span>
+                      <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                      <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-white uppercase text-center">Total Weight</span>
-                      <span className="text-base font-semibold text-white text-center">{totalNetWeight.toFixed(2)} Kg</span>
+                      <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
+                      <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[11px] font-bold text-white uppercase text-right">Grand Total</span>
-                      <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+                      <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
+                      <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                     </div>
                   </div>
                 )}
@@ -1070,10 +1082,10 @@
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-md border border-black/40 mb-2">
-                    <div className="flex py-1 px-4 items-center justify-between rounded-t-sm bg-green-600">
+                  <div className="rounded-sm border border-black/40 mb-2">
+                    <div className="flex py-1 px-4 items-center justify-between rounded-t-sm bg-white border-b border-black/40">
                       <div className="flex items-center gap-2 py-2 px-1">
-                        <h3 className="text-base font-medium text-white">Tobacco Purchase</h3>
+                        <h3 className="text-base font-medium text-foreground">Tobacco Purchase</h3>
                       </div>
                       <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
                     </div>
@@ -1091,18 +1103,18 @@
                     ))}
 
                     {/* Desktop Summary Bar */}
-                    <div className="bg-green-600 rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
+                    <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
-                        <span className="text-base font-semibold text-white">{details.length} Item</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                        <span className="text-base font-semibold text-foreground">{details.length} Item</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase text-center">Total Weight</span>
-                        <span className="text-base font-semibold text-white text-center">{totalNetWeight.toFixed(2)} Kg</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
+                        <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase text-right">Grand Total</span>
-                        <span className="text-base font-semibold text-white text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
+                        <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
                       </div>
                     </div>
                   </div>
@@ -1112,9 +1124,9 @@
               {returns.length > 0 && (       
                 //  pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6
                 <div className="mt-3 mb-2 rounded-md">
-                  <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-green-700">
+                  <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border border-black/40">
                     <div className="flex items-center gap-2 py-2 px-4">
-                      <h3 className="text-base font-medium text-white">Tobacco Repay</h3>
+                      <h3 className="text-base font-medium text-foreground">Tobacco Repay</h3>
                     </div>
                   </div>
 
@@ -1135,14 +1147,14 @@
                   </div>
 
                   {/* Mobile & Tablet Summary Bar */}
-                  <div className="flex lg:hidden bg-green-700 rounded-b-sm py-3 px-5 flex-row justify-between items-center">
+                  <div className="flex lg:hidden bg-white rounded-b-sm py-3 px-5 flex-row justify-between items-center border-b border-l border-r border-black/40">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
-                      <span className="text-base font-semibold text-white text-left">{returns.length} Item</span>
+                      <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                      <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[11px] font-bold text-white uppercase">Total Weight</span>
-                      <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
+                      <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
+                      <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                     </div>
                   </div>
 
@@ -1162,14 +1174,14 @@
                     ))}
 
                     {/* Desktop Summary Bar */}
-                    <div className="bg-green-700 rounded-b-sm flex flex-row justify-between items-center px-5 py-3">
+                    <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-b border-l border-r border-black/40">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase text-left">Total</span>
-                        <span className="text-base font-semibold text-white text-left">{returns.length} Item</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                        <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-white uppercase text-right">Total Weight</span>
-                        <span className="text-base font-semibold text-white text-right">{totalRepayWeight.toFixed(2)} Kg</span>
+                        <span className="text-[11px] font-bold text-foreground uppercase text-right">Total Weight</span>
+                        <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
                       </div>
                     </div>
                   </div>
