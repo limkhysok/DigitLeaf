@@ -443,6 +443,15 @@
       enabled: !!vendor && !Number.isNaN(Number(vendor)),
     })
 
+    // Repay items reference con_tobacco (the contract's tobacco type), which is a
+    // separate table from the tobacco_purchase tobacco types used by purchase items.
+    const { data: conTobaccoTypes = [] } = useQuery({
+      queryKey: ["contractTobaccoTypes"],
+      queryFn: () => apiClient.getContractTobaccoTypes(accessToken),
+      enabled: !!accessToken,
+      staleTime: 5 * 60 * 1000,
+    })
+
     const handleAddDetail = React.useCallback(() => {
       const tempId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
       setDetails(prev => [...prev, { tempId, tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0, farmer_own_sack: 0 }])
@@ -1138,7 +1147,7 @@
                         item={item}
                         index={idx}
                         isReadOnly={isReadOnly}
-                        tobaccoTypes={tobaccoTypes}
+                        tobaccoTypes={conTobaccoTypes}
                         vendorContracts={vendorContracts}
                         onRemove={handleRemoveReturn}
                         onChange={handleReturnChange}
@@ -1166,7 +1175,7 @@
                         item={item}
                         index={idx}
                         isReadOnly={isReadOnly}
-                        tobaccoTypes={tobaccoTypes}
+                        tobaccoTypes={conTobaccoTypes}
                         vendorContracts={vendorContracts}
                         onRemove={handleRemoveReturn}
                         onChange={handleReturnChange}

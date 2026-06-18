@@ -188,7 +188,7 @@ function ContractSelectField({
         <SelectContent>
           {vendorContracts.map((c) => (
             <SelectItem key={c.con_id} value={String(c.con_id)}>
-              {c.con_num} {c.t_name ? `— ${c.t_name}` : ""}
+              {c.con_num} {c.tobacco ? `— ${c.group_name ?? "-"} | ${c.tobacco}` : ""}
             </SelectItem>
           ))}
         </SelectContent>

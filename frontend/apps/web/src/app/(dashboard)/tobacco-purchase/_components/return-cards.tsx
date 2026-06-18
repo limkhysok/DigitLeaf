@@ -6,16 +6,20 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Popover, PopoverContent, PopoverAnchor } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import { TobaccoItem, TobaccoRepayCreate } from "@/services/api-client"
+import { ConTobaccoItem, TobaccoRepayCreate } from "@/services/api-client"
 import { VendorContractItem } from "@/types/tobacco-purchase"
 
 export type ReturnItemType = Partial<TobaccoRepayCreate> & { tempId: string, con_num?: string }
+
+function formatTobaccoLabel(t: Readonly<{ tobacco?: string | null; group_name?: string | null }>): string {
+  return `${t.group_name ?? "-"} | ${t.tobacco ?? ""}`
+}
 
 interface ReturnCardProps {
   item: ReturnItemType
   index: number
   isReadOnly?: boolean
-  tobaccoTypes: TobaccoItem[]
+  tobaccoTypes: ConTobaccoItem[]
   vendorContracts: VendorContractItem[]
   onRemove: (idx: number) => void
   onChange: (idx: number, field: string, val: string | number) => void
@@ -29,7 +33,7 @@ export const ReturnDetailCard = React.memo(({
 
   const [searchTobac, setSearchTobac] = React.useState(() => {
     const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-    return t ? `${t.t_name} | ${t.t_name_kh || ""}` : ""
+    return t ? formatTobaccoLabel(t) : ""
   })
   const [searchCon, setSearchCon] = React.useState(item.con_num || "")
 
@@ -38,8 +42,8 @@ export const ReturnDetailCard = React.memo(({
     [vendorContracts, item.con_id])
 
   React.useEffect(() => {
-    if (selectedContract?.t_name) {
-      setSearchTobac(`${selectedContract.t_name} | ${selectedContract.t_name_kh || ""}`)
+    if (selectedContract?.tobacco) {
+      setSearchTobac(formatTobaccoLabel(selectedContract))
       if (item.tobac_type !== selectedContract.tobac_type && selectedContract.tobac_type !== undefined) {
         onChange(index, "tobac_type", selectedContract.tobac_type)
       }
@@ -47,7 +51,7 @@ export const ReturnDetailCard = React.memo(({
       const activeTobacType = item.tobac_type
       if (activeTobacType) {
         const t = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
-        setSearchTobac(t ? `${t.t_name} | ${t.t_name_kh || ""}` : `Unknown ID: ${activeTobacType}`)
+        setSearchTobac(t ? formatTobaccoLabel(t) : `Unknown ID: ${activeTobacType}`)
       } else {
         setSearchTobac(selectedContract ? "No tobacco type in contract" : "")
       }
@@ -163,7 +167,7 @@ export const ReturnDetailCard = React.memo(({
               setOpenTobac(isOpen)
               if (!isOpen) {
                 const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-                setSearchTobac(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+                setSearchTobac(t ? formatTobaccoLabel(t) : "")
               }
             }}>
               <PopoverAnchor asChild>
@@ -195,7 +199,7 @@ export const ReturnDetailCard = React.memo(({
                   {tobaccoTypes
                     .filter(t => {
                       const s = searchTobac.toLowerCase()
-                      return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                      return t.tobacco?.toLowerCase().includes(s) || t.group_name?.toLowerCase().includes(s)
                     })
                     .map((t) => (
                       <button
@@ -207,14 +211,14 @@ export const ReturnDetailCard = React.memo(({
                         )}
                         onClick={() => {
                           onChange(index, "tobac_type", t.t_id)
-                          setSearchTobac(`${t.t_name} | ${t.t_name_kh || ""}`)
+                          setSearchTobac(formatTobaccoLabel(t))
                           setOpenTobac(false)
                         }}
                       >
                         <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
                         <div className="flex flex-col items-start">
-                          <span className="font-medium">{t.t_name}</span>
-                          <span className="text-sm font-medium text-foreground">{t.t_name_kh || "-"}</span>
+                          <span className="font-medium">{t.group_name ?? "-"}</span>
+                          <span className="text-sm font-medium text-foreground">{t.tobacco || "-"}</span>
                         </div>
                       </button>
                     ))
@@ -267,7 +271,7 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   const [searchTobac, setSearchTobac] = React.useState(() => {
     const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-    return t ? `${t.t_name} | ${t.t_name_kh || ""}` : ""
+    return t ? formatTobaccoLabel(t) : ""
   })
   const [searchCon, setSearchCon] = React.useState(item.con_num || "")
 
@@ -276,8 +280,8 @@ export const ReturnDetailDesktopCard = React.memo(({
     [vendorContracts, item.con_id])
 
   React.useEffect(() => {
-    if (selectedContract?.t_name) {
-      setSearchTobac(`${selectedContract.t_name} | ${selectedContract.t_name_kh || ""}`)
+    if (selectedContract?.tobacco) {
+      setSearchTobac(formatTobaccoLabel(selectedContract))
       if (item.tobac_type !== selectedContract.tobac_type && selectedContract.tobac_type !== undefined) {
         onChange(index, "tobac_type", selectedContract.tobac_type)
       }
@@ -285,7 +289,7 @@ export const ReturnDetailDesktopCard = React.memo(({
       const activeTobacType = item.tobac_type
       if (activeTobacType) {
         const t = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
-        setSearchTobac(t ? `${t.t_name} | ${t.t_name_kh || ""}` : `Unknown ID: ${activeTobacType}`)
+        setSearchTobac(t ? formatTobaccoLabel(t) : `Unknown ID: ${activeTobacType}`)
       } else {
         setSearchTobac(selectedContract ? "No tobacco type in contract" : "")
       }
@@ -383,7 +387,7 @@ export const ReturnDetailDesktopCard = React.memo(({
               setOpenTobac(isOpen)
               if (!isOpen) {
                 const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-                setSearchTobac(t ? `${t.t_name} | ${t.t_name_kh || ""}` : "")
+                setSearchTobac(t ? formatTobaccoLabel(t) : "")
               }
             }}>
               <PopoverAnchor asChild>
@@ -415,7 +419,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                   {tobaccoTypes
                     .filter(t => {
                       const s = searchTobac.toLowerCase()
-                      return t.t_name?.toLowerCase().includes(s) || t.t_name_kh?.toLowerCase().includes(s)
+                      return t.tobacco?.toLowerCase().includes(s) || t.group_name?.toLowerCase().includes(s)
                     })
                     .map((t) => (
                       <button
@@ -427,14 +431,14 @@ export const ReturnDetailDesktopCard = React.memo(({
                         )}
                         onClick={() => {
                           onChange(index, "tobac_type", t.t_id)
-                          setSearchTobac(`${t.t_name} | ${t.t_name_kh || ""}`)
+                          setSearchTobac(formatTobaccoLabel(t))
                           setOpenTobac(false)
                         }}
                       >
                         <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
                         <div className="flex flex-col items-start">
-                          <span className="font-bold">{t.t_name}</span>
-                          <span className="text-[11px] text-muted-foreground">{t.t_name_kh || "-"}</span>
+                          <span className="font-bold">{t.group_name ?? "-"}</span>
+                          <span className="text-[11px] text-muted-foreground">{t.tobacco || "-"}</span>
                         </div>
                       </button>
                     ))

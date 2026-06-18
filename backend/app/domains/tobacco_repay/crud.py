@@ -10,7 +10,6 @@ from .models.tobacco_groups import TobaccoGroup
 from .schemas import TContractRepayCreate, TContractCreate, TContractRepayUpdate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
-from app.domains.tobacco_purchase.models.tobacco import Tobacco
 from app.domains.farmer_contract.models.mf_con_year import MfConYear
 from app.core.config import CAMBODIA_TZ
 
@@ -385,12 +384,13 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[st
     stmt = (
         select(
             TContract,
-            Tobacco.t_name,
-            Tobacco.t_name_kh,
+            ConTobacco.tobacco,
+            TobaccoGroup.name.label("group_name"),
             func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_returned")
         )
         .where(TContract.contractor == mf.name)
-        .outerjoin(Tobacco, TContract.tobac_type == Tobacco.t_id)  # type: ignore[arg-type]
+        .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
+        .outerjoin(TobaccoGroup, sa_cast(ConTobacco.tobacco_type, Integer) == TobaccoGroup.id)  # type: ignore[arg-type]
         .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)  # type: ignore[arg-type]
     )
     result = await db.execute(stmt)
@@ -399,8 +399,8 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[st
     return [
         {
             **row.TContract.model_dump(),
-            "t_name": row.t_name,
-            "t_name_kh": row.t_name_kh,
+            "tobacco": row.tobacco,
+            "group_name": row.group_name,
             "total_returned": row.total_returned
         }
         for row in rows

@@ -74,8 +74,8 @@ export interface VendorContractItem {
   con_num: string;
   contractor?: string;
   tobac_type?: number;
-  t_name?: string;
-  t_name_kh?: string;
+  tobacco?: string;
+  group_name?: string;
   qty?: number;
   total_returned?: number;
 }
