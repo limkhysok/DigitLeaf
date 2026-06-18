@@ -120,14 +120,14 @@ export function TobaccoRepayHistory({
   const { mutate: exportHistory, isPending: isExporting } = useMutation({
     mutationFn: () => apiClient.exportTobaccoRepayHistory(token, { year: selectedYear }),
     onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob)
+      const url = globalThis.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
       a.download = `tobacco_repay_history_${selectedYear}.xlsx`
       document.body.appendChild(a)
       a.click()
       a.remove()
-      window.URL.revokeObjectURL(url)
+      globalThis.URL.revokeObjectURL(url)
     },
     onError: (err: Error) => {
       toast.error(err.message || "Failed to export repay history")

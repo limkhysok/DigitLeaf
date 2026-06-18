@@ -269,13 +269,13 @@ function RepayInvoiceHTML({ record }: Readonly<RepayInvoiceData>) {
           <div style={{ ...s.tableHeaderCell, ...s.colNum }}>ល.រ</div>
           <div style={{ ...s.tableHeaderCellLeft, ...s.colConNum }}>លេខកុងត្រា</div>
           <div style={{ ...s.tableHeaderCellLeft, ...s.colName }}>ប្រភេទសន្លឹកថ្នាំ</div>
-          <div style={{ ...s.tableHeaderCellRight, ...s.colQty }}>បរិមាណបង់ត្រលប់ (គីឡូ)</div>
+          <div style={{ ...s.tableHeaderCellLeft, ...s.colQty }}>ចំនួន(គីឡូ)</div>
         </div>
         <div style={s.tableRow}>
           <div style={{ ...s.tableCell, ...s.colNum }}>1</div>
           <div style={{ ...s.tableCellLeft, ...s.colConNum }}>{record.con_num ?? "—"}</div>
           <div style={{ ...s.tableCellLeft, ...s.colName }}>{record.tobacco_type ?? "—"}</div>
-          <div style={{ ...s.tableCellRight, ...s.colQty, fontWeight: "bold" }}>{fmt2(record.qty_repay)}</div>
+          <div style={{ ...s.tableCellLeft, ...s.colQty, fontWeight: "bold" }}>{fmt2(record.qty_repay)}</div>
         </div>
       </div>
 
