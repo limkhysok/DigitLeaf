@@ -130,7 +130,7 @@ async def get_tobacco_repays(
             TContract.tobac_type,
             ConTobacco.tobacco,
         )
-        .order_by(col(TContract.f_id).desc())
+        .order_by(col(TContract.con_id).desc())
         .limit(limit)
         .offset(skip)
     ))
@@ -156,10 +156,10 @@ async def get_tobacco_repays(
     return {"items": items, "total": total}
 
 async def get_available_years(db: AsyncSession) -> list[int]:
-    last_year = date.today().year - 1
+    current_year = date.today().year
     stmt = (
         select(MfConYear.year)
-        .where(MfConYear.year <= last_year)
+        .where(MfConYear.year <= current_year)
         .distinct()
         .order_by(MfConYear.year.desc())  # type: ignore[union-attr]
         .limit(7)
