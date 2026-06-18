@@ -154,6 +154,10 @@ function FarmerSearchField({
   )
 }
 
+function formatTobaccoLabel(t: ConTobaccoItem): string {
+  return `${t.group_name ?? "-"} | ${t.tobacco ?? ""}`
+}
+
 function TobaccoSearchField({
   tobaccoTypes,
   isFetchingTobacco,
@@ -171,7 +175,9 @@ function TobaccoSearchField({
   const filteredTobacco = React.useMemo(() => {
     if (!tobaccoSearch.trim()) return tobaccoTypes
     const q = tobaccoSearch.toLowerCase()
-    return tobaccoTypes.filter((t) => t.tobacco?.toLowerCase().includes(q))
+    return tobaccoTypes.filter((t) =>
+      t.tobacco?.toLowerCase().includes(q) || t.group_name?.toLowerCase().includes(q)
+    )
   }, [tobaccoTypes, tobaccoSearch])
 
   return (
@@ -182,7 +188,7 @@ function TobaccoSearchField({
           open={tobaccoOpen}
           onOpenChange={(o) => {
             setTobaccoOpen(o)
-            if (!o && selectedTobacco) setTobaccoSearch(selectedTobacco.tobacco ?? "")
+            if (!o && selectedTobacco) setTobaccoSearch(formatTobaccoLabel(selectedTobacco))
           }}
         >
           <PopoverTrigger asChild>
@@ -223,10 +229,10 @@ function TobaccoSearchField({
                 {filteredTobacco.map((t) => (
                   <CommandItem
                     key={t.t_id}
-                    value={t.tobacco ?? ""}
+                    value={formatTobaccoLabel(t)}
                     onSelect={() => {
                       onSelectTobacco(t)
-                      setTobaccoSearch(t.tobacco ?? "")
+                      setTobaccoSearch(formatTobaccoLabel(t))
                       setTobaccoOpen(false)
                     }}
                   >
@@ -236,7 +242,7 @@ function TobaccoSearchField({
                         selectedTobacco?.t_id === t.t_id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <span className="font-medium">{t.tobacco}</span>
+                    <span className="font-medium">{formatTobaccoLabel(t)}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -247,7 +253,7 @@ function TobaccoSearchField({
 
       {selectedTobacco && !tobaccoOpen && (
         <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-1">
-          <span className="font-medium text-green-700 dark:text-green-400">{selectedTobacco.tobacco}</span>
+          <span className="font-medium text-green-700 dark:text-green-400">{formatTobaccoLabel(selectedTobacco)}</span>
           <IconCheck className="h-4 w-4 text-green-500" />
         </div>
       )}

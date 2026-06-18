@@ -84,6 +84,8 @@ class TContractRepayUpdate(BaseModel):
 class ConTobaccoItem(BaseModel):
     t_id: int
     tobacco: str | None
+    group_id: int | None
+    group_name: str | None
 
 
 class TContractCreate(BaseModel):

@@ -1,11 +1,12 @@
 from typing import Any, cast
 from datetime import date, datetime
-from sqlalchemy import Select
+from sqlalchemy import Select, cast as sa_cast, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func, col
 from .models.con_tobacco import ConTobacco
 from .models.t_contract import TContract
 from .models.t_contract_repay import TContractRepay
+from .models.tobacco_groups import TobaccoGroup
 from .schemas import TContractRepayCreate, TContractCreate, TContractRepayUpdate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
@@ -284,10 +285,28 @@ async def delete_repay(db: AsyncSession, repay_id: int) -> bool:
     return True
 
 
-async def get_con_tobacco_types(db: AsyncSession) -> list[ConTobacco]:
-    stmt = select(ConTobacco).order_by(col(ConTobacco.tobacco))
+async def get_con_tobacco_types(db: AsyncSession) -> list[dict[str, Any]]:
+    stmt = (
+        select(
+            col(ConTobacco.t_id).label("t_id"),
+            col(ConTobacco.tobacco).label("tobacco"),
+            col(TobaccoGroup.id).label("group_id"),
+            col(TobaccoGroup.name).label("group_name"),
+        )
+        .outerjoin(TobaccoGroup, sa_cast(ConTobacco.tobacco_type, Integer) == TobaccoGroup.id)  # type: ignore[arg-type]
+        .order_by(col(TobaccoGroup.name), col(ConTobacco.tobacco))
+    )
     result = await db.execute(stmt)
-    return list(result.scalars().all())
+    rows = result.all()
+    return [
+        {
+            "t_id": row.t_id,
+            "tobacco": row.tobacco,
+            "group_id": row.group_id,
+            "group_name": row.group_name,
+        }
+        for row in rows
+    ]
 
 
 def _fallback(value: Any, default: Any) -> Any:

@@ -56,6 +56,8 @@ export interface TContractRepayUpdate {
 export interface ConTobaccoItem {
   t_id: number;
   tobacco: string | null;
+  group_id: number | null;
+  group_name: string | null;
 }
 
 export interface TContractCreate {
