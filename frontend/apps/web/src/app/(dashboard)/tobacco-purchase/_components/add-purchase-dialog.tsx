@@ -595,7 +595,7 @@
     return (
       <>
         <Dialog open={open} onOpenChange={onClose}>
-          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-sm border-black/20">
+          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col overflow-hidden rounded-sm border-black/20">
             <DialogHeader className="mb-0  shrink-0">
               <div className="flex items-center justify-between w-full">
                 <div className="space-y-0">
@@ -616,7 +616,7 @@
                   grid: cols-1 (mobile) → cols-2 (tablet) → cols-4 (desktop)
                 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
               <div className="bg-white mt-3 py-3 px-3 md:py-5 md:px-6 lg:px-5 lg:py-5 rounded-md border border-black/40 space-y-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[6fr_7fr_7fr] gap-x-3 gap-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[5fr_8fr_7fr] gap-x-3 gap-y-4">
 
                   {/* Invoice No. */}
                   <div className="lg:col-span-1 lg:order-1 space-y-1.5">
