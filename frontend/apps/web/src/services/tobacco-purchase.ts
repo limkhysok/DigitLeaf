@@ -162,8 +162,11 @@ export const tobaccoPurchaseApi = {
     }
   },
 
-  async exportTobaccoPurchaseTemplate(accessToken: string): Promise<Blob> {
-    const response = await fetch(`${API_BASE_URL}/tobacco-purchases/report/template`, {
+  async exportTobaccoPurchaseTemplate(accessToken: string, buyerId: number, dateFrom?: string, dateTo?: string): Promise<Blob> {
+    const query = new URLSearchParams({ buyer_id: String(buyerId) });
+    if (dateFrom) query.set("date_from", dateFrom);
+    if (dateTo) query.set("date_to", dateTo);
+    const response = await fetch(`${API_BASE_URL}/tobacco-purchases/report/template?${query}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!response.ok) {

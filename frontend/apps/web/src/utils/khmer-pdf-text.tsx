@@ -25,13 +25,11 @@ const BASELINE_RATIO = 0.72
 let fontLoadPromise: Promise<void> | null = null
 
 export function ensureKhmerCanvasFontLoaded(): Promise<void> {
-  if (!fontLoadPromise) {
-    fontLoadPromise = (async () => {
-      const face = new FontFace(FONT_FAMILY, "url(/font/KantumruyPro-Regular.ttf)")
-      await face.load()
-      document.fonts.add(face)
-    })()
-  }
+  fontLoadPromise ??= (async () => {
+    const face = new FontFace(FONT_FAMILY, "url(/font/KantumruyPro-Regular.ttf)")
+    await face.load()
+    document.fonts.add(face)
+  })()
   return fontLoadPromise
 }
 

@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security, Request
@@ -153,13 +154,31 @@ async def list_purchases(
 
 @router.get("/report/template")
 async def download_purchase_report_template(
+    buyer_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ):
-    stream = build_tobacco_purchase_template()
+    _EXPORT_LIMIT = 10_000
+    data = await crud.get_purchase_report_data(db=session, buyer_id=buyer_id, date_from=date_from, date_to=date_to)
+    if len(data["rows"]) > _EXPORT_LIMIT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({len(data['rows']):,} matched). Narrow the date range.",
+        )
+    stream = build_tobacco_purchase_template(
+        representative=data["representative"],
+        region=data["region"],
+        oven=data["oven"],
+        report_date=data["report_date"],
+        rows=data["rows"],
+    )
+    filename = f"tobacco_purchase_template_{data['report_date'].isoformat()}.xlsx"
     return StreamingResponse(
         stream,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": 'attachment; filename="tobacco_purchase_template.xlsx"'},
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

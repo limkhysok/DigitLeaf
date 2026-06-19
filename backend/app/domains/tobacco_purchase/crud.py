@@ -505,3 +505,56 @@ async def get_tobacco_types(db: AsyncSession) -> List[Tobacco]:
 
 async def get_vendor_sack_kg(db: AsyncSession, vendor_id: int) -> float:
     return await get_vendor_available_sack_kg(db, vendor_id)
+
+
+def _purchase_to_report_row(p: TobaccoPurchase, tobacco_map: dict[int, str]) -> dict[str, Any]:
+    grades = sorted({tobacco_map.get(d.tobacco_name, str(d.tobacco_name)) for d in p.details})
+    return {
+        "farmer_id": p.vendor.mf_code if p.vendor else (p.vendor_id or ""),
+        "invoice_num": p.invoice_num,
+        "grade": ", ".join(grades),
+        "qty_kg": p.total_net_weight,
+        "unit_price": p.rate,
+        "total_amount": p.grand_total,
+        "remark": p.tp_note,
+    }
+
+
+async def get_purchase_report_data(
+    db: AsyncSession,
+    buyer_id: int,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+) -> dict[str, Any]:
+    """Assemble header info + one row per purchase for the buyer's settlement report, within [date_from, date_to]."""
+    date_to = date_to or datetime.now(CAMBODIA_TZ).date()
+
+    purchaser = await db.get(Purchaser, buyer_id)
+
+    conditions = [TobaccoPurchase.buyer == buyer_id, TobaccoPurchase.tp_date <= date_to]
+    if date_from:
+        conditions.append(TobaccoPurchase.tp_date >= date_from)
+
+    result = await db.execute(
+        select(TobaccoPurchase)
+        .options(selectinload(TobaccoPurchase.details))  # type: ignore[arg-type]
+        .options(selectinload(TobaccoPurchase.vendor))  # type: ignore[arg-type]
+        .where(*conditions)
+        .order_by(col(TobaccoPurchase.tp_date), col(TobaccoPurchase.tp_id))
+    )
+    purchases = result.scalars().all()
+
+    tobacco_map = {t.t_id: (t.t_name_kh or t.t_name) for t in await get_tobacco_types(db)}
+    rows = [_purchase_to_report_row(p, tobacco_map) for p in purchases]
+
+    oven_ids = list({p.oven for p in purchases if p.oven})
+    ovens = [o for oid in oven_ids if (o := await db.get(Oven, oid)) is not None]
+    region = await db.get(Region, purchaser.region) if purchaser and purchaser.region else None
+
+    return {
+        "representative": (purchaser.p_name_kh or purchaser.p_name) if purchaser else None,
+        "region": (region.reg_name_kh or region.reg_name) if region else None,
+        "oven": ", ".join(o.name_kh or o.name_en for o in ovens) or None,
+        "report_date": datetime.now(CAMBODIA_TZ).date(),
+        "rows": rows,
+    }

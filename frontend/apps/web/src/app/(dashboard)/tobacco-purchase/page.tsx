@@ -54,7 +54,6 @@ export default function TobaccoPurchasePage() {
   const [isViewOnly, setIsViewOnly] = React.useState(false)
   const [deleteId, setDeleteId] = React.useState<number | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
-  const [isExportingTemplate, setIsExportingTemplate] = React.useState(false)
 
   // ── Search & Filters (nuqs + use-debounce) ──
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
@@ -149,27 +148,6 @@ export default function TobaccoPurchasePage() {
     setIsViewOnly(false)
     setDialogOpen(true)
   }
-
-  const handleExportTemplate = React.useCallback(async () => {
-    if (!tokens?.access_token) return
-    setIsExportingTemplate(true)
-    try {
-      const blob = await apiClient.exportTobaccoPurchaseTemplate(tokens.access_token)
-      const url = globalThis.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = "tobacco_purchase_template.xlsx"
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      globalThis.URL.revokeObjectURL(url)
-      toast.success("Template exported successfully")
-    } catch (err) {
-      toast.error((err as Error).message || "Failed to export template")
-    } finally {
-      setIsExportingTemplate(false)
-    }
-  }, [tokens])
 
   const loadInvoiceData = React.useCallback(async (record: TobaccoPurchase): Promise<InvoiceData | null> => {
     if (!tokens?.access_token) return null
@@ -326,8 +304,6 @@ export default function TobaccoPurchasePage() {
           setBuyerFilter={setBuyerFilter}
           searchInput={searchInput || ""}
           setSearchInput={setSearchInput}
-          onExportTemplate={handleExportTemplate}
-          isExportingTemplate={isExportingTemplate}
         />
       </div>
 
