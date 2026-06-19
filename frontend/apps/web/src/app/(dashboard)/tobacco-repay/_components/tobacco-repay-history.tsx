@@ -15,6 +15,7 @@ import {
   IconPrinter,
   IconFileExport,
   IconFileSpreadsheet,
+  IconFileTypePdf,
 } from "@tabler/icons-react"
 import {
   Table,
@@ -50,7 +51,8 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { RepayRecordDialog, RepayRecordDialogMode } from "./repay-record-dialog"
-import { printRepayInvoice } from "./repay-invoice-print"
+import { printRepayInvoice, downloadRepayInvoicePdf } from "./repay-invoice-print"
+import { downloadRepayHistoryPdf } from "./repay-history-print"
 
 const PAGE_SIZE = 20
 
@@ -117,6 +119,16 @@ export function TobaccoRepayHistory({
     },
   })
 
+  const { mutate: downloadRecordPdf, isPending: isDownloadingRecordPdf } = useMutation({
+    mutationFn: (rec: RepayHistoryItem) => apiClient.getRepayDetail(token, rec.repay_id),
+    onSuccess: (detail) => {
+      downloadRepayInvoicePdf({ record: detail }).catch(() => toast.error("Failed to download repay record"))
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to load repay record for download")
+    },
+  })
+
   const { mutate: exportHistory, isPending: isExporting } = useMutation({
     mutationFn: () => apiClient.exportTobaccoRepayHistory(token, { year: selectedYear }),
     onSuccess: (blob) => {
@@ -131,6 +143,33 @@ export function TobaccoRepayHistory({
     },
     onError: (err: Error) => {
       toast.error(err.message || "Failed to export repay history")
+    },
+  })
+
+  const { mutate: downloadPdf, isPending: isDownloadingPdf } = useMutation({
+    mutationFn: async () => {
+      const items: RepayHistoryItem[] = []
+      let page = 1
+      let hasMore = true
+      while (hasMore) {
+        const res = await apiClient.getTobaccoRepayHistory(token, {
+          page,
+          limit: 200,
+          year: selectedYear,
+        })
+        items.push(...res.items)
+        hasMore = res.has_more
+        page += 1
+      }
+      return items
+    },
+    onSuccess: (items) => {
+      downloadRepayHistoryPdf({ items, year: selectedYear }).catch(() =>
+        toast.error("Failed to generate PDF")
+      )
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to load repay history for PDF")
     },
   })
 
@@ -218,8 +257,8 @@ export function TobaccoRepayHistory({
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" disabled={isExporting} className="h-8 px-2 flex gap-1.5 rounded-sm bg-white">
-                {isExporting ? <IconLoader2 className="h-4 w-4 animate-spin" /> : <IconFileExport className="h-4 w-4" />}
+              <Button variant="outline" size="sm" disabled={isExporting || isDownloadingPdf} className="h-8 px-2 flex gap-1.5 rounded-sm bg-white">
+                {(isExporting || isDownloadingPdf) ? <IconLoader2 className="h-4 w-4 animate-spin" /> : <IconFileExport className="h-4 w-4" />}
                 <span className="hidden sm:inline">Export</span>
               </Button>
             </DropdownMenuTrigger>
@@ -227,6 +266,10 @@ export function TobaccoRepayHistory({
               <DropdownMenuItem onClick={() => exportHistory()} disabled={isExporting}>
                 <IconFileSpreadsheet className="mr-2 h-4 w-4 text-muted-foreground/70" />
                 Export to Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadPdf()} disabled={isDownloadingPdf}>
+                <IconFileTypePdf className="mr-2 h-4 w-4 text-muted-foreground/70" />
+                Download as PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -311,6 +354,10 @@ export function TobaccoRepayHistory({
                           <DropdownMenuItem onClick={() => printRecord(rec)} disabled={isPrinting}>
                             <IconPrinter className="mr-2 h-4 w-4 text-muted-foreground/70" />
                             Print
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => downloadRecordPdf(rec)} disabled={isDownloadingRecordPdf}>
+                            <IconFileTypePdf className="mr-2 h-4 w-4 text-muted-foreground/70" />
+                            Download as PDF
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem

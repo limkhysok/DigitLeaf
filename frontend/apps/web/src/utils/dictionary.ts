@@ -164,6 +164,9 @@ export const translations = {
         searchFarmerPlaceholder: "Search by Name/ID Card",
         searching: "Searching...",
         selectRepFirst: "Select a representative first.",
+        selectRepOrSearchFarmer: "Select a representative, or type a farmer name/ID card to search.",
+        autoFillRepPlaceholder: "Auto-filled after selecting a farmer",
+        selectedRepresentLabel: "Representative: {name}",
         idCardLabel: "ID Card: {code}",
         registrationDate: "Date",
         selectDatePlaceholder: "Select date...",
@@ -466,6 +469,9 @@ export const translations = {
         searchFarmerPlaceholder: "ស្វែងរកតាមឈ្មោះ ឬលេខកាត",
         searching: "កំពុងស្វែងរក...",
         selectRepFirst: "សូមជ្រើសរើសតំណាងជាមុនសិន។",
+        selectRepOrSearchFarmer: "សូមជ្រើសរើសតំណាង ឬវាយបញ្ចូលឈ្មោះ/លេខកាតកសិករដើម្បីស្វែងរក។",
+        autoFillRepPlaceholder: "បំពេញដោយស្វ័យប្រវត្តិបន្ទាប់ពីជ្រើសរើសកសិករ",
+        selectedRepresentLabel: "តំណាង៖ {name}",
         idCardLabel: "លេខកាត៖ {code}",
         registrationDate: "កាលបរិច្ឆេទ",
         selectDatePlaceholder: "ជ្រើសរើសកាលបរិច្ឆេទ...",
@@ -770,6 +776,9 @@ export type TranslationType = {
       readonly searchFarmerPlaceholder: string;
       readonly searching: string;
       readonly selectRepFirst: string;
+      readonly selectRepOrSearchFarmer: string;
+      readonly autoFillRepPlaceholder: string;
+      readonly selectedRepresentLabel: string;
       readonly idCardLabel: string;
       readonly registrationDate: string;
       readonly selectDatePlaceholder: string;

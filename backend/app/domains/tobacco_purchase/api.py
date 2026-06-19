@@ -1,12 +1,14 @@
 from typing import Annotated, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
 from app.core.route_logger import AuditLogRoute
 from . import crud, schemas
+from .report import build_tobacco_purchase_template
 
 router = APIRouter(route_class=AuditLogRoute)
 
@@ -147,6 +149,18 @@ async def list_purchases(
         for tp, vendor_name, detail_count in rows
     ]
     return schemas.PurchaseList(items=items, total=total, has_more=(skip + len(items)) < total)
+
+
+@router.get("/report/template")
+async def download_purchase_report_template(
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    stream = build_tobacco_purchase_template()
+    return StreamingResponse(
+        stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="tobacco_purchase_template.xlsx"'},
+    )
 
 
 @router.get("/{tp_id}", response_model=schemas.Purchase, responses={404: {"description": _NOT_FOUND}})

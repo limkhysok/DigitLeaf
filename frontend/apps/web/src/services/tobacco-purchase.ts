@@ -161,4 +161,15 @@ export const tobaccoPurchaseApi = {
       throw new Error(errorData.detail || "Failed to delete purchase");
     }
   },
+
+  async exportTobaccoPurchaseTemplate(accessToken: string): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/tobacco-purchases/report/template`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to export purchase template");
+    }
+    return response.blob();
+  },
 };

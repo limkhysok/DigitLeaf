@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTableColumnHeader } from "@workspace/ui/components/data-table-column-header"
 import { Button } from "@workspace/ui/components/button"
-import { IconEye, IconPencil, IconTrash, IconDots, IconPrinter } from "@tabler/icons-react"
+import { IconEye, IconPencil, IconTrash, IconDots, IconPrinter, IconFileTypePdf } from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +21,10 @@ interface ColumnHelpers {
   onEdit: (rec: TobaccoPurchase) => void
   onDelete: (id: number) => void
   onPrint: (rec: TobaccoPurchase) => void
+  onDownload: (rec: TobaccoPurchase) => void
 }
 
-export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: ColumnHelpers): ColumnDef<TobaccoPurchase>[] {
+export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint, onDownload }: ColumnHelpers): ColumnDef<TobaccoPurchase>[] {
   return [
     {
       id: "select",
@@ -149,6 +150,10 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint }: Co
               <DropdownMenuItem onClick={() => onPrint(rec)}>
                 <IconPrinter className="mr-2 h-4 w-4 text-muted-foreground/70" />
                 Print
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDownload(rec)}>
+                <IconFileTypePdf className="mr-2 h-4 w-4 text-muted-foreground/70" />
+                Download as PDF
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

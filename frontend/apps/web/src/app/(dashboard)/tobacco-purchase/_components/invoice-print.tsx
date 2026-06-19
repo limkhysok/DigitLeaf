@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { createRoot } from "react-dom/client"
+import { Document, Page, View, StyleSheet } from "@react-pdf/renderer"
 import {
   TobaccoPurchase,
   PurchaserItem,
@@ -9,6 +10,15 @@ import {
   OvenItem,
   TobaccoItem,
 } from "@/services/api-client"
+import { downloadReactPdf } from "@/utils/download-react-pdf"
+import { ensureKhmerCanvasFontLoaded, KhmerLabel, KhmerParagraph } from "@/utils/khmer-pdf-text"
+
+// sigBox is 24% of the content width (515.28pt); leave a small safety margin.
+const SIG_LABEL_MAX_WIDTH = 0.24 * 515.28 - 10
+
+// A4 is 210x297mm; the content area below matches the printed half-page height.
+const MM_TO_PT = 72 / 25.4
+const CONTENT_HEIGHT_PT = 148 * MM_TO_PT
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -408,7 +418,7 @@ function InvoiceHTML({
 
       <div style={s.sigRow}>
         <div style={s.sigBox}>
-          <div style={s.sigLabel}>ឈ្មោះអ្នកទិញ</div>
+          <div style={s.sigLabel}>ឈ្មោះអ្នកទិញ </div>
           <div style={s.sigName}>{purchaserLabel === "\u2014" ? "" : purchaserLabel}</div>
         </div>
         <div style={s.sigBox}>
@@ -428,20 +438,259 @@ function InvoiceHTML({
   )
 }
 
+// ── PDF (vector, no DOM rasterization) ─────────────────────────────────────────
+
+const pdf = StyleSheet.create({
+  page: {
+    fontSize: 12,
+    color: C.dark,
+    backgroundColor: C.white,
+    paddingVertical: 30,
+    paddingHorizontal: 40,
+  },
+  content: {
+    height: CONTENT_HEIGHT_PT,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginBottom: 16,
+  },
+  companyName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: C.navy,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  metaGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    backgroundColor: C.bg,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    justifyContent: "space-between",
+  },
+  metaCol: { width: "48%" },
+  metaRow: { flexDirection: "row", marginBottom: 6 },
+  metaLabel: { fontSize: 12, color: C.navy, width: "45%" },
+  metaValue: { fontSize: 12, color: C.dark, width: "55%" },
+  tableWrapper: {
+    borderWidth: 1,
+    borderColor: C.dark,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  tableHeader: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: C.dark,
+  },
+  tableHeaderCell: { fontSize: 12, fontWeight: "bold", textAlign: "center", padding: 5 },
+  tableHeaderCellLeft: { fontSize: 12, fontWeight: "bold", textAlign: "left", padding: 5 },
+  tableHeaderCellRight: { fontSize: 12, fontWeight: "bold", textAlign: "right", padding: 5 },
+  tableRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.dark },
+  tableCell: { fontSize: 12, textAlign: "center", padding: 4 },
+  tableCellLeft: { fontSize: 12, textAlign: "left", padding: 4 },
+  tableCellRight: { fontSize: 12, textAlign: "right", padding: 4 },
+  colNum: { width: "6%", borderRightWidth: 1, borderRightColor: C.dark },
+  colName: { width: "23%", borderRightWidth: 1, borderRightColor: C.dark },
+  colGross: { width: "12%", borderRightWidth: 1, borderRightColor: C.dark },
+  colRemork: { width: "10%", borderRightWidth: 1, borderRightColor: C.dark },
+  colSack: { width: "10%", borderRightWidth: 1, borderRightColor: C.dark },
+  colPrice: { width: "12%", borderRightWidth: 1, borderRightColor: C.dark },
+  colNet: { width: "12%", borderRightWidth: 1, borderRightColor: C.dark },
+  colTotal: { width: "15%" },
+  noItems: { padding: 12, textAlign: "center", color: C.light, fontSize: 12, width: "100%" },
+  sigRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
+  sigBox: { alignItems: "center", width: "24%" },
+  sigLabel: { fontSize: 12, color: C.navy, marginBottom: 20, textAlign: "center" },
+  sigName: { fontSize: 12, color: C.navy },
+})
+
+function PdfTableRow({
+  d,
+  i,
+  tobaccoTypes,
+}: Readonly<{
+  d: NonNullable<TobaccoPurchase["details"]>[number]
+  i: number
+  tobaccoTypes: TobaccoItem[]
+}>) {
+  const tobaccoType = tobaccoTypes.find((t) => t.t_id === d.tobacco_name)
+  const net = Math.max(0, (d.gross_weight ?? 0) - (d.remork_in_kg ?? 0) - (d.sack_in_kg ?? 0))
+  const total = Math.round(net * (d.price ?? 0))
+  const tobaccoLabel = tobaccoType?.t_name_kh || tobaccoType?.t_name || "—"
+
+  return (
+    <View style={pdf.tableRow}>
+      <KhmerLabel text={String(i + 1)} style={{ ...pdf.tableCell, ...pdf.colNum }} />
+      <KhmerLabel text={tobaccoLabel} style={{ ...pdf.tableCellLeft, ...pdf.colName }} />
+      <KhmerLabel text={fmt2(d.gross_weight)} style={{ ...pdf.tableCell, ...pdf.colGross }} />
+      <KhmerLabel text={fmt2(d.remork_in_kg ?? 0)} style={{ ...pdf.tableCell, ...pdf.colRemork }} />
+      <KhmerLabel text={fmt2(d.sack_in_kg ?? 0)} style={{ ...pdf.tableCell, ...pdf.colSack }} />
+      <KhmerLabel text={d.price?.toLocaleString("en-US") ?? "—"} style={{ ...pdf.tableCell, ...pdf.colPrice }} />
+      <KhmerLabel text={fmt2(net)} style={{ ...pdf.tableCellRight, ...pdf.colNet, fontWeight: "bold" }} />
+      <KhmerLabel
+        text={`៛${total.toLocaleString("en-US")}`}
+        style={{ ...pdf.tableCellRight, ...pdf.colTotal, fontWeight: "bold" }}
+      />
+    </View>
+  )
+}
+
+function InvoicePdfDocument({ record, purchasers, regions, tobaccoTypes, mfCode }: Readonly<InvoiceData>) {
+  const purchaser = purchasers.find((p) => p.p_id === record.buyer)
+  const region = regions.find((r) => r.reg_id === record.region)
+  const details = record.details ?? []
+
+  const totalNetWeight = details.reduce((sum, d) => {
+    const net = Math.max(0, (d.gross_weight ?? 0) - (d.remork_in_kg ?? 0) - (d.sack_in_kg ?? 0))
+    return sum + net
+  }, 0)
+  const grandTotal = details.reduce((sum, d) => {
+    const net = Math.max(0, (d.gross_weight ?? 0) - (d.remork_in_kg ?? 0) - (d.sack_in_kg ?? 0))
+    return sum + net * (d.price ?? 0)
+  }, 0)
+
+  const purchaserLabel = purchaser?.p_name_kh || purchaser?.p_name || "—"
+  const regionLabel = region?.reg_name_kh || region?.reg_name || "—"
+
+  return (
+    <Document>
+      <Page size="A4" style={pdf.page}>
+        <View style={pdf.content}>
+          <View style={pdf.header}>
+            <View style={{ width: "30%" }} />
+            <View style={{ width: "40%" }}>
+              <KhmerLabel text="វិក័យប័ត្រទិញសន្លឹកថ្នាំ" style={pdf.companyName} />
+            </View>
+            <View style={{ width: "30%" }} />
+          </View>
+
+          <View style={pdf.metaGrid}>
+            <View style={pdf.metaCol}>
+              <View style={pdf.metaRow}>
+                <KhmerLabel text="លេខវិក័យប័ត្រ" style={pdf.metaLabel} />
+                <KhmerLabel text={`: ${record.invoice_num}`} style={{ ...pdf.metaValue, fontWeight: "bold" }} />
+              </View>
+              <View style={pdf.metaRow}>
+                <KhmerLabel text="កាលបរិច្ឆេទ" style={pdf.metaLabel} />
+                <KhmerLabel text={`: ${fmtDate(record.tp_date)}`} style={pdf.metaValue} />
+              </View>
+              <View style={pdf.metaRow}>
+                <KhmerLabel text="អត្រាប្តូរប្រាក់" style={pdf.metaLabel} />
+                <KhmerLabel text={`: ៛${record.rate?.toLocaleString("en-US") ?? "—"}`} style={pdf.metaValue} />
+              </View>
+            </View>
+
+            <View style={pdf.metaCol}>
+              <View style={pdf.metaRow}>
+                <KhmerLabel text="ឈ្មោះកសិករ" style={pdf.metaLabel} />
+                <KhmerLabel text={`: ${record.vendor_name ?? "—"}`} style={pdf.metaValue} />
+              </View>
+              <View style={pdf.metaRow}>
+                <KhmerLabel text="លេខកាតកសិករ" style={pdf.metaLabel} />
+                <KhmerLabel text={`: ${mfCode ?? "—"}`} style={pdf.metaValue} />
+              </View>
+              <View style={pdf.metaRow}>
+                <KhmerLabel text="តំបន់" style={pdf.metaLabel} />
+                <KhmerLabel text={`: ${regionLabel}`} style={pdf.metaValue} />
+              </View>
+            </View>
+          </View>
+
+          <View style={pdf.tableWrapper}>
+            <View style={pdf.tableHeader}>
+              <KhmerLabel text="ល.រ" style={{ ...pdf.tableHeaderCell, ...pdf.colNum }} />
+              <KhmerLabel text="ប្រភេទសន្លឹកថ្នាំ" style={{ ...pdf.tableHeaderCellLeft, ...pdf.colName }} />
+              <KhmerLabel text="ទម្ងន់សរុប" style={{ ...pdf.tableHeaderCell, ...pdf.colGross }} />
+              <KhmerLabel text="ទម្ងន់រ៉ឺម៉ក" style={{ ...pdf.tableHeaderCell, ...pdf.colRemork }} />
+              <KhmerLabel text="ទម្ងន់បាវ" style={{ ...pdf.tableHeaderCell, ...pdf.colSack }} />
+              <KhmerLabel text="តម្លៃ" style={{ ...pdf.tableHeaderCell, ...pdf.colPrice }} />
+              <KhmerLabel text="ទម្ងន់សុទ្ធ" style={{ ...pdf.tableHeaderCellRight, ...pdf.colNet }} />
+              <KhmerLabel text="សរុបទឹកប្រាក់" style={{ ...pdf.tableHeaderCellRight, ...pdf.colTotal }} />
+            </View>
+
+            {details.length === 0 ? (
+              <KhmerLabel text="មិនមានទិន្នន័យ" style={pdf.noItems} />
+            ) : (
+              details.map((d, i) => <PdfTableRow key={d.tpd_id ?? i} d={d} i={i} tobaccoTypes={tobaccoTypes} />)
+            )}
+
+            <View style={{ ...pdf.tableRow, borderBottomWidth: 0 }}>
+              <View style={{ width: "61%", borderRightWidth: 1, borderRightColor: C.dark }} />
+              <View style={{ ...pdf.tableCell, ...pdf.colPrice, flexDirection: "row" }}>
+                <KhmerLabel text="ចំនួន៖ " style={{ fontSize: 12, color: C.dark }} />
+                <KhmerLabel text={String(details.length)} style={{ fontSize: 12, color: C.dark, fontWeight: "bold" }} />
+              </View>
+              <KhmerLabel
+                text={fmt2(totalNetWeight)}
+                style={{ ...pdf.tableCellRight, ...pdf.colNet, fontWeight: "bold" }}
+              />
+              <KhmerLabel
+                text={`៛${Math.round(grandTotal).toLocaleString("en-US")}`}
+                style={{ ...pdf.tableCellRight, ...pdf.colTotal, fontWeight: "bold" }}
+              />
+            </View>
+          </View>
+
+          <View style={pdf.sigRow}>
+            <View style={pdf.sigBox}>
+              <KhmerParagraph text="ឈ្មោះអ្នកទិញ" style={pdf.sigLabel} maxWidth={SIG_LABEL_MAX_WIDTH} />
+              <KhmerLabel text={purchaserLabel === "—" ? "" : purchaserLabel} style={pdf.sigName} />
+            </View>
+            <View style={pdf.sigBox}>
+              <KhmerParagraph text="អ្នកពិនិត្យគុណភាព" style={pdf.sigLabel} maxWidth={SIG_LABEL_MAX_WIDTH} />
+              <KhmerLabel text="" style={pdf.sigName} />
+            </View>
+            <View style={pdf.sigBox}>
+              <KhmerParagraph text="បេឡា" style={pdf.sigLabel} maxWidth={SIG_LABEL_MAX_WIDTH} />
+              <KhmerLabel text="" style={pdf.sigName} />
+            </View>
+            <View style={pdf.sigBox}>
+              <KhmerParagraph
+                text="ឈ្មោះ និង ស្នាមម្រាមដៃ អ្នកលក់បានទទួលប្រាក់"
+                style={pdf.sigLabel}
+                maxWidth={SIG_LABEL_MAX_WIDTH}
+              />
+              <KhmerLabel text={record.vendor_name ?? ""} style={pdf.sigName} />
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 // ── printInvoice — public API ──────────────────────────────────────────────────
 
 export async function printInvoice(data: InvoiceData): Promise<void> {
-  // Create a new tab for printing
-  const win = window.open("", "_blank")
-  if (!win) {
-    alert("Please allow popups to print invoices.")
+  // Print via a hidden iframe so the print dialog appears without navigating to a new tab
+  const iframe = document.createElement("iframe")
+  iframe.style.position = "fixed"
+  iframe.style.right = "0"
+  iframe.style.bottom = "0"
+  iframe.style.width = "0"
+  iframe.style.height = "0"
+  iframe.style.border = "0"
+  document.body.appendChild(iframe)
+
+  const win = iframe.contentWindow
+  const doc = win?.document
+  if (!win || !doc) {
+    iframe.remove()
+    alert("Unable to prepare the invoice for printing.")
     return
   }
 
-  // Write basic HTML structure to the new window without using deprecated document.write
-  win.document.title = `Print Invoice - ${data.record.invoice_num}`
-  win.document.body.innerHTML = '<div id="print-root"></div>'
-  const style = win.document.createElement("style")
+  doc.title = `Print Invoice - ${data.record.invoice_num}`
+  doc.body.innerHTML = '<div id="print-root"></div>'
+  const style = doc.createElement("style")
   style.innerHTML = `
     @font-face {
       font-family: 'Kantumruy Pro';
@@ -465,14 +714,30 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
       }
     }
   `
-  win.document.head.appendChild(style)
+  doc.head.appendChild(style)
 
-  // Render the React component into the new window's DOM
-  const root = createRoot(win.document.getElementById("print-root")!)
+  // Render the React component into the iframe's DOM
+  const root = createRoot(doc.getElementById("print-root")!)
   root.render(<InvoiceHTML {...data} />)
+
+  const cleanup = () => {
+    root.unmount()
+    iframe.remove()
+  }
+  win.addEventListener("afterprint", cleanup, { once: true })
 
   // Wait for fonts to load and React to finish rendering, then print
   setTimeout(() => {
+    win.focus()
     win.print()
+    // Fallback cleanup in case the browser doesn't fire afterprint
+    setTimeout(cleanup, 5000)
   }, 700)
+}
+
+// ── downloadInvoicePdf — public API ────────────────────────────────────────────
+
+export async function downloadInvoicePdf(data: InvoiceData): Promise<void> {
+  await ensureKhmerCanvasFontLoaded()
+  await downloadReactPdf(<InvoicePdfDocument {...data} />, `invoice_${data.record.invoice_num}.pdf`)
 }

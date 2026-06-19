@@ -10,6 +10,8 @@ from app.domains.farmers.crud import search_member_farmer
 from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate
 from app.domains.tobacco_purchase.models import TobaccoPurchase, TobaccoPurchaseDetail
 
+_MEMBER_FARMER_NO_ID_ERROR = "MemberFarmer record has no id"
+
 
 async def _get_sack_status(
     session: AsyncSession, farmer_ids: list[int]
@@ -207,7 +209,7 @@ async def create(
         return None, "farmer_not_found"
     farmer, _represent_name = farmer_row
     if farmer.mf_id is None:
-        raise ValueError("MemberFarmer record has no id")
+        raise ValueError(_MEMBER_FARMER_NO_ID_ERROR)
 
     record = SackRegistration(
         represent_id=represent.represent_id,
@@ -239,7 +241,7 @@ async def _resolve_updated_farmer_id(
     if str(farmer.represent) != str(effective_represent_id):
         return None, "farmer_not_found"
     if farmer.mf_id is None:
-        raise ValueError("MemberFarmer record has no id")
+        raise ValueError(_MEMBER_FARMER_NO_ID_ERROR)
     return farmer.mf_id, None
 
 
@@ -264,15 +266,10 @@ async def update(
 
     mf_code = update_data.pop("member_farmer_mf_code", None)
     if mf_code:
-        farmer_row = await search_member_farmer(session, identity_card=mf_code)
-        if not farmer_row:
-            return None, "farmer_not_found"
-        farmer, _represent_name = farmer_row
-        if str(farmer.represent) != str(effective_represent_id):
-            return None, "farmer_not_found"
-        if farmer.mf_id is None:
-            raise ValueError("MemberFarmer record has no id")
-        record.farmer_id = farmer.mf_id
+        farmer_id, error = await _resolve_updated_farmer_id(session, mf_code, effective_represent_id)
+        if error or farmer_id is None:
+            return None, error or "farmer_not_found"
+        record.farmer_id = farmer_id
     elif represent_changed:
         # Represent changed but farmer wasn't updated — ensure existing farmer still belongs to the new represent
         existing_farmer = (

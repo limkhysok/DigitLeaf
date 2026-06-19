@@ -19,7 +19,7 @@ import { getColumns } from "./_components/columns"
 import { getCoreRowModel, VisibilityState } from "@tanstack/react-table"
 import { useReactTable } from "@/utils/table-utils"
 import { Button } from "@workspace/ui/components/button"
-import { printInvoice } from "./_components/invoice-print"
+import { printInvoice, downloadInvoicePdf, InvoiceData } from "./_components/invoice-print"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +54,7 @@ export default function TobaccoPurchasePage() {
   const [isViewOnly, setIsViewOnly] = React.useState(false)
   const [deleteId, setDeleteId] = React.useState<number | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [isExportingTemplate, setIsExportingTemplate] = React.useState(false)
 
   // ── Search & Filters (nuqs + use-debounce) ──
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
@@ -149,36 +150,77 @@ export default function TobaccoPurchasePage() {
     setDialogOpen(true)
   }
 
-  const handlePrint = React.useCallback(async (record: TobaccoPurchase) => {
+  const handleExportTemplate = React.useCallback(async () => {
     if (!tokens?.access_token) return
+    setIsExportingTemplate(true)
     try {
-      const full = record.details && record.details.length > 0
-        ? record
-        : await apiClient.getTobaccoPurchase(tokens.access_token, record.tp_id)
+      const blob = await apiClient.exportTobaccoPurchaseTemplate(tokens.access_token)
+      const url = globalThis.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "tobacco_purchase_template.xlsx"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      globalThis.URL.revokeObjectURL(url)
+      toast.success("Template exported successfully")
+    } catch (err) {
+      toast.error((err as Error).message || "Failed to export template")
+    } finally {
+      setIsExportingTemplate(false)
+    }
+  }, [tokens])
 
-      let mfCode: string | undefined = undefined;
-      if (full.buyer && full.vendor_id) {
-        try {
-          const vendorsList = await apiClient.getVendorsByBuyer(tokens.access_token, full.buyer);
-          const vItem = vendorsList.find(v => String(v.mf_id) === String(full.vendor_id));
-          if (vItem) mfCode = vItem.mf_code;
-        } catch {
-          // ignore
-        }
-      }
+  const loadInvoiceData = React.useCallback(async (record: TobaccoPurchase): Promise<InvoiceData | null> => {
+    if (!tokens?.access_token) return null
+    const accessToken = tokens.access_token
 
-      await printInvoice({
-        record: full,
-        purchasers,
-        regions,
-        ovens,
-        tobaccoTypes,
-        mfCode,
-      })
+    const fullPromise = record.details && record.details.length > 0
+      ? Promise.resolve(record)
+      : apiClient.getTobaccoPurchase(accessToken, record.tp_id)
+
+    // Cached per buyer — this list rarely changes, so repeat downloads/prints
+    // for the same buyer skip the network round-trip entirely.
+    const vendorsPromise = record.buyer && record.vendor_id
+      ? queryClient.fetchQuery({
+          queryKey: ["vendors-by-buyer", record.buyer],
+          queryFn: () => apiClient.getVendorsByBuyer(accessToken, record.buyer!),
+          staleTime: 5 * 60 * 1000,
+        }).catch(() => [])
+      : Promise.resolve([])
+
+    const [full, vendorsList] = await Promise.all([fullPromise, vendorsPromise])
+
+    const vItem = vendorsList.find((v) => String(v.mf_id) === String(record.vendor_id))
+    const mfCode = vItem?.mf_code
+
+    return { record: full, purchasers, regions, ovens, tobaccoTypes, mfCode }
+  }, [tokens, purchasers, regions, ovens, tobaccoTypes, queryClient])
+
+  const handlePrint = React.useCallback(async (record: TobaccoPurchase) => {
+    try {
+      const data = await loadInvoiceData(record)
+      if (!data) return
+      await printInvoice(data)
     } catch {
       toast.error("Failed to load purchase details for printing")
     }
-  }, [tokens, purchasers, regions, ovens, tobaccoTypes])
+  }, [loadInvoiceData])
+
+  const handleDownloadPdf = React.useCallback(async (record: TobaccoPurchase) => {
+    const toastId = toast.loading("Generating PDF…")
+    try {
+      const data = await loadInvoiceData(record)
+      if (!data) {
+        toast.dismiss(toastId)
+        return
+      }
+      await downloadInvoicePdf(data)
+      toast.success("Invoice downloaded", { id: toastId })
+    } catch {
+      toast.error("Failed to download invoice", { id: toastId })
+    }
+  }, [loadInvoiceData])
 
   // ── Derived state ──
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -189,7 +231,8 @@ export default function TobaccoPurchasePage() {
     onEdit: handleEdit,
     onDelete: (id: number) => setDeleteId(id),
     onPrint: handlePrint,
-  }), [purchasers, handleView, handleEdit, handlePrint])
+    onDownload: handleDownloadPdf,
+  }), [purchasers, handleView, handleEdit, handlePrint, handleDownloadPdf])
 
   const sorting = React.useMemo(() => {
     if (sortGrandTotal) return [{ id: "grand_total", desc: sortGrandTotal === "desc" }]
@@ -283,6 +326,8 @@ export default function TobaccoPurchasePage() {
           setBuyerFilter={setBuyerFilter}
           searchInput={searchInput || ""}
           setSearchInput={setSearchInput}
+          onExportTemplate={handleExportTemplate}
+          isExportingTemplate={isExportingTemplate}
         />
       </div>
 

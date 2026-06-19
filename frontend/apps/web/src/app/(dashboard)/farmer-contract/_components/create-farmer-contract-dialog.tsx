@@ -96,10 +96,9 @@ export function CreateFarmerContractDialog({
     enabled: open && !!tokens?.access_token,
     staleTime: 5 * 60 * 1000,
   })
-  const tobaccoTypes = formMeta?.tobacco_types ?? []
-
   // Client-side filter for tobacco
   const filteredTobacco = React.useMemo(() => {
+    const tobaccoTypes = formMeta?.tobacco_types ?? []
     if (!tobaccoSearch.trim()) return tobaccoTypes
     const q = tobaccoSearch.toLowerCase()
     return tobaccoTypes.filter(
@@ -107,7 +106,7 @@ export function CreateFarmerContractDialog({
         t.t_name.toLowerCase().includes(q) ||
         t.t_name_kh?.toLowerCase().includes(q)
     )
-  }, [tobaccoTypes, tobaccoSearch])
+  }, [formMeta?.tobacco_types, tobaccoSearch])
 
   // Search farmers as user types
   const { data: farmers = [], isFetching: isFetchingFarmers } = useQuery({
@@ -370,7 +369,7 @@ export function CreateFarmerContractDialog({
 
           {/* Sapling (Kg) */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="sapling">Sapling (Kg)</Label>
+            <Label htmlFor="sapling">Sapling </Label>
             <div className="relative">
               <IconSeeding className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input

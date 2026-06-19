@@ -92,8 +92,8 @@
                         <span className="text-md font-semibold text-foreground leading-tight ">
                           KAIC
                         </span>
-                        <span className="text-[10px] font-semibold uppercase text-muted-foreground leading-tight">
-                          Internal System
+                        <span className="text-[12px] font-normal text-muted-foreground leading-tight">
+                          Internal system
                         </span>
                       </div>
                     </div>

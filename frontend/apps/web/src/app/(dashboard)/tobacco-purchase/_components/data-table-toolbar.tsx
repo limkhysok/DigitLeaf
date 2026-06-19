@@ -1,7 +1,7 @@
 "use client"
 
 import { Table } from "@tanstack/react-table"
-import { IconX, IconCirclePlus, IconCheck } from "@tabler/icons-react"
+import { IconX, IconCirclePlus, IconCheck, IconDownload, IconLoader2 } from "@tabler/icons-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -30,6 +30,8 @@ interface DataTableToolbarProps<TData> {
   setBuyerFilter: (v: number | null) => void
   searchInput: string
   setSearchInput: (v: string) => void
+  onExportTemplate?: () => void
+  isExportingTemplate?: boolean
 }
 
 export function DataTableToolbar<TData>({
@@ -41,6 +43,8 @@ export function DataTableToolbar<TData>({
   setBuyerFilter,
   searchInput,
   setSearchInput,
+  onExportTemplate,
+  isExportingTemplate,
 }: Readonly<DataTableToolbarProps<TData>>) {
   const isFiltered = buyerFilter !== null || searchInput !== ""
 
@@ -150,7 +154,22 @@ export function DataTableToolbar<TData>({
           </PopoverContent>
         </Popover>
 
-
+        {/* Export template button */}
+        {onExportTemplate && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={onExportTemplate}
+            disabled={isExportingTemplate}
+          >
+            {isExportingTemplate
+              ? <IconLoader2 className="h-4 w-4 animate-spin" />
+              : <IconDownload className="h-4 w-4" />
+            }
+            Export
+          </Button>
+        )}
 
         {isFiltered && (
           <Button
