@@ -507,17 +507,22 @@ async def get_vendor_sack_kg(db: AsyncSession, vendor_id: int) -> float:
     return await get_vendor_available_sack_kg(db, vendor_id)
 
 
-def _purchase_to_report_row(p: TobaccoPurchase, tobacco_map: dict[int, str]) -> dict[str, Any]:
-    grades = sorted({tobacco_map.get(d.tobacco_name, str(d.tobacco_name)) for d in p.details})
-    return {
-        "farmer_id": p.vendor.mf_code if p.vendor else (p.vendor_id or ""),
-        "invoice_num": p.invoice_num,
-        "grade": ", ".join(grades),
-        "qty_kg": p.total_net_weight,
-        "unit_price": p.rate,
-        "total_amount": p.grand_total,
-        "remark": p.tp_note,
-    }
+def _purchase_to_report_rows(p: TobaccoPurchase, tobacco_map: dict[int, str]) -> list[dict[str, Any]]:
+    """One row per detail line — Farmer ID/Inv No/Remark repeat, Grade/Qty/Price/Total are per-line."""
+    farmer_id = p.vendor.mf_code if p.vendor else (p.vendor_id or "")
+    details = sorted(p.details, key=lambda d: d.tpd_id or 0)
+    return [
+        {
+            "farmer_id": farmer_id,
+            "invoice_num": p.invoice_num,
+            "grade": tobacco_map.get(d.tobacco_name, str(d.tobacco_name)),
+            "qty_kg": d.qty,
+            "unit_price": d.price,
+            "total_amount": d.total_amount,
+            "remark": p.tp_note,
+        }
+        for d in details
+    ]
 
 
 async def get_purchase_report_data(
@@ -545,7 +550,7 @@ async def get_purchase_report_data(
     purchases = result.scalars().all()
 
     tobacco_map = {t.t_id: (t.t_name_kh or t.t_name) for t in await get_tobacco_types(db)}
-    rows = [_purchase_to_report_row(p, tobacco_map) for p in purchases]
+    rows = [row for p in purchases for row in _purchase_to_report_rows(p, tobacco_map)]
 
     oven_ids = list({p.oven for p in purchases if p.oven})
     ovens = [o for oid in oven_ids if (o := await db.get(Oven, oid)) is not None]

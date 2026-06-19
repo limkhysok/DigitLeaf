@@ -24,7 +24,7 @@ _NUMERIC_COLUMNS = ("E", "F", "G")
 
 # Relative column widths as % of the table — proportions stay fixed while the
 # absolute scale (_TABLE_WIDTH_UNITS) can be tuned to fit the printable page.
-_COLUMN_WIDTH_PERCENT = {"A": 7, "B": 12, "C": 14, "D": 15, "E": 11, "F": 13, "G": 14, "H": 14}
+_COLUMN_WIDTH_PERCENT = {"A": 7, "B": 12, "C": 14, "D": 18, "E": 11, "F": 13, "G": 13, "H": 12}
 _TABLE_WIDTH_UNITS = 110  # total width, in Excel column-width units, at 100%
 
 
@@ -39,7 +39,7 @@ def _header_value(value: Any) -> str:
 def _write_titles(
     ws: Worksheet, representative: str | None, region: str | None, oven: str | None, report_date: date
 ) -> None:
-    ws["B1"] = "របាយការណ៍ទូទាត់ វិក្កយបត្រទិញសន្លឹកថ្នាំជក់លើកៗ"
+    ws["B1"] = "របាយការណ៍ទូទាត់ វិក្កយបត្រ ទិញសន្លឹកថ្នាំមួយលើកៗ"
     ws["B1"].font = _KHMER_TITLE
     ws["B1"].alignment = _CENTER
     ws.merge_cells("B1:G3")
