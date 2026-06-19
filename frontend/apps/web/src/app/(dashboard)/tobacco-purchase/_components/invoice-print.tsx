@@ -222,7 +222,7 @@ const s: Record<string, React.CSSProperties> = {
   sigLabel: {
     fontSize: "12px",
     color: C.navy,
-    marginBottom: "40px",
+    marginBottom: "20px",
     textAlign: "center",
   },
   sigLine: {
@@ -330,7 +330,7 @@ function InvoiceHTML({
       <div style={s.header}>
         <div style={{ width: "30%" }} />
         <div style={{ width: "40%", textAlign: "center" }}>
-          <div style={s.companyName}>វិក័យប័ត្រទិញស្លឹកថ្នាំជក់</div>
+          <div style={s.companyName}>វិក័យប័ត្រទិញសន្លឹកថ្នាំ</div>
         </div>
         <div style={{ width: "30%" }} />
       </div>
@@ -338,8 +338,8 @@ function InvoiceHTML({
       <div style={s.metaGrid}>
         <div style={s.metaCol}>
           <div style={s.metaRow}>
-            <div style={s.metaLabel}>លេខវិក័យប័ត្រ</div>
-            <div style={s.metaValue}>: {record.invoice_num}</div>
+            <div style={s.metaLabel}>លេខវិក័យប័ត្រ </div>
+            <div style={s.metaValue}>: <span style={{ fontWeight: "bold" }}>{record.invoice_num}</span> </div>
           </div>
           <div style={s.metaRow}>
             <div style={s.metaLabel}>កាលបរិច្ឆេទ</div>
@@ -409,22 +409,18 @@ function InvoiceHTML({
       <div style={s.sigRow}>
         <div style={s.sigBox}>
           <div style={s.sigLabel}>ឈ្មោះអ្នកទិញ</div>
-          <div style={s.sigLine} />
           <div style={s.sigName}>{purchaserLabel === "\u2014" ? "" : purchaserLabel}</div>
         </div>
         <div style={s.sigBox}>
           <div style={s.sigLabel}>អ្នកពិនិត្យគុណភាព</div>
-          <div style={s.sigLine} />
           <div style={s.sigName}></div>
         </div>
         <div style={s.sigBox}>
           <div style={s.sigLabel}>បេឡា</div>
-          <div style={s.sigLine} />
           <div style={s.sigName}></div>
         </div>
         <div style={s.sigBox}>
           <div style={s.sigLabel}>ឈ្មោះ និង ស្នាមម្រាមដៃ អ្នកលក់បានទទួលប្រាក់</div>
-          <div style={s.sigLine} />
           <div style={s.sigName}>{record.vendor_name ?? ""}</div>
         </div>
       </div>

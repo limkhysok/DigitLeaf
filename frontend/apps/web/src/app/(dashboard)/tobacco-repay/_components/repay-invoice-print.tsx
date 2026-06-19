@@ -210,7 +210,7 @@ const s: Record<string, React.CSSProperties> = {
   sigLabel: {
     fontSize: "12px",
     color: C.navy,
-    marginBottom: "40px",
+    marginBottom: "20px",
     textAlign: "center",
   },
   sigLine: {
@@ -255,11 +255,12 @@ function RepayInvoiceHTML({ record }: Readonly<RepayInvoiceData>) {
       <div style={s.metaGrid}>
         <div style={s.metaCol}>
           <MetaRow label="លេខវិក័យប័ត្រ" value={record.repay_num ?? "—"} bold />
-          <MetaRow label="ឈ្មោះកសិករ" value={record.farmer_name ?? "—"} />
+          <MetaRow label="កាលបរិច្ឆេទ" value={fmtDate(record.repay_date)} />
+
         </div>
 
         <div style={s.metaCol}>
-          <MetaRow label="កាលបរិច្ឆេទ" value={fmtDate(record.repay_date)} />
+          <MetaRow label="ឈ្មោះកសិករ" value={record.farmer_name ?? "—"} />
           <MetaRow label="ឆ្នាំកិច្ចសន្យា" value={record.contract_year == null ? "—" : String(record.contract_year)} />
         </div>
       </div>
