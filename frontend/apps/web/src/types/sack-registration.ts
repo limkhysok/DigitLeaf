@@ -11,6 +11,8 @@ export interface MemberFarmerItem {
   address?: string;
   tobac_num?: number;
   purchased_weight?: number;
+  represent_id?: number;
+  represent_name?: string;
 }
 
 export interface SackRegistrationItem {

@@ -198,13 +198,14 @@ async def create(
     if represent.represent_id is None:
         raise ValueError("Represent record has no id")
 
-    farmer = await search_member_farmer(
+    farmer_row = await search_member_farmer(
         session,
         name=data.member_farmer_name,
         identity_card=data.member_farmer_identity_card,
     )
-    if not farmer:
+    if not farmer_row:
         return None, "farmer_not_found"
+    farmer, _represent_name = farmer_row
     if farmer.mf_id is None:
         raise ValueError("MemberFarmer record has no id")
 
@@ -224,6 +225,22 @@ async def create(
         raise ValueError("SackRegistration has no id after commit")
     details: Optional[dict[str, Any]] = await get_details(session, record.id)
     return details, None
+
+
+async def _resolve_updated_farmer_id(
+    session: AsyncSession,
+    mf_code: str,
+    effective_represent_id: Optional[int],
+) -> tuple[Optional[int], Optional[str]]:
+    farmer_row = await search_member_farmer(session, identity_card=mf_code)
+    if not farmer_row:
+        return None, "farmer_not_found"
+    farmer, _represent_name = farmer_row
+    if str(farmer.represent) != str(effective_represent_id):
+        return None, "farmer_not_found"
+    if farmer.mf_id is None:
+        raise ValueError("MemberFarmer record has no id")
+    return farmer.mf_id, None
 
 
 async def update(
@@ -247,8 +264,11 @@ async def update(
 
     mf_code = update_data.pop("member_farmer_mf_code", None)
     if mf_code:
-        farmer = await search_member_farmer(session, identity_card=mf_code)
-        if not farmer or str(farmer.represent) != str(effective_represent_id):
+        farmer_row = await search_member_farmer(session, identity_card=mf_code)
+        if not farmer_row:
+            return None, "farmer_not_found"
+        farmer, _represent_name = farmer_row
+        if str(farmer.represent) != str(effective_represent_id):
             return None, "farmer_not_found"
         if farmer.mf_id is None:
             raise ValueError("MemberFarmer record has no id")
