@@ -13,6 +13,8 @@
     TobaccoPurchaseCreate,
     TobaccoPurchaseDetail,
     TobaccoRepayCreate,
+    ConTobaccoItem,
+    VendorContractItem,
   } from "@/services/api-client"
   import { useQuery } from "@tanstack/react-query"
   import { useDebounce } from "use-debounce"
@@ -275,6 +277,334 @@
             </button>
           ))}
       </>
+    )
+  }
+
+  function MobilePurchaseItems({
+    details,
+    isReadOnly,
+    tobaccoTypes,
+    totalNetWeight,
+    grandTotal,
+    displayRemainingQuota,
+    onAddDetail,
+    onRemoveDetail,
+    onDetailChange,
+    onPreviewImage,
+  }: Readonly<{
+    details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[]
+    isReadOnly?: boolean
+    tobaccoTypes: TobaccoItem[]
+    totalNetWeight: number
+    grandTotal: number
+    displayRemainingQuota: number | null
+    onAddDetail: () => void
+    onRemoveDetail: (idx: number) => void
+    onDetailChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+    onPreviewImage: (url: string) => void
+  }>) {
+    return (
+      <div className="md:hidden rounded-sm">
+        <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
+          <h3 className="flex items-center gap-2 py-2 px-4 text-foreground font-medium">Tobacco Purchase</h3>
+          <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
+        </div>
+        <div className="space-y-0">
+          {details.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
+              <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
+                <IconPlus className="size-5 text-muted-foreground/20" />
+              </div>
+              <p className="text-[13px] font-bold text-foreground">No items yet</p>
+              <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+              {!isReadOnly && (
+                <Button type="button" variant="outline" size="sm" onClick={onAddDetail}
+                  className="mt-1 h-8 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                  <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-0 border-l border-r border-black/40 divide-y divide-black/40">
+              {details.map((detail, idx) => (
+                <PurchaseDetailCard
+                  key={detail.tempId}
+                  detail={detail}
+                  index={idx}
+                  isReadOnly={isReadOnly}
+                  tobaccoTypes={tobaccoTypes}
+                  onRemove={onRemoveDetail}
+                  onChange={onDetailChange}
+                  onPreviewImage={onPreviewImage}
+                />
+              ))}
+            </div>
+          )}
+          {details.length > 0 && (
+            <div className="bg-white ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%] border-t border-b border-l border-r border-black/40">
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
+                <span className="text-base font-semibold text-foreground text-right">{totalNetWeight.toFixed(2)} Kg</span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-[11px] font-bold text-foreground uppercase">Grand Total</span>
+                <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  function TabletPurchaseItems({
+    details,
+    isReadOnly,
+    tobaccoTypes,
+    totalNetWeight,
+    grandTotal,
+    displayRemainingQuota,
+    onAddDetail,
+    onRemoveDetail,
+    onDetailChange,
+    onPreviewImage,
+  }: Readonly<{
+    details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[]
+    isReadOnly?: boolean
+    tobaccoTypes: TobaccoItem[]
+    totalNetWeight: number
+    grandTotal: number
+    displayRemainingQuota: number | null
+    onAddDetail: () => void
+    onRemoveDetail: (idx: number) => void
+    onDetailChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+    onPreviewImage: (url: string) => void
+  }>) {
+    return (
+      <div className="hidden md:block lg:hidden rounded-sm">
+        <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
+          <h3 className="flex items-center gap-2 py-2 px-5 text-foreground font-medium">Tobacco Purchase</h3>
+          <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
+        </div>
+        {details.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
+            <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
+              <IconPlus className="size-5 text-muted-foreground/20" />
+            </div>
+            <p className="text-[13px] font-bold text-foreground">No items yet</p>
+            <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
+            {!isReadOnly && (
+              <Button type="button" variant="outline" size="sm" onClick={onAddDetail}
+                className="mt-1 h-8 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
+                <IconPlus className="mr-1.5 size-3.5" /> Add First Item
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 border-l border-r border-black/40 divide-x divide-black/40">
+            {details.map((detail, idx) => (
+              <PurchaseDetailCard
+                key={detail.tempId}
+                detail={detail}
+                index={idx}
+                isReadOnly={isReadOnly}
+                tobaccoTypes={tobaccoTypes}
+                onRemove={onRemoveDetail}
+                onChange={onDetailChange}
+                onPreviewImage={onPreviewImage}
+              />
+            ))}
+          </div>
+        )}
+        {details.length > 0 && (
+          <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-t border-b border-l border-r border-black/40">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+              <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
+              <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
+              <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  function DesktopPurchaseItems({
+    details,
+    isReadOnly,
+    tobaccoTypes,
+    totalNetWeight,
+    grandTotal,
+    displayRemainingQuota,
+    onAddDetail,
+    onRemoveDetail,
+    onDetailChange,
+    onPreviewImage,
+  }: Readonly<{
+    details: (Partial<TobaccoPurchaseDetail> & { tempId: string })[]
+    isReadOnly?: boolean
+    tobaccoTypes: TobaccoItem[]
+    totalNetWeight: number
+    grandTotal: number
+    displayRemainingQuota: number | null
+    onAddDetail: () => void
+    onRemoveDetail: (idx: number) => void
+    onDetailChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
+    onPreviewImage: (url: string) => void
+  }>) {
+    return (
+      <div className="hidden lg:block">
+        {details.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-sm border border-dashed border-black/20 bg-slate-50/50 mt-4">
+            <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
+              <IconPlus className="size-6 text-muted-foreground/20" />
+            </div>
+            <div className="space-y-1 text-center">
+              <p className="text-[14px] font-bold text-foreground">No tobacco items recorded yet</p>
+              <p className="text-[12px] text-muted-foreground/60 max-w-64">Start building your purchase invoice by adding tobacco items.</p>
+            </div>
+            {!isReadOnly && (
+              <Button type="button" variant="outline" size="sm" onClick={onAddDetail}
+                className="mt-2 h-8 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all">
+                <IconPlus className="mr-2 size-3.5" /> Add First Item
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-sm border border-black/40 mb-2">
+            <div className="flex py-1 px-4 items-center justify-between rounded-t-sm bg-white border-b border-black/40">
+              <div className="flex items-center gap-2 py-2 px-1">
+                <h3 className="text-base font-medium text-foreground">Tobacco Purchase</h3>
+              </div>
+              <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
+            </div>
+            {details.map((detail, idx) => (
+              <PurchaseDetailDesktopCard
+                key={detail.tempId}
+                detail={detail}
+                index={idx}
+                isReadOnly={isReadOnly}
+                tobaccoTypes={tobaccoTypes}
+                onRemove={onRemoveDetail}
+                onChange={onDetailChange}
+                onPreviewImage={onPreviewImage}
+              />
+            ))}
+
+            {/* Desktop Summary Bar */}
+            <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                <span className="text-base font-semibold text-foreground">{details.length} Item</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
+                <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
+                <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  function RepayItemsSection({
+    returns,
+    isReadOnly,
+    conTobaccoTypes,
+    vendorContracts,
+    totalRepayWeight,
+    onRemoveReturn,
+    onReturnChange,
+  }: Readonly<{
+    returns: ReturnItemType[]
+    isReadOnly?: boolean
+    conTobaccoTypes: ConTobaccoItem[]
+    vendorContracts: VendorContractItem[]
+    totalRepayWeight: number
+    onRemoveReturn: (idx: number) => void
+    onReturnChange: (idx: number, field: string, val: string | number) => void
+  }>) {
+    if (returns.length === 0) return null
+    return (
+      <div className="mt-3 mb-2 rounded-md">
+        <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border border-black/40">
+          <div className="flex items-center gap-2 py-2 px-4">
+            <h3 className="text-base font-medium text-foreground">Tobacco Repay</h3>
+          </div>
+        </div>
+
+        {/* Mobile & Tablet View */}
+        <div className="lg:hidden space-y-0">
+          {returns.map((item, idx) => (
+            <ReturnDetailCard
+              key={item.tempId}
+              item={item}
+              index={idx}
+              isReadOnly={isReadOnly}
+              tobaccoTypes={conTobaccoTypes}
+              vendorContracts={vendorContracts}
+              onRemove={onRemoveReturn}
+              onChange={onReturnChange}
+            />
+          ))}
+        </div>
+
+        {/* Mobile & Tablet Summary Bar */}
+        <div className="flex lg:hidden bg-white rounded-b-sm py-3 px-5 flex-row justify-between items-center border-b border-l border-r border-black/40">
+          <div className="flex flex-col">
+            <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+            <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
+            <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
+          </div>
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden lg:block space-y-3">
+          {returns.map((item, idx) => (
+            <ReturnDetailDesktopCard
+              key={item.tempId}
+              item={item}
+              index={idx}
+              isReadOnly={isReadOnly}
+              tobaccoTypes={conTobaccoTypes}
+              vendorContracts={vendorContracts}
+              onRemove={onRemoveReturn}
+              onChange={onReturnChange}
+            />
+          ))}
+
+          {/* Desktop Summary Bar */}
+          <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-b border-l border-r border-black/40">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+              <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-foreground uppercase text-right">Total Weight</span>
+              <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -967,249 +1297,55 @@
                 </div>
               </div>
 
-              {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                  MOBILE ITEMS — (< 768px / below md)
-                  Card-per-row, full-width stacked
-                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-              <div className="md:hidden rounded-sm">
-                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
-                  <h3 className="flex items-center gap-2 py-2 px-4 text-foreground font-medium">Tobacco Purchase</h3>
-                  <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
-                </div>
-                <div className="space-y-0">
-                  {details.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
-                      <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
-                        <IconPlus className="size-5 text-muted-foreground/20" />
-                      </div>
-                      <p className="text-[13px] font-bold text-foreground">No items yet</p>
-                      <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
-                      {!isReadOnly && (
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                          className="mt-1 h-8 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
-                          <IconPlus className="mr-1.5 size-3.5" /> Add First Item
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-0 border-l border-r border-black/40 divide-y divide-black/40">
-                      {details.map((detail, idx) => (
-                        <PurchaseDetailCard
-                          key={detail.tempId}
-                          detail={detail}
-                          index={idx}
-                          isReadOnly={isReadOnly}
-                          tobaccoTypes={tobaccoTypes}
-                          onRemove={handleRemoveDetail}
-                          onChange={handleDetailChange}
-                          onPreviewImage={setPreviewImage}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  {details.length > 0 && (
-                    <div className="bg-white ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%] border-t border-b border-l border-r border-black/40">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
-                        <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
-                        <span className="text-base font-semibold text-foreground text-right">{totalNetWeight.toFixed(2)} Kg</span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[11px] font-bold text-foreground uppercase">Grand Total</span>
-                        <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* ITEMS — mobile / tablet / desktop layouts, extracted to keep this component's complexity in check */}
+              <MobilePurchaseItems
+                details={details}
+                isReadOnly={isReadOnly}
+                tobaccoTypes={tobaccoTypes}
+                totalNetWeight={totalNetWeight}
+                grandTotal={grandTotal}
+                displayRemainingQuota={displayRemainingQuota}
+                onAddDetail={handleAddDetail}
+                onRemoveDetail={handleRemoveDetail}
+                onDetailChange={handleDetailChange}
+                onPreviewImage={setPreviewImage}
+              />
 
-              {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                  TABLET ITEMS — (768px – 1023px / md → lg)
-                  2-column card grid
-                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-              <div className="hidden md:block lg:hidden rounded-sm">
-                <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
-                  <h3 className="flex items-center gap-2 py-2 px-5 text-foreground font-medium">Tobacco Purchase</h3>
-                  <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
-                </div>
-                {details.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-3 py-10 rounded-sm border border-dashed border-black/20 bg-slate-50/50">
-                    <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
-                      <IconPlus className="size-5 text-muted-foreground/20" />
-                    </div>
-                    <p className="text-[13px] font-bold text-foreground">No items yet</p>
-                    <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
-                    {!isReadOnly && (
-                      <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                        className="mt-1 h-8 px-5 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5">
-                        <IconPlus className="mr-1.5 size-3.5" /> Add First Item
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 border-l border-r border-black/40 divide-x divide-black/40">
-                    {details.map((detail, idx) => (
-                      <PurchaseDetailCard
-                        key={detail.tempId}
-                        detail={detail}
-                        index={idx}
-                        isReadOnly={isReadOnly}
-                        tobaccoTypes={tobaccoTypes}
-                        onRemove={handleRemoveDetail}
-                        onChange={handleDetailChange}
-                        onPreviewImage={setPreviewImage}
-                      />
-                    ))}
-                  </div>
-                )}
-                {details.length > 0 && (
-                  <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-t border-b border-l border-r border-black/40">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
-                      <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
-                      <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
-                      <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <TabletPurchaseItems
+                details={details}
+                isReadOnly={isReadOnly}
+                tobaccoTypes={tobaccoTypes}
+                totalNetWeight={totalNetWeight}
+                grandTotal={grandTotal}
+                displayRemainingQuota={displayRemainingQuota}
+                onAddDetail={handleAddDetail}
+                onRemoveDetail={handleRemoveDetail}
+                onDetailChange={handleDetailChange}
+                onPreviewImage={setPreviewImage}
+              />
 
-              {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                  DESKTOP ITEMS — (≥ 1024px / lg and above)
-                  Full 9-column table, horizontally scrollable
-                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-              <div className="hidden lg:block">
-                {details.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-sm border border-dashed border-black/20 bg-slate-50/50 mt-4">
-                    <div className="size-16 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
-                      <IconPlus className="size-6 text-muted-foreground/20" />
-                    </div>
-                    <div className="space-y-1 text-center">
-                      <p className="text-[14px] font-bold text-foreground">No tobacco items recorded yet</p>
-                      <p className="text-[12px] text-muted-foreground/60 max-w-64">Start building your purchase invoice by adding tobacco items.</p>
-                    </div>
-                    {!isReadOnly && (
-                      <Button type="button" variant="outline" size="sm" onClick={handleAddDetail}
-                        className="mt-2 h-8 px-6 text-[12px] font-bold rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all">
-                        <IconPlus className="mr-2 size-3.5" /> Add First Item
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="rounded-sm border border-black/40 mb-2">
-                    <div className="flex py-1 px-4 items-center justify-between rounded-t-sm bg-white border-b border-black/40">
-                      <div className="flex items-center gap-2 py-2 px-1">
-                        <h3 className="text-base font-medium text-foreground">Tobacco Purchase</h3>
-                      </div>
-                      <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
-                    </div>
-                    {details.map((detail, idx) => (
-                      <PurchaseDetailDesktopCard
-                        key={detail.tempId}
-                        detail={detail}
-                        index={idx}
-                        isReadOnly={isReadOnly}
-                        tobaccoTypes={tobaccoTypes}
-                        onRemove={handleRemoveDetail}
-                        onChange={handleDetailChange}
-                        onPreviewImage={setPreviewImage}
-                      />
-                    ))}
+              <DesktopPurchaseItems
+                details={details}
+                isReadOnly={isReadOnly}
+                tobaccoTypes={tobaccoTypes}
+                totalNetWeight={totalNetWeight}
+                grandTotal={grandTotal}
+                displayRemainingQuota={displayRemainingQuota}
+                onAddDetail={handleAddDetail}
+                onRemoveDetail={handleRemoveDetail}
+                onDetailChange={handleDetailChange}
+                onPreviewImage={setPreviewImage}
+              />
 
-                    {/* Desktop Summary Bar */}
-                    <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
-                        <span className="text-base font-semibold text-foreground">{details.length} Item</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
-                        <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
-                        <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {returns.length > 0 && (       
-                //  pt-2 px-4 md:pt-4 md:px-6 lg:pt-5 lg:px-6
-                <div className="mt-3 mb-2 rounded-md">
-                  <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border border-black/40">
-                    <div className="flex items-center gap-2 py-2 px-4">
-                      <h3 className="text-base font-medium text-foreground">Tobacco Repay</h3>
-                    </div>
-                  </div>
-
-                  {/* Mobile & Tablet View */}
-                  <div className="lg:hidden space-y-0">
-                    {returns.map((item, idx) => (
-                      <ReturnDetailCard
-                        key={item.tempId}
-                        item={item}
-                        index={idx}
-                        isReadOnly={isReadOnly}
-                        tobaccoTypes={conTobaccoTypes}
-                        vendorContracts={vendorContracts}
-                        onRemove={handleRemoveReturn}
-                        onChange={handleReturnChange}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Mobile & Tablet Summary Bar */}
-                  <div className="flex lg:hidden bg-white rounded-b-sm py-3 px-5 flex-row justify-between items-center border-b border-l border-r border-black/40">
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
-                      <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
-                      <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
-                    </div>
-                  </div>
-
-                  {/* Desktop View */}
-                  <div className="hidden lg:block space-y-3">
-                    {returns.map((item, idx) => (
-                      <ReturnDetailDesktopCard
-                        key={item.tempId}
-                        item={item}
-                        index={idx}
-                        isReadOnly={isReadOnly}
-                        tobaccoTypes={conTobaccoTypes}
-                        vendorContracts={vendorContracts}
-                        onRemove={handleRemoveReturn}
-                        onChange={handleReturnChange}
-                      />
-                    ))}
-
-                    {/* Desktop Summary Bar */}
-                    <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-b border-l border-r border-black/40">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
-                        <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground uppercase text-right">Total Weight</span>
-                        <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <RepayItemsSection
+                returns={returns}
+                isReadOnly={isReadOnly}
+                conTobaccoTypes={conTobaccoTypes}
+                vendorContracts={vendorContracts}
+                totalRepayWeight={totalRepayWeight}
+                onRemoveReturn={handleRemoveReturn}
+                onReturnChange={handleReturnChange}
+              />
               </div>
 
               <DialogFooter className="mt-0 shrink-0 flex flex-row justify-between items-center gap-0 px-0 py-4 bg-background sm:space-x-0">
