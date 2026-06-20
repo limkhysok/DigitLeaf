@@ -114,7 +114,7 @@ export default function LoginPage() {
               <Image src="/assets/newKAIC.png" alt="Logo" width={80} height={80} priority className="object-contain" />
             </div>
             <div className="text-center md:text-left space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">Sign In</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sign In</h2>
               <p className="text-sm text-muted-foreground font-medium">Welcome back to your workspace</p>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
-                  className="h-11 text-sm rounded-full px-5 bg-green-50/80 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40 transition-all"
+                  className="h-10 text-sm rounded-md px-5 bg-green-50/80 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40 transition-all"
                   required
                 />
               </div>
@@ -143,7 +143,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="h-11 text-sm pl-5 pr-12 rounded-full bg-green-50/80 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40"
+                    className="h-10 text-sm pl-5 pr-12 rounded-md bg-green-50/80 border-muted-foreground/10 focus:bg-background focus:border-[#009640]/40"
                     required
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#009640]">
@@ -153,15 +153,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full h-11 bg-[#009640] hover:bg-[#008a3b] font-bold rounded-full transition-all active:scale-[0.98]">
-              {isLoading ? <IconLoader2 className="animate-spin size-5" /> : "Sign In"}
+            <Button type="submit" disabled={isLoading} className="w-full h-10 bg-[#009640] hover:bg-[#008a3b] font-bold rounded-md transition-all active:scale-[0.98]">
+              {isLoading ? <IconLoader2 className="animate-spin size-5 font-medium" /> : "Sign In"}
             </Button>
 
             {errorMsg && <p className="text-sm font-medium text-red-500 text-center animate-in fade-in slide-in-from-top-1">{errorMsg}</p>}
           </form>
 
           <div className="flex justify-center pt-6">
-            <p className="text-[12px] lg:text-xs text-muted-foreground">
+            <p className="text-[12px] text-muted-foreground">
               Can&apos;t sign in? Get help <a href="https://t.me/soklimkhy" target="_blank" rel="noopener noreferrer" className="font-bold text-[#009640] hover:underline">Telegram</a>
             </p>
           </div>
