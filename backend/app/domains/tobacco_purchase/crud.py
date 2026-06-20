@@ -16,32 +16,16 @@ from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailC
 from datetime import datetime
 
 from app.core.config import CAMBODIA_TZ
+from app.core.sequence import next_daily_seq
 
 
 async def generate_invoice_num(db: AsyncSession) -> str:
-    # Format: DDMMYY (e.g. 210526 for 21 May 2026)
-    today_str = datetime.now(CAMBODIA_TZ).strftime("%d%m%y")
-    prefix = f"{today_str}-"
-
-    # Fetch the absolute latest invoice created to get the last sequence
-    # Since the sequence continues across days, we order by ID descending
-    statement = (
-        select(TobaccoPurchase.invoice_num)
-        .order_by(col(TobaccoPurchase.tp_id).desc())
-        .limit(1)
-    )
-    last_invoice = await db.scalar(statement)
-
-    if last_invoice and "-" in last_invoice:
-        try:
-            last_seq = int(last_invoice.split("-")[-1])
-            new_seq = last_seq + 1
-        except (ValueError, IndexError):
-            new_seq = 0
-    else:
-        new_seq = 0
-
-    return f"{prefix}{new_seq:04d}"
+    # Format: TP + DDMMYY + "-" + 2-digit daily sequence (e.g. TP200626-01).
+    # The sequence is an atomic per-day counter (see next_daily_seq), so it
+    # resets to 01 every day and never collides under concurrent requests.
+    today = datetime.now(CAMBODIA_TZ).date()
+    seq = await next_daily_seq(db, "TP", today)
+    return f"TP{today.strftime('%d%m%y')}-{seq:02d}"
 
 
 async def get_vendor_available_sack_kg(db: AsyncSession, vendor_id: int) -> float:

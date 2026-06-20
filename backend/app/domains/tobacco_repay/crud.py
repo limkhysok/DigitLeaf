@@ -12,28 +12,14 @@ from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
 from app.domains.farmer_contract.models.mf_con_year import MfConYear
 from app.core.config import CAMBODIA_TZ
+from app.core.sequence import next_daily_seq
 
 async def generate_repay_num(db: AsyncSession) -> str:
-    today_str = datetime.now(CAMBODIA_TZ).strftime("%d%m%y")
-    prefix = f"{today_str}-"
-
-    statement = (
-        select(TContractRepay.repay_num)
-        .order_by(col(TContractRepay.repay_id).desc())
-        .limit(1)
-    )
-    last_num = await db.scalar(statement)
-
-    if last_num and "-" in last_num:
-        try:
-            last_seq = int(last_num.split("-")[-1])
-            new_seq = last_seq + 1
-        except (ValueError, IndexError):
-            new_seq = 0
-    else:
-        new_seq = 0
-
-    return f"{prefix}{new_seq:04d}"
+    # Format: TR + DDMMYY + "-" + 2-digit daily sequence (e.g. TR200626-01).
+    # Same atomic per-day counter as generate_invoice_num, under a "TR" prefix.
+    today = datetime.now(CAMBODIA_TZ).date()
+    seq = await next_daily_seq(db, "TR", today)
+    return f"TR{today.strftime('%d%m%y')}-{seq:02d}"
 
 
 async def generate_contract_num(db: AsyncSession) -> str:
