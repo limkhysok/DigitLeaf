@@ -15,6 +15,7 @@
     TobaccoRepayCreate,
   } from "@/services/api-client"
   import { useQuery } from "@tanstack/react-query"
+  import { useDebounce } from "use-debounce"
   import { toast } from "sonner"
   import {
     IconLoader2,
@@ -228,23 +229,15 @@
   function VendorListContent({
     isVendorsLoading,
     vendors,
-    buyer,
     vendorSearch,
     vendor,
-    setVendor,
-    setVendorSearch,
-    setVAddr,
-    setIsVendorOpen
+    onSelect,
   }: Readonly<{
     isVendorsLoading: boolean;
     vendors: MemberFarmerItem[];
-    buyer: string;
     vendorSearch: string;
     vendor: VendorIdType;
-    setVendor: (v: VendorIdType) => void;
-    setVendorSearch: (v: string) => void;
-    setVAddr: (v: string) => void;
-    setIsVendorOpen: (open: boolean) => void;
+    onSelect: (f: MemberFarmerItem) => void;
   }>) {
     if (isVendorsLoading) {
       return (
@@ -254,9 +247,12 @@
       )
     }
     if (vendors.length === 0) {
+      const message = vendorSearch.trim().length < 2
+        ? "Type at least 2 characters to search vendors"
+        : "No vendors found"
       return (
         <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
-          {buyer ? "No vendors found for this buyer" : "Select a buyer first"}
+          {message}
         </div>
       )
     }
@@ -275,12 +271,7 @@
                 "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground",
                 vendor === f.mf_id && "bg-accent"
               )}
-              onClick={() => {
-                setVendor(f.mf_id)
-                setVendorSearch(`${f.name} | ${f.mf_code}`)
-                setVAddr(f.address || "")
-                setIsVendorOpen(false)
-              }}
+              onClick={() => onSelect(f)}
             >
               <IconCheck className={cn("mr-2 h-3.5 w-3.5", vendor === f.mf_id ? "opacity-100" : "opacity-0")} />
               {f.name} | {f.mf_code}
@@ -331,11 +322,23 @@
 
     const initialized = React.useRef(false)
 
-    const { data: vendors = [], isLoading: isVendorsLoading } = useQuery({
+    const { data: vendors = [] } = useQuery({
       queryKey: ["vendors", buyer],
       queryFn: () => apiClient.getVendorsByBuyer(accessToken, Number(buyer)),
       enabled: !!buyer && !!accessToken,
     })
+
+    // Vendor search is always global (not scoped to the currently selected buyer) so that
+    // picking a different vendor can always switch the buyer, not just fill it in once.
+    const [debouncedVendorSearch] = useDebounce(vendorSearch, 350)
+    const { data: searchedVendors = [], isLoading: isVendorSearchLoading } = useQuery({
+      queryKey: ["vendorSearch", debouncedVendorSearch],
+      queryFn: () => apiClient.searchVendors(accessToken, debouncedVendorSearch),
+      enabled: !!accessToken && debouncedVendorSearch.trim().length >= 2,
+    })
+
+    const vendorListItems = searchedVendors
+    const isVendorListLoading = isVendorSearchLoading
 
     // Synchronize vendor search text when vendors load (e.g. on edit mode populate)
     React.useEffect(() => {
@@ -506,6 +509,26 @@
       setVendorSearch("")
     }, [purchasers, regions])
 
+    const handleVendorSelect = React.useCallback((f: MemberFarmerItem) => {
+      setVendor(f.mf_id)
+      setVendorSearch(`${f.name} | ${f.mf_code}`)
+      setVAddr(f.address || "")
+      setIsVendorOpen(false)
+
+      if (f.buyer_id != null && f.buyer_id.toString() !== buyer) {
+        const p = purchasers.find(item => item.p_id === f.buyer_id)
+        if (p) {
+          setBuyer(p.p_id.toString())
+          setBuyerSearch(`${p.p_name} | ${p.p_name_kh || ""}`)
+          const r = regions.find(reg => reg.reg_id === p.region)
+          if (r) {
+            setRegion(r.reg_id.toString())
+            setRegionSearch(`${r.reg_name} | ${r.reg_name_kh || ""}`)
+          }
+        }
+      }
+    }, [buyer, purchasers, regions])
+
     const buildPayload = React.useCallback((): TobaccoPurchaseCreate => {
       return {
         buyer: buyer ? Number.parseInt(buyer, 10) : undefined,
@@ -575,8 +598,6 @@
       }
     }
 
-    const isBuyerSelected = purchasers.some(p => p.p_id.toString() === buyer)
-
 
 
     // Computed totals for mobile/tablet summary
@@ -641,7 +662,7 @@
                   </div>
 
                   {/* Buyer */}
-                  <div className="md:col-span-1 lg:col-span-1 lg:order-3 space-y-1.5">
+                  <div className="md:col-span-1 lg:col-span-1 lg:order-6 space-y-1.5">
                     <Label className="text-sm">Buyer</Label>
                     <Popover open={isBuyerOpen} onOpenChange={(open) => {
                       setIsBuyerOpen(open)
@@ -706,7 +727,7 @@
                   </div>
 
                   {/* Region */}
-                  <div className="lg:col-span-1 lg:order-2 space-y-1.5">
+                  <div className="lg:col-span-1 lg:order-5 space-y-1.5">
                     <Label className="text-sm">Region</Label>
                     <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                       <PopoverAnchor asChild>
@@ -768,7 +789,7 @@
                   </div>
 
                   {/* Vendor */}
-                  <div className="lg:col-span-1 lg:order-6 space-y-1.5">
+                  <div className="lg:col-span-1 lg:order-3 space-y-1.5">
                     <Label className="text-sm">Vendor</Label>
                     <Popover open={isVendorOpen} onOpenChange={(open) => {
                       setIsVendorOpen(open)
@@ -790,7 +811,7 @@
                             }}
                             onFocus={() => { setVendorSearch(""); setIsVendorOpen(true) }}
                             onClick={() => { setVendorSearch(""); setIsVendorOpen(true) }}
-                            disabled={isReadOnly || !isBuyerSelected || !!initialData}
+                            disabled={isReadOnly || !!initialData}
                             className="pl-8 pr-2 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                           />
                         </div>
@@ -808,15 +829,11 @@
                       >
                         <div className="max-h-75 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                           <VendorListContent
-                            isVendorsLoading={isVendorsLoading}
-                            vendors={vendors}
-                            buyer={buyer}
+                            isVendorsLoading={isVendorListLoading}
+                            vendors={vendorListItems}
                             vendorSearch={vendorSearch}
                             vendor={vendor}
-                            setVendor={setVendor}
-                            setVendorSearch={setVendorSearch}
-                            setVAddr={setVAddr}
-                            setIsVendorOpen={setIsVendorOpen}
+                            onSelect={handleVendorSelect}
                           />
                         </div>
                       </PopoverContent>
@@ -824,14 +841,14 @@
                   </div>
 
                   {/* Vendor Address */}
-                  <div className="md:col-span-2 lg:col-span-1 lg:order-5 space-y-1.5">
+                  <div className="md:col-span-2 lg:col-span-1 lg:order-2 space-y-1.5">
                     <Label className="text-sm">Address</Label>
                     <div className="relative">
                       <IconHome className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                       <Input
                         value={v_addr}
                         onChange={(e) => setVAddr(e.target.value)}
-                        disabled={isReadOnly || !isBuyerSelected}
+                        disabled={isReadOnly || !vendor}
                         placeholder="Enter address..."
                         className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20  focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                       />

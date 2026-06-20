@@ -12,6 +12,7 @@ class VendorItem(BaseModel):
     address: str | None = None
     tobac_num: int | None = None
     purchased_weight: float | None = None
+    buyer_id: int | None = None
 
 class TobaccoItem(BaseModel):
     t_id: int

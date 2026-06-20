@@ -13,6 +13,7 @@ export interface MemberFarmerItem {
   purchased_weight?: number;
   represent_id?: number;
   represent_name?: string;
+  buyer_id?: number;
 }
 
 export interface SackRegistrationItem {

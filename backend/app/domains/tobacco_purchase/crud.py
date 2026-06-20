@@ -474,6 +474,33 @@ async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorIt
             address=r[0].address,
             tobac_num=r[1],
             purchased_weight=r[2],
+            buyer_id=buyer_id,
+        )
+        for r in rows
+    ]
+
+
+async def search_vendors(db: AsyncSession, search: str, limit: int = 20) -> List[VendorItem]:
+    pattern = f"%{search}%"
+    statement = (
+        select(MemberFarmer, Represent.p_id)
+        .join(Represent, col(MemberFarmer.represent) == col(Represent.represent_id))
+        .where(Represent.do_not_show == 0)
+        .where(MemberFarmer.active == "YES")
+        .where(
+            col(MemberFarmer.name).ilike(pattern) | col(MemberFarmer.mf_code).ilike(pattern)
+        )
+        .limit(limit)
+    )
+    result = await db.execute(statement)
+    rows = result.all()
+    return [
+        VendorItem(
+            mf_id=r[0].mf_id,
+            name=r[0].name,
+            mf_code=r[0].mf_code,
+            address=r[0].address,
+            buyer_id=r[1],
         )
         for r in rows
     ]

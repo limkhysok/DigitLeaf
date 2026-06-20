@@ -80,6 +80,18 @@ export const tobaccoPurchaseApi = {
     return response.json();
   },
 
+  async searchVendors(accessToken: string, search: string): Promise<MemberFarmerItem[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/tobacco-purchases/vendors?search=${encodeURIComponent(search)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to search vendors");
+    }
+    return response.json();
+  },
+
   async getVendorSack(accessToken: string, vendorId: number): Promise<{ sack_in_kg: number | null; total_sack_in_kg?: number }> {
     const response = await fetch(
       `${API_BASE_URL}/tobacco-purchases/vendor-sack?vendor_id=${vendorId}`,

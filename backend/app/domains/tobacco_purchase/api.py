@@ -75,12 +75,17 @@ async def get_vendor_sack(
 
 
 @router.get("/vendors", response_model=List[schemas.VendorItem])
-async def list_vendors_by_buyer(
-    buyer_id: int,
+async def list_vendors(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    buyer_id: Optional[int] = None,
+    search: Optional[str] = None,
 ):
-    return await crud.get_vendors_by_buyer(db=session, buyer_id=buyer_id)
+    if buyer_id is not None:
+        return await crud.get_vendors_by_buyer(db=session, buyer_id=buyer_id)
+    if search and len(search.strip()) >= 2:
+        return await crud.search_vendors(db=session, search=search.strip())
+    raise HTTPException(status_code=400, detail="Provide buyer_id or search (min 2 characters)")
 
 
 @router.post("/", response_model=Optional[schemas.Purchase], status_code=201)
