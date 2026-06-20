@@ -75,9 +75,8 @@ export function RepayExportButton({ token }: Readonly<RepayExportButtonProps>) {
     enabled: !!token,
   })
 
-  const range = preset === "custom"
-    ? (customFrom && customTo ? { from: customFrom, to: customTo } : null)
-    : presetToRange(preset, today)
+  const customRange = customFrom && customTo ? { from: customFrom, to: customTo } : null
+  const range = preset === "custom" ? customRange : presetToRange(preset, today)
 
   const handleExport = async () => {
     if (!token || !range) return
@@ -86,7 +85,7 @@ export function RepayExportButton({ token }: Readonly<RepayExportButtonProps>) {
       const fromYMD = toLocalYMD(range.from)
       const toYMD = toLocalYMD(range.to)
       const blob = await apiClient.exportTobaccoRepayHistory(token, {
-        representativeId: representId !== ALL_REPRESENTATIVES ? Number(representId) : undefined,
+        representativeId: representId === ALL_REPRESENTATIVES ? undefined : Number(representId),
         dateFrom: fromYMD,
         dateTo: toYMD,
       })
