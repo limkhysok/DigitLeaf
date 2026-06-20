@@ -1,3 +1,5 @@
+import type { RepayHistoryDetail } from "./tobacco-repay";
+
 export interface PurchaserItem {
   p_id: number;
   p_name: string;
@@ -92,6 +94,11 @@ export interface TobaccoPurchaseCreate {
   rate: number;
   details: TobaccoPurchaseDetail[];
   returns?: TobaccoRepayCreate[];
+}
+
+export interface TobaccoPurchaseCreateResponse {
+  purchase: TobaccoPurchase | null;
+  repays: RepayHistoryDetail[];
 }
 
 export interface TobaccoPurchaseListResponse {

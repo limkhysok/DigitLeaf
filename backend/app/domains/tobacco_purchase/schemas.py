@@ -2,6 +2,7 @@ from typing import Any
 from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from .constants import ClosingStatus
+from app.domains.tobacco_repay.schemas import RepayHistoryDetail
 
 # ── Vendor (Member Farmer by Buyer) ──────────────────────────────────────
 
@@ -163,6 +164,12 @@ class PurchaseList(BaseModel):
     items: list[PurchaseListItem]
     total: int
     has_more: bool
+
+class PurchaseCreateResponse(BaseModel):
+    """Result of a combined purchase/repay submission. `purchase` is None when the
+    invoice only contained repay items (no tobacco_purchase row is created for those)."""
+    purchase: Purchase | None = None
+    repays: list[RepayHistoryDetail] = []
 
 class FormMetadataResponse(BaseModel):
     purchasers: list[Any]

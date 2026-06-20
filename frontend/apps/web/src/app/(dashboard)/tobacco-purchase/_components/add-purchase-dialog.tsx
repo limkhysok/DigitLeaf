@@ -15,6 +15,7 @@
     TobaccoRepayCreate,
     ConTobaccoItem,
     VendorContractItem,
+    RepayHistoryDetail,
   } from "@/services/api-client"
   import { useQuery } from "@tanstack/react-query"
   import { useDebounce } from "use-debounce"
@@ -44,6 +45,7 @@
     IconPackage,
   } from "@tabler/icons-react"
   import { printInvoice } from "./invoice-print"
+  import { printRepayInvoice } from "../../tobacco-repay/_components/repay-invoice-print"
   import { ReturnDetailCard, ReturnDetailDesktopCard, type ReturnItemType } from "./return-cards"
   import { format } from "date-fns"
   import { Button } from "@workspace/ui/components/button"
@@ -886,8 +888,14 @@
       }
     }, [buyer, vendor, v_addr, region, tpDate, tpNote, oven, rate, details, returns])
 
-    const handlePostSavePrint = React.useCallback(async (savedRecord: TobaccoPurchase | null, shouldPrint: boolean) => {
-      if ((shouldPrint || printAfterSave) && savedRecord) {
+    const handlePostSavePrint = React.useCallback(async (
+      savedRecord: TobaccoPurchase | null,
+      savedRepays: RepayHistoryDetail[],
+      shouldPrint: boolean
+    ) => {
+      if (!shouldPrint && !printAfterSave) return
+
+      if (savedRecord) {
         if (onPrint) {
           const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id))
           setVendorSearch(selectedV ? `${selectedV.name} | ${selectedV.mf_code}` : "")
@@ -896,6 +904,10 @@
           const selectedV = vendors.find(v => String(v.mf_id) === String(savedRecord?.vendor_id))
           await printInvoice({ record: savedRecord, purchasers, regions, ovens, tobaccoTypes, mfCode: selectedV?.mf_code })
         }
+      }
+
+      for (const repay of savedRepays) {
+        await printRepayInvoice({ record: repay })
       }
     }, [printAfterSave, onPrint, vendors, purchasers, regions, ovens, tobaccoTypes])
 
@@ -909,16 +921,19 @@
       try {
         const payload = buildPayload()
         let savedRecord: TobaccoPurchase | null = null
+        let savedRepays: RepayHistoryDetail[] = []
         if (initialData?.tp_id) {
           savedRecord = await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
           toast.success("Purchase updated successfully")
         } else {
-          savedRecord = await apiClient.createTobaccoPurchase(accessToken, payload)
+          const result = await apiClient.createTobaccoPurchase(accessToken, payload)
+          savedRecord = result.purchase
+          savedRepays = result.repays
           toast.success(savedRecord ? "Purchase recorded successfully" : "Repay recorded successfully")
         }
         onSuccess()
         onClose()
-        await handlePostSavePrint(savedRecord, shouldPrint)
+        await handlePostSavePrint(savedRecord, savedRepays, shouldPrint)
       } catch (err) {
         toast.error((err as Error).message)
       } finally {

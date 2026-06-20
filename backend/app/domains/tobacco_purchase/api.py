@@ -86,7 +86,7 @@ async def list_vendors(
     return await crud.search_vendors(db=session, search=search or "")
 
 
-@router.post("/", response_model=Optional[schemas.Purchase], status_code=201)
+@router.post("/", response_model=schemas.PurchaseCreateResponse, status_code=201)
 async def create_purchase(
     data: schemas.PurchaseCreate,
     request: Request,
@@ -95,13 +95,12 @@ async def create_purchase(
 ):
     ip_address = request.client.host if request.client else "unknown"
     try:
-        purchase = await crud.create_purchase(
+        return await crud.create_purchase(
             db=session,
             obj_in=data,
             user_name=current_user.user_name,
             ip_address=ip_address,
         )
-        return purchase
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

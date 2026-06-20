@@ -10,8 +10,9 @@ from app.domains.farmers.models import Represent, MemberFarmer
 from app.domains.farmer_contract.models import MfConYear
 from app.domains.tobacco_repay.models.t_contract import TContract
 from app.domains.tobacco_repay.models.t_contract_repay import TContractRepay
-from app.domains.tobacco_repay.crud import generate_repay_num
-from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate
+from app.domains.tobacco_repay.crud import generate_repay_num, get_repay_detail
+from app.domains.tobacco_repay.schemas import RepayHistoryDetail
+from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate, PurchaseCreateResponse
 from datetime import datetime
 
 from app.core.config import CAMBODIA_TZ
@@ -232,20 +233,21 @@ async def _sync_purchase_returns(
     tp_note: Optional[str],
     user_name: str,
     ip_address: str,
-) -> None:
+) -> List[int]:
     """Persist tobacco repay entries. These are standalone t_contract_repay rows
     (no FK to tobacco_purchase) so they can be created with or without an
     accompanying purchase invoice. Each repay num must be generated and flushed
     one at a time so the next sequence read sees the row just inserted in this
-    same transaction."""
+    same transaction. Returns the created repay_ids so callers can print receipts."""
     if not returns:
-        return
+        return []
+    repay_ids: List[int] = []
     for return_in in returns:
         contract = await db.get(TContract, return_in.con_id)
         if not contract:
             raise ValueError(f"Contract id {return_in.con_id} not found")
         repay_num = await generate_repay_num(db)
-        db.add(TContractRepay(
+        repay_obj = TContractRepay(
             con_id=return_in.con_id,
             con_num=contract.con_num,
             f_id=contract.f_id,
@@ -257,8 +259,21 @@ async def _sync_purchase_returns(
             user=user_name,
             do_date=datetime.now(CAMBODIA_TZ),
             ip_address=ip_address,
-        ))
+        )
+        db.add(repay_obj)
         await db.flush()
+        assert repay_obj.repay_id is not None
+        repay_ids.append(repay_obj.repay_id)
+    return repay_ids
+
+
+async def _get_repay_details(db: AsyncSession, repay_ids: List[int]) -> List[RepayHistoryDetail]:
+    details: List[RepayHistoryDetail] = []
+    for repay_id in repay_ids:
+        detail = await get_repay_detail(db, repay_id)
+        if detail:
+            details.append(RepayHistoryDetail(**detail))
+    return details
 
 
 async def create_purchase(
@@ -266,16 +281,16 @@ async def create_purchase(
     obj_in: PurchaseCreate,
     user_name: str,
     ip_address: str,
-) -> Optional[TobaccoPurchase]:
+) -> PurchaseCreateResponse:
     if not obj_in.details:
         # No purchase items were submitted — this is a repay-only invoice, so we
         # don't touch tobacco_purchase / tobacco_purchase_detail at all (and don't
         # burn an invoice number). Only t_contract_repay rows are created.
-        await _sync_purchase_returns(
+        repay_ids = await _sync_purchase_returns(
             db, obj_in.returns, obj_in.tp_date, obj_in.oven, obj_in.tp_note, user_name, ip_address
         )
         await db.commit()
-        return None
+        return PurchaseCreateResponse(purchase=None, repays=await _get_repay_details(db, repay_ids))
 
     invoice_num = await generate_invoice_num(db)
     db_obj = TobaccoPurchase(
@@ -290,12 +305,13 @@ async def create_purchase(
     assert db_obj.tp_id is not None
 
     await _sync_purchase_details(db, db_obj, obj_in.details, user_name, ip_address)
-    await _sync_purchase_returns(
+    repay_ids = await _sync_purchase_returns(
         db, obj_in.returns, db_obj.tp_date, db_obj.oven, db_obj.tp_note, user_name, ip_address
     )
 
     await db.commit()
-    return await get_purchase(db, db_obj.tp_id)
+    purchase = await get_purchase(db, db_obj.tp_id)
+    return PurchaseCreateResponse(purchase=purchase, repays=await _get_repay_details(db, repay_ids))
 
 
 async def get_purchase(db: AsyncSession, tp_id: int) -> Optional[TobaccoPurchase]:
