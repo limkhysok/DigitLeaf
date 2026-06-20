@@ -83,9 +83,7 @@ async def list_vendors(
 ):
     if buyer_id is not None:
         return await crud.get_vendors_by_buyer(db=session, buyer_id=buyer_id)
-    if search and len(search.strip()) >= 2:
-        return await crud.search_vendors(db=session, search=search.strip())
-    raise HTTPException(status_code=400, detail="Provide buyer_id or search (min 2 characters)")
+    return await crud.search_vendors(db=session, search=search or "")
 
 
 @router.post("/", response_model=Optional[schemas.Purchase], status_code=201)

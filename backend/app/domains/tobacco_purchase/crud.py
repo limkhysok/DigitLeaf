@@ -335,6 +335,17 @@ async def get_purchases(
         .scalar_subquery()
     )
 
+    # A vendor can have multiple MfConYear rows for the same year (one per tobacco
+    # type), so joining directly would fan out and duplicate purchase rows. Use an
+    # EXISTS semi-join instead — it filters without multiplying rows.
+    has_current_year_contract = (
+        select(MfConYear.mf_con_id)
+        .where(col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
+        .where(MfConYear.year == current_year)
+        .correlate(TobaccoPurchase)
+        .exists()
+    )
+
     # Data query: vendor_name from an outer join instead of a separate selectinload batch.
     # Annotated as Any because col(...).label(...) on Optional columns produces Label[Unknown]
     # in Pylance — the underlying SQLAlchemy expression is correct at runtime.
@@ -344,16 +355,14 @@ async def get_purchases(
             col(MemberFarmer.name).label("vendor_name"),  # type: ignore[arg-type]
             detail_count_subq.label("detail_count"),
         )
-        .join(MfConYear, col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
         .outerjoin(MemberFarmer, col(TobaccoPurchase.vendor_id) == col(MemberFarmer.mf_id))
-        .where(MfConYear.year == current_year)
+        .where(has_current_year_contract)
     )
 
     # Count query: selects only tp_id — no correlated subqueries, no extra columns.
     count_base = (
         select(TobaccoPurchase.tp_id)
-        .join(MfConYear, col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
-        .where(MfConYear.year == current_year)
+        .where(has_current_year_contract)
     )
 
     if search:
@@ -480,18 +489,25 @@ async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorIt
     ]
 
 
-async def search_vendors(db: AsyncSession, search: str, limit: int = 20) -> List[VendorItem]:
-    pattern = f"%{search}%"
+async def search_vendors(db: AsyncSession, search: str = "", limit: int = 20) -> List[VendorItem]:
+    current_year = datetime.now(CAMBODIA_TZ).year
+
     statement = (
-        select(MemberFarmer, Represent.p_id)
+        select(MemberFarmer, Represent.p_id, MfConYear.tobac_num)
         .join(Represent, col(MemberFarmer.represent) == col(Represent.represent_id))
+        .join(MfConYear, col(MfConYear.mf_id) == col(MemberFarmer.mf_id))
         .where(Represent.do_not_show == 0)
         .where(MemberFarmer.active == "YES")
-        .where(
+        .where(col(Represent.p_id).is_not(None))
+        .where(MfConYear.year == current_year)
+    )
+    search = search.strip()
+    if search:
+        pattern = f"%{search}%"
+        statement = statement.where(
             col(MemberFarmer.name).ilike(pattern) | col(MemberFarmer.mf_code).ilike(pattern)
         )
-        .limit(limit)
-    )
+    statement = statement.order_by(col(MemberFarmer.name)).limit(limit)
     result = await db.execute(statement)
     rows = result.all()
     return [
@@ -500,6 +516,7 @@ async def search_vendors(db: AsyncSession, search: str, limit: int = 20) -> List
             name=r[0].name,
             mf_code=r[0].mf_code,
             address=r[0].address,
+            tobac_num=r[2],
             buyer_id=r[1],
         )
         for r in rows

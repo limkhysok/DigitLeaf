@@ -247,12 +247,9 @@
       )
     }
     if (vendors.length === 0) {
-      const message = vendorSearch.trim().length < 2
-        ? "Type at least 2 characters to search vendors"
-        : "No vendors found"
       return (
         <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
-          {message}
+          No vendors found
         </div>
       )
     }
@@ -334,7 +331,7 @@
     const { data: searchedVendors = [], isLoading: isVendorSearchLoading } = useQuery({
       queryKey: ["vendorSearch", debouncedVendorSearch],
       queryFn: () => apiClient.searchVendors(accessToken, debouncedVendorSearch),
-      enabled: !!accessToken && debouncedVendorSearch.trim().length >= 2,
+      enabled: !!accessToken && isVendorOpen,
     })
 
     const vendorListItems = searchedVendors
