@@ -285,16 +285,16 @@ async def delete_repay(db: AsyncSession, repay_id: int) -> bool:
 
 
 async def get_con_tobacco_types(db: AsyncSession) -> list[dict[str, Any]]:
-    stmt = (
-        select(
-            col(ConTobacco.t_id).label("t_id"),
-            col(ConTobacco.tobacco).label("tobacco"),
-            col(TobaccoGroup.id).label("group_id"),
-            col(TobaccoGroup.name).label("group_name"),
+    stmt = cast(Select[Any], (
+        select(  # type: ignore[call-overload]
+            col(ConTobacco.t_id).label("t_id"),  # type: ignore[arg-type]
+            col(ConTobacco.tobacco).label("tobacco"),  # type: ignore[arg-type]
+            col(TobaccoGroup.id).label("group_id"),  # type: ignore[arg-type]
+            col(TobaccoGroup.name).label("group_name"),  # type: ignore[arg-type]
         )
         .outerjoin(TobaccoGroup, sa_cast(ConTobacco.tobacco_type, Integer) == TobaccoGroup.id)  # type: ignore[arg-type]
         .order_by(col(TobaccoGroup.name), col(ConTobacco.tobacco))
-    )
+    ))
     result = await db.execute(stmt)
     rows = result.all()
     return [
@@ -381,18 +381,18 @@ async def get_vendor_contracts(db: AsyncSession, vendor_id: int) -> list[dict[st
         .group_by(TContractRepay.con_id)  # type: ignore[arg-type]
     ).subquery()
 
-    stmt = (
-        select(
+    stmt = cast(Select[Any], (
+        select(  # type: ignore[call-overload]
             TContract,
-            ConTobacco.tobacco,
-            TobaccoGroup.name.label("group_name"),
+            col(ConTobacco.tobacco).label("tobacco"),  # type: ignore[arg-type]
+            col(TobaccoGroup.name).label("group_name"),  # type: ignore[arg-type]
             func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_returned")
         )
         .where(TContract.contractor == mf.name)
         .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
         .outerjoin(TobaccoGroup, sa_cast(ConTobacco.tobacco_type, Integer) == TobaccoGroup.id)  # type: ignore[arg-type]
         .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)  # type: ignore[arg-type]
-    )
+    ))
     result = await db.execute(stmt)
     rows = result.all()
 
@@ -412,12 +412,21 @@ async def get_tobacco_repay_history(
     skip: int = 0,
     limit: int = 20,
     year: int | None = None,
+    representative_id: int | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
 ) -> dict[str, Any]:
-    year_filter = (
-        MfConYear.year == year
-        if year is not None
-        else MfConYear.year == func.year(func.curdate()) - 1
-    )
+    filters: list[Any] = []
+    if year is not None:
+        filters.append(MfConYear.year == year)
+    if representative_id is not None:
+        filters.append(Represent.represent_id == representative_id)
+    if date_from is not None:
+        filters.append(col(TContractRepay.repay_date) >= date_from)
+    if date_to is not None:
+        filters.append(col(TContractRepay.repay_date) <= date_to)
+    if not filters:
+        filters.append(MfConYear.year == func.year(func.curdate()) - 1)
 
     count_stmt = (
         select(func.count(col(TContractRepay.repay_id)))
@@ -427,7 +436,8 @@ async def get_tobacco_repay_history(
             (MfConYear.mf_id == TContract.f_id)  # type: ignore[arg-type]
             & (MfConYear.year == func.year(TContract.con_date)),
         )
-        .where(year_filter)
+        .outerjoin(Represent, TContract.represent == Represent.represent_id)  # type: ignore[arg-type]
+        .where(*filters)
     )
     total = await db.scalar(count_stmt) or 0
 
@@ -454,7 +464,7 @@ async def get_tobacco_repay_history(
         )
         .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
         .outerjoin(Represent, TContract.represent == Represent.represent_id)  # type: ignore[arg-type]
-        .where(year_filter)
+        .where(*filters)
         .order_by(col(TContractRepay.repay_date).desc(), col(TContractRepay.repay_id).desc())
         .limit(limit)
         .offset(skip)
@@ -479,3 +489,35 @@ async def get_tobacco_repay_history(
         for row in rows
     ]
     return {"items": items, "total": total}
+
+
+async def get_repay_report_data(
+    db: AsyncSession,
+    representative_id: int | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    limit: int = 10_000,
+) -> dict[str, Any]:
+    """Assemble header info + one row per repay record for the repay history report."""
+    result = await get_tobacco_repay_history(
+        db,
+        skip=0,
+        limit=limit,
+        representative_id=representative_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+    representative = None
+    if representative_id is not None:
+        represent = await db.get(Represent, representative_id)
+        representative = represent.represent_name if represent else None
+
+    return {
+        "representative": representative,
+        "date_from": date_from,
+        "date_to": date_to,
+        "report_date": datetime.now(CAMBODIA_TZ).date(),
+        "rows": result["items"],
+        "total": result["total"],
+    }

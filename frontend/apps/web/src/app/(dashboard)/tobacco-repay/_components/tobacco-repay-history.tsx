@@ -13,8 +13,6 @@ import {
   IconPencil,
   IconTrash,
   IconPrinter,
-  IconFileExport,
-  IconFileSpreadsheet,
   IconFileTypePdf,
 } from "@tabler/icons-react"
 import {
@@ -52,7 +50,7 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { RepayRecordDialog, RepayRecordDialogMode } from "./repay-record-dialog"
 import { printRepayInvoice, downloadRepayInvoicePdf } from "./repay-invoice-print"
-import { downloadRepayHistoryPdf } from "./repay-history-print"
+import { RepayExportButton } from "./repay-export-button"
 
 const PAGE_SIZE = 20
 
@@ -126,50 +124,6 @@ export function TobaccoRepayHistory({
     },
     onError: (err: Error) => {
       toast.error(err.message || "Failed to load repay record for download")
-    },
-  })
-
-  const { mutate: exportHistory, isPending: isExporting } = useMutation({
-    mutationFn: () => apiClient.exportTobaccoRepayHistory(token, { year: selectedYear }),
-    onSuccess: (blob) => {
-      const url = globalThis.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `tobacco_repay_history_${selectedYear}.xlsx`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      globalThis.URL.revokeObjectURL(url)
-    },
-    onError: (err: Error) => {
-      toast.error(err.message || "Failed to export repay history")
-    },
-  })
-
-  const { mutate: downloadPdf, isPending: isDownloadingPdf } = useMutation({
-    mutationFn: async () => {
-      const items: RepayHistoryItem[] = []
-      let page = 1
-      let hasMore = true
-      while (hasMore) {
-        const res = await apiClient.getTobaccoRepayHistory(token, {
-          page,
-          limit: 200,
-          year: selectedYear,
-        })
-        items.push(...res.items)
-        hasMore = res.has_more
-        page += 1
-      }
-      return items
-    },
-    onSuccess: (items) => {
-      downloadRepayHistoryPdf({ items, year: selectedYear }).catch(() =>
-        toast.error("Failed to generate PDF")
-      )
-    },
-    onError: (err: Error) => {
-      toast.error(err.message || "Failed to load repay history for PDF")
     },
   })
 
@@ -247,6 +201,7 @@ export function TobaccoRepayHistory({
               ))}
             </PopoverContent>
           </Popover>
+          <RepayExportButton token={token} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Input
@@ -255,24 +210,6 @@ export function TobaccoRepayHistory({
             onChange={(e) => setSearchInput(e.target.value)}
             className="rounded-md h-8 w-64 text-xs placeholder:text-sm bg-white"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" disabled={isExporting || isDownloadingPdf} className="h-8 px-2 flex gap-1.5 rounded-sm bg-white">
-                {(isExporting || isDownloadingPdf) ? <IconLoader2 className="h-4 w-4 animate-spin" /> : <IconFileExport className="h-4 w-4" />}
-                <span className="hidden sm:inline">Export</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={() => exportHistory()} disabled={isExporting}>
-                <IconFileSpreadsheet className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                Export to Excel
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => downloadPdf()} disabled={isDownloadingPdf}>
-                <IconFileTypePdf className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                Download as PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button size="sm" onClick={handleAdd} className="h-8 px-2 flex gap-1.5 rounded-sm">
             <IconCirclePlusFilled className="h-4 w-4" />
             <span className="hidden sm:inline">Add</span>

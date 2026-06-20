@@ -1,14 +1,14 @@
 from typing import Annotated
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-import io
-import openpyxl
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
 from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate
 from app.domains.tobacco_repay import crud
+from app.domains.tobacco_repay.report import build_tobacco_repay_template
 
 router = APIRouter()
 
@@ -51,52 +51,33 @@ async def read_tobacco_repay_history(
 async def export_tobacco_repay_history(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    year: int | None = Query(None),
+    representative_id: int | None = Query(None),
+    date_from: date = Query(...),
+    date_to: date = Query(...),
 ):
     _EXPORT_LIMIT = 10_000
-    result = await crud.get_tobacco_repay_history(session, skip=0, limit=_EXPORT_LIMIT, year=year)
-    items = result["items"]
-    total = result["total"]
-    if total > _EXPORT_LIMIT:
+    data = await crud.get_repay_report_data(
+        session,
+        representative_id=representative_id,
+        date_from=date_from,
+        date_to=date_to,
+        limit=_EXPORT_LIMIT,
+    )
+    if data["total"] > _EXPORT_LIMIT:
         raise HTTPException(
             status_code=400,
-            detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({total:,} matched). Apply filters to narrow the result.",
+            detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({data['total']:,} matched). Apply filters to narrow the result.",
         )
 
-    wb = openpyxl.Workbook()
-    ws = wb.worksheets[0]
-    ws.title = "Repay History"
+    stream = build_tobacco_repay_template(
+        representative=data["representative"],
+        date_from=data["date_from"],
+        date_to=data["date_to"],
+        report_date=data["report_date"],
+        rows=data["rows"],
+    )
 
-    headers = ["No.", "Repay No.", "Contract No.", "Representative", "Farmer", "Tobacco", "Quantity (KG)", "Year", "Date", "Note", "Recorded By"]
-    ws.append(headers)
-
-    total_qty = 0.0
-    for idx, item in enumerate(items, start=1):
-        qty = item.get("qty_repay") or 0.0
-        total_qty += qty
-        repay_date = item.get("repay_date")
-        ws.append([
-            idx,
-            item.get("repay_num"),
-            item.get("con_num"),
-            item.get("representative"),
-            item.get("farmer_name"),
-            item.get("tobacco_type"),
-            qty,
-            item.get("contract_year"),
-            repay_date.strftime("%Y-%m-%d") if repay_date else None,
-            item.get("note"),
-            item.get("user"),
-        ])
-
-    ws.append([])
-    ws.append(["", "", "", "", "", "Total:", total_qty, "", "", "", ""])
-
-    stream = io.BytesIO()
-    wb.save(stream)
-    stream.seek(0)
-
-    filename = f"tobacco_repay_history_{year}.xlsx" if year else "tobacco_repay_history.xlsx"
+    filename = f"tobacco_repay_history_{date_from}_{date_to}.xlsx"
     return StreamingResponse(
         stream,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

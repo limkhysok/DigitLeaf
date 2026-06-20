@@ -39,10 +39,10 @@ export const tobaccoRepayApi = {
   },
   exportTobaccoRepayHistory: async (
     token: string,
-    params: { year?: string } = {}
+    params: { representativeId?: number; dateFrom: string; dateTo: string }
   ): Promise<Blob> => {
-    const query = new URLSearchParams();
-    if (params.year) query.set("year", params.year);
+    const query = new URLSearchParams({ date_from: params.dateFrom, date_to: params.dateTo });
+    if (params.representativeId) query.set("representative_id", String(params.representativeId));
     const res = await fetch(`${BASE_URL}/tobacco-repays/history/export?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
