@@ -15,6 +15,11 @@ function formatTobaccoLabel(t: Readonly<{ tobacco?: string | null; group_name?: 
   return `${t.group_name ?? "-"} | ${t.tobacco ?? ""}`
 }
 
+function isContractRepayable(c: VendorContractItem): boolean {
+  if (typeof c.qty !== "number") return true
+  return c.qty - (c.total_returned ?? 0) > 0
+}
+
 interface ReturnCardProps {
   item: ReturnItemType
   index: number
@@ -41,6 +46,21 @@ export const ReturnDetailCard = React.memo(({
     vendorContracts.find(c => c.con_id === item.con_id),
     [vendorContracts, item.con_id])
 
+  const repayableContracts = React.useMemo(() =>
+    vendorContracts.filter(isContractRepayable),
+    [vendorContracts])
+
+  React.useEffect(() => {
+    if (item.con_id || repayableContracts.length !== 1) return
+    const only = repayableContracts[0]
+    if (!only) return
+    onChange(index, "con_id", only.con_id)
+    onChange(index, "con_num", only.con_num)
+    if (only.tobac_type) {
+      onChange(index, "tobac_type", only.tobac_type)
+    }
+  }, [repayableContracts, item.con_id, index, onChange])
+
   React.useEffect(() => {
     if (selectedContract?.tobacco) {
       setSearchTobac(formatTobaccoLabel(selectedContract))
@@ -62,9 +82,16 @@ export const ReturnDetailCard = React.memo(({
     setSearchCon(item.con_num || "")
   }, [item.con_num])
 
-  const remainingText = selectedContract?.qty
-    ? ` (${selectedContract.qty} / ${selectedContract.total_returned || 0} Left)`
-    : ""
+  const contractQty = selectedContract?.qty
+  const remaining = typeof contractQty === "number"
+    ? contractQty - (selectedContract?.total_returned ?? 0)
+    : null
+  const isFullyRepaid = typeof remaining === "number" && remaining <= 0
+
+  let remainingText = ""
+  if (typeof contractQty === "number") {
+    remainingText = isFullyRepaid ? " (Completed)" : ` (${contractQty} / ${remaining} Left)`
+  }
 
   return (
     <div className="border-b border-l border-r border-black/40 overflow-hidden relative">
@@ -124,9 +151,9 @@ export const ReturnDetailCard = React.memo(({
                 }}
               >
                 <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
-                  {vendorContracts.length === 0 ? (
+                  {repayableContracts.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
-                  ) : vendorContracts
+                  ) : repayableContracts
                     .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
                     .map((c) => (
                       <button
@@ -231,13 +258,13 @@ export const ReturnDetailCard = React.memo(({
           {/* col2 row2 — Repay */}
           <div className="min-w-0 space-y-1 md:w-[30%]">
             <Label className="text-sm font-medium text-foreground block">
-              Repay<span className="text-sm font-medium text-muted-foreground">{remainingText}</span>
+              Repay<span className={cn("text-sm font-medium", isFullyRepaid ? "text-red-500" : "text-muted-foreground")}>{remainingText}</span>
             </Label>
             <div className="relative">
               <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
                 className="h-8 text-sm rounded-sm font-bold bg-white border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
-                value={item.qty_repay ?? ""} disabled={isReadOnly}
+                value={item.qty_repay ?? ""} disabled={isReadOnly || isFullyRepaid}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
               <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
@@ -279,6 +306,21 @@ export const ReturnDetailDesktopCard = React.memo(({
     vendorContracts.find(c => c.con_id === item.con_id),
     [vendorContracts, item.con_id])
 
+  const repayableContracts = React.useMemo(() =>
+    vendorContracts.filter(isContractRepayable),
+    [vendorContracts])
+
+  React.useEffect(() => {
+    if (item.con_id || repayableContracts.length !== 1) return
+    const only = repayableContracts[0]
+    if (!only) return
+    onChange(index, "con_id", only.con_id)
+    onChange(index, "con_num", only.con_num)
+    if (only.tobac_type) {
+      onChange(index, "tobac_type", only.tobac_type)
+    }
+  }, [repayableContracts, item.con_id, index, onChange])
+
   React.useEffect(() => {
     if (selectedContract?.tobacco) {
       setSearchTobac(formatTobaccoLabel(selectedContract))
@@ -300,9 +342,16 @@ export const ReturnDetailDesktopCard = React.memo(({
     setSearchCon(item.con_num || "")
   }, [item.con_num])
 
-  const remainingText = selectedContract?.qty
-    ? `(${selectedContract.qty} / ${selectedContract.total_returned || 0} Left)`
-    : ""
+  const contractQty = selectedContract?.qty
+  const remaining = typeof contractQty === "number"
+    ? contractQty - (selectedContract?.total_returned ?? 0)
+    : null
+  const isFullyRepaid = typeof remaining === "number" && remaining <= 0
+
+  let remainingText = ""
+  if (typeof contractQty === "number") {
+    remainingText = isFullyRepaid ? "(Completed)" : `(${contractQty} / ${remaining} Left)`
+  }
 
   return (
     <div className={cn(
@@ -349,9 +398,9 @@ export const ReturnDetailDesktopCard = React.memo(({
                 }}
               >
                 <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
-                  {vendorContracts.length === 0 ? (
+                  {repayableContracts.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
-                  ) : vendorContracts
+                  ) : repayableContracts
                     .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
                     .map((c) => (
                       <button
@@ -450,13 +499,13 @@ export const ReturnDetailDesktopCard = React.memo(({
 
           <div className="flex-1 space-y-1">
             <Label className="text-sm">
-              Repay<span className="text-sm">{remainingText}</span>
+              Repay<span className={cn("text-sm", isFullyRepaid ? "text-red-500 font-medium" : "")}>{remainingText}</span>
             </Label>
             <div className="relative">
               <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="0.01"
                 className="h-8 text-sm rounded-sm font-semibold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
-                value={item.qty_repay ?? ""} disabled={isReadOnly}
+                value={item.qty_repay ?? ""} disabled={isReadOnly || isFullyRepaid}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
               <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Kg</span>

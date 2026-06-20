@@ -667,8 +667,10 @@
     const vendorListItems = searchedVendors
     const isVendorListLoading = isVendorSearchLoading
 
-    // Synchronize vendor search text when vendors load (e.g. on edit mode populate)
+    // Synchronize vendor search text when vendors load (e.g. on edit mode populate).
+    // Skipped while the popover is open so it never fights with the user actively editing the text.
     React.useEffect(() => {
+      if (isVendorOpen) return
       if (vendor && vendors.length > 0 && vendorSearch && !vendorSearch.includes("|")) {
         const match = vendors.find(v => String(v.mf_id) === String(vendor))
         if (match) {
@@ -676,7 +678,7 @@
           return () => clearTimeout(t)
         }
       }
-    }, [vendor, vendors, vendorSearch])
+    }, [vendor, vendors, vendorSearch, isVendorOpen])
 
     const resetForm = React.useCallback(() => {
       setBuyer("")
@@ -1243,7 +1245,7 @@
                   </div>
 
                   {/* Exchange Rate */}
-                  <div className="lg:col-span-1 lg:order-9 space-y-1.5">
+                  <div className="lg:col-span-1 lg:order-8 space-y-1.5">
                     <Label className="text-sm">Exchange Rate</Label>
                     <div className="relative group">
                       <IconCashPlus className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
@@ -1260,7 +1262,7 @@
                   </div>
 
                   {/* Remark */}
-                  <div className="md:col-span-1 lg:col-span-1 lg:order-8 space-y-1.5">
+                  <div className="md:col-span-1 lg:col-span-1 lg:order-9 space-y-1.5">
                     <Label className="text-sm">Remark (Optional)</Label>
                     <div className="relative">
                       <IconNote className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
