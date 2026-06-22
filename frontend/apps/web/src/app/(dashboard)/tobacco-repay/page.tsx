@@ -18,6 +18,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { TobaccoRepayHistory } from "./_components/tobacco-repay-history"
+import { ContractDetailDialog } from "./_components/contract-detail-dialog"
 
 const PAGE_SIZE = 20
 
@@ -45,6 +46,11 @@ export default function TobaccoRepayPage() {
     totalReturned: true,
   })
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
+
+  const [viewConId, setViewConId] = React.useState<number | null>(null)
+  const handleViewSummary = React.useCallback((rec: TobaccoRepayItem) => {
+    setViewConId(rec.id)
+  }, [])
 
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0)
@@ -138,7 +144,8 @@ export default function TobaccoRepayPage() {
     sortBy,
     sortOrder,
     onSort: handleColumnSort,
-  }), [sortBy, sortOrder, handleColumnSort])
+    onView: handleViewSummary,
+  }), [sortBy, sortOrder, handleColumnSort, handleViewSummary])
 
   const table = useReactTable({
     data: sortedRecords,
@@ -150,7 +157,7 @@ export default function TobaccoRepayPage() {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     enableRowSelection: true,
-    getRowId: (row, index) => row.id != null ? String(row.id) : String(index),
+    getRowId: (row, index) => row.id == null ? String(index) : String(row.id),
     getCoreRowModel: getCoreRowModel(),
     manualFiltering: true,
     manualSorting: true,
@@ -176,6 +183,13 @@ export default function TobaccoRepayPage() {
         token={tokens?.access_token ?? ""}
         record={selectedRecord}
         selectedYear={effectiveYear}
+      />
+
+      <ContractDetailDialog
+        open={viewConId !== null}
+        onOpenChange={(v) => { if (!v) setViewConId(null) }}
+        token={tokens?.access_token ?? ""}
+        conId={viewConId}
       />
 
       <Tabs defaultValue="summary" className="w-full">

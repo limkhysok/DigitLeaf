@@ -22,6 +22,28 @@ class TobaccoRepayListResponse(BaseModel):
     has_more: bool
 
 
+class ContractRepayDetailItem(BaseModel):
+    repay_id: int
+    repay_date: _date | None
+    repay_num: str | None
+    qty_repay: float | None
+    note: str | None
+    user: str | None
+
+
+class TobaccoRepayContractDetail(BaseModel):
+    id: int | None
+    contract_number: str | None
+    contract_contractor_name: str | None
+    representative: str | None
+    contract_year: int | None
+    farmer_name: str | None
+    tobacco_type: str | None
+    Quantity: float | None
+    total_repaid: float | None
+    repays: list[ContractRepayDetailItem]
+
+
 class TContractRepayCreate(BaseModel):
     con_id: int
     con_num: str

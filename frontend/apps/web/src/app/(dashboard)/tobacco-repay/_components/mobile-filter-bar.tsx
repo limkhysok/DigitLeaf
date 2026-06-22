@@ -92,9 +92,9 @@ export function MobileFilterBar({
                 </Popover>
               </div>
 
-              {/* Sort by Quantity */}
+              {/* Sort by Amount (kg) */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Quantity</span>
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Amount (kg)</span>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     onClick={() => { setSortBy("Quantity"); setSortOrder("asc") }}
@@ -112,6 +112,35 @@ export function MobileFilterBar({
                     className={cn(
                       "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
                       sortBy === "Quantity" && sortOrder === "desc"
+                        ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
+                        : "bg-muted/30 text-muted-foreground border-border"
+                    )}
+                  >
+                    <IconSortDescending className="size-3.5" /> Largest
+                  </button>
+                </div>
+              </div>
+
+              {/* Sort by Delivery (kg) */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Delivery (kg)</span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={() => { setSortBy("total_repaid"); setSortOrder("asc") }}
+                    className={cn(
+                      "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
+                      sortBy === "total_repaid" && sortOrder === "asc"
+                        ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
+                        : "bg-muted/30 text-muted-foreground border-border"
+                    )}
+                  >
+                    <IconSortAscending className="size-3.5" /> Smallest
+                  </button>
+                  <button
+                    onClick={() => { setSortBy("total_repaid"); setSortOrder("desc") }}
+                    className={cn(
+                      "flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs border transition-colors",
+                      sortBy === "total_repaid" && sortOrder === "desc"
                         ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20 font-medium"
                         : "bg-muted/30 text-muted-foreground border-border"
                     )}

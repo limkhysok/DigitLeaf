@@ -1,4 +1,4 @@
-import { TobaccoRepayListResponse, VendorContractItem, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate } from "../types";
+import { TobaccoRepayListResponse, VendorContractItem, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate, TobaccoRepayContractDetail } from "../types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api/v1";
 
@@ -123,6 +123,16 @@ export const tobaccoRepayApi = {
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to create contract");
+    }
+    return res.json();
+  },
+  getContractRepayDetail: async (token: string, conId: number): Promise<TobaccoRepayContractDetail> => {
+    const res = await fetch(`${BASE_URL}/tobacco-repays/contracts/${conId}/detail`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch contract detail");
     }
     return res.json();
   },

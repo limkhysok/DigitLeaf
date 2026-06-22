@@ -136,6 +136,8 @@ export function TobaccoRepayHistory({
     [data]
   )
 
+  const hasActiveSearch = searchInput.trim() !== ""
+
   const filteredRecords = React.useMemo(() => {
     const term = searchInput.trim().toLowerCase()
     if (!term) return allRecords
@@ -149,10 +151,10 @@ export function TobaccoRepayHistory({
 
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage && !hasActiveSearch) {
       fetchNextPage()
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [inView, hasNextPage, isFetchingNextPage, hasActiveSearch, fetchNextPage])
 
   const columns = React.useMemo(() => getColumns({
     onView: handleView,
@@ -251,7 +253,7 @@ export function TobaccoRepayHistory({
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="h-1" />
-      {isFetchingNextPage && (
+      {!hasActiveSearch && isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>

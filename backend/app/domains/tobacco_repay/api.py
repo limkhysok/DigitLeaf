@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.api.deps import get_current_user
 from app.domains.users.models import User
-from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate
+from app.domains.tobacco_repay.schemas import TobaccoRepayListResponse, TContractRepayCreate, TContractRepayRead, RepayHistoryListResponse, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate, TobaccoRepayContractDetail
 from app.domains.tobacco_repay import crud
 from app.domains.tobacco_repay.report import build_tobacco_repay_template
 
@@ -142,6 +142,18 @@ async def get_contracts(
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     return await crud.get_vendor_contracts(session, vendor_id)
+
+
+@router.get("/contracts/{con_id}/detail", response_model=TobaccoRepayContractDetail)
+async def read_contract_detail(
+    con_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    detail = await crud.get_contract_repay_detail(session, con_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    return detail
 
 
 @router.post("/contracts", response_model=TContractRead, status_code=201)

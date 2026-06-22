@@ -141,6 +141,82 @@ async def get_tobacco_repays(
     ]
     return {"items": items, "total": total}
 
+async def get_contract_repay_detail(db: AsyncSession, con_id: int) -> dict[str, Any] | None:
+    repay_subq = (
+        select(
+            TContractRepay.con_id,
+            func.sum(TContractRepay.qty_repay).label("total_qty_repay"),
+        )
+        .group_by(TContractRepay.con_id)  # type: ignore[arg-type]
+    ).subquery()
+
+    stmt = cast(Select[Any], (
+        select(  # type: ignore[call-overload]
+            col(TContract.con_id).label("id"),
+            col(TContract.con_num).label("contract_number"),
+            col(TContract.contractor).label("contract_contractor_name"),
+            col(Represent.represent_name).label("representative"),
+            col(MfConYear.year).label("contract_year"),
+            col(MemberFarmer.name).label("farmer_name"),
+            col(ConTobacco.tobacco).label("tobacco_type"),
+            col(TContract.qty).label("Quantity"),
+            func.coalesce(repay_subq.c.total_qty_repay, 0).label("total_repaid"),
+        )
+        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)  # type: ignore[arg-type]
+        .join(  # type: ignore[arg-type]
+            MfConYear,
+            (MfConYear.mf_id == TContract.f_id)
+            & (MfConYear.year == func.year(TContract.con_date)),
+        )
+        .outerjoin(Represent, TContract.represent == Represent.represent_id)  # type: ignore[arg-type]
+        .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
+        .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)  # type: ignore[arg-type]
+        .where(TContract.con_id == con_id)
+    ))
+    result = await db.execute(stmt)
+    row = result.first()
+    if not row:
+        return None
+
+    repays_stmt = cast(Select[Any], (
+        select(  # type: ignore[call-overload]
+            col(TContractRepay.repay_id).label("repay_id"),
+            col(TContractRepay.repay_date).label("repay_date"),
+            col(TContractRepay.repay_num).label("repay_num"),
+            col(TContractRepay.qty_repay).label("qty_repay"),
+            col(TContractRepay.note).label("note"),
+            col(TContractRepay.user).label("user"),
+        )
+        .where(TContractRepay.con_id == con_id)
+        .order_by(col(TContractRepay.repay_date).desc(), col(TContractRepay.repay_id).desc())
+    ))
+    repays_result = await db.execute(repays_stmt)
+    repay_rows = repays_result.all()
+
+    return {
+        "id": row.id,
+        "contract_number": row.contract_number,
+        "contract_contractor_name": row.contract_contractor_name,
+        "representative": row.representative,
+        "contract_year": row.contract_year,
+        "farmer_name": row.farmer_name,
+        "tobacco_type": row.tobacco_type,
+        "Quantity": float(row.Quantity) if row.Quantity is not None else 0.0,
+        "total_repaid": float(row.total_repaid) if row.total_repaid is not None else 0.0,
+        "repays": [
+            {
+                "repay_id": r.repay_id,
+                "repay_date": r.repay_date,
+                "repay_num": r.repay_num,
+                "qty_repay": float(r.qty_repay) if r.qty_repay is not None else 0.0,
+                "note": r.note,
+                "user": r.user,
+            }
+            for r in repay_rows
+        ],
+    }
+
+
 async def get_available_years(db: AsyncSession) -> list[int]:
     current_year = date.today().year
     stmt = (
