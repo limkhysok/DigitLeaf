@@ -163,7 +163,9 @@ async def download_purchase_report_template(
     date_to: Optional[date] = None,
 ):
     _EXPORT_LIMIT = 10_000
-    data = await crud.get_purchase_report_data(db=session, buyer_id=buyer_id, date_from=date_from, date_to=date_to)
+    data = await crud.get_purchase_report_data(
+        db=session, buyer_id=buyer_id, date_from=date_from, date_to=date_to, max_purchases=_EXPORT_LIMIT
+    )
     if len(data["rows"]) > _EXPORT_LIMIT:
         raise HTTPException(
             status_code=400,

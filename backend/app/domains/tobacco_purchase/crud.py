@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, List, Literal, Optional, Tuple
 from datetime import date
 from sqlalchemy import delete as sa_delete
@@ -172,7 +173,7 @@ async def _validate_sack_quota(
         )
 
 
-def _build_detail(
+async def _build_detail(
     detail_in: PurchaseDetailCreate,
     invoice_num: str,
     tp_id: int,
@@ -181,7 +182,9 @@ def _build_detail(
 ) -> TobaccoPurchaseDetail:
     net = _compute_net(detail_in)
     total_amount = round(net * (detail_in.price or 0), 2)
-    picture_val = _process_detail_picture(detail_in.picture)
+    # Image decode/resize/save is CPU+disk bound — run off the event loop so one
+    # upload doesn't stall every other request being served by this worker.
+    picture_val = await asyncio.to_thread(_process_detail_picture, detail_in.picture)
     detail_data = detail_in.model_dump(exclude={"invoice_num", "m_id", "picture"}, exclude_none=True)
     if picture_val:
         detail_data["picture"] = picture_val
@@ -215,8 +218,11 @@ async def _sync_purchase_details(
     total_net_weight, grand_total, new_sack_total = _compute_purchase_totals(details)
     await _validate_sack_quota(db, db_obj.vendor_id, new_sack_total)
 
-    for detail_in in details:
-        db.add(_build_detail(detail_in, db_obj.invoice_num, tp_id, user_name, ip_address))
+    built_details = await asyncio.gather(
+        *(_build_detail(detail_in, db_obj.invoice_num, tp_id, user_name, ip_address) for detail_in in details)
+    )
+    for detail in built_details:
+        db.add(detail)
 
     db_obj.total_net_weight = round(total_net_weight, 3)
     db_obj.grand_total = round(grand_total, 2)
@@ -588,8 +594,14 @@ async def get_purchase_report_data(
     buyer_id: int,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    max_purchases: Optional[int] = None,
 ) -> dict[str, Any]:
-    """Assemble header info + one row per purchase for the buyer's settlement report, within [date_from, date_to]."""
+    """Assemble header info + one row per purchase for the buyer's settlement report, within [date_from, date_to].
+
+    max_purchases caps the query itself (fetching max_purchases + 1) so an
+    unbounded date range can't pull the buyer's entire purchase history into
+    memory before the caller's own row-count limit gets a chance to reject it.
+    """
     date_to = date_to or datetime.now(CAMBODIA_TZ).date()
 
     purchaser = await db.get(Purchaser, buyer_id)
@@ -598,20 +610,27 @@ async def get_purchase_report_data(
     if date_from:
         conditions.append(TobaccoPurchase.tp_date >= date_from)
 
-    result = await db.execute(
+    query = (
         select(TobaccoPurchase)
         .options(selectinload(TobaccoPurchase.details))  # type: ignore[arg-type]
         .options(selectinload(TobaccoPurchase.vendor))  # type: ignore[arg-type]
         .where(*conditions)
         .order_by(col(TobaccoPurchase.tp_date), col(TobaccoPurchase.tp_id))
     )
+    if max_purchases is not None:
+        query = query.limit(max_purchases + 1)
+
+    result = await db.execute(query)
     purchases = result.scalars().all()
 
     tobacco_map = {t.t_id: (t.t_name_kh or t.t_name) for t in await get_tobacco_types(db) if t.t_id is not None}
     rows = [row for p in purchases for row in _purchase_to_report_rows(p, tobacco_map)]
 
     oven_ids = list({p.oven for p in purchases if p.oven})
-    ovens = [o for oid in oven_ids if (o := await db.get(Oven, oid)) is not None]
+    ovens: list[Oven] = []
+    if oven_ids:
+        oven_result = await db.execute(select(Oven).where(col(Oven.id).in_(oven_ids)))
+        ovens = list(oven_result.scalars().all())
     region = await db.get(Region, purchaser.region) if purchaser and purchaser.region else None
 
     return {
