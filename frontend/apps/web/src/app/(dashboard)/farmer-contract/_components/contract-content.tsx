@@ -89,7 +89,7 @@ export function ContractContent({
                 <thead>
                   <tr className="border-b bg-[#F9FAFB] border-gray-200">
                     <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider w-12">
-                      No.
+                      {t.farmerContract.no}
                     </th>
                     <th className="px-4 py-3 text-left font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">
                       {t.farmerContract.farmerName}
@@ -146,11 +146,11 @@ export function ContractContent({
                         {rec.tobac_num !== undefined && rec.tobac_num !== null ? rec.tobac_num.toLocaleString() : <span className="text-[#D1D5DB]">—</span>}
                       </td>
                       <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
-                        {rec.expected_yield !== undefined && rec.expected_yield !== null ? `${rec.expected_yield.toLocaleString()} kg` : <span className="text-[#D1D5DB]">—</span>}
+                        {rec.expected_yield !== undefined && rec.expected_yield !== null ? rec.expected_yield.toLocaleString() : <span className="text-[#D1D5DB]">—</span>}
                       </td>
                       <td className="px-4 py-3.5 text-[#374151] text-xs font-mono">
                         {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                          ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                          ? rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                           : <span className="text-[#D1D5DB]">—</span>}
                       </td>
                       <td className="px-4 py-3.5 text-center">

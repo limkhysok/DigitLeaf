@@ -245,9 +245,9 @@ export default function FarmerContractPage() {
             <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[4%]">No</TableHead>
+                  <TableHead className="w-[4%]">{t.farmerContract.no}</TableHead>
                   <TableHead className="w-[12%]">{t.farmerContract.farmerName}</TableHead>
-                  {columnVisibility.code && <TableHead className="w-[10%]">Farmer ID</TableHead>}
+                  {columnVisibility.code && <TableHead className="w-[10%]">{t.farmerContract.farmerId}</TableHead>}
                   {columnVisibility.land && (
                     <TableHead className="w-[10%] cursor-pointer select-none group" onClick={() => handleColumnSort("land")}>
                       <div className="flex items-center gap-1 hover:text-foreground transition-colors">
@@ -316,14 +316,14 @@ export default function FarmerContractPage() {
                     {columnVisibility.expected && (
                       <TableCell className="text-sm">
                         {rec.expected_yield !== undefined && rec.expected_yield !== null
-                          ? `${rec.expected_yield.toLocaleString()} kg`
+                          ? rec.expected_yield.toLocaleString()
                           : <span className="text-muted-foreground/40">—</span>}
                       </TableCell>
                     )}
                     {columnVisibility.purchased && (
                       <TableCell className="text-sm">
                         {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                          ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                          ? rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                           : <span className="text-muted-foreground/40">—</span>}
                       </TableCell>
                     )}

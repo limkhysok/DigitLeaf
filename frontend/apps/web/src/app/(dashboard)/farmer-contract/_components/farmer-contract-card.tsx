@@ -105,7 +105,7 @@ export function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-[#2c2c2c]">
               {rec.expected_yield !== undefined && rec.expected_yield !== null
-                ? `${rec.expected_yield.toLocaleString()} kg`
+                ? rec.expected_yield.toLocaleString()
                 : <span className="text-muted-foreground/40">—</span>}
             </span>
           </div>
@@ -120,7 +120,7 @@ export function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
               "text-sm font-semibold tabular-nums text-right text-foreground"
             )}>
               {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                ? `${rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg`
+                ? rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                 : <span className="text-muted-foreground/40">—</span>}
             </span>
           </div>
