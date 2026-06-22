@@ -145,7 +145,8 @@ export function TobaccoRepayHistory({
       (rec) =>
         rec.con_num?.toLowerCase().includes(term) ||
         rec.repay_num?.toLowerCase().includes(term) ||
-        rec.farmer_name?.toLowerCase().includes(term)
+        rec.farmer_name?.toLowerCase().includes(term) ||
+        rec.representative?.toLowerCase().includes(term)
     )
   }, [allRecords, searchInput])
 

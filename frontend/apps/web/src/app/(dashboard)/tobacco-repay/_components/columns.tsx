@@ -85,7 +85,7 @@ export function getColumns({
     {
       id: "farmer_name",
       accessorKey: "farmer_name",
-      header: () => "Farmer",
+      header: () => "Contractor",
       cell: ({ row }) => <div>{row.getValue("farmer_name") || "—"}</div>,
     },
     {

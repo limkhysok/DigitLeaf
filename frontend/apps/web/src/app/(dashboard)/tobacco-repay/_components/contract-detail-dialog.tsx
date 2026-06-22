@@ -36,7 +36,7 @@ export function ContractDetailDialog({
 }: Readonly<ContractDetailDialogProps>) {
   const { data: detail, isLoading } = useQuery({
     queryKey: ["contract-repay-detail", conId],
-    queryFn: () => apiClient.getContractRepayDetail(token, conId!),
+    queryFn: () => apiClient.getContractRepayDetail(token, conId ?? 0),
     enabled: open && !!conId && !!token,
   })
 
