@@ -8,21 +8,7 @@ import {
   IconClockHour4,
   IconCirclePlus,
   IconCirclePlusFilled,
-  IconDots,
-  IconEye,
-  IconPencil,
-  IconTrash,
-  IconPrinter,
-  IconFileTypePdf,
 } from "@tabler/icons-react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 import { Input } from "@workspace/ui/components/input"
@@ -31,13 +17,10 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
+import { DataTable } from "./data-table"
+import { getColumns } from "./columns"
+import { getCoreRowModel, RowSelectionState } from "@tanstack/react-table"
+import { useReactTable } from "@/utils/table-utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,6 +58,7 @@ export function TobaccoRepayHistory({
   const [dialogMode, setDialogMode] = React.useState<RepayRecordDialogMode>("add")
   const [selectedRepayId, setSelectedRepayId] = React.useState<number | null>(null)
   const [deleteId, setDeleteId] = React.useState<number | null>(null)
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
 
   const handleAdd = () => {
     setDialogMode("add")
@@ -82,17 +66,17 @@ export function TobaccoRepayHistory({
     setDialogOpen(true)
   }
 
-  const handleView = (rec: RepayHistoryItem) => {
+  const handleView = React.useCallback((rec: RepayHistoryItem) => {
     setDialogMode("view")
     setSelectedRepayId(rec.repay_id)
     setDialogOpen(true)
-  }
+  }, [])
 
-  const handleEdit = (rec: RepayHistoryItem) => {
+  const handleEdit = React.useCallback((rec: RepayHistoryItem) => {
     setDialogMode("edit")
     setSelectedRepayId(rec.repay_id)
     setDialogOpen(true)
-  }
+  }, [])
 
   const { mutate: deleteRepay, isPending: isDeleting } = useMutation({
     mutationFn: (id: number) => apiClient.deleteTobaccoRepay(token, id),
@@ -170,6 +154,30 @@ export function TobaccoRepayHistory({
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
+  const columns = React.useMemo(() => getColumns({
+    onView: handleView,
+    onEdit: handleEdit,
+    onPrint: (rec) => printRecord(rec),
+    onDownload: (rec) => downloadRecordPdf(rec),
+    onDelete: (id) => setDeleteId(id),
+    isPrinting,
+    isDownloading: isDownloadingRecordPdf,
+  }), [handleView, handleEdit, printRecord, downloadRecordPdf, isPrinting, isDownloadingRecordPdf])
+
+  const table = useReactTable({
+    data: filteredRecords,
+    columns,
+    state: {
+      rowSelection,
+    },
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    getRowId: (row) => String(row.repay_id),
+    getCoreRowModel: getCoreRowModel(),
+    manualFiltering: true,
+    manualSorting: true,
+  })
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -238,81 +246,7 @@ export function TobaccoRepayHistory({
       )}
 
       {!isLoading && filteredRecords.length > 0 && (
-        <div className="rounded-md border bg-white overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">No.</TableHead>
-                  <TableHead>Repay No.</TableHead>
-                  <TableHead>Contract No.</TableHead>
-                  <TableHead>Representative</TableHead>
-                  <TableHead>Farmer</TableHead>
-                  <TableHead>Tobacco</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-center">Year</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="bg-white text-black">
-                {filteredRecords.map((rec, idx) => (
-                  <TableRow key={rec.repay_id}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell className="font-medium">{rec.repay_num || "—"}</TableCell>
-                    <TableCell>{rec.con_num || "—"}</TableCell>
-                    <TableCell>{rec.representative || "—"}</TableCell>
-                    <TableCell>{rec.farmer_name || "—"}</TableCell>
-                    <TableCell>{rec.tobacco_type || "—"}</TableCell>
-                    <TableCell className="text-right font-medium text-[#009640]">
-                      {rec.qty_repay !== null && rec.qty_repay !== undefined
-                        ? `${rec.qty_repay.toLocaleString()} kg`
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-center font-medium">{rec.contract_year || "—"}</TableCell>
-                    <TableCell className="whitespace-nowrap">{rec.repay_date || "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-7 w-7 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <IconDots className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={() => handleView(rec)}>
-                            <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(rec)}>
-                            <IconPencil className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => printRecord(rec)} disabled={isPrinting}>
-                            <IconPrinter className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                            Print
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => downloadRecordPdf(rec)} disabled={isDownloadingRecordPdf}>
-                            <IconFileTypePdf className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                            Download as PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => setDeleteId(rec.repay_id)}
-                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                          >
-                            <IconTrash className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+        <DataTable table={table} noRecordsText="No results." />
       )}
 
       {/* Infinite scroll sentinel */}

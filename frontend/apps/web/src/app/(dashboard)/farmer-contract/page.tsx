@@ -4,23 +4,7 @@ import * as React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, FarmerContractItem } from "@/services/api-client"
-import { IconLoader2, IconClipboardList, IconDotsVertical, IconEye, IconPencil, IconTrash, IconArrowsSort, IconSortAscending, IconSortDescending } from "@tabler/icons-react"
-import { cn } from "@workspace/ui/lib/utils"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { Button } from "@workspace/ui/components/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
+import { IconLoader2, IconClipboardList } from "@tabler/icons-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +20,10 @@ import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { CreateFarmerContractDialog } from "./_components/create-farmer-contract-dialog"
 import { EditFarmerContractDialog } from "./_components/edit-farmer-contract-dialog"
+import { DataTable } from "./_components/data-table"
+import { getColumns } from "./_components/columns"
+import { getCoreRowModel, RowSelectionState, VisibilityState } from "@tanstack/react-table"
+import { useReactTable } from "@/utils/table-utils"
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 import { toast } from "sonner"
@@ -57,7 +45,7 @@ export default function FarmerContractPage() {
   const [sortBy, setSortBy] = React.useState<"land" | "sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [selectedYear, setSelectedYear] = React.useState(2026)
-  const [columnVisibility, setColumnVisibility] = React.useState({
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     code: true,
     land: true,
     sapling: true,
@@ -65,6 +53,7 @@ export default function FarmerContractPage() {
     purchased: true,
     year: true,
   })
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
   const [addDialogOpen, setAddDialogOpen] = React.useState(false)
   const [editTarget, setEditTarget] = React.useState<FarmerContractItem | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<FarmerContractItem | null>(null)
@@ -115,14 +104,14 @@ export default function FarmerContractPage() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, searchInput])
 
-  const handleColumnSort = (field: "land" | "sapling" | "yield" | "purchased") => {
+  const handleColumnSort = React.useCallback((field: "land" | "sapling" | "yield" | "purchased") => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+      setSortOrder((order) => (order === "asc" ? "desc" : "asc"))
     } else {
       setSortBy(field)
       setSortOrder("desc")
     }
-  }
+  }, [sortBy])
 
   // Client-side search + sort on loaded records
   const filteredRecords = React.useMemo(() => {
@@ -148,6 +137,31 @@ export default function FarmerContractPage() {
       return sortOrder === "asc" ? diff : -diff
     })
   }, [filteredRecords, sortBy, sortOrder])
+
+  const columns = React.useMemo(() => getColumns({
+    t,
+    sortBy,
+    sortOrder,
+    onSort: handleColumnSort,
+    onEdit: setEditTarget,
+    onDelete: setDeleteTarget,
+  }), [t, sortBy, sortOrder, handleColumnSort])
+
+  const table = useReactTable({
+    data: sortedRecords,
+    columns,
+    state: {
+      columnVisibility,
+      rowSelection,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    getRowId: (row) => String(row.mf_con_id),
+    getCoreRowModel: getCoreRowModel(),
+    manualFiltering: true,
+    manualSorting: true,
+  })
 
   if (!mounted) return null
 
@@ -241,138 +255,15 @@ export default function FarmerContractPage() {
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden lg:block">
-          <div className="rounded-md border">
-            <Table className="table-fixed w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[4%]">{t.farmerContract.no}</TableHead>
-                  <TableHead className="w-[12%]">{t.farmerContract.farmerName}</TableHead>
-                  {columnVisibility.code && <TableHead className="w-[10%]">{t.farmerContract.farmerId}</TableHead>}
-                  {columnVisibility.land && (
-                    <TableHead className="w-[10%] cursor-pointer select-none group" onClick={() => handleColumnSort("land")}>
-                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {t.farmerContract.land}
-                        {sortBy === "land" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
-                        {sortBy === "land" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
-                        {sortBy !== "land" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      </div>
-                    </TableHead>
-                  )}
-                  {columnVisibility.sapling && (
-                    <TableHead className="w-[10%] cursor-pointer select-none group" onClick={() => handleColumnSort("sapling")}>
-                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {t.farmerContract.saplingKg}
-                        {sortBy === "sapling" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
-                        {sortBy === "sapling" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
-                        {sortBy !== "sapling" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      </div>
-                    </TableHead>
-                  )}
-                  {columnVisibility.expected && (
-                    <TableHead className="w-[12%] cursor-pointer select-none group" onClick={() => handleColumnSort("yield")}>
-                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {t.farmerContract.expectedYieldKg}
-                        {sortBy === "yield" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
-                        {sortBy === "yield" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
-                        {sortBy !== "yield" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      </div>
-                    </TableHead>
-                  )}
-                  {columnVisibility.purchased && (
-                    <TableHead className="w-[12%] cursor-pointer select-none group" onClick={() => handleColumnSort("purchased")}>
-                      <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {t.farmerContract.purchasedWeightKg}
-                        {sortBy === "purchased" && sortOrder === "asc" && <IconSortAscending className="size-3.5 text-foreground" />}
-                        {sortBy === "purchased" && sortOrder === "desc" && <IconSortDescending className="size-3.5 text-foreground" />}
-                        {sortBy !== "purchased" && <IconArrowsSort className="size-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                      </div>
-                    </TableHead>
-                  )}
-                  {columnVisibility.year && <TableHead className="w-[8%] text-center">{t.farmerContract.year}</TableHead>}
-                  <TableHead className="w-[10%] text-center">Date</TableHead>
-                  <TableHead className="w-[10%] text-center">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedRecords.map((rec, idx) => (
-                  <TableRow key={rec.mf_con_id} className={cn("group/row", rec.purchased_weight != null && rec.expected_yield != null && rec.purchased_weight > rec.expected_yield && "bg-red-100 hover:bg-red-100")}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell className="font-semibold">{rec.name}</TableCell>
-                    {columnVisibility.code && <TableCell className="text-sm">{rec.mf_code}</TableCell>}
-                    {columnVisibility.land && (
-                      <TableCell className="text-sm">
-                        {rec.land !== undefined && rec.land !== null
-                          ? rec.land.toLocaleString()
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                    )}
-                    {columnVisibility.sapling && (
-                      <TableCell className="text-sm">
-                        {rec.tobac_num !== undefined && rec.tobac_num !== null
-                          ? rec.tobac_num.toLocaleString()
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                    )}
-                    {columnVisibility.expected && (
-                      <TableCell className="text-sm">
-                        {rec.expected_yield !== undefined && rec.expected_yield !== null
-                          ? rec.expected_yield.toLocaleString()
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                    )}
-                    {columnVisibility.purchased && (
-                      <TableCell className="text-sm">
-                        {rec.purchased_weight !== undefined && rec.purchased_weight !== null
-                          ? rec.purchased_weight.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                          : <span className="text-muted-foreground/40">—</span>}
-                      </TableCell>
-                    )}
-                    {columnVisibility.year && (
-                      <TableCell className="text-center">
-                        <span className="inline-flex items-center rounded-full bg-[#009640]/10 text-[#009640] px-2.5 py-0.5 text-xs font-semibold">
-                          {rec.year}
-                        </span>
-                      </TableCell>
-                    )}
-                    <TableCell className="text-center text-sm font-mono">
-                      {rec.do_date
-                        ? (() => { const [y, m, d] = rec.do_date.split("T")[0]!.split("-"); return `${d ?? ""}/${m ?? ""}/${y ?? ""}` })()
-                        : <span className="text-muted-foreground/40">—</span>}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <IconDotsVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="gap-2 cursor-pointer" disabled>
-                            <IconEye className="h-4 w-4" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="gap-2 cursor-pointer"
-                            onSelect={() => setEditTarget(rec)}
-                          >
-                            <IconPencil className="h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                            onSelect={() => setDeleteTarget(rec)}
-                          >
-                            <IconTrash className="h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DataTable
+            table={table}
+            noRecordsText={t.farmerContract.noRecordsFound}
+            getRowClassName={(rec) =>
+              rec.purchased_weight != null && rec.expected_yield != null && rec.purchased_weight > rec.expected_yield
+                ? "bg-red-100 hover:bg-red-100"
+                : undefined
+            }
+          />
         </div>
       )}
 
