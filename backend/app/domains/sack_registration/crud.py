@@ -88,6 +88,7 @@ async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict[str,
     data["represent_name"] = r_name
     data["member_farmer_name"] = f_name
     data["member_farmer_mf_code"] = mf_code
+    data["registered_sack_in_kg"] = sack.sack_in_kg
     data["sack_in_kg"] = remaining
     return data
 
@@ -147,6 +148,7 @@ async def get_all(
         data["represent_name"] = r_name
         data["member_farmer_name"] = f_name
         data["member_farmer_mf_code"] = mf_code
+        data["registered_sack_in_kg"] = sack.sack_in_kg
         data["sack_in_kg"] = remaining
         items.append(data)
 

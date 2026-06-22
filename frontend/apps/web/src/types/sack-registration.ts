@@ -26,6 +26,7 @@ export interface SackRegistrationItem {
   action_by_id: number;
   action_by: string;
   sack_in_kg: number | null;
+  registered_sack_in_kg: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

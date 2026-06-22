@@ -50,7 +50,8 @@ class SackRegistrationPublic(BaseModel):
     member_farmer_mf_code: str
     action_by_id: int
     action_by: str
-    sack_in_kg: float | None = None
+    sack_in_kg: float | None = None  # remaining unconsumed quota, not the raw stored value
+    registered_sack_in_kg: float | None = None  # raw stored value; edit this, not sack_in_kg
     notes: str | None = None
     created_at: datetime
     updated_at: datetime

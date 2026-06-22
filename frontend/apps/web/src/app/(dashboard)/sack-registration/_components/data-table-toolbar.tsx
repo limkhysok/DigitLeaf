@@ -48,7 +48,6 @@ export function DataTableToolbar<TData>({
               member_farmer_mf_code: t.sackRegistration.table.farmerId,
               sack_in_kg: t.sackRegistration.table.sackWeight,
               status: t.sackRegistration.table.status,
-              registered_by: t.sackRegistration.table.registeredBy,
               created_at: t.sackRegistration.table.date,
               actions: t.sackRegistration.table.actions,
             }}

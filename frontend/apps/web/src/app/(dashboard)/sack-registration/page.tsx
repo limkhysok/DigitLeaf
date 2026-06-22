@@ -44,6 +44,7 @@ export default function SackRegistrationPage() {
   const [view] = React.useState<"list" | "grid">("list")
   const [registerOpen, setRegisterOpen] = React.useState(false)
   const [viewTarget, setViewTarget] = React.useState<SackRegistrationItem | null>(null)
+  const [viewTargetNo, setViewTargetNo] = React.useState<number | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: number; no: number } | null>(null)
   const [editTarget, setEditTarget] = React.useState<SackRegistrationItem | null>(null)
 
@@ -93,12 +94,17 @@ export default function SackRegistrationPage() {
     queryClient.resetQueries({ queryKey: ["sack-registrations"] })
   }
 
+  const handleView = (rec: SackRegistrationItem, no: number) => {
+    setViewTarget(rec)
+    setViewTargetNo(no)
+  }
+
   const columns = getColumns({
     t,
     localizeNumber,
     localizeDateString,
     total,
-    onView: setViewTarget,
+    onView: handleView,
     onEdit: setEditTarget,
     onDelete: (rec, index) => setDeleteTarget({ id: rec.id, no: index })
   })
@@ -185,7 +191,7 @@ export default function SackRegistrationPage() {
               key={row.original.id}
               rec={row.original}
               index={total - row.index - 1}
-              onView={setViewTarget}
+              onView={handleView}
               onEdit={setEditTarget}
               onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - row.index })}
             />
@@ -200,7 +206,7 @@ export default function SackRegistrationPage() {
               key={row.original.id}
               rec={row.original}
               index={total - row.index - 1}
-              onView={setViewTarget}
+              onView={handleView}
               onEdit={setEditTarget}
               onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - row.index })}
             />
@@ -222,7 +228,7 @@ export default function SackRegistrationPage() {
                   key={row.original.id}
                   rec={row.original}
                   index={total - row.index - 1}
-                  onView={setViewTarget}
+                  onView={handleView}
                   onEdit={setEditTarget}
                   onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - row.index })}
                 />
@@ -243,9 +249,9 @@ export default function SackRegistrationPage() {
       <DeleteDialog target={deleteTarget} onClose={() => setDeleteTarget(null)} onSuccess={refetch} accessToken={tokens?.access_token} />
       <ViewDialog
         target={viewTarget}
-        onClose={() => setViewTarget(null)}
+        onClose={() => { setViewTarget(null); setViewTargetNo(null) }}
         onEdit={setEditTarget}
-        onDelete={(rec) => setDeleteTarget({ id: rec.id, no: total - records.findIndex(r => r.id === rec.id) })}
+        onDelete={(rec) => setDeleteTarget({ id: rec.id, no: viewTargetNo ?? total })}
       />
       <RegisterDialog open={registerOpen} onClose={() => setRegisterOpen(false)} onSuccess={refetch} accessToken={tokens?.access_token} represents={represents} />
     </div>

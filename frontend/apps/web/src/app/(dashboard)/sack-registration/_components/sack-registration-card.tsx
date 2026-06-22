@@ -19,7 +19,7 @@ export const SackRegistrationCard = React.memo(({
 }: {
   rec: SackRegistrationItem
   index: number
-  onView: (rec: SackRegistrationItem) => void
+  onView: (rec: SackRegistrationItem, index: number) => void
   onEdit: (rec: SackRegistrationItem) => void
   onDelete: (rec: SackRegistrationItem) => void
 }) => {
@@ -28,7 +28,7 @@ export const SackRegistrationCard = React.memo(({
   return (
     <Card
       className="group flex flex-col overflow-hidden cursor-pointer border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm"
-      onClick={() => onView(rec)}
+      onClick={() => onView(rec, index + 1)}
     >
       {/* ROW 1: Header (Number, Menu) */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2.5 px-3">
@@ -51,7 +51,7 @@ export const SackRegistrationCard = React.memo(({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenuItem onClick={() => onView(rec)}>
+            <DropdownMenuItem onClick={() => onView(rec, index + 1)}>
               <IconEye className="mr-2 h-4 w-4" />
               {t.sackRegistration.dialog.view}
             </DropdownMenuItem>

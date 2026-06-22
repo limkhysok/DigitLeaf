@@ -23,7 +23,7 @@ interface ColumnHelpers {
   localizeNumber: (num: number | string | null | undefined) => string
   localizeDateString: (formattedDate: string) => string
   total: number
-  onView: (rec: SackRegistrationItem) => void
+  onView: (rec: SackRegistrationItem, index: number) => void
   onEdit: (rec: SackRegistrationItem) => void
   onDelete: (rec: SackRegistrationItem, index: number) => void
 }
@@ -141,7 +141,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onClick={() => onView(rec)}>
+              <DropdownMenuItem onClick={() => onView(rec, total - row.index)}>
                 <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
                 {t.sackRegistration.dialog.view}
               </DropdownMenuItem>

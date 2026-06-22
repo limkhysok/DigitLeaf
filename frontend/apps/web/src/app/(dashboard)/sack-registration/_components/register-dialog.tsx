@@ -118,7 +118,7 @@ export function RegisterDialog({
           <DialogDescription>{t.sackRegistration.dialog.registerSubtitle}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1 flex flex-col">
+          <div className="space-y-1 flex flex-col" ref={farmerRef}>
             <Label className="text-sm font-medium">{t.sackRegistration.dialog.farmerMember}</Label>
             <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
               <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open) }}>

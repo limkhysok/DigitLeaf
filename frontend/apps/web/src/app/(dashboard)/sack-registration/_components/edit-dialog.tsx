@@ -62,7 +62,7 @@ export function EditDialog({
   React.useEffect(() => {
     if (target) {
       const timer = setTimeout(() => {
-        setSackInKg(target.sack_in_kg !== null && target.sack_in_kg !== undefined ? String(target.sack_in_kg) : "")
+        setSackInKg(target.registered_sack_in_kg !== null && target.registered_sack_in_kg !== undefined ? String(target.registered_sack_in_kg) : "")
         setNotes(target.notes ?? "")
         setRepresentId(String(target.represent_id))
         setRepresentSearch(target.represent_name)
