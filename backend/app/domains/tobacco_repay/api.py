@@ -20,9 +20,10 @@ async def read_tobacco_repays(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
     year: int | None = Query(None),
+    search: str | None = Query(None),
 ):
     skip = (page - 1) * limit
-    result = await crud.get_tobacco_repays(session, skip=skip, limit=limit, year=year)
+    result = await crud.get_tobacco_repays(session, skip=skip, limit=limit, year=year, search=search)
     return TobaccoRepayListResponse(
         items=result["items"],
         total=result["total"],
@@ -37,9 +38,10 @@ async def read_tobacco_repay_history(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
     year: int | None = Query(None),
+    search: str | None = Query(None),
 ):
     skip = (page - 1) * limit
-    result = await crud.get_tobacco_repay_history(session, skip=skip, limit=limit, year=year)
+    result = await crud.get_tobacco_repay_history(session, skip=skip, limit=limit, year=year, search=search)
     return RepayHistoryListResponse(
         items=result["items"],
         total=result["total"],

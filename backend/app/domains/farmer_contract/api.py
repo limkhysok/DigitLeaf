@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
@@ -46,9 +46,10 @@ async def list_farmer_contracts(
     year: int = 2026,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=500),
+    search: Optional[str] = None,
 ):
     skip = (page - 1) * limit
-    result = await crud.get_farmer_contracts(session=session, year=year, skip=skip, limit=limit)
+    result = await crud.get_farmer_contracts(session=session, year=year, skip=skip, limit=limit, search=search)
     return FarmerContractListResponse(
         items=result["items"],
         total=result["total"],

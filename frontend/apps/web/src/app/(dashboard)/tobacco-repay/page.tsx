@@ -16,6 +16,7 @@ import { getCoreRowModel, RowSelectionState, VisibilityState } from "@tanstack/r
 import { useReactTable } from "@/utils/table-utils"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
+import { useDebounce } from "use-debounce"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { TobaccoRepayHistory } from "./_components/tobacco-repay-history"
 import { ContractDetailDialog } from "./_components/contract-detail-dialog"
@@ -34,6 +35,7 @@ export default function TobaccoRepayPage() {
   const [createOpen, setCreateOpen] = React.useState(false)
   const [selectedRecord, setSelectedRecord] = React.useState<TobaccoRepayItem | null>(null)
   const [searchInput, setSearchInput] = React.useState("")
+  const [search] = useDebounce(searchInput, 400)
   const [sortBy, setSortBy] = React.useState<"Quantity" | "total_repaid" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
@@ -78,12 +80,13 @@ export default function TobaccoRepayPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["tobacco-repays", effectiveYear],
+    queryKey: ["tobacco-repays", effectiveYear, search],
     queryFn: ({ pageParam }) =>
       apiClient.getTobaccoRepays(tokens!.access_token, {
         page: pageParam,
         limit: PAGE_SIZE,
         year: effectiveYear,
+        search: search || undefined,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
@@ -96,40 +99,27 @@ export default function TobaccoRepayPage() {
     [data]
   )
 
-  const hasActiveSearch = searchInput.trim() !== ""
-
   // Sentinel for infinite scroll
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage && !hasActiveSearch) {
+    if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage().catch(() => toast.error("Failed to load more records"))
     }
-  }, [inView, hasNextPage, isFetchingNextPage, hasActiveSearch, fetchNextPage])
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // Client-side search + sort on loaded records
-  const filteredRecords = React.useMemo(() => {
-    const term = searchInput.trim().toLowerCase()
-    if (!term) return allRecords
-    return allRecords.filter(
-      (rec) =>
-        rec.contract_number?.toLowerCase().includes(term) ||
-        rec.contract_contractor_name?.toLowerCase().includes(term) ||
-        rec.representative?.toLowerCase().includes(term)
-    )
-  }, [allRecords, searchInput])
-
+  // Client-side sort on loaded records (search is server-side)
   const sortedRecords = React.useMemo(() => {
-    if (!sortBy) return filteredRecords
+    if (!sortBy) return allRecords
     const getSortVal = (rec: TobaccoRepayItem) => {
       if (sortBy === "Quantity") return rec.Quantity ?? 0
       if (sortBy === "total_repaid") return rec.total_repaid ?? 0
       return 0
     }
-    return [...filteredRecords].sort((a, b) => {
+    return [...allRecords].sort((a, b) => {
       const diff = getSortVal(a) - getSortVal(b)
       return sortOrder === "asc" ? diff : -diff
     })
-  }, [filteredRecords, sortBy, sortOrder])
+  }, [allRecords, sortBy, sortOrder])
 
   const handleColumnSort = React.useCallback((field: "Quantity" | "total_repaid") => {
     if (sortBy === field) {
@@ -292,7 +282,7 @@ export default function TobaccoRepayPage() {
 
       {/* ── Infinite scroll sentinel ── */}
       <div ref={sentinelRef} className="h-1" />
-      {!hasActiveSearch && isFetchingNextPage && (
+      {isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>

@@ -90,7 +90,7 @@ export const ReturnDetailCard = React.memo(({
 
   let remainingText = ""
   if (typeof contractQty === "number") {
-    remainingText = isFullyRepaid ? " (Completed)" : ` (${contractQty} / ${remaining} Left)`
+    remainingText = isFullyRepaid ? " (Completed)" : ` (${remaining} / ${contractQty} Left)`
   }
 
   return (
@@ -350,7 +350,7 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   let remainingText = ""
   if (typeof contractQty === "number") {
-    remainingText = isFullyRepaid ? "(Completed)" : `(${contractQty} / ${remaining} Left)`
+    remainingText = isFullyRepaid ? "(Completed)" : `(${remaining} / ${contractQty} Left)`
   }
 
   return (

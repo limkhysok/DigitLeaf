@@ -185,12 +185,13 @@ export const sackRegistrationApi = {
 
   async getFarmerContracts(
     accessToken: string,
-    params: { year?: number; page?: number; limit?: number } = {}
+    params: { year?: number; page?: number; limit?: number; search?: string } = {}
   ): Promise<FarmerContractListResponse> {
     const query = new URLSearchParams();
     if (params.year !== undefined) query.set("year", String(params.year));
     if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
+    if (params.search) query.set("search", params.search);
     const response = await fetch(
       `${API_BASE_URL}/farmer-contract/?${query}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }

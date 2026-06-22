@@ -50,6 +50,7 @@ async def get_tobacco_repays(
     skip: int = 0,
     limit: int = 20,
     year: int | None = None,
+    search: str | None = None,
 ) -> dict[str, Any]:
     year_filter = (
         MfConYear.year == year
@@ -73,8 +74,15 @@ async def get_tobacco_repays(
             (MfConYear.mf_id == TContract.f_id)  # type: ignore[arg-type]
             & (MfConYear.year == func.year(TContract.con_date)),
         )
+        .outerjoin(Represent, TContract.represent == Represent.represent_id)  # type: ignore[arg-type]
         .where(year_filter)
     )
+    if search:
+        count_stmt = count_stmt.where(
+            col(TContract.con_num).contains(search)
+            | col(TContract.contractor).contains(search)
+            | col(Represent.represent_name).contains(search)
+        )
     total = await db.scalar(count_stmt) or 0
 
     stmt = cast(Select[Any], (
@@ -101,6 +109,15 @@ async def get_tobacco_repays(
         .outerjoin(ConTobacco, TContract.tobac_type == ConTobacco.t_id)  # type: ignore[arg-type]
         .outerjoin(repay_subq, TContract.con_id == repay_subq.c.con_id)  # type: ignore[arg-type]
         .where(year_filter)
+    ))
+    if search:
+        stmt = stmt.where(
+            col(TContract.con_num).contains(search)
+            | col(TContract.contractor).contains(search)
+            | col(Represent.represent_name).contains(search)
+        )
+    stmt = cast(Select[Any], (
+        stmt
         .group_by(  # type: ignore[arg-type]
             TContract.con_id,
             TContract.con_num,
@@ -477,6 +494,7 @@ async def get_tobacco_repay_history(
     representative_id: int | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
+    search: str | None = None,
 ) -> dict[str, Any]:
     filters: list[Any] = []
     if year is not None:
@@ -489,10 +507,18 @@ async def get_tobacco_repay_history(
         filters.append(col(TContractRepay.repay_date) <= date_to)
     if not filters:
         filters.append(MfConYear.year == func.year(func.curdate()) - 1)
+    if search:
+        filters.append(
+            col(TContract.con_num).contains(search)
+            | col(TContractRepay.repay_num).contains(search)
+            | col(MemberFarmer.name).contains(search)
+            | col(Represent.represent_name).contains(search)
+        )
 
     count_stmt = (
         select(func.count(col(TContractRepay.repay_id)))
         .join(TContract, TContractRepay.con_id == TContract.con_id)  # type: ignore[arg-type]
+        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)  # type: ignore[arg-type]
         .join(
             MfConYear,
             (MfConYear.mf_id == TContract.f_id)  # type: ignore[arg-type]

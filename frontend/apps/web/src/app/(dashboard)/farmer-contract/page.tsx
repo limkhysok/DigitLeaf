@@ -26,6 +26,7 @@ import { getCoreRowModel, RowSelectionState, VisibilityState } from "@tanstack/r
 import { useReactTable } from "@/utils/table-utils"
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
+import { useDebounce } from "use-debounce"
 import { toast } from "sonner"
 
 const PAGE_SIZE = 20
@@ -42,6 +43,7 @@ export default function FarmerContractPage() {
   const queryClient = useQueryClient()
 
   const [searchInput, setSearchInput] = React.useState("")
+  const [search] = useDebounce(searchInput, 400)
   const [sortBy, setSortBy] = React.useState<"land" | "sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
   const [selectedYear, setSelectedYear] = React.useState(2026)
@@ -65,12 +67,13 @@ export default function FarmerContractPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["farmer-contracts", selectedYear],
+    queryKey: ["farmer-contracts", selectedYear, search],
     queryFn: ({ pageParam }) =>
       apiClient.getFarmerContracts(tokens!.access_token, {
         year: selectedYear,
         page: pageParam,
         limit: PAGE_SIZE,
+        search: search || undefined,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
@@ -99,10 +102,10 @@ export default function FarmerContractPage() {
   // Sentinel for infinite scroll
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage && !searchInput.trim()) {
+    if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, searchInput])
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const handleColumnSort = React.useCallback((field: "land" | "sapling" | "yield" | "purchased") => {
     if (sortBy === field) {
@@ -113,30 +116,20 @@ export default function FarmerContractPage() {
     }
   }, [sortBy])
 
-  // Client-side search + sort on loaded records
-  const filteredRecords = React.useMemo(() => {
-    const term = searchInput.trim().toLowerCase()
-    if (!term) return allRecords
-    return allRecords.filter(
-      (rec) =>
-        rec.name.toLowerCase().includes(term) ||
-        rec.mf_code.toLowerCase().includes(term)
-    )
-  }, [allRecords, searchInput])
-
+  // Client-side sort on loaded records (search is server-side)
   const sortedRecords = React.useMemo(() => {
-    if (!sortBy) return filteredRecords
+    if (!sortBy) return allRecords
     const getSortVal = (rec: FarmerContractItem) => {
       if (sortBy === "land") return rec.land ?? 0
       if (sortBy === "sapling") return rec.tobac_num ?? 0
       if (sortBy === "purchased") return rec.purchased_weight ?? 0
       return rec.expected_yield ?? 0
     }
-    return [...filteredRecords].sort((a, b) => {
+    return [...allRecords].sort((a, b) => {
       const diff = getSortVal(a) - getSortVal(b)
       return sortOrder === "asc" ? diff : -diff
     })
-  }, [filteredRecords, sortBy, sortOrder])
+  }, [allRecords, sortBy, sortOrder])
 
   const columns = React.useMemo(() => getColumns({
     t,
@@ -269,7 +262,7 @@ export default function FarmerContractPage() {
 
       {/* ── Infinite scroll sentinel ── */}
       <div ref={sentinelRef} className="h-1" />
-      {isFetchingNextPage && !searchInput.trim() && (
+      {isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>

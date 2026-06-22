@@ -70,9 +70,12 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
   const [toCalendarOpen, setToCalendarOpen] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
 
-  const range = preset === "custom"
-    ? (customFrom && customTo ? { from: customFrom, to: customTo } : null)
-    : presetToRange(preset, today)
+  let range: { from: Date; to: Date } | null
+  if (preset === "custom") {
+    range = customFrom && customTo ? { from: customFrom, to: customTo } : null
+  } else {
+    range = presetToRange(preset, today)
+  }
 
   const handleExport = async () => {
     if (!accessToken || !buyerId || !range) return
@@ -118,7 +121,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
           <div className="grid gap-2">
             <Label className="text-sm font-medium">Buyer</Label>
             <Select
-              value={buyerId !== null ? String(buyerId) : undefined}
+              value={buyerId === null ? undefined : String(buyerId)}
               onValueChange={(v) => setBuyerId(Number(v))}
             >
               <SelectTrigger className="h-8 text-sm w-full">

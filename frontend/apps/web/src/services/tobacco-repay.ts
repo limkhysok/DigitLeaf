@@ -5,12 +5,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/a
 export const tobaccoRepayApi = {
   getTobaccoRepays: async (
     token: string,
-    params: { page?: number; limit?: number; year?: string } = {}
+    params: { page?: number; limit?: number; year?: string; search?: string } = {}
   ): Promise<TobaccoRepayListResponse> => {
     const query = new URLSearchParams();
     if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.year) query.set("year", params.year);
+    if (params.search) query.set("search", params.search);
     const res = await fetch(`${BASE_URL}/tobacco-repays/?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -22,12 +23,13 @@ export const tobaccoRepayApi = {
   },
   getTobaccoRepayHistory: async (
     token: string,
-    params: { page?: number; limit?: number; year?: string } = {}
+    params: { page?: number; limit?: number; year?: string; search?: string } = {}
   ): Promise<import("../types").RepayHistoryListResponse> => {
     const query = new URLSearchParams();
     if (params.page !== undefined) query.set("page", String(params.page));
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.year) query.set("year", params.year);
+    if (params.search) query.set("search", params.search);
     const res = await fetch(`${BASE_URL}/tobacco-repays/history?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });

@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react"
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
+import { useDebounce } from "use-debounce"
 import { Input } from "@workspace/ui/components/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Button } from "@workspace/ui/components/button"
@@ -51,6 +52,7 @@ export function TobaccoRepayHistory({
   availableYears,
 }: Readonly<TobaccoRepayHistoryProps>) {
   const [searchInput, setSearchInput] = React.useState("")
+  const [search] = useDebounce(searchInput, 400)
   const [yearOpen, setYearOpen] = React.useState(false)
   const queryClient = useQueryClient()
 
@@ -118,12 +120,13 @@ export function TobaccoRepayHistory({
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["tobacco-repay-history", selectedYear],
+    queryKey: ["tobacco-repay-history", selectedYear, search],
     queryFn: ({ pageParam }) =>
       apiClient.getTobaccoRepayHistory(token, {
         page: pageParam,
         limit: PAGE_SIZE,
         year: selectedYear,
+        search: search || undefined,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
@@ -131,31 +134,17 @@ export function TobaccoRepayHistory({
     enabled: !!token,
   })
 
-  const allRecords = React.useMemo(
+  const filteredRecords = React.useMemo(
     () => data?.pages.flatMap((p) => p.items) ?? [],
     [data]
   )
 
-  const hasActiveSearch = searchInput.trim() !== ""
-
-  const filteredRecords = React.useMemo(() => {
-    const term = searchInput.trim().toLowerCase()
-    if (!term) return allRecords
-    return allRecords.filter(
-      (rec) =>
-        rec.con_num?.toLowerCase().includes(term) ||
-        rec.repay_num?.toLowerCase().includes(term) ||
-        rec.farmer_name?.toLowerCase().includes(term) ||
-        rec.representative?.toLowerCase().includes(term)
-    )
-  }, [allRecords, searchInput])
-
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage && !hasActiveSearch) {
+    if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [inView, hasNextPage, isFetchingNextPage, hasActiveSearch, fetchNextPage])
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const columns = React.useMemo(() => getColumns({
     onView: handleView,
@@ -254,7 +243,7 @@ export function TobaccoRepayHistory({
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="h-1" />
-      {!hasActiveSearch && isFetchingNextPage && (
+      {isFetchingNextPage && (
         <div className="flex items-center justify-center py-4">
           <IconLoader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>

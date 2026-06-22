@@ -118,12 +118,14 @@ def _process_detail_picture(picture: Optional[str]) -> Optional[str]:
             filename = f"tobacco_detail_{uuid.uuid4().hex}.webp"
             filepath = os.path.join(subfolder_path, filename)
             img.save(filepath, "WEBP", quality=85, optimize=True)
-            
+
             # Database stores the relative path from the uploads directory
             return f"{year_str}/{month_str}/{filename}"
         except Exception as e:
             logger.error(f"Failed to process and compress uploaded image: {e}")
-            return None
+            # Surface as a validation error instead of silently dropping the photo —
+            # otherwise the purchase saves successfully with no image and no feedback.
+            raise ValueError("Failed to process uploaded image. Please try a different photo.") from e
     else:
         # If it's an existing image, extract the relative path starting after "uploads/"
         # to support both flat legacy filenames and partitioned subdirectory paths
@@ -150,7 +152,9 @@ def _compute_purchase_totals(
     new_sack_total = 0.0
     for detail_in in details:
         net = _compute_net(detail_in)
-        total_net_weight += net
+        # Round per-line before accumulating so the header total matches
+        # sum(detail.qty) — _build_detail rounds each line's qty the same way.
+        total_net_weight += round(net, 3)
         grand_total += round(net * (detail_in.price or 0), 2)
         if not detail_in.farmer_own_sack:
             new_sack_total += detail_in.sack_in_kg or 0
@@ -228,6 +232,60 @@ async def _sync_purchase_details(
     db_obj.grand_total = round(grand_total, 2)
 
 
+async def _get_contract_repaid_qty(
+    db: AsyncSession, con_id: int, *, for_update: bool = False
+) -> float:
+    query = select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0)).where(
+        col(TContractRepay.con_id) == con_id
+    )
+    if for_update:
+        query = query.with_for_update()
+    return float((await db.execute(query)).scalar() or 0.0)
+
+
+async def _validate_repay_quota(
+    db: AsyncSession,
+    returns: List[PurchaseReturnCreate],
+) -> dict[int, TContract]:
+    """Validates each contract exists and that the requested repay amounts don't
+    exceed what's left on it. Requested amounts are summed per contract first
+    since a single submission can repay the same contract across multiple rows.
+
+    Locks each contract row (with_for_update) so concurrent submissions against
+    the same contract serialize instead of both reading the same stale
+    "remaining" total and over-repaying it — mirrors _validate_sack_quota.
+    Returns the locked contracts keyed by con_id so the caller can reuse them
+    without a second, unlocked fetch.
+    """
+    requested_by_contract: dict[int, float] = {}
+    for return_in in returns:
+        if return_in.qty_repay <= 0:
+            raise ValueError("Repay quantity must be greater than zero")
+        requested_by_contract[return_in.con_id] = (
+            requested_by_contract.get(return_in.con_id, 0.0) + return_in.qty_repay
+        )
+
+    contracts: dict[int, TContract] = {}
+    for con_id, requested_total in requested_by_contract.items():
+        contract = (
+            await db.execute(select(TContract).where(TContract.con_id == con_id).with_for_update())
+        ).scalar_one_or_none()
+        if not contract:
+            raise ValueError(f"Contract id {con_id} not found")
+        contracts[con_id] = contract
+
+        if contract.qty is not None:
+            already_repaid = await _get_contract_repaid_qty(db, con_id, for_update=True)
+            remaining = contract.qty - already_repaid
+            if requested_total > remaining + 1e-9:
+                raise ValueError(
+                    f"Repay amount exceeds remaining quota for contract {contract.con_num}: "
+                    f"requested {requested_total:.3f} kg but only {max(0.0, remaining):.3f} kg left."
+                )
+
+    return contracts
+
+
 async def _sync_purchase_returns(
     db: AsyncSession,
     returns: Optional[List[PurchaseReturnCreate]],
@@ -244,11 +302,15 @@ async def _sync_purchase_returns(
     same transaction. Returns the created repay_ids so callers can print receipts."""
     if not returns:
         return []
+    contracts = await _validate_repay_quota(db, returns)
     repay_ids: List[int] = []
     for return_in in returns:
-        contract = await db.get(TContract, return_in.con_id)
-        if not contract:
-            raise ValueError(f"Contract id {return_in.con_id} not found")
+        contract = contracts[return_in.con_id]
+        if contract.tobac_type is not None and return_in.tobac_type != contract.tobac_type:
+            raise ValueError(
+                f"Tobacco type mismatch for contract {contract.con_num}: "
+                f"return specifies type {return_in.tobac_type} but contract is type {contract.tobac_type}"
+            )
         repay_num = await generate_repay_num(db)
         repay_obj = TContractRepay(
             con_id=return_in.con_id,
@@ -565,10 +627,6 @@ async def get_ovens(db: AsyncSession) -> List[Oven]:
 async def get_tobacco_types(db: AsyncSession) -> List[Tobacco]:
     result = await db.execute(select(Tobacco).where(Tobacco.t_cate == 2, Tobacco.discontinue == 0))
     return list(result.scalars().all())
-
-
-async def get_vendor_sack_kg(db: AsyncSession, vendor_id: int) -> float:
-    return await get_vendor_available_sack_kg(db, vendor_id)
 
 
 def _purchase_to_report_rows(p: TobaccoPurchase, tobacco_map: dict[int, str]) -> list[dict[str, Any]]:

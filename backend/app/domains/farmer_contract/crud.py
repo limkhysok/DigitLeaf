@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
@@ -13,6 +13,7 @@ async def get_farmer_contracts(
     year: int = 2026,
     skip: int = 0,
     limit: int = 20,
+    search: Optional[str] = None,
 ) -> dict[str, Any]:
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
@@ -41,6 +42,13 @@ async def get_farmer_contracts(
     ).join(MemberFarmer, col(MfConYear.mf_id) == col(MemberFarmer.mf_id)).outerjoin(
         weight_subquery, col(MemberFarmer.mf_id) == weight_subquery.c.vendor_id
     ).where(col(MfConYear.year) == year)
+
+    if search:
+        search_filter = (
+            col(MemberFarmer.name).contains(search)
+            | col(MemberFarmer.mf_code).contains(search)
+        )
+        base_stmt = base_stmt.where(search_filter)
 
     count_result = await session.execute(
         select(func.count()).select_from(base_stmt.subquery())  # type: ignore[arg-type]

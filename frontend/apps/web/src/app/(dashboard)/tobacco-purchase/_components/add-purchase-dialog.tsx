@@ -29,6 +29,7 @@
     IconX,
     IconCamera,
     IconPhoto,
+    IconEye,
     IconPrinter,
     IconFileInvoice,
     IconUser,
@@ -1609,6 +1610,7 @@
                 <div className="flex flex-col">
                   {detail.picture && (
                     <button type="button" className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] hover:bg-slate-100 rounded-sm text-left font-medium outline-none focus-visible:ring-1 focus-visible:ring-primary" onClick={() => onPreviewImage(getPictureUrl(detail.picture!))}>
+                      <IconEye className="size-4 text-foreground/70" /> View Photo
                     </button>
                   )}
                   {!isReadOnly && (
