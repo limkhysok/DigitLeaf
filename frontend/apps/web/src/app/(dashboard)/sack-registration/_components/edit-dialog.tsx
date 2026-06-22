@@ -49,18 +49,15 @@ export function EditDialog({
 
   const [representId, setRepresentId] = React.useState("")
   const [representSearch, setRepresentSearch] = React.useState("")
-  const [representOpen, setRepresentOpen] = React.useState(false)
 
   const [farmerQuery, setFarmerQuery] = React.useState("")
   const [debouncedFarmerQuery] = useDebounce(farmerQuery, 300)
   const [farmerResult, setFarmerResult] = React.useState<MemberFarmerItem | null>(null)
   const [farmerOpen, setFarmerOpen] = React.useState(false)
+  const [confirmedFarmerName, setConfirmedFarmerName] = React.useState("")
+  const [confirmedFarmerCode, setConfirmedFarmerCode] = React.useState("")
 
-  const filteredRepresents = React.useMemo(() => {
-    if (!representSearch.trim()) return represents
-    const q = representSearch.toLowerCase()
-    return represents.filter((r) => r.represent_name.toLowerCase().includes(q))
-  }, [represents, representSearch])
+  const selectedRepresent = represents.find((r) => String(r.represent_id) === representId)
 
   React.useEffect(() => {
     if (target) {
@@ -69,19 +66,20 @@ export function EditDialog({
         setNotes(target.notes ?? "")
         setRepresentId(String(target.represent_id))
         setRepresentSearch(target.represent_name)
-        setRepresentOpen(false)
         setFarmerQuery(target.member_farmer_name)
         setFarmerResult(null)
         setFarmerOpen(false)
+        setConfirmedFarmerName(target.member_farmer_name)
+        setConfirmedFarmerCode(target.member_farmer_mf_code)
       }, 0)
       return () => clearTimeout(timer)
     }
   }, [target])
 
   const { data: farmerResults = [], isFetching: isFarmerSearching } = useQuery({
-    queryKey: ["farmers", debouncedFarmerQuery, representId],
-    queryFn: () => apiClient.queryMemberFarmers(accessToken!, debouncedFarmerQuery, Number(representId) || undefined),
-    enabled: !!accessToken && !!representId && !!debouncedFarmerQuery.trim() && farmerResult?.name !== debouncedFarmerQuery,
+    queryKey: ["farmers", debouncedFarmerQuery],
+    queryFn: () => apiClient.queryMemberFarmers(accessToken!, debouncedFarmerQuery),
+    enabled: !!accessToken && farmerResult?.name !== debouncedFarmerQuery,
   })
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -90,7 +88,7 @@ export function EditDialog({
     if (!representId) { toast.error(t.sackRegistration.dialog.errSelectRep); return }
     if (sackInKg) {
       const parts = sackInKg.split(".")
-      if (parts.length === 2 && parts[1].length > 2) { toast.error(t.sackRegistration.dialog.errInvalidWeightPrecision); return }
+      if (parts.length === 2 && (parts[1]?.length ?? 0) > 2) { toast.error(t.sackRegistration.dialog.errInvalidWeightPrecision); return }
     }
     setIsSubmitting(true)
     try {
@@ -110,14 +108,9 @@ export function EditDialog({
     }
   }
 
-  let farmerEmptyMessage = t.sackRegistration.dialog.typeToSearch
-  if (isFarmerSearching) {
-    farmerEmptyMessage = t.sackRegistration.dialog.searching
-  } else if (!representId) {
-    farmerEmptyMessage = t.sackRegistration.dialog.selectRepFirst
-  } else if (farmerQuery.trim()) {
-    farmerEmptyMessage = t.sackRegistration.dialog.noFarmersFound
-  }
+  const farmerEmptyMessage = isFarmerSearching
+    ? t.sackRegistration.dialog.searching
+    : t.sackRegistration.dialog.noFarmersFound
 
   return (
     <Dialog open={!!target} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -131,73 +124,6 @@ export function EditDialog({
         {target && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1 flex flex-col">
-              <Label className="text-sm font-medium">{t.sackRegistration.dialog.representative}</Label>
-              <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
-                <Popover open={representOpen} onOpenChange={setRepresentOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="relative">
-                      <CommandPrimitive.Input
-                        className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        value={representSearch}
-                        onValueChange={(val) => {
-                          setRepresentSearch(val)
-                          setRepresentOpen(true)
-                          if (representId) setRepresentId("")
-                        }}
-                        onFocus={() => setRepresentOpen(true)}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setRepresentOpen(true)
-                        }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        placeholder={t.sackRegistration.dialog.searchRepPlaceholder}
-                      />
-                      <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-[--radix-popover-trigger-width] p-0"
-                    align="start"
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                  >
-                    <CommandList>
-                      <CommandEmpty>{t.sackRegistration.dialog.noResultsFound}</CommandEmpty>
-                      <CommandGroup>
-                        {filteredRepresents.map((r) => (
-                          <CommandItem
-                            key={r.represent_id}
-                            value={r.represent_name}
-                            onSelect={() => {
-                              const changed = String(r.represent_id) !== representId
-                              setRepresentId(String(r.represent_id))
-                              setRepresentSearch(r.represent_name)
-                              setRepresentOpen(false)
-                              if (changed) {
-                                setFarmerQuery("")
-                                setFarmerResult(null)
-                              }
-                            }}
-                          >
-                            <IconCheck
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                representId === String(r.represent_id) ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {r.represent_name}
-                            <span className="text-muted-foreground text-sm ml-auto">
-                              {t.sackRegistration.dialog.membersCount.replace("{count}", String(r.farmer_count))}
-                            </span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </PopoverContent>
-                </Popover>
-              </Command>
-            </div>
-
-            <div className="space-y-1">
               <Label className="text-sm font-medium">{t.sackRegistration.dialog.farmerMember}</Label>
               <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
                 <Popover open={farmerOpen} onOpenChange={(open) => { setFarmerOpen(open) }}>
@@ -209,7 +135,11 @@ export function EditDialog({
                         onValueChange={(val) => {
                           setFarmerQuery(val)
                           setFarmerOpen(true)
-                          if (farmerResult) { setFarmerResult(null) }
+                          if (farmerResult) {
+                            setFarmerResult(null)
+                            setRepresentId("")
+                            setRepresentSearch("")
+                          }
                         }}
                         onFocus={() => setFarmerOpen(true)}
                         onClick={(e) => {
@@ -217,8 +147,7 @@ export function EditDialog({
                           setFarmerOpen(true)
                         }}
                         onPointerDown={(e) => e.stopPropagation()}
-                        placeholder={t.sackRegistration.dialog.searchPlaceholder}
-                        disabled={!representId}
+                        placeholder={t.sackRegistration.dialog.searchFarmerPlaceholder}
                       />
                       <IconChevronDown className="absolute right-3 top-2.5 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
                     </div>
@@ -241,6 +170,14 @@ export function EditDialog({
                               setFarmerResult(f)
                               setFarmerQuery(f.name)
                               setFarmerOpen(false)
+                              setConfirmedFarmerName(f.name)
+                              setConfirmedFarmerCode(f.mf_code)
+                              const repName =
+                                f.represent_name ??
+                                represents.find((r) => r.represent_id === f.represent_id)?.represent_name ??
+                                ""
+                              setRepresentId(String(f.represent_id ?? ""))
+                              setRepresentSearch(repName)
                             }}
                           >
                             <IconCheck
@@ -251,7 +188,7 @@ export function EditDialog({
                             />
                             <div className="flex flex-col">
                               <span>{f.name}</span>
-                              <span className="text-[10px] text-muted-foreground">ID: {f.mf_code}</span>
+                              <span className="text-[12px] text-muted-foreground">ID: {f.mf_code}</span>
                             </div>
                           </CommandItem>
                         ))}
@@ -261,11 +198,15 @@ export function EditDialog({
                 </Popover>
               </Command>
 
-              {farmerResult && !farmerOpen && (
+              {!farmerOpen && confirmedFarmerName && (
                 <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-2">
                   <div className="flex flex-col">
-                    <span className="font-medium text-green-700 dark:text-green-400">{farmerResult.name}</span>
-                    <span className="text-muted-foreground text-xs">{t.sackRegistration.dialog.idCardLabel?.replace("{code}", farmerResult.mf_code) || `ID Card: ${farmerResult.mf_code}`}</span>
+                    <span className="font-medium text-green-700 dark:text-green-400">
+                      {t.sackRegistration.dialog.farmerMember} : {confirmedFarmerName} ({confirmedFarmerCode})
+                    </span>
+                    <span className="font-medium text-green-700 dark:text-green-400">
+                      {t.sackRegistration.dialog.selectedRepresentLabel.replace("{name}", selectedRepresent?.represent_name ?? representSearch)}
+                    </span>
                   </div>
                   <IconCheck className="h-4 w-4 text-green-500" />
                 </div>
