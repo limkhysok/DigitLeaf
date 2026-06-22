@@ -65,11 +65,13 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
       accessorKey: "represent_name",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.representative} />,
       cell: ({ row }) => <div className="font-medium">{row.getValue("represent_name")}</div>,
+      enableSorting: false,
     },
     {
       accessorKey: "member_farmer_name",
       header: ({ column }) => <DataTableColumnHeader column={column} title={t.sackRegistration.table.farmer} />,
       cell: ({ row }) => <div className="font-medium">{row.getValue("member_farmer_name")}</div>,
+      enableSorting: false,
     },
     {
       accessorKey: "member_farmer_mf_code",
@@ -109,7 +111,11 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
           </Badge>
         )
       },
-      enableSorting: false,
+      sortingFn: (rowA, rowB) => {
+        const a = rowA.original.sack_in_kg === 0 ? 1 : 0
+        const b = rowB.original.sack_in_kg === 0 ? 1 : 0
+        return a - b
+      },
     },
     {
       accessorKey: "created_at",
@@ -120,6 +126,7 @@ export function getColumns({ t, localizeNumber, localizeDateString, total, onVie
         </div>
       ),
       sortingFn: "datetime",
+      enableSorting: false,
     },
     {
       id: "actions",

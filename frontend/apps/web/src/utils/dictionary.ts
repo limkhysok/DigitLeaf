@@ -130,6 +130,15 @@ export const translations = {
         noRecords: "No registrations found.",
         notes: "Notes",
       },
+      export: {
+        button: "Export",
+        title: "Export Data",
+        description: "Choose a date and status to export.",
+        date: "Date",
+        download: "Download .xlsx",
+        success: "Exported successfully",
+        failed: "Failed to export",
+      },
       dialog: {
         editTitle: "Edit Registration",
         editSubtitle: "Make changes to the sack registration details here.",
@@ -437,6 +446,15 @@ export const translations = {
         noRecords: "រកមិនឃើញការចុះឈ្មោះទេ។",
         notes: "កំណត់ចំណាំ",
       },
+      export: {
+        button: "នាំចេញ",
+        title: "នាំចេញទិន្នន័យ",
+        description: "ជ្រើសរើសកាលបរិច្ឆេទ និងស្ថានភាពដើម្បីនាំចេញ។",
+        date: "កាលបរិច្ឆេទ",
+        download: "ទាញយក .xlsx",
+        success: "បាននាំចេញដោយជោគជ័យ",
+        failed: "បរាជ័យក្នុងការនាំចេញ",
+      },
       dialog: {
         editTitle: "កែសម្រួលការចុះឈ្មោះ",
         editSubtitle: "ធ្វើការផ្លាស់ប្តូរព័ត៌មានលម្អិតនៃការចុះឈ្មោះបាវនៅទីនេះ។",
@@ -513,7 +531,7 @@ export const translations = {
       idCard: "អត្តសញ្ញាណប័ណ្ណ",
       saplingKg: "ចំនួនកូនថ្នាំ",
       expectedYield: "ទិន្នផលរំពឹងទុក",
-      expectedYieldKg: "ទិន្នផលរំពឹងទុក (គីឡូ)",
+      expectedYieldKg: "ទម្ងន់រំពឹងទុក (គីឡូ)",
       purchasedWeight: "ទម្ងន់ទិញ",
       purchasedWeightKg: "ទម្ងន់ទិញ (គីឡូ)",
       land: "ដី (អា)",
@@ -745,6 +763,15 @@ export type TranslationType = {
       readonly actions: string;
       readonly noRecords: string;
       readonly notes: string;
+    };
+    readonly export: {
+      readonly button: string;
+      readonly title: string;
+      readonly description: string;
+      readonly date: string;
+      readonly download: string;
+      readonly success: string;
+      readonly failed: string;
     };
     readonly dialog: {
       readonly editTitle: string;

@@ -55,17 +55,17 @@ export function ExportButton() {
       const url = globalThis.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      const statusSuffix = selectedStatus !== "all" ? `_${selectedStatus}` : ""
+      const statusSuffix = selectedStatus === "all" ? "" : `_${selectedStatus}`
       a.download = `sack_registrations_${dateYMD}${statusSuffix}.xlsx`
       document.body.appendChild(a)
       a.click()
       a.remove()
       globalThis.URL.revokeObjectURL(url)
 
-      toast.success("Exported successfully")
+      toast.success(t.sackRegistration.export.success)
       setOpen(false)
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Failed to export")
+      toast.error((err as Error).message || t.sackRegistration.export.failed)
     } finally {
       setIsExporting(false)
     }
@@ -76,18 +76,18 @@ export function ExportButton() {
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 gap-1.5 flex shrink-0">
           <IconDownload className="h-4 w-4" />
-          <span className="hidden sm:inline">Export</span>
+          <span className="hidden sm:inline">{t.sackRegistration.export.button}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent id="sack-export-content" className="w-72 p-4" align="start">
         <div className="flex flex-col gap-4">
           <div className="space-y-1">
-            <h4 className="text-sm font-semibold">Export Data</h4>
-            <p className="text-xs text-muted-foreground">Choose a date and status to export.</p>
+            <h4 className="text-sm font-semibold">{t.sackRegistration.export.title}</h4>
+            <p className="text-xs text-muted-foreground">{t.sackRegistration.export.description}</p>
           </div>
 
           <div className="grid gap-2">
-            <Label className="text-sm font-medium">Date</Label>
+            <Label className="text-sm font-medium">{t.sackRegistration.export.date}</Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -140,7 +140,7 @@ export function ExportButton() {
               ? <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
               : <IconDownload className="h-4 w-4 mr-2" />
             }
-            Download .xlsx
+            {t.sackRegistration.export.download}
           </Button>
         </div>
       </PopoverContent>

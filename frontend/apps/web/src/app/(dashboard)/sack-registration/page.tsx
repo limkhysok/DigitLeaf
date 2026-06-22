@@ -12,8 +12,10 @@ import {
 import { IconLoader2, IconCirclePlusFilled } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import {
+  SortingState,
   VisibilityState,
   getCoreRowModel,
+  getSortedRowModel,
 } from "@tanstack/react-table"
 import { useReactTable } from "@/utils/table-utils"
 import { DataTable } from "./_components/data-table"
@@ -103,6 +105,7 @@ export default function SackRegistrationPage() {
 
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [sorting, setSorting] = React.useState<SortingState>([])
 
   const table = useReactTable({
     data: records,
@@ -110,12 +113,14 @@ export default function SackRegistrationPage() {
     state: {
       columnVisibility,
       rowSelection,
+      sorting,
     },
     enableRowSelection: true,
-    enableSorting: false,
     onRowSelectionChange: setRowSelection,
     onColumnVisibilityChange: setColumnVisibility,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
   })
 
