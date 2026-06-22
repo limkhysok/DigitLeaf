@@ -12,7 +12,7 @@ from app.domains.tobacco_repay.models.t_contract import TContract
 from app.domains.tobacco_repay.models.t_contract_repay import TContractRepay
 from app.domains.tobacco_repay.crud import generate_repay_num, get_repay_detail
 from app.domains.tobacco_repay.schemas import RepayHistoryDetail
-from .schemas import PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate, PurchaseCreateResponse
+from .schemas import Purchase, PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate, PurchaseCreateResponse
 from datetime import datetime
 
 from app.core.config import CAMBODIA_TZ
@@ -28,22 +28,35 @@ async def generate_invoice_num(db: AsyncSession) -> str:
     return f"TP{today.strftime('%d%m%y')}-{seq:02d}"
 
 
-async def get_vendor_available_sack_kg(db: AsyncSession, vendor_id: int) -> float:
+async def get_vendor_available_sack_kg(
+    db: AsyncSession, vendor_id: int, *, for_update: bool = False
+) -> float:
     """Available sack = SUM(all registrations) - SUM(purchase details where farmer_own_sack=0).
-    Sack registration records are never mutated; quota is computed dynamically."""
-    registered_result = await db.execute(
+    Sack registration records are never mutated; quota is computed dynamically.
+
+    for_update=True takes row locks on both sums so concurrent purchase submissions
+    for the same vendor serialize instead of both reading the same stale "available"
+    total and overselling the quota. Only pass True from inside the same transaction
+    that goes on to insert the new detail rows (i.e. the validation path) — never for
+    plain read-only display queries, since the lock would hold until that request's
+    transaction ends.
+    """
+    registered_query = (
         select(func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0))
         .where(SackRegistration.farmer_id == vendor_id)
     )
-    registered_total = float(registered_result.scalar() or 0.0)
-
-    used_result = await db.execute(
+    used_query = (
         select(func.coalesce(func.sum(TobaccoPurchaseDetail.sack_in_kg), 0.0))
         .join(TobaccoPurchase, col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
         .where(col(TobaccoPurchase.vendor_id) == str(vendor_id))
         .where(col(TobaccoPurchaseDetail.farmer_own_sack) == 0)
     )
-    used_total = float(used_result.scalar() or 0.0)
+    if for_update:
+        registered_query = registered_query.with_for_update()
+        used_query = used_query.with_for_update()
+
+    registered_total = float((await db.execute(registered_query)).scalar() or 0.0)
+    used_total = float((await db.execute(used_query)).scalar() or 0.0)
 
     return max(0.0, round(registered_total - used_total, 3))
 
@@ -150,7 +163,7 @@ async def _validate_sack_quota(
 ) -> None:
     if not (vendor_id and str(vendor_id).isdigit() and new_sack_total > 1e-9):
         return
-    available = await get_vendor_available_sack_kg(db, int(vendor_id))
+    available = await get_vendor_available_sack_kg(db, int(vendor_id), for_update=True)
     if new_sack_total > available + 1e-9:
         raise ValueError(
             f"Insufficient sack stock: need {new_sack_total:.3f} kg but only "
@@ -294,7 +307,8 @@ async def create_purchase(
     )
 
     await db.commit()
-    purchase = await get_purchase(db, db_obj.tp_id)
+    db_purchase = await get_purchase(db, db_obj.tp_id)
+    purchase = Purchase.model_validate(db_purchase) if db_purchase else None
     return PurchaseCreateResponse(purchase=purchase, repays=await _get_repay_details(db, repay_ids))
 
 
@@ -593,7 +607,7 @@ async def get_purchase_report_data(
     )
     purchases = result.scalars().all()
 
-    tobacco_map = {t.t_id: (t.t_name_kh or t.t_name) for t in await get_tobacco_types(db)}
+    tobacco_map = {t.t_id: (t.t_name_kh or t.t_name) for t in await get_tobacco_types(db) if t.t_id is not None}
     rows = [row for p in purchases for row in _purchase_to_report_rows(p, tobacco_map)]
 
     oven_ids = list({p.oven for p in purchases if p.oven})
