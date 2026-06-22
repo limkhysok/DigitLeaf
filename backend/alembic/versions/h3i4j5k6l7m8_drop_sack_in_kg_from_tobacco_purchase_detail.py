@@ -18,19 +18,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    conn = op.get_bind()
-    result = conn.execute(sa.text(
-        "SELECT COUNT(*) FROM information_schema.COLUMNS "
-        "WHERE TABLE_NAME = 'tobacco_purchase_detail' AND COLUMN_NAME = 'sack_in_kg'"
-    ))
-    if result.scalar() > 0:
-        conn.execute(sa.text(
-            "ALTER TABLE tobacco_purchase_detail DROP COLUMN sack_in_kg"
-        ))
+    # No-op: the sack-quota feature (i4j5k6l7m8n9 / j5k6l7m8n9o0, later in this
+    # chain) needs this column again, and the current model
+    # (TobaccoPurchaseDetail.sack_in_kg) still reads/writes it. Kept as a no-op
+    # so this revision id stays valid for histories that already ran it.
+    pass
 
 
 def downgrade() -> None:
-    conn = op.get_bind()
-    conn.execute(sa.text(
-        "ALTER TABLE tobacco_purchase_detail ADD COLUMN sack_in_kg FLOAT NOT NULL DEFAULT 0.0"
-    ))
+    # No-op: upgrade() never drops the column, so there's nothing to restore.
+    pass

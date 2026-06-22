@@ -21,35 +21,25 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # Disable strict mode to prevent '0000-00-00' datetime errors during ALTER
     op.execute("SET SESSION sql_mode = ''")
-    
+
     # 1. Add new column vendor_id
     op.add_column('tobacco_purchase', sa.Column('vendor_id', sa.Integer(), nullable=True))
     op.create_foreign_key('fk_tp_vendor_id', 'tobacco_purchase', 'member_farmer', ['vendor_id'], ['mf_id'])
 
-    # 2. Migrate existing data: map vendor string name to mf_id
+    # 2. Backfill from the existing vendor column where it matches a member_farmer name
     op.execute(
         "UPDATE tobacco_purchase tp "
         "INNER JOIN member_farmer mf ON mf.name = tp.vendor "
         "SET tp.vendor_id = mf.mf_id"
     )
 
-    # 3. Drop old column vendor
-    op.drop_column('tobacco_purchase', 'vendor')
+    # NOTE: `vendor` is intentionally NOT dropped. The ORM model
+    # (TobaccoPurchase.vendor_id) still maps onto this legacy varchar column —
+    # it also holds free-text vendor names with no member_farmer match — so
+    # dropping it here would break every purchase read/write downstream.
 
 
 def downgrade() -> None:
-    op.execute("SET SESSION sql_mode = ''")
-    
-    # 1. Add old column vendor
-    op.add_column('tobacco_purchase', sa.Column('vendor', sa.String(length=255), server_default="", nullable=False))
-
-    # 2. Migrate data back: map vendor_id to vendor string name
-    op.execute(
-        "UPDATE tobacco_purchase tp "
-        "INNER JOIN member_farmer mf ON mf.mf_id = tp.vendor_id "
-        "SET tp.vendor = mf.name"
-    )
-
-    # 3. Drop new column vendor_id
+    # Reverse of upgrade(): only vendor_id/its FK were added, `vendor` was never dropped.
     op.drop_constraint('fk_tp_vendor_id', 'tobacco_purchase', type_='foreignkey')
     op.drop_column('tobacco_purchase', 'vendor_id')
