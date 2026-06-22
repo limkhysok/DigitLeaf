@@ -5,19 +5,15 @@ import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, TobaccoRepayItem } from "@/services/api-client"
 import { toast } from "sonner"
-import { IconCash, IconLoader2, IconSortAscending, IconSortDescending, IconArrowsSort } from "@tabler/icons-react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { IconCash, IconLoader2 } from "@tabler/icons-react"
 import { FilterBar } from "./_components/filter-bar"
 import { MobileFilterBar } from "./_components/mobile-filter-bar"
 import { TobaccoRepayCard } from "./_components/tobacco-repay-card"
 import { CreateRepayDialog } from "./_components/create-repay-dialog"
+import { DataTable } from "./_components/data-table"
+import { getSummaryColumns } from "./_components/summary-columns"
+import { getCoreRowModel, RowSelectionState, VisibilityState } from "@tanstack/react-table"
+import { useReactTable } from "@/utils/table-utils"
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { useInView } from "react-intersection-observer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
@@ -39,7 +35,7 @@ export default function TobaccoRepayPage() {
   const [searchInput, setSearchInput] = React.useState("")
   const [sortBy, setSortBy] = React.useState<"Quantity" | "total_repaid" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
-  const [columnVisibility, setColumnVisibility] = React.useState({
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     contractNo: true,
     contractor: true,
     representative: true,
@@ -48,6 +44,7 @@ export default function TobaccoRepayPage() {
     qty: true,
     totalReturned: true,
   })
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
 
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0)
@@ -128,14 +125,36 @@ export default function TobaccoRepayPage() {
     })
   }, [filteredRecords, sortBy, sortOrder])
 
-  const toggleQuantitySort = () => {
-    if (sortBy === "Quantity") {
-      setSortOrder(sortOrder === "desc" ? "asc" : "desc")
+  const handleColumnSort = React.useCallback((field: "Quantity" | "total_repaid") => {
+    if (sortBy === field) {
+      setSortOrder((order) => (order === "desc" ? "asc" : "desc"))
     } else {
-      setSortBy("Quantity")
+      setSortBy(field)
       setSortOrder("desc")
     }
-  }
+  }, [sortBy])
+
+  const columns = React.useMemo(() => getSummaryColumns({
+    sortBy,
+    sortOrder,
+    onSort: handleColumnSort,
+  }), [sortBy, sortOrder, handleColumnSort])
+
+  const table = useReactTable({
+    data: sortedRecords,
+    columns,
+    state: {
+      columnVisibility,
+      rowSelection,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    getRowId: (row, index) => row.id != null ? String(row.id) : String(index),
+    getCoreRowModel: getCoreRowModel(),
+    manualFiltering: true,
+    manualSorting: true,
+  })
 
   if (!mounted) return null
 
@@ -252,72 +271,8 @@ export default function TobaccoRepayPage() {
           DESKTOP CONTENT — (≥ 1024px / lg and above)
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && sortedRecords.length > 0 && (
-        <div className="hidden lg:block rounded-md border bg-white">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">No.</TableHead>
-                  {columnVisibility.contractNo && <TableHead>Contract No</TableHead>}
-                  {columnVisibility.contractor && <TableHead>Contractor</TableHead>}
-                  {columnVisibility.representative && <TableHead>Representative</TableHead>}
-                  {columnVisibility.tobaccoType && <TableHead>Tobacco Type</TableHead>}
-                  {columnVisibility.year && <TableHead className="text-center">Year</TableHead>}
-                  {columnVisibility.qty && (
-                    <TableHead className="text-right">
-                      <button
-                        onClick={toggleQuantitySort}
-                        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                      >
-                        Quantity
-                        {(() => {
-                          if (sortBy !== "Quantity") {
-                            return <IconArrowsSort className="size-3.5 text-muted-foreground/50" />
-                          }
-                          return sortOrder === "asc"
-                            ? <IconSortAscending className="size-3.5" />
-                            : <IconSortDescending className="size-3.5" />
-                        })()}
-                      </button>
-                    </TableHead>
-                  )}
-                  {columnVisibility.totalReturned && <TableHead className="text-right">Total Repaid</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody className="bg-white text-black">
-                {sortedRecords.map((rec, idx) => (
-                  <TableRow key={`${rec.id}-${idx}`}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    {columnVisibility.contractNo && <TableCell className="font-medium">{rec.contract_number || "—"}</TableCell>}
-                    {columnVisibility.contractor && <TableCell>{rec.contract_contractor_name || "—"}</TableCell>}
-                    {columnVisibility.representative && <TableCell>{rec.representative || "—"}</TableCell>}
-                    {columnVisibility.tobaccoType && (
-                      <TableCell>{rec.tobacco_type || "—"}</TableCell>
-                    )}
-                    {columnVisibility.year && (
-                      <TableCell className="text-center font-medium">
-                        {rec.contract_year || "—"}
-                      </TableCell>
-                    )}
-                    {columnVisibility.qty && (
-                      <TableCell className="text-right">
-                        {rec.Quantity !== null && rec.Quantity !== undefined
-                          ? `${rec.Quantity.toLocaleString()} kg`
-                          : "—"}
-                      </TableCell>
-                    )}
-                    {columnVisibility.totalReturned && (
-                      <TableCell className="text-right font-medium">
-                        {rec.total_repaid !== null && rec.total_repaid !== undefined
-                          ? `${rec.total_repaid.toLocaleString()} kg`
-                          : "—"}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        <div className="hidden lg:block">
+          <DataTable table={table} noRecordsText="No results." />
         </div>
       )}
 

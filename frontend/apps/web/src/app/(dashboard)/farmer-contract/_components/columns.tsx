@@ -52,13 +52,14 @@ function SortableHeader({
   readonly onSort: (field: SortField) => void
 }) {
   return (
-    <div
+    <button
+      type="button"
       className="flex items-center gap-1 cursor-pointer select-none group hover:text-foreground transition-colors"
       onClick={() => onSort(field)}
     >
       {label}
       <SortIcon active={sortBy === field} order={sortOrder} />
-    </div>
+    </button>
   )
 }
 
@@ -114,7 +115,7 @@ export function getColumns({ t, sortBy, sortOrder, onSort, onEdit, onDelete }: C
       header: () => <SortableHeader label={t.farmerContract.land} field="land" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />,
       cell: ({ row }) => {
         const val = row.getValue("land") as number | null | undefined
-        return <div className="text-sm">{val != null ? val.toLocaleString() : <span className="text-muted-foreground/40">—</span>}</div>
+        return <div className="text-sm">{val == null ? <span className="text-muted-foreground/40">—</span> : val.toLocaleString()}</div>
       },
     },
     {
@@ -123,7 +124,7 @@ export function getColumns({ t, sortBy, sortOrder, onSort, onEdit, onDelete }: C
       header: () => <SortableHeader label={t.farmerContract.saplingKg} field="sapling" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />,
       cell: ({ row }) => {
         const val = row.getValue("sapling") as number | null | undefined
-        return <div className="text-sm">{val != null ? val.toLocaleString() : <span className="text-muted-foreground/40">—</span>}</div>
+        return <div className="text-sm">{val == null ? <span className="text-muted-foreground/40">—</span> : val.toLocaleString()}</div>
       },
     },
     {
@@ -132,7 +133,7 @@ export function getColumns({ t, sortBy, sortOrder, onSort, onEdit, onDelete }: C
       header: () => <SortableHeader label={t.farmerContract.expectedYieldKg} field="yield" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />,
       cell: ({ row }) => {
         const val = row.getValue("expected") as number | null | undefined
-        return <div className="text-sm">{val != null ? val.toLocaleString() : <span className="text-muted-foreground/40">—</span>}</div>
+        return <div className="text-sm">{val == null ? <span className="text-muted-foreground/40">—</span> : val.toLocaleString()}</div>
       },
     },
     {
@@ -141,7 +142,7 @@ export function getColumns({ t, sortBy, sortOrder, onSort, onEdit, onDelete }: C
       header: () => <SortableHeader label={t.farmerContract.purchasedWeightKg} field="purchased" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />,
       cell: ({ row }) => {
         const val = row.getValue("purchased") as number | null | undefined
-        return <div className="text-sm">{val != null ? val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : <span className="text-muted-foreground/40">—</span>}</div>
+        return <div className="text-sm">{val == null ? <span className="text-muted-foreground/40">—</span> : val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       },
     },
     {

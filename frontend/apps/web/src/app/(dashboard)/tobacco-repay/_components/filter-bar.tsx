@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import type { VisibilityState } from "@tanstack/react-table"
 import {
   IconCirclePlus, IconX, IconAdjustmentsHorizontal, IconPlus,
 } from "@tabler/icons-react"
@@ -19,16 +20,6 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 
-export type ColumnVisibility = {
-  contractNo: boolean
-  contractor: boolean
-  representative: boolean
-  tobaccoType: boolean
-  year: boolean
-  qty: boolean
-  totalReturned: boolean
-}
-
 interface FilterBarProps {
   className?: string
   searchInput: string
@@ -38,8 +29,8 @@ interface FilterBarProps {
   selectedYear: string
   setSelectedYear: (v: string) => void
   availableYears: string[]
-  columnVisibility: ColumnVisibility
-  setColumnVisibility: (v: ColumnVisibility) => void
+  columnVisibility: VisibilityState
+  setColumnVisibility: (v: VisibilityState) => void
   onAdd: () => void
 }
 
