@@ -317,7 +317,45 @@ export const translations = {
         totalAmount: "Total Amount",
         total: "Total",
       }
-    }
+    },
+    dashboard: {
+      title: "Dashboard",
+      subtitle: "Overview of today's activity across sack registration, purchases, repayments, and contracts.",
+      todayPurchases: {
+        title: "Today's Purchases",
+        weight: "Net Weight",
+        value: "Total Value",
+        count: "Purchases",
+      },
+      sackRegistration: {
+        title: "Sack Registration",
+        total: "Total Registered",
+        today: "Today",
+      },
+      outstandingRepay: {
+        title: "Outstanding Repay",
+        contracted: "Contracted",
+        repaid: "Repaid",
+        outstanding: "Outstanding",
+      },
+      farmerContracts: {
+        title: "Farmer Contracts",
+        land: "Total Land (ha)",
+        plants: "Total Plants",
+      },
+      trend: {
+        title: "Purchase Trend",
+        subtitle: "Net weight purchased over the last 30 days.",
+        weightLabel: "Net Weight (kg)",
+      },
+      activity: {
+        title: "Recent Activity",
+        subtitle: "Latest tobacco purchases and repayments.",
+        purchase: "Purchase",
+        repay: "Repay",
+        noActivity: "No recent activity.",
+      },
+    },
   },
   kh: {
     sidebar: {
@@ -633,7 +671,45 @@ export const translations = {
         totalAmount: "ទឹកប្រាក់សរុប",
         total: "សរុប",
       }
-    }
+    },
+    dashboard: {
+      title: "ផ្ទាំងគ្រប់គ្រង",
+      subtitle: "ទិដ្ឋភាពទូទៅនៃសកម្មភាពថ្ងៃនេះ លើការចុះឈ្មោះយកបាវ ការទិញ ការសង និងកិច្ចសន្យា។",
+      todayPurchases: {
+        title: "ការទិញថ្ងៃនេះ",
+        weight: "ទម្ងន់សុទ្ធ",
+        value: "តម្លៃសរុប",
+        count: "ចំនួនការទិញ",
+      },
+      sackRegistration: {
+        title: "ការចុះឈ្មោះយកបាវ",
+        total: "ចុះឈ្មោះសរុប",
+        today: "ថ្ងៃនេះ",
+      },
+      outstandingRepay: {
+        title: "ការសងនៅសល់",
+        contracted: "កិច្ចសន្យា",
+        repaid: "បានសង",
+        outstanding: "នៅសល់",
+      },
+      farmerContracts: {
+        title: "កិច្ចសន្យាកសិករ",
+        land: "ដីសរុប (ហ.ត.)",
+        plants: "ដើមថ្នាំសរុប",
+      },
+      trend: {
+        title: "ស្ថិតិការទិញ",
+        subtitle: "ទម្ងន់សុទ្ធដែលបានទិញក្នុងរយៈពេល ៣០ ថ្ងៃចុងក្រោយ។",
+        weightLabel: "ទម្ងន់សុទ្ធ (គីឡូ)",
+      },
+      activity: {
+        title: "សកម្មភាពថ្មីៗ",
+        subtitle: "ការទិញ និងការសងសន្លឹកថ្នាំចុងក្រោយបំផុត។",
+        purchase: "ការទិញ",
+        repay: "ការសង",
+        noActivity: "មិនមានសកម្មភាពថ្មីៗទេ។",
+      },
+    },
   }
 } as const
 
@@ -950,6 +1026,44 @@ export type TranslationType = {
       readonly netWeightAbbr: string;
       readonly totalAmount: string;
       readonly total: string;
+    };
+  };
+  readonly dashboard: {
+    readonly title: string;
+    readonly subtitle: string;
+    readonly todayPurchases: {
+      readonly title: string;
+      readonly weight: string;
+      readonly value: string;
+      readonly count: string;
+    };
+    readonly sackRegistration: {
+      readonly title: string;
+      readonly total: string;
+      readonly today: string;
+    };
+    readonly outstandingRepay: {
+      readonly title: string;
+      readonly contracted: string;
+      readonly repaid: string;
+      readonly outstanding: string;
+    };
+    readonly farmerContracts: {
+      readonly title: string;
+      readonly land: string;
+      readonly plants: string;
+    };
+    readonly trend: {
+      readonly title: string;
+      readonly subtitle: string;
+      readonly weightLabel: string;
+    };
+    readonly activity: {
+      readonly title: string;
+      readonly subtitle: string;
+      readonly purchase: string;
+      readonly repay: string;
+      readonly noActivity: string;
     };
   };
 }

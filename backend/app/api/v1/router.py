@@ -7,6 +7,7 @@ from app.domains.farmer_contract import api as farmer_contract
 from app.domains.sack_registration import api as sack_registration
 from app.domains.tobacco_purchase import api as tobacco_purchase
 from app.domains.tobacco_repay import api as tobacco_repay
+from app.domains.dashboard import api as dashboard
 from app.core.route_logger import AuditLogRoute
 
 api_router = APIRouter(route_class=AuditLogRoute)
@@ -18,3 +19,4 @@ api_router.include_router(farmer_contract.router, prefix="/farmer-contract", tag
 api_router.include_router(sack_registration.router, prefix="/sack-registrations", tags=["sack-registrations"])
 api_router.include_router(tobacco_purchase.router, prefix="/tobacco-purchases", tags=["tobacco-purchases"])
 api_router.include_router(tobacco_repay.router, prefix="/tobacco-repays", tags=["tobacco-repays"])
+api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])

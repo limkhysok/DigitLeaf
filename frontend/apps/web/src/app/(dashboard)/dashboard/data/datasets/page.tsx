@@ -9,7 +9,7 @@ export default function DatasetsPage() {
         <p className="text-muted-foreground font-medium">Browse and manage your ingested data.</p>
       </div>
 
-      <Card className="border-dashed h-[400px] flex items-center justify-center">
+      <Card className="border-dashed h-100 flex items-center justify-center">
         <div className="text-center space-y-2">
           <IconDatabase className="size-10 text-muted-foreground/20 mx-auto" />
           <p className="text-muted-foreground font-medium">Dataset explorer is under development.</p>

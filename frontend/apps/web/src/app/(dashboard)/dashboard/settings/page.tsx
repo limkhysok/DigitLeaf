@@ -14,7 +14,7 @@ export default function SettingsPage() {
             <CardTitle>General Settings</CardTitle>
             <CardDescription>Update your workspace name and branding.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[200px] border-t flex items-center justify-center bg-muted/5">
+          <CardContent className="h-50 border-t flex items-center justify-center bg-muted/5">
             <p className="text-sm text-muted-foreground italic">Settings interface coming soon...</p>
           </CardContent>
         </Card>

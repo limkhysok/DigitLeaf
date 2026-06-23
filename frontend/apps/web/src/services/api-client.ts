@@ -3,6 +3,7 @@ import { userApi } from "./user";
 import { sackRegistrationApi } from "./sack-registration";
 import { tobaccoPurchaseApi } from "./tobacco-purchase";
 import { tobaccoRepayApi } from "./tobacco-repay";
+import { dashboardApi } from "./dashboard";
 
 // Re-export all types
 export * from "../types";
@@ -14,4 +15,5 @@ export const apiClient = {
   ...sackRegistrationApi,
   ...tobaccoPurchaseApi,
   ...tobaccoRepayApi,
+  ...dashboardApi,
 };
