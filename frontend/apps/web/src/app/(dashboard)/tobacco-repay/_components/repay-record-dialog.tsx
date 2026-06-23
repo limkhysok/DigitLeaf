@@ -356,6 +356,11 @@ export function RepayRecordDialog({
 
   const parsedQty = Number.parseFloat(quantity)
 
+  const remaining =
+    isAddMode && selectedContract?.qty != null
+      ? selectedContract.qty - (selectedContract.total_returned ?? 0)
+      : null
+
   function resetForm() {
     setRepayNum("")
     setRepayDate(todayIso())
@@ -430,6 +435,10 @@ export function RepayRecordDialog({
       }
       if (!selectedContract) {
         toast.error("Please select a contract")
+        return
+      }
+      if (remaining != null && parsedQty > remaining) {
+        toast.error(`Quantity exceeds remaining balance (${remaining.toLocaleString()} kg)`)
         return
       }
       createRepay()
@@ -526,6 +535,7 @@ export function RepayRecordDialog({
                 id="quantity"
                 type="number"
                 min={0.01}
+                max={remaining ?? undefined}
                 step="any"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}

@@ -46,6 +46,7 @@ export default function TobaccoRepayPage() {
     year: true,
     qty: true,
     totalReturned: true,
+    status: true,
   })
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
 

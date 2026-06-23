@@ -110,6 +110,8 @@ async def create_tobacco_repay(
             ip_address=request.client.host if request.client else None,
         )
     except ValueError as e:
+        if "exceeds remaining balance" in str(e):
+            raise HTTPException(status_code=400, detail=str(e))
         raise HTTPException(status_code=404, detail=str(e))
 
 
@@ -207,6 +209,8 @@ async def update_tobacco_repay(
             ip_address=request.client.host if request.client else None,
         )
     except ValueError as e:
+        if "exceeds remaining balance" in str(e):
+            raise HTTPException(status_code=400, detail=str(e))
         raise HTTPException(status_code=404, detail=str(e))
 
 

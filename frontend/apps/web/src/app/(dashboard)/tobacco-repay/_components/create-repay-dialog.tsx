@@ -619,6 +619,10 @@ function RecordRepaymentDialog({
       toast.error("Enter a valid quantity to repay")
       return
     }
+    if (remaining != null && parsedQty > remaining) {
+      toast.error(`Quantity exceeds remaining balance (${remaining.toLocaleString()} kg)`)
+      return
+    }
     mutate()
   }
 
@@ -690,6 +694,7 @@ function RecordRepaymentDialog({
               id="quantity"
               type="number"
               min={0.01}
+              max={remaining ?? undefined}
               step="any"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
@@ -760,7 +765,13 @@ function RecordRepaymentDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isPending || !record.f_id || Number.isNaN(parsedQty) || parsedQty <= 0}
+              disabled={
+                isPending ||
+                !record.f_id ||
+                Number.isNaN(parsedQty) ||
+                parsedQty <= 0 ||
+                (remaining != null && parsedQty > remaining)
+              }
               className="bg-[#009640] hover:bg-[#007a33] text-white"
             >
               {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}

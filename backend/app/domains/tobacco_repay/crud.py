@@ -256,6 +256,15 @@ async def create_repay(
     if not contract:
         raise ValueError(f"Contract id {obj_in.con_id} not found")
 
+    total_repaid = await db.scalar(
+        select(func.sum(TContractRepay.qty_repay)).where(TContractRepay.con_id == obj_in.con_id)
+    ) or 0.0
+    remaining = (contract.qty or 0.0) - total_repaid
+    if obj_in.qty_repay > remaining:
+        raise ValueError(
+            f"Repay quantity ({obj_in.qty_repay} kg) exceeds remaining balance ({remaining} kg)"
+        )
+
     db_obj = TContractRepay(
         con_id=obj_in.con_id,
         con_num=obj_in.con_num,
@@ -341,6 +350,21 @@ async def update_repay(
         raise ValueError(f"Repay id {repay_id} not found")
 
     update_data = obj_in.model_dump(exclude_unset=True)
+
+    if update_data.get("qty_repay") is not None:
+        contract = await db.get(TContract, db_obj.con_id)
+        if contract:
+            total_repaid_others = await db.scalar(
+                select(func.sum(TContractRepay.qty_repay))
+                .where(TContractRepay.con_id == db_obj.con_id)
+                .where(TContractRepay.repay_id != repay_id)
+            ) or 0.0
+            remaining = (contract.qty or 0.0) - total_repaid_others
+            if update_data["qty_repay"] > remaining:
+                raise ValueError(
+                    f"Repay quantity ({update_data['qty_repay']} kg) exceeds remaining balance ({remaining} kg)"
+                )
+
     for key, value in update_data.items():
         setattr(db_obj, key, value)
 

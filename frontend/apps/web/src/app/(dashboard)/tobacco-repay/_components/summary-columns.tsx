@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import { IconArrowsSort, IconSortAscending, IconSortDescending, IconEye } from "@tabler/icons-react"
 import { TobaccoRepayItem } from "@/services/api-client"
 
@@ -134,6 +135,27 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
       cell: ({ row }) => {
         const val = row.getValue("totalReturned") as number | null
         return <div className="text-right font-medium">{val == null ? "—" : val.toLocaleString()}</div>
+      },
+    },
+    {
+      id: "status",
+      header: () => <div className="text-center">Status</div>,
+      cell: ({ row }) => {
+        const rec = row.original
+        const isCompleted = rec.Quantity != null && rec.total_repaid != null && rec.total_repaid === rec.Quantity
+        return (
+          <div className="text-center">
+            {isCompleted ? (
+              <Badge variant="outline" className="bg-green-500/15 text-green-700 dark:border-green-400/50 dark:bg-green-400/15 dark:text-green-300 px-3 py-1 text-[13px] font-semibold">
+                Completed
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-yellow-500/15 text-yellow-700 dark:border-yellow-400/50 dark:bg-yellow-400/15 dark:text-yellow-300 px-3 py-1 text-sm font-semibold tracking-wide">
+                Pending
+              </Badge>
+            )}
+          </div>
+        )
       },
     },
     {

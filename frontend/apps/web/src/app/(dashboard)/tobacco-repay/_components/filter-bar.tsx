@@ -111,6 +111,12 @@ export function FilterBar({
             >
               Total Returned
             </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.status}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, status: v })}
+            >
+              Status
+            </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
 

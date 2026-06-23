@@ -31,23 +31,36 @@ async def _get_today_purchases(session: AsyncSession) -> dict[str, Any]:
 
 
 async def _get_outstanding_repay(session: AsyncSession, year: int) -> dict[str, Any]:
+    # Mirrors the join structure used by tobacco_repay.crud.get_tobacco_repays: a contract's
+    # "year" is the MfConYear row matching the farmer (f_id) and the contract date's year,
+    # not the unreliable TContract.year column (legacy data defaults most rows to 2017).
+    contracted_stmt = (
+        select(func.coalesce(func.sum(TContract.qty), 0.0))
+        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)
+        .join(
+            MfConYear,
+            (MfConYear.mf_id == TContract.f_id)
+            & (MfConYear.year == func.year(TContract.con_date)),
+        )
+        .where(MfConYear.year == year)
+    )
+    total_contracted = await session.scalar(contracted_stmt) or 0.0
+
+    repaid_stmt = (
+        select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0))
+        .join(TContract, TContractRepay.con_id == TContract.con_id)
+        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)
+        .join(
+            MfConYear,
+            (MfConYear.mf_id == TContract.f_id)
+            & (MfConYear.year == func.year(TContract.con_date)),
+        )
+        .where(MfConYear.year == year)
+    )
+    total_repaid = await session.scalar(repaid_stmt) or 0.0
+
     today = datetime.now(CAMBODIA_TZ).date()
-
-    total_contracted = await session.scalar(
-        select(func.coalesce(func.sum(TContract.qty), 0.0)).where(func.year(TContract.con_date) == year)
-    ) or 0.0
-
-    total_repaid = await session.scalar(
-        select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0))
-        .join(TContract, TContractRepay.con_id == TContract.con_id)
-        .where(func.year(TContract.con_date) == year)
-    ) or 0.0
-
-    today_repaid_kg = await session.scalar(
-        select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0))
-        .join(TContract, TContractRepay.con_id == TContract.con_id)
-        .where(func.year(TContract.con_date) == year, TContractRepay.repay_date == today)
-    ) or 0.0
+    today_repaid_kg = await session.scalar(repaid_stmt.where(TContractRepay.repay_date == today)) or 0.0
 
     total_contracted = float(total_contracted)
     total_repaid = float(total_repaid)
