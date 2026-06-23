@@ -10,7 +10,9 @@ class TodayPurchasesSummary(BaseModel):
 
 
 class OutstandingRepaySummary(BaseModel):
-    contract_count: int
+    year: int
+    today_repaid_kg: float
+    today_repay_pct: float
     total_contracted: float
     total_repaid: float
     outstanding: float

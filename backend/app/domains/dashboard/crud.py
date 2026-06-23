@@ -30,23 +30,34 @@ async def _get_today_purchases(session: AsyncSession) -> dict[str, Any]:
     }
 
 
-async def _get_outstanding_repay(session: AsyncSession) -> dict[str, Any]:
-    contracted_stmt = select(
-        func.count().label("contract_count"),
-        func.coalesce(func.sum(TContract.qty), 0.0).label("total_contracted"),
-    ).select_from(TContract)
-    contracted_row = (await session.execute(contracted_stmt)).first()
+async def _get_outstanding_repay(session: AsyncSession, year: int) -> dict[str, Any]:
+    today = datetime.now(CAMBODIA_TZ).date()
 
-    repaid_stmt = select(
-        func.coalesce(func.sum(TContractRepay.qty_repay), 0.0).label("total_repaid"),
-    ).select_from(TContractRepay)
-    total_repaid = (await session.execute(repaid_stmt)).scalar() or 0.0
+    total_contracted = await session.scalar(
+        select(func.coalesce(func.sum(TContract.qty), 0.0)).where(func.year(TContract.con_date) == year)
+    ) or 0.0
 
-    total_contracted = float(contracted_row.total_contracted) if contracted_row else 0.0
+    total_repaid = await session.scalar(
+        select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0))
+        .join(TContract, TContractRepay.con_id == TContract.con_id)
+        .where(func.year(TContract.con_date) == year)
+    ) or 0.0
+
+    today_repaid_kg = await session.scalar(
+        select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0))
+        .join(TContract, TContractRepay.con_id == TContract.con_id)
+        .where(func.year(TContract.con_date) == year, TContractRepay.repay_date == today)
+    ) or 0.0
+
+    total_contracted = float(total_contracted)
     total_repaid = float(total_repaid)
+    today_repaid_kg = float(today_repaid_kg)
+    today_repay_pct = round(today_repaid_kg / total_contracted * 100, 1) if total_contracted > 0 else 0.0
 
     return {
-        "contract_count": (contracted_row.contract_count or 0) if contracted_row else 0,
+        "year": year,
+        "today_repaid_kg": round(today_repaid_kg, 2),
+        "today_repay_pct": today_repay_pct,
         "total_contracted": round(total_contracted, 2),
         "total_repaid": round(total_repaid, 2),
         "outstanding": round(max(0.0, total_contracted - total_repaid), 2),
@@ -243,6 +254,6 @@ async def get_summary(session: AsyncSession) -> dict[str, Any]:
     return {
         "today_purchases": await _get_today_purchases(session),
         "sack_registration": await sack_registration_crud.get_stats(session),
-        "outstanding_repay": await _get_outstanding_repay(session),
+        "outstanding_repay": await _get_outstanding_repay(session, current_year - 1),
         "farmer_contracts": await _get_farmer_contracts(session, current_year),
     }

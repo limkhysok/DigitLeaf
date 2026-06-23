@@ -334,11 +334,11 @@ export const translations = {
         count: "Registrations",
       },
       outstandingRepay: {
-        title: "Outstanding Repay",
+        title: "Repay",
         contracted: "Contracted",
         repaid: "Repaid",
         outstanding: "Outstanding",
-        contracts: "Contracts",
+        today: "Today",
       },
       farmerContracts: {
         title: "Farmer Contracts",
@@ -710,7 +710,7 @@ export const translations = {
         contracted: "កិច្ចសន្យា",
         repaid: "បានសង",
         outstanding: "នៅសល់",
-        contracts: "កិច្ចសន្យា",
+        today: "ថ្ងៃនេះ",
       },
       farmerContracts: {
         title: "កិច្ចសន្យាកសិករ",
@@ -1084,7 +1084,7 @@ export type TranslationType = {
       readonly contracted: string;
       readonly repaid: string;
       readonly outstanding: string;
-      readonly contracts: string;
+      readonly today: string;
     };
     readonly farmerContracts: {
       readonly title: string;

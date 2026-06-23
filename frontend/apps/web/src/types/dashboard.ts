@@ -10,7 +10,9 @@ export interface SackRegistrationStatsSummary {
 }
 
 export interface OutstandingRepaySummary {
-  contract_count: number;
+  year: number;
+  today_repaid_kg: number;
+  today_repay_pct: number;
   total_contracted: number;
   total_repaid: number;
   outstanding: number;

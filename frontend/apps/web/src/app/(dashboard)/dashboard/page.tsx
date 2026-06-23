@@ -184,7 +184,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1">
         <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{t.dashboard.title}</h1>
         <p className="text-muted-foreground font-medium">{t.dashboard.subtitle}</p>
@@ -293,14 +293,14 @@ export default function DashboardPage() {
                 <Card className="h-full shadow-sm border-border/50 hover:border-primary/20 hover:shadow-md transition-all">
                   <CardContent className="relative p-6">
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t.dashboard.outstandingRepay.title}
+                      {t.dashboard.outstandingRepay.title} ({data.outstanding_repay.year})
                     </p>
                     <Badge variant="outline" className="absolute right-4 top-4 gap-1 text-foreground">
                       <IconReceiptRefund className="size-3" />
-                      {fmtInt(data.outstanding_repay.contract_count)} {t.dashboard.outstandingRepay.contracts}
+                      {t.dashboard.outstandingRepay.today}: {fmtPct(data.outstanding_repay.today_repay_pct)}%
                     </Badge>
                     <span className="mt-4 block text-2xl font-semibold tabular-nums">
-                      {fmtKg(data.outstanding_repay.outstanding)} kg
+                      {fmtKg(data.outstanding_repay.total_contracted)} kg
                     </span>
                     <div className="mt-3 flex items-center justify-between pt-3 text-sm font-medium">
                       <span>
