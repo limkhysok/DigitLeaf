@@ -91,6 +91,19 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint, onDo
       },
     },
     {
+      accessorKey: "rate",
+      id: "rate",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Rate" />,
+      cell: ({ row }) => {
+        const val = row.original.rate
+        return (
+          <div className="tabular-nums font-sm">
+            {val == null ? "-" : val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        )
+      },
+    },
+    {
       accessorKey: "total_net_weight",
       // ID must be net_weight for the server-side sorting logic if we map it
       id: "net_weight",

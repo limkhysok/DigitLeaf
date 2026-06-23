@@ -326,12 +326,18 @@ export const translations = {
         weight: "Net Weight",
         value: "Total Value",
         count: "Purchases",
+        trendUp: "Up",
+        trendDown: "Down",
+        vsYesterday: "vs yesterday",
       },
       sackRegistration: {
         title: "Sack Registration",
         total: "Total Registered",
         today: "Today",
         count: "Registrations",
+        trendUp: "Up",
+        trendDown: "Down",
+        vsYesterday: "vs yesterday",
       },
       outstandingRepay: {
         title: "Repay",
@@ -339,6 +345,9 @@ export const translations = {
         repaid: "Repaid",
         outstanding: "Outstanding",
         today: "Today",
+        trendUp: "Up",
+        trendDown: "Down",
+        vsYesterday: "vs yesterday",
       },
       farmerContracts: {
         title: "Farmer Contracts",
@@ -366,12 +375,11 @@ export const translations = {
           pickDate: "Pick a date range",
         },
       },
-      activity: {
-        title: "Recent Activity",
-        subtitle: "Latest tobacco purchases and repayments.",
-        purchase: "Purchase",
-        repay: "Repay",
-        noActivity: "No recent activity.",
+      purchaseByBuyer: {
+        title: "Purchases by Buyer",
+        subtitle: "Vendor count per buyer this year.",
+        vendorLabel: "Vendors",
+        noData: "No purchase data yet.",
       },
     },
   },
@@ -698,12 +706,18 @@ export const translations = {
         weight: "ទម្ងន់សុទ្ធ",
         value: "តម្លៃសរុប",
         count: "ចំនួនការទិញ",
+        trendUp: "កើនឡើង",
+        trendDown: "ថយចុះ",
+        vsYesterday: "បើធៀបនឹងម្សិលមិញ",
       },
       sackRegistration: {
         title: "ការចុះឈ្មោះយកបាវ",
         total: "ចុះឈ្មោះសរុប",
         today: "ថ្ងៃនេះ",
         count: "ចំនួនការចុះឈ្មោះ",
+        trendUp: "កើនឡើង",
+        trendDown: "ថយចុះ",
+        vsYesterday: "បើធៀបនឹងម្សិលមិញ",
       },
       outstandingRepay: {
         title: "ការសងនៅសល់",
@@ -711,6 +725,9 @@ export const translations = {
         repaid: "បានសង",
         outstanding: "នៅសល់",
         today: "ថ្ងៃនេះ",
+        trendUp: "កើនឡើង",
+        trendDown: "ថយចុះ",
+        vsYesterday: "បើធៀបនឹងម្សិលមិញ",
       },
       farmerContracts: {
         title: "កិច្ចសន្យាកសិករ",
@@ -738,12 +755,11 @@ export const translations = {
           pickDate: "ជ្រើសរើសកាលបរិច្ឆេទ",
         },
       },
-      activity: {
-        title: "សកម្មភាពថ្មីៗ",
-        subtitle: "ការទិញ និងការសងសន្លឹកថ្នាំចុងក្រោយបំផុត។",
-        purchase: "ការទិញ",
-        repay: "ការសង",
-        noActivity: "មិនមានសកម្មភាពថ្មីៗទេ។",
+      purchaseByBuyer: {
+        title: "ការទិញតាមអ្នកទិញ",
+        subtitle: "ចំនួនអ្នកលក់ក្នុងមួយអ្នកទិញសម្រាប់ឆ្នាំនេះ។",
+        vendorLabel: "អ្នកលក់",
+        noData: "មិនទាន់មានទិន្នន័យទិញនៅឡើយទេ។",
       },
     },
   }
@@ -1072,12 +1088,18 @@ export type TranslationType = {
       readonly weight: string;
       readonly value: string;
       readonly count: string;
+      readonly trendUp: string;
+      readonly trendDown: string;
+      readonly vsYesterday: string;
     };
     readonly sackRegistration: {
       readonly title: string;
       readonly total: string;
       readonly today: string;
       readonly count: string;
+      readonly trendUp: string;
+      readonly trendDown: string;
+      readonly vsYesterday: string;
     };
     readonly outstandingRepay: {
       readonly title: string;
@@ -1085,6 +1107,9 @@ export type TranslationType = {
       readonly repaid: string;
       readonly outstanding: string;
       readonly today: string;
+      readonly trendUp: string;
+      readonly trendDown: string;
+      readonly vsYesterday: string;
     };
     readonly farmerContracts: {
       readonly title: string;
@@ -1112,12 +1137,11 @@ export type TranslationType = {
         readonly pickDate: string;
       };
     };
-    readonly activity: {
+    readonly purchaseByBuyer: {
       readonly title: string;
       readonly subtitle: string;
-      readonly purchase: string;
-      readonly repay: string;
-      readonly noActivity: string;
+      readonly vendorLabel: string;
+      readonly noData: string;
     };
   };
 }

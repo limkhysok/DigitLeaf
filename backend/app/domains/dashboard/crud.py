@@ -7,6 +7,7 @@ from sqlmodel import select, func, col
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration import crud as sack_registration_crud
 from app.domains.tobacco_purchase.models import TobaccoPurchase
+from app.domains.tobacco_purchase.models.purchaser import Purchaser
 from app.domains.tobacco_repay.models import TContract, TContractRepay
 from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmers.models import MemberFarmer
@@ -17,16 +18,35 @@ PRESET_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "3m": 90, "9m": 270, "12m": 3
 
 async def _get_today_purchases(session: AsyncSession) -> dict[str, Any]:
     today = datetime.now(CAMBODIA_TZ).date()
+    yesterday = today - timedelta(days=1)
     stmt = select(
-        func.count().label("count"),
+        func.count().label("total_count"),
         func.coalesce(func.sum(TobaccoPurchase.total_net_weight), 0.0).label("net_weight_kg"),
         func.coalesce(func.sum(TobaccoPurchase.grand_total), 0.0).label("grand_total"),
-    ).where(TobaccoPurchase.tp_date == today)
+    ).where(col(TobaccoPurchase.tp_date) == today)
     row = (await session.execute(stmt)).first()
+    net_weight_kg = round(float(row.net_weight_kg), 2) if row else 0.0
+
+    yesterday_net_weight_kg = await session.scalar(
+        select(func.coalesce(func.sum(TobaccoPurchase.total_net_weight), 0.0)).where(
+            col(TobaccoPurchase.tp_date) == yesterday
+        )
+    ) or 0.0
+    yesterday_net_weight_kg = round(float(yesterday_net_weight_kg), 2)
+
+    if yesterday_net_weight_kg > 0:
+        change_pct = round((net_weight_kg - yesterday_net_weight_kg) / yesterday_net_weight_kg * 100, 1)
+    elif net_weight_kg > 0:
+        change_pct = 100.0
+    else:
+        change_pct = 0.0
+
     return {
-        "count": (row.count or 0) if row else 0,
-        "net_weight_kg": round(float(row.net_weight_kg), 2) if row else 0.0,
+        "count": (row.total_count or 0) if row else 0,
+        "net_weight_kg": net_weight_kg,
         "grand_total": round(float(row.grand_total), 2) if row else 0.0,
+        "yesterday_net_weight_kg": yesterday_net_weight_kg,
+        "change_pct": change_pct,
     }
 
 
@@ -36,41 +56,48 @@ async def _get_outstanding_repay(session: AsyncSession, year: int) -> dict[str, 
     # not the unreliable TContract.year column (legacy data defaults most rows to 2017).
     contracted_stmt = (
         select(func.coalesce(func.sum(TContract.qty), 0.0))
-        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)
+        .join(MemberFarmer, col(TContract.f_id) == col(MemberFarmer.mf_id))
         .join(
             MfConYear,
-            (MfConYear.mf_id == TContract.f_id)
-            & (MfConYear.year == func.year(TContract.con_date)),
+            (col(MfConYear.mf_id) == col(TContract.f_id))
+            & (col(MfConYear.year) == func.year(TContract.con_date)),
         )
-        .where(MfConYear.year == year)
+        .where(col(MfConYear.year) == year)
     )
     total_contracted = await session.scalar(contracted_stmt) or 0.0
 
     repaid_stmt = (
         select(func.coalesce(func.sum(TContractRepay.qty_repay), 0.0))
-        .join(TContract, TContractRepay.con_id == TContract.con_id)
-        .join(MemberFarmer, TContract.f_id == MemberFarmer.mf_id)
+        .join(TContract, col(TContractRepay.con_id) == col(TContract.con_id))
+        .join(MemberFarmer, col(TContract.f_id) == col(MemberFarmer.mf_id))
         .join(
             MfConYear,
-            (MfConYear.mf_id == TContract.f_id)
-            & (MfConYear.year == func.year(TContract.con_date)),
+            (col(MfConYear.mf_id) == col(TContract.f_id))
+            & (col(MfConYear.year) == func.year(TContract.con_date)),
         )
-        .where(MfConYear.year == year)
+        .where(col(MfConYear.year) == year)
     )
     total_repaid = await session.scalar(repaid_stmt) or 0.0
 
     today = datetime.now(CAMBODIA_TZ).date()
-    today_repaid_kg = await session.scalar(repaid_stmt.where(TContractRepay.repay_date == today)) or 0.0
+    yesterday = today - timedelta(days=1)
+    today_repaid_kg = await session.scalar(repaid_stmt.where(col(TContractRepay.repay_date) == today)) or 0.0
+    yesterday_repaid_kg = await session.scalar(repaid_stmt.where(col(TContractRepay.repay_date) == yesterday)) or 0.0
 
     total_contracted = float(total_contracted)
     total_repaid = float(total_repaid)
     today_repaid_kg = float(today_repaid_kg)
+    yesterday_repaid_kg = float(yesterday_repaid_kg)
     today_repay_pct = round(today_repaid_kg / total_contracted * 100, 1) if total_contracted > 0 else 0.0
+    yesterday_repay_pct = round(yesterday_repaid_kg / total_contracted * 100, 1) if total_contracted > 0 else 0.0
+    repay_change_pct = round(today_repay_pct - yesterday_repay_pct, 1)
 
     return {
         "year": year,
         "today_repaid_kg": round(today_repaid_kg, 2),
         "today_repay_pct": today_repay_pct,
+        "yesterday_repay_pct": yesterday_repay_pct,
+        "repay_change_pct": repay_change_pct,
         "total_contracted": round(total_contracted, 2),
         "total_repaid": round(total_repaid, 2),
         "outstanding": round(max(0.0, total_contracted - total_repaid), 2),
@@ -82,12 +109,12 @@ async def _get_farmer_contracts(session: AsyncSession, year: int) -> dict[str, A
     stmt = (
         select(
             MfConYear.year,
-            func.count().label("count"),
+            func.count().label("total_count"),
             func.coalesce(func.sum(MfConYear.land), 0.0).label("total_land"),
             func.coalesce(func.sum(MfConYear.tobac_num), 0).label("total_tobac_num"),
         )
         .where(col(MfConYear.year).in_([year, prev_year]))
-        .group_by(MfConYear.year)
+        .group_by(col(MfConYear.year))
     )
     rows = (await session.execute(stmt)).all()
     by_year = {row.year: row for row in rows}
@@ -95,8 +122,8 @@ async def _get_farmer_contracts(session: AsyncSession, year: int) -> dict[str, A
     current = by_year.get(year)
     previous = by_year.get(prev_year)
 
-    count = (current.count or 0) if current else 0
-    prev_count = (previous.count or 0) if previous else 0
+    count = (current.total_count or 0) if current else 0
+    prev_count = (previous.total_count or 0) if previous else 0
 
     if prev_count > 0:
         yoy_change_pct = round((count - prev_count) / prev_count * 100, 1)
@@ -156,24 +183,24 @@ async def get_purchase_trend(
 
     purchase_stmt = (
         select(
-            TobaccoPurchase.tp_date,
+            col(TobaccoPurchase.tp_date),
             func.coalesce(func.sum(TobaccoPurchase.total_net_weight), 0.0).label("net_weight_kg"),
         )
         .where(col(TobaccoPurchase.tp_date) >= range_start)
         .where(col(TobaccoPurchase.tp_date) <= range_end)
-        .group_by(TobaccoPurchase.tp_date)
+        .group_by(col(TobaccoPurchase.tp_date))
     )
     purchase_rows = (await session.execute(purchase_stmt)).all()
     purchase_by_date = {row.tp_date: float(row.net_weight_kg) for row in purchase_rows}
 
     repay_stmt = (
         select(
-            TContractRepay.repay_date,
+            col(TContractRepay.repay_date),
             func.coalesce(func.sum(TContractRepay.qty_repay), 0.0).label("repay_weight_kg"),
         )
         .where(col(TContractRepay.repay_date) >= range_start)
         .where(col(TContractRepay.repay_date) <= range_end)
-        .group_by(TContractRepay.repay_date)
+        .group_by(col(TContractRepay.repay_date))
     )
     repay_rows = (await session.execute(repay_stmt)).all()
     repay_by_date = {row.repay_date: float(row.repay_weight_kg) for row in repay_rows}
@@ -206,60 +233,46 @@ async def get_purchase_trend(
     }
 
 
-async def get_recent_activity(session: AsyncSession, limit: int = 10) -> dict[str, Any]:
-    purchase_stmt = (
+async def get_purchase_by_buyer(session: AsyncSession, year: int) -> dict[str, Any]:
+    # Only count vendors that are actual member farmers under contract for `year` (via
+    # MfConYear) so the total reconciles with the farmer_contracts count for the same
+    # year — raw tobacco_purchase.vendor_id also holds free-text names for walk-in
+    # sellers with no farmer/contract record, which would otherwise inflate the count.
+    vendor_mf_id = sa_cast(TobaccoPurchase.vendor_id, Integer)
+    stmt = (
         select(
-            col(TobaccoPurchase.tp_id).label("id"),
-            col(TobaccoPurchase.invoice_num).label("reference"),
-            col(TobaccoPurchase.do_date).label("sort_date"),
-            col(TobaccoPurchase.tp_date).label("display_date"),
-            col(TobaccoPurchase.total_net_weight).label("qty_kg"),
-            col(MemberFarmer.name).label("name"),
+            TobaccoPurchase.buyer,
+            func.count(func.distinct(vendor_mf_id)).label("vendor_count"),
         )
-        .outerjoin(MemberFarmer, sa_cast(TobaccoPurchase.vendor_id, Integer) == col(MemberFarmer.mf_id))
-        .order_by(col(TobaccoPurchase.do_date).desc())
-        .limit(limit)
+        .join(MemberFarmer, vendor_mf_id == col(MemberFarmer.mf_id))
+        .join(
+            MfConYear,
+            (col(MfConYear.mf_id) == col(MemberFarmer.mf_id)) & (col(MfConYear.year) == year),
+        )
+        .where(func.year(TobaccoPurchase.tp_date) == year)
+        .where(col(TobaccoPurchase.buyer) != 0)
+        .group_by(col(TobaccoPurchase.buyer))
     )
-    purchase_rows = (await session.execute(purchase_stmt)).all()
+    rows = (await session.execute(stmt)).all()
 
-    repay_stmt = (
-        select(
-            col(TContractRepay.repay_id).label("id"),
-            col(TContractRepay.repay_num).label("reference"),
-            col(TContractRepay.do_date).label("sort_date"),
-            col(TContractRepay.repay_date).label("display_date"),
-            col(TContractRepay.qty_repay).label("qty_kg"),
-            col(MemberFarmer.name).label("name"),
-        )
-        .outerjoin(MemberFarmer, TContractRepay.f_id == col(MemberFarmer.mf_id))
-        .order_by(col(TContractRepay.do_date).desc())
-        .limit(limit)
-    )
-    repay_rows = (await session.execute(repay_stmt)).all()
+    buyer_ids = [row.buyer for row in rows]
+    buyer_names: dict[int, str] = {}
+    if buyer_ids:
+        purchasers = (
+            await session.execute(select(Purchaser).where(col(Purchaser.p_id).in_(buyer_ids)))
+        ).scalars().all()
+        buyer_names = {p.p_id: (p.p_name_kh or p.p_name) for p in purchasers if p.p_id is not None}
 
     items: list[dict[str, Any]] = [
         {
-            "type": "purchase",
-            "id": row.id,
-            "date": (row.sort_date or row.display_date).isoformat() if (row.sort_date or row.display_date) else "",
-            "reference": row.reference or "",
-            "name": row.name or "Unknown",
-            "qty_kg": round(float(row.qty_kg), 2) if row.qty_kg is not None else 0.0,
+            "buyer_id": row.buyer,
+            "buyer_name": buyer_names.get(row.buyer, str(row.buyer)),
+            "vendor_count": row.vendor_count,
         }
-        for row in purchase_rows
-    ] + [
-        {
-            "type": "repay",
-            "id": row.id,
-            "date": (row.sort_date or row.display_date).isoformat() if (row.sort_date or row.display_date) else "",
-            "reference": row.reference or "",
-            "name": row.name or "Unknown",
-            "qty_kg": round(float(row.qty_kg), 2) if row.qty_kg is not None else 0.0,
-        }
-        for row in repay_rows
+        for row in rows
     ]
-    items.sort(key=lambda x: x["date"], reverse=True)
-    return {"items": items[:limit]}
+    items.sort(key=lambda x: x["vendor_count"], reverse=True)
+    return {"year": year, "items": items}
 
 
 async def get_summary(session: AsyncSession) -> dict[str, Any]:
@@ -267,6 +280,6 @@ async def get_summary(session: AsyncSession) -> dict[str, Any]:
     return {
         "today_purchases": await _get_today_purchases(session),
         "sack_registration": await sack_registration_crud.get_stats(session),
-        "outstanding_repay": await _get_outstanding_repay(session, current_year - 1),
+        "outstanding_repay": await _get_outstanding_repay(session, current_year),
         "farmer_contracts": await _get_farmer_contracts(session, current_year),
     }

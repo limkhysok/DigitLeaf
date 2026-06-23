@@ -163,6 +163,7 @@ async def get_all(
 async def get_stats(session: AsyncSession) -> dict[str, Any]:
     now = datetime.now(CAMBODIA_TZ)
     today = now.date()
+    yesterday = today - timedelta(days=1)
     reg_date = sa_cast(SackRegistration.created_at, Date)
 
     stats_stmt = select(
@@ -173,9 +174,23 @@ async def get_stats(session: AsyncSession) -> dict[str, Any]:
             func.sum(case((reg_date == today, SackRegistration.sack_in_kg), else_=None)),
             0.0,
         ).label("today_kg"),
+        func.coalesce(
+            func.sum(case((reg_date == yesterday, SackRegistration.sack_in_kg), else_=None)),
+            0.0,
+        ).label("yesterday_kg"),
     ).select_from(SackRegistration)
 
     row = (await session.execute(stats_stmt)).first()
+
+    today_kg = round(float(row.today_kg), 2) if row else 0.0
+    yesterday_kg = round(float(row.yesterday_kg), 2) if row else 0.0
+
+    if yesterday_kg > 0:
+        change_pct = round((today_kg - yesterday_kg) / yesterday_kg * 100, 1)
+    elif today_kg > 0:
+        change_pct = 100.0
+    else:
+        change_pct = 0.0
 
     return {
         "registration_counts": {
@@ -184,8 +199,10 @@ async def get_stats(session: AsyncSession) -> dict[str, Any]:
         },
         "sack_weight_kg": {
             "total": round(float(row.total_kg), 2) if row else 0.0,
-            "today": round(float(row.today_kg), 2) if row else 0.0,
+            "today": today_kg,
+            "yesterday": yesterday_kg,
         },
+        "change_pct": change_pct,
     }
 
 

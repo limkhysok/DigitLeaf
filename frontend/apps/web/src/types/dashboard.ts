@@ -2,17 +2,22 @@ export interface TodayPurchasesSummary {
   count: number;
   net_weight_kg: number;
   grand_total: number;
+  yesterday_net_weight_kg: number;
+  change_pct: number;
 }
 
 export interface SackRegistrationStatsSummary {
   registration_counts: { total: number; today: number };
-  sack_weight_kg: { total: number; today: number };
+  sack_weight_kg: { total: number; today: number; yesterday: number };
+  change_pct: number;
 }
 
 export interface OutstandingRepaySummary {
   year: number;
   today_repaid_kg: number;
   today_repay_pct: number;
+  yesterday_repay_pct: number;
+  repay_change_pct: number;
   total_contracted: number;
   total_repaid: number;
   outstanding: number;
@@ -56,15 +61,13 @@ export interface PurchaseTrendParams {
   endDate?: string;
 }
 
-export interface RecentActivityItem {
-  type: "purchase" | "repay";
-  id: number;
-  date: string;
-  reference: string;
-  name: string;
-  qty_kg: number;
+export interface PurchaseByBuyerItem {
+  buyer_id: number;
+  buyer_name: string;
+  vendor_count: number;
 }
 
-export interface RecentActivityResponse {
-  items: RecentActivityItem[];
+export interface PurchaseByBuyerResponse {
+  year: number;
+  items: PurchaseByBuyerItem[];
 }

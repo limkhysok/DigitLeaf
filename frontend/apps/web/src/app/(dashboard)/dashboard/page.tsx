@@ -11,14 +11,12 @@ import {
   IconArrowUp,
   IconArrowDown,
 } from "@tabler/icons-react"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart } from "recharts"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
@@ -33,18 +31,120 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
-import { apiClient, RecentActivityItem } from "@/services/api-client"
-import type { TrendPreset } from "@/types"
+import { apiClient } from "@/services/api-client"
+import type { PurchaseByBuyerItem, TrendPreset } from "@/types"
 
 const KPI_SKELETON_KEYS = ["kpi-1", "kpi-2", "kpi-3", "kpi-4"] as const
-const ACTIVITY_SKELETON_KEYS = ["activity-1", "activity-2", "activity-3", "activity-4"] as const
 const TREND_PRESETS = ["7d", "30d", "3m", "9m", "12m"] as const satisfies readonly TrendPreset[]
+const BUYER_PIE_COLORS = ["#0ea5e9", "#d97706", "#16a34a", "#dc2626", "#7c3aed", "#0891b2", "#ca8a04", "#be185d"]
 
 const toISODate = (d: Date) => {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, "0")
   const day = String(d.getDate()).padStart(2, "0")
   return `${y}-${m}-${day}`
+}
+
+type BuyerSlice = {
+  key: number
+  name: string
+  value: number
+  pct: number
+  fill: string
+}
+
+function pieSliceLabel(props: unknown) {
+  const pct = (props as { pct?: number }).pct
+  return pct == null ? "" : `${pct.toFixed(0)}%`
+}
+
+function BuyerTooltip({
+  active,
+  payload,
+  vendorLabel,
+}: Readonly<{
+  active?: boolean
+  payload?: Array<{ name?: string; value?: number; color?: string; payload?: BuyerSlice }>
+  vendorLabel: string
+}>) {
+  if (!active || !payload?.length) return null
+  const item = payload[0]
+  const pct = item?.payload?.pct
+
+  return (
+    <div className="grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs/relaxed shadow-xl">
+      <div className="flex w-full items-center gap-2">
+        <div className="h-2.5 w-2.5 shrink-0 rounded-xs" style={{ backgroundColor: item?.color }} />
+        <div className="flex flex-1 items-center justify-between gap-2 leading-none">
+          <span className="text-muted-foreground">{item?.name}</span>
+          <span className="font-mono font-medium text-foreground tabular-nums">
+            {item?.value} {vendorLabel}
+            {pct == null ? "" : ` (${pct.toFixed(1)}%)`}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PurchaseByBuyerChart({
+  items,
+  isLoading,
+  vendorLabel,
+  noDataLabel,
+}: Readonly<{
+  items: PurchaseByBuyerItem[] | undefined
+  isLoading: boolean
+  vendorLabel: string
+  noDataLabel: string
+}>) {
+  if (isLoading || !items) {
+    return <Skeleton className="h-75 w-full rounded-xl" />
+  }
+
+  const total = items.reduce((sum, item) => sum + item.vendor_count, 0)
+  const colorFor = (index: number) => BUYER_PIE_COLORS[index % BUYER_PIE_COLORS.length] ?? BUYER_PIE_COLORS[0]!
+  const chartConfig: ChartConfig = Object.fromEntries(
+    items.map((item, index) => [item.buyer_name, { label: item.buyer_name, color: colorFor(index) }])
+  )
+  const chartData: BuyerSlice[] = items.map((item, index) => ({
+    key: item.buyer_id,
+    name: item.buyer_name,
+    value: item.vendor_count,
+    pct: total > 0 ? (item.vendor_count / total) * 100 : 0,
+    fill: colorFor(index),
+  }))
+
+  if (chartData.length === 0) {
+    return <p className="text-sm text-muted-foreground text-center py-8">{noDataLabel}</p>
+  }
+
+  return (
+    <>
+      <ChartContainer config={chartConfig} className="h-75 w-full">
+        <PieChart>
+          <ChartTooltip content={<BuyerTooltip vendorLabel={vendorLabel} />} />
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            innerRadius={60}
+            strokeWidth={2}
+            labelLine={false}
+            label={pieSliceLabel}
+          />
+        </PieChart>
+      </ChartContainer>
+      <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
+        {chartData.map((entry) => (
+          <div key={entry.key} className="flex items-center gap-1.5">
+            <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: entry.fill }} />
+            <span className="text-muted-foreground">{entry.name}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
 }
 
 export default function DashboardPage() {
@@ -86,9 +186,9 @@ export default function DashboardPage() {
     refetchOnWindowFocus: false,
   })
 
-  const { data: activity, isLoading: isActivityLoading } = useQuery({
-    queryKey: ["dashboard-recent-activity"],
-    queryFn: () => apiClient.getRecentActivity(tokens!.access_token, 10),
+  const { data: buyerStats, isLoading: isBuyerStatsLoading } = useQuery({
+    queryKey: ["dashboard-purchase-by-buyer"],
+    queryFn: () => apiClient.getPurchaseByBuyer(tokens!.access_token),
     enabled,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
@@ -127,60 +227,6 @@ export default function DashboardPage() {
       setPreset("custom")
       setRangeOpen(false)
     }
-  }
-
-  const activityLabel = (item: RecentActivityItem) =>
-    item.type === "purchase" ? t.dashboard.activity.purchase : t.dashboard.activity.repay
-
-  let activityContent: React.ReactNode
-  if (isActivityLoading || !activity) {
-    activityContent = (
-      <div className="space-y-6">
-        {ACTIVITY_SKELETON_KEYS.map((key) => (
-          <div key={key} className="flex gap-3">
-            <Skeleton className="size-9 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-3 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    )
-  } else if (activity.items.length === 0) {
-    activityContent = <p className="text-sm text-muted-foreground text-center py-8">{t.dashboard.activity.noActivity}</p>
-  } else {
-    activityContent = (
-      <ScrollArea className="h-75">
-        <div className="space-y-5 pr-3">
-          {activity.items.map((item) => (
-            <div key={`${item.type}-${item.id}`} className="flex items-start gap-3">
-              <Avatar className="size-9 shrink-0">
-                <AvatarFallback
-                  className={item.type === "purchase" ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-600"}
-                >
-                  {item.type === "purchase" ? <IconShoppingBag className="size-4" /> : <IconReceiptRefund className="size-4" />}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium truncate">{item.name}</p>
-                  <Badge variant="outline" className="text-[10px] shrink-0">
-                    {activityLabel(item)}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {item.reference} &middot; {fmtKg(item.qty_kg)} kg
-                </p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">
-                  {localizeDateString(new Date(item.date).toLocaleString())}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
-    )
   }
 
   return (
@@ -257,6 +303,21 @@ export default function DashboardPage() {
                     <span className="mt-4 block text-2xl font-semibold tabular-nums">
                       {fmtKg(data.sack_registration.sack_weight_kg.total)} kg
                     </span>
+                    <span
+                      className={`mt-1 flex items-center gap-1 text-xs font-medium ${
+                        data.sack_registration.change_pct >= 0 ? "text-emerald-600" : "text-red-600"
+                      }`}
+                    >
+                      {data.sack_registration.change_pct >= 0 ? (
+                        <IconArrowUp className="size-3" />
+                      ) : (
+                        <IconArrowDown className="size-3" />
+                      )}
+                      {data.sack_registration.change_pct >= 0
+                        ? t.dashboard.sackRegistration.trendUp
+                        : t.dashboard.sackRegistration.trendDown}{" "}
+                      {fmtPct(data.sack_registration.change_pct)}% {t.dashboard.sackRegistration.vsYesterday}
+                    </span>
                     <div className="mt-3 flex items-center justify-between pt-3 text-sm font-medium">
                       <span>
                         {t.dashboard.sackRegistration.today}: {fmtInt(data.sack_registration.registration_counts.today)}{" "}
@@ -280,6 +341,21 @@ export default function DashboardPage() {
                     <span className="mt-4 block text-2xl font-semibold tabular-nums">
                       {fmtKg(data.today_purchases.net_weight_kg)} kg
                     </span>
+                    <span
+                      className={`mt-1 flex items-center gap-1 text-xs font-medium ${
+                        data.today_purchases.change_pct >= 0 ? "text-emerald-600" : "text-red-600"
+                      }`}
+                    >
+                      {data.today_purchases.change_pct >= 0 ? (
+                        <IconArrowUp className="size-3" />
+                      ) : (
+                        <IconArrowDown className="size-3" />
+                      )}
+                      {data.today_purchases.change_pct >= 0
+                        ? t.dashboard.todayPurchases.trendUp
+                        : t.dashboard.todayPurchases.trendDown}{" "}
+                      {fmtPct(data.today_purchases.change_pct)}% {t.dashboard.todayPurchases.vsYesterday}
+                    </span>
                     <div className="mt-3 flex items-center justify-between pt-3 text-sm font-medium">
                       <span>
                         {t.dashboard.todayPurchases.value}: {fmtRiel(data.today_purchases.grand_total)}
@@ -301,6 +377,21 @@ export default function DashboardPage() {
                     </Badge>
                     <span className="mt-4 block text-2xl font-semibold tabular-nums">
                       {fmtKg(data.outstanding_repay.total_contracted)} kg
+                    </span>
+                    <span
+                      className={`mt-1 flex items-center gap-1 text-xs font-medium ${
+                        data.outstanding_repay.repay_change_pct >= 0 ? "text-emerald-600" : "text-red-600"
+                      }`}
+                    >
+                      {data.outstanding_repay.repay_change_pct >= 0 ? (
+                        <IconArrowUp className="size-3" />
+                      ) : (
+                        <IconArrowDown className="size-3" />
+                      )}
+                      {data.outstanding_repay.repay_change_pct >= 0
+                        ? t.dashboard.outstandingRepay.trendUp
+                        : t.dashboard.outstandingRepay.trendDown}{" "}
+                      {fmtPct(data.outstanding_repay.repay_change_pct)}% {t.dashboard.outstandingRepay.vsYesterday}
                     </span>
                     <div className="mt-3 flex items-center justify-between pt-3 text-sm font-medium">
                       <span>
@@ -413,10 +504,17 @@ export default function DashboardPage() {
 
         <Card className="shadow-sm border-border/50">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">{t.dashboard.activity.title}</CardTitle>
-            <CardDescription>{t.dashboard.activity.subtitle}</CardDescription>
+            <CardTitle className="text-lg font-semibold">{t.dashboard.purchaseByBuyer.title}</CardTitle>
+            <CardDescription>{t.dashboard.purchaseByBuyer.subtitle}</CardDescription>
           </CardHeader>
-          <CardContent>{activityContent}</CardContent>
+          <CardContent>
+            <PurchaseByBuyerChart
+              items={buyerStats?.items}
+              isLoading={isBuyerStatsLoading}
+              vendorLabel={t.dashboard.purchaseByBuyer.vendorLabel}
+              noDataLabel={t.dashboard.purchaseByBuyer.noData}
+            />
+          </CardContent>
         </Card>
       </div>
     </div>

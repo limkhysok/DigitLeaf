@@ -73,8 +73,10 @@ class RegistrationCounts(BaseModel):
 class SackWeightKg(BaseModel):
     total: float
     today: float
+    yesterday: float
 
 
 class SackRegistrationStats(BaseModel):
     registration_counts: RegistrationCounts
     sack_weight_kg: SackWeightKg
+    change_pct: float

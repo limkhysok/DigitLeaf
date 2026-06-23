@@ -7,12 +7,16 @@ class TodayPurchasesSummary(BaseModel):
     count: int
     net_weight_kg: float
     grand_total: float
+    yesterday_net_weight_kg: float
+    change_pct: float
 
 
 class OutstandingRepaySummary(BaseModel):
     year: int
     today_repaid_kg: float
     today_repay_pct: float
+    yesterday_repay_pct: float
+    repay_change_pct: float
     total_contracted: float
     total_repaid: float
     outstanding: float
@@ -47,14 +51,12 @@ class PurchaseTrendResponse(BaseModel):
     end_date: str
 
 
-class RecentActivityItem(BaseModel):
-    type: Literal["purchase", "repay"]
-    id: int
-    date: str
-    reference: str
-    name: str
-    qty_kg: float
+class PurchaseByBuyerItem(BaseModel):
+    buyer_id: int
+    buyer_name: str
+    vendor_count: int
 
 
-class RecentActivityResponse(BaseModel):
-    items: list[RecentActivityItem]
+class PurchaseByBuyerResponse(BaseModel):
+    year: int
+    items: list[PurchaseByBuyerItem]
