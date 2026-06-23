@@ -21,6 +21,8 @@ class FarmerContractsSummary(BaseModel):
     count: int
     total_land: float
     total_tobac_num: int
+    prev_year_count: int
+    yoy_change_pct: float
 
 
 class DashboardSummary(BaseModel):
@@ -33,10 +35,14 @@ class DashboardSummary(BaseModel):
 class PurchaseTrendPoint(BaseModel):
     date: str
     net_weight_kg: float
+    repay_weight_kg: float
 
 
 class PurchaseTrendResponse(BaseModel):
     points: list[PurchaseTrendPoint]
+    granularity: Literal["daily", "weekly", "monthly"]
+    start_date: str
+    end_date: str
 
 
 class RecentActivityItem(BaseModel):

@@ -1,5 +1,6 @@
-from typing import Any
-from datetime import datetime, timedelta
+from typing import Any, Literal
+from datetime import date, datetime, timedelta
+from fastapi import HTTPException
 from sqlalchemy import Integer, cast as sa_cast
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func, col
@@ -9,6 +10,9 @@ from app.domains.tobacco_purchase.models import TobaccoPurchase
 from app.domains.tobacco_repay.models import TContract, TContractRepay
 from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmers.models import MemberFarmer
+
+TrendPreset = Literal["7d", "30d", "3m", "9m", "12m", "custom"]
+PRESET_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "3m": 90, "9m": 270, "12m": 365}
 
 
 async def _get_today_purchases(session: AsyncSession) -> dict[str, Any]:
@@ -50,43 +54,132 @@ async def _get_outstanding_repay(session: AsyncSession) -> dict[str, Any]:
 
 
 async def _get_farmer_contracts(session: AsyncSession, year: int) -> dict[str, Any]:
-    stmt = select(
-        func.count().label("count"),
-        func.coalesce(func.sum(MfConYear.land), 0.0).label("total_land"),
-        func.coalesce(func.sum(MfConYear.tobac_num), 0).label("total_tobac_num"),
-    ).where(MfConYear.year == year)
-    row = (await session.execute(stmt)).first()
+    prev_year = year - 1
+    stmt = (
+        select(
+            MfConYear.year,
+            func.count().label("count"),
+            func.coalesce(func.sum(MfConYear.land), 0.0).label("total_land"),
+            func.coalesce(func.sum(MfConYear.tobac_num), 0).label("total_tobac_num"),
+        )
+        .where(col(MfConYear.year).in_([year, prev_year]))
+        .group_by(MfConYear.year)
+    )
+    rows = (await session.execute(stmt)).all()
+    by_year = {row.year: row for row in rows}
+
+    current = by_year.get(year)
+    previous = by_year.get(prev_year)
+
+    count = (current.count or 0) if current else 0
+    prev_count = (previous.count or 0) if previous else 0
+
+    if prev_count > 0:
+        yoy_change_pct = round((count - prev_count) / prev_count * 100, 1)
+    elif count > 0:
+        yoy_change_pct = 100.0
+    else:
+        yoy_change_pct = 0.0
+
     return {
         "year": year,
-        "count": (row.count or 0) if row else 0,
-        "total_land": round(float(row.total_land), 2) if row else 0.0,
-        "total_tobac_num": (row.total_tobac_num or 0) if row else 0,
+        "count": count,
+        "total_land": round(float(current.total_land), 2) if current else 0.0,
+        "total_tobac_num": (current.total_tobac_num or 0) if current else 0,
+        "prev_year_count": prev_count,
+        "yoy_change_pct": yoy_change_pct,
     }
 
 
-async def get_purchase_trend(session: AsyncSession, days: int = 30) -> dict[str, Any]:
-    end_date = datetime.now(CAMBODIA_TZ).date()
-    start_date = end_date - timedelta(days=days - 1)
+def _resolve_trend_range(
+    preset: TrendPreset,
+    start_date: date | None,
+    end_date: date | None,
+) -> tuple[date, date]:
+    if preset == "custom":
+        if start_date is None or end_date is None:
+            raise HTTPException(status_code=400, detail="start_date and end_date are required for the custom preset")
+        return (end_date, start_date) if start_date > end_date else (start_date, end_date)
 
-    stmt = (
+    today = datetime.now(CAMBODIA_TZ).date()
+    return today - timedelta(days=PRESET_DAYS[preset] - 1), today
+
+
+def _trend_granularity(start_date: date, end_date: date) -> Literal["daily", "weekly", "monthly"]:
+    span_days = (end_date - start_date).days + 1
+    if span_days <= 31:
+        return "daily"
+    if span_days <= 120:
+        return "weekly"
+    return "monthly"
+
+
+def _trend_bucket_key(d: date, granularity: Literal["daily", "weekly", "monthly"]) -> date:
+    if granularity == "daily":
+        return d
+    if granularity == "weekly":
+        return d - timedelta(days=d.weekday())
+    return d.replace(day=1)
+
+
+async def get_purchase_trend(
+    session: AsyncSession,
+    preset: TrendPreset = "7d",
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> dict[str, Any]:
+    range_start, range_end = _resolve_trend_range(preset, start_date, end_date)
+
+    purchase_stmt = (
         select(
             TobaccoPurchase.tp_date,
             func.coalesce(func.sum(TobaccoPurchase.total_net_weight), 0.0).label("net_weight_kg"),
         )
-        .where(col(TobaccoPurchase.tp_date) >= start_date)
-        .where(col(TobaccoPurchase.tp_date) <= end_date)
+        .where(col(TobaccoPurchase.tp_date) >= range_start)
+        .where(col(TobaccoPurchase.tp_date) <= range_end)
         .group_by(TobaccoPurchase.tp_date)
     )
-    rows = (await session.execute(stmt)).all()
-    by_date = {row.tp_date: round(float(row.net_weight_kg), 2) for row in rows}
+    purchase_rows = (await session.execute(purchase_stmt)).all()
+    purchase_by_date = {row.tp_date: float(row.net_weight_kg) for row in purchase_rows}
 
-    points: list[dict[str, Any]] = []
-    current = start_date
-    while current <= end_date:
-        points.append({"date": current.isoformat(), "net_weight_kg": by_date.get(current, 0.0)})
+    repay_stmt = (
+        select(
+            TContractRepay.repay_date,
+            func.coalesce(func.sum(TContractRepay.qty_repay), 0.0).label("repay_weight_kg"),
+        )
+        .where(col(TContractRepay.repay_date) >= range_start)
+        .where(col(TContractRepay.repay_date) <= range_end)
+        .group_by(TContractRepay.repay_date)
+    )
+    repay_rows = (await session.execute(repay_stmt)).all()
+    repay_by_date = {row.repay_date: float(row.repay_weight_kg) for row in repay_rows}
+
+    granularity = _trend_granularity(range_start, range_end)
+
+    buckets: dict[date, dict[str, Any]] = {}
+    current = range_start
+    while current <= range_end:
+        key = _trend_bucket_key(current, granularity)
+        bucket = buckets.setdefault(key, {"date": key.isoformat(), "net_weight_kg": 0.0, "repay_weight_kg": 0.0})
+        bucket["net_weight_kg"] += purchase_by_date.get(current, 0.0)
+        bucket["repay_weight_kg"] += repay_by_date.get(current, 0.0)
         current += timedelta(days=1)
 
-    return {"points": points}
+    points = [
+        {
+            "date": bucket["date"],
+            "net_weight_kg": round(bucket["net_weight_kg"], 2),
+            "repay_weight_kg": round(bucket["repay_weight_kg"], 2),
+        }
+        for bucket in sorted(buckets.values(), key=lambda b: b["date"])
+    ]
+
+    return {
+        "points": points,
+        "granularity": granularity,
+        "start_date": range_start.isoformat(),
+        "end_date": range_end.isoformat(),
+    }
 
 
 async def get_recent_activity(session: AsyncSession, limit: int = 10) -> dict[str, Any]:

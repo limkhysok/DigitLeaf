@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Security
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,7 @@ from app.domains.users.models import User
 from app.api.deps import get_current_user
 from app.core.route_logger import AuditLogRoute
 from app.domains.dashboard import crud
+from app.domains.dashboard.crud import TrendPreset
 from app.domains.dashboard.schemas import DashboardSummary, PurchaseTrendResponse, RecentActivityResponse
 
 router = APIRouter(route_class=AuditLogRoute)
@@ -23,9 +25,11 @@ async def get_dashboard_summary(
 async def get_purchase_trend(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
-    days: int = Query(30, ge=1, le=90),
+    preset: TrendPreset = Query("7d"),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
 ):
-    return await crud.get_purchase_trend(session=session, days=days)
+    return await crud.get_purchase_trend(session=session, preset=preset, start_date=start_date, end_date=end_date)
 
 
 @router.get("/recent-activity", response_model=RecentActivityResponse)

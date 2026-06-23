@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import type { DashboardSummary, PurchaseTrendResponse, RecentActivityResponse } from "../types";
+import type { DashboardSummary, PurchaseTrendParams, PurchaseTrendResponse, RecentActivityResponse } from "../types";
 
 export const dashboardApi = {
   async getDashboardSummary(accessToken: string): Promise<DashboardSummary> {
@@ -13,8 +13,17 @@ export const dashboardApi = {
     return response.json();
   },
 
-  async getPurchaseTrend(accessToken: string, days = 30): Promise<PurchaseTrendResponse> {
-    const response = await fetch(`${API_BASE_URL}/dashboard/purchase-trend?days=${days}`, {
+  async getPurchaseTrend(
+    accessToken: string,
+    trendParams?: PurchaseTrendParams
+  ): Promise<PurchaseTrendResponse> {
+    const { preset, startDate, endDate } = trendParams ?? { preset: "7d" as const };
+    const params = new URLSearchParams({ preset });
+    if (preset === "custom" && startDate && endDate) {
+      params.set("start_date", startDate);
+      params.set("end_date", endDate);
+    }
+    const response = await fetch(`${API_BASE_URL}/dashboard/purchase-trend?${params.toString()}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!response.ok) {

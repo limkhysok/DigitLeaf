@@ -331,22 +331,40 @@ export const translations = {
         title: "Sack Registration",
         total: "Total Registered",
         today: "Today",
+        count: "Registrations",
       },
       outstandingRepay: {
         title: "Outstanding Repay",
         contracted: "Contracted",
         repaid: "Repaid",
         outstanding: "Outstanding",
+        contracts: "Contracts",
       },
       farmerContracts: {
         title: "Farmer Contracts",
         land: "Total Land (ha)",
         plants: "Total Plants",
+        count: "Contracts",
+        trendUp: "Up",
+        trendDown: "Down",
+        thisYear: "this year",
       },
       trend: {
-        title: "Purchase Trend",
-        subtitle: "Net weight purchased over the last 30 days.",
+        title: "Purchase Trend / Repay Trend",
+        subtitle: "Daily purchase vs repay weight for the selected period.",
         weightLabel: "Net Weight (kg)",
+        purchaseLabel: "Purchase (kg)",
+        repayLabel: "Repay (kg)",
+        filters: {
+          last7Days: "Last 7 days",
+          last30Days: "Last 30 days",
+          last3Months: "Last 3 months",
+          last9Months: "Last 9 months",
+          last12Months: "Last 12 months",
+          custom: "Custom range",
+          apply: "Apply",
+          pickDate: "Pick a date range",
+        },
       },
       activity: {
         title: "Recent Activity",
@@ -685,22 +703,40 @@ export const translations = {
         title: "ការចុះឈ្មោះយកបាវ",
         total: "ចុះឈ្មោះសរុប",
         today: "ថ្ងៃនេះ",
+        count: "ចំនួនការចុះឈ្មោះ",
       },
       outstandingRepay: {
         title: "ការសងនៅសល់",
         contracted: "កិច្ចសន្យា",
         repaid: "បានសង",
         outstanding: "នៅសល់",
+        contracts: "កិច្ចសន្យា",
       },
       farmerContracts: {
         title: "កិច្ចសន្យាកសិករ",
         land: "ដីសរុប (ហ.ត.)",
         plants: "ដើមថ្នាំសរុប",
+        count: "កិច្ចសន្យា",
+        trendUp: "កើនឡើង",
+        trendDown: "ថយចុះ",
+        thisYear: "ក្នុងឆ្នាំនេះ",
       },
       trend: {
-        title: "ស្ថិតិការទិញ",
-        subtitle: "ទម្ងន់សុទ្ធដែលបានទិញក្នុងរយៈពេល ៣០ ថ្ងៃចុងក្រោយ។",
+        title: "ស្ថិតិការទិញ / ការសង",
+        subtitle: "ទម្ងន់ការទិញ និងការសងប្រចាំថ្ងៃសម្រាប់រយៈពេលដែលបានជ្រើសរើស។",
         weightLabel: "ទម្ងន់សុទ្ធ (គីឡូ)",
+        purchaseLabel: "ការទិញ (គីឡូ)",
+        repayLabel: "ការសង (គីឡូ)",
+        filters: {
+          last7Days: "៧ ថ្ងៃចុងក្រោយ",
+          last30Days: "៣០ ថ្ងៃចុងក្រោយ",
+          last3Months: "៣ ខែចុងក្រោយ",
+          last9Months: "៩ ខែចុងក្រោយ",
+          last12Months: "១២ ខែចុងក្រោយ",
+          custom: "កំណត់ដោយខ្លួនឯង",
+          apply: "អនុវត្ត",
+          pickDate: "ជ្រើសរើសកាលបរិច្ឆេទ",
+        },
       },
       activity: {
         title: "សកម្មភាពថ្មីៗ",
@@ -1041,22 +1077,40 @@ export type TranslationType = {
       readonly title: string;
       readonly total: string;
       readonly today: string;
+      readonly count: string;
     };
     readonly outstandingRepay: {
       readonly title: string;
       readonly contracted: string;
       readonly repaid: string;
       readonly outstanding: string;
+      readonly contracts: string;
     };
     readonly farmerContracts: {
       readonly title: string;
       readonly land: string;
       readonly plants: string;
+      readonly count: string;
+      readonly trendUp: string;
+      readonly trendDown: string;
+      readonly thisYear: string;
     };
     readonly trend: {
       readonly title: string;
       readonly subtitle: string;
       readonly weightLabel: string;
+      readonly purchaseLabel: string;
+      readonly repayLabel: string;
+      readonly filters: {
+        readonly last7Days: string;
+        readonly last30Days: string;
+        readonly last3Months: string;
+        readonly last9Months: string;
+        readonly last12Months: string;
+        readonly custom: string;
+        readonly apply: string;
+        readonly pickDate: string;
+      };
     };
     readonly activity: {
       readonly title: string;
