@@ -2,6 +2,7 @@ import asyncio
 from typing import Any, List, Literal, Optional, Tuple
 from datetime import date
 from sqlalchemy import delete as sa_delete
+from sqlalchemy.dialects.mysql import DOUBLE
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select, func, col
@@ -418,15 +419,22 @@ async def get_purchases(
     )
 
     # A vendor can have multiple MfConYear rows for the same year (one per tobacco
-    # type), so joining directly would fan out and duplicate purchase rows. Use an
-    # EXISTS semi-join instead — it filters without multiplying rows.
-    has_current_year_contract = (
-        select(MfConYear.mf_con_id)
-        .where(col(MfConYear.mf_id) == col(TobaccoPurchase.vendor_id))
-        .where(MfConYear.year == current_year)
-        .correlate(TobaccoPurchase)
-        .exists()
-    )
+    # type), so joining directly would fan out and duplicate purchase rows.
+    #
+    # vendor_id is a free-text legacy column (some rows are non-numeric, a couple
+    # have leading zeros), so the comparison to MfConYear.mf_id (int) has always
+    # relied on MySQL's implicit CAST(vendor AS DOUBLE) - non-numeric values cast
+    # to 0, leading zeros are dropped, both consistent with mf_id never being 0.
+    # A correlated EXISTS here forces MySQL to rebuild/materialize the matching
+    # mf_id set once per query - i.e. twice per request (data query + count
+    # query). Precomputing it once and reusing it as an IN-list for both keeps
+    # the exact same cast-equality semantics while halving that cost.
+    contracted_vendor_ids = (
+        await db.execute(
+            select(MfConYear.mf_id).distinct().where(MfConYear.year == current_year)
+        )
+    ).scalars().all()
+    has_current_year_contract = func.cast(col(TobaccoPurchase.vendor_id), DOUBLE).in_(contracted_vendor_ids)
 
     # Data query: vendor_name from an outer join instead of a separate selectinload batch.
     # Annotated as Any because col(...).label(...) on Optional columns produces Label[Unknown]
