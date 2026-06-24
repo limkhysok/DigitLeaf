@@ -320,7 +320,7 @@ export const translations = {
     },
     dashboard: {
       title: "Dashboard",
-      subtitle: "Overview of today's activity across sack registration, purchases, repayments, and contracts.",
+      subtitle: "Daily operational overview and performance metrics.",
       todayPurchases: {
         title: "Today's Purchases",
         weight: "Net Weight",
@@ -357,6 +357,8 @@ export const translations = {
         trendUp: "Up",
         trendDown: "Down",
         thisYear: "this year",
+        actionRequired: "Action required",
+        goodPerformance: "Good performance",
       },
       trend: {
         title: "Purchase Trend / Repay Trend",
@@ -737,6 +739,8 @@ export const translations = {
         trendUp: "កើនឡើង",
         trendDown: "ថយចុះ",
         thisYear: "ក្នុងឆ្នាំនេះ",
+        actionRequired: "ត្រូវការសកម្មភាព",
+        goodPerformance: "ការអនុវត្តល្អ",
       },
       trend: {
         title: "ស្ថិតិការទិញ / ការសង",
@@ -1119,6 +1123,8 @@ export type TranslationType = {
       readonly trendUp: string;
       readonly trendDown: string;
       readonly thisYear: string;
+      readonly actionRequired: string;
+      readonly goodPerformance: string;
     };
     readonly trend: {
       readonly title: string;
