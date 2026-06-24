@@ -67,7 +67,7 @@ export function getColumns({
     {
       id: "repay_num",
       accessorKey: "repay_num",
-      header: () => "Repay No.",
+      header: () => "Invoice",
       cell: ({ row }) => <div className="font-medium">{row.getValue("repay_num") || "—"}</div>,
     },
     {
@@ -85,7 +85,7 @@ export function getColumns({
     {
       id: "farmer_name",
       accessorKey: "farmer_name",
-      header: () => "Contractor",
+      header: () => "Farmer",
       cell: ({ row }) => <div>{row.getValue("farmer_name") || "—"}</div>,
     },
     {
@@ -97,7 +97,7 @@ export function getColumns({
     {
       id: "qty_repay",
       accessorKey: "qty_repay",
-      header: () => <div className="text-right">Quantity</div>,
+      header: () => <div className="text-right">Delivery (kg)</div>,
       cell: ({ row }) => {
         const val = row.getValue("qty_repay") as number | null
         return (

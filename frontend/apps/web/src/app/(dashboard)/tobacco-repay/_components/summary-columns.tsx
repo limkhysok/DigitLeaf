@@ -88,16 +88,16 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
       cell: ({ row }) => <div className="font-medium">{row.getValue("contractNo") || "—"}</div>,
     },
     {
-      id: "contractor",
-      accessorKey: "contract_contractor_name",
-      header: () => "Contractor",
-      cell: ({ row }) => <div>{row.getValue("contractor") || "—"}</div>,
-    },
-    {
       id: "representative",
       accessorKey: "representative",
       header: () => "Representative",
       cell: ({ row }) => <div>{row.getValue("representative") || "—"}</div>,
+    },
+    {
+      id: "contractor",
+      accessorKey: "contract_contractor_name",
+      header: () => "Farmer",
+      cell: ({ row }) => <div>{row.getValue("contractor") || "—"}</div>,
     },
     {
       id: "tobaccoType",

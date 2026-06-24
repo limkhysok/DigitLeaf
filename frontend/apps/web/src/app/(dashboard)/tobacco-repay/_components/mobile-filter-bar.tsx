@@ -168,7 +168,7 @@ export function MobileFilterBar({
       {/* Center: Search */}
       <div className="flex-1 flex">
         <Input
-          placeholder="Search Contract No, Contractor..."
+          placeholder="Search Contract No, Farmer..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-sm! h-8 w-full text-xs placeholder:text-sm"

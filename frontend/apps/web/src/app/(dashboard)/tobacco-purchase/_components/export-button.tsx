@@ -115,17 +115,17 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
         <div className="flex flex-col gap-4">
           <div className="space-y-1">
             <h4 className="text-sm font-semibold">Export Settlement Report</h4>
-            <p className="text-xs text-muted-foreground">Choose a buyer and date range to export.</p>
+            <p className="text-xs text-muted-foreground">Choose a representative and date range to export.</p>
           </div>
 
           <div className="grid gap-2">
-            <Label className="text-sm font-medium">Buyer</Label>
+            <Label className="text-sm font-medium">Representative</Label>
             <Select
               value={buyerId === null ? undefined : String(buyerId)}
               onValueChange={(v) => setBuyerId(Number(v))}
             >
               <SelectTrigger className="h-8 text-sm w-full">
-                <SelectValue placeholder="Select buyer" />
+                <SelectValue placeholder="Select representative" />
               </SelectTrigger>
               <SelectContent>
                 {purchasers.map((p) => (

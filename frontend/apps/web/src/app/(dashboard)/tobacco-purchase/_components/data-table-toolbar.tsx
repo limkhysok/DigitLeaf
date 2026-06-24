@@ -67,8 +67,8 @@ export function DataTableToolbar<TData>({
             columnLabels={{
               no: "No.",
               invoice_num: "Invoice No",
-              buyer: "Buyer",
-              vendor_name: "Vendor",
+              buyer: "Representative",
+              vendor_name: "Farmer",
               tobacco_item_count: "Items",
               net_weight: "Total Weight",
               grand_total: "Grand Total",
@@ -78,12 +78,12 @@ export function DataTableToolbar<TData>({
           />
         </div>
 
-        {/* Buyer Dropdown */}
+        {/* Representative Dropdown */}
         <Popover>
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              Buyer
+              Representative
               {buyerFilter !== null && (
                 <>
                   <Separator orientation="vertical" className="mx-2 h-4" />
@@ -108,7 +108,7 @@ export function DataTableToolbar<TData>({
           <PopoverContent className="w-50 p-0" align="start">
             <Command>
               <CommandList>
-                <CommandEmpty>No buyers found.</CommandEmpty>
+                <CommandEmpty>No representatives found.</CommandEmpty>
                 <CommandGroup>
                   {purchasers.map((p) => {
                     const isSelected = buyerFilter === p.p_id

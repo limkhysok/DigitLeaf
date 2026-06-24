@@ -65,7 +65,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint, onDo
     {
       id: "buyer",
       accessorFn: (row) => row.buyer,
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Buyer" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Representative" />,
       cell: ({ row }) => {
         const buyerId = row.getValue("buyer") as number
         const purchaser = purchasers.find(p => p.p_id === buyerId)
@@ -74,7 +74,7 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint, onDo
     },
     {
       accessorKey: "vendor_name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Vendor" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Farmer" />,
       cell: ({ row }) => <div className="truncate min-w-20 max-w-37.5">{row.original.vendor_name || "-"}</div>,
     },
     {

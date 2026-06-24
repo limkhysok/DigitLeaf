@@ -205,6 +205,11 @@ function ContractSelectField({
   )
 }
 
+function formatOvenLabel(oven: OvenItem): string {
+  if (!oven.name_kh) return oven.name_en
+  return `${oven.name_en} | ${oven.name_kh}`
+}
+
 function OvenSelect({
   ovens,
   value,
@@ -224,7 +229,7 @@ function OvenSelect({
       <SelectContent>
         {ovens.map((ov) => (
           <SelectItem key={ov.id} value={String(ov.id)}>
-            {ov.name_en}{ov.name_kh ? ` | ${ov.name_kh}` : ""}
+            {formatOvenLabel(ov)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -451,7 +456,196 @@ export function RepayRecordDialog({
   const isLoading = !isAddMode && isLoadingDetail
 
   const titleText = titleForMode(mode)
-  const readOnlyInputClass = isViewMode ? "bg-muted/40 cursor-default" : undefined
+
+  const ovenDisplay = ovens.find((o) => String(o.id) === ovenId)
+  const ovenName = ovenDisplay ? formatOvenLabel(ovenDisplay) : null
+  const parsedViewQty = Number.parseFloat(quantity)
+
+  let dialogBody: React.ReactNode
+  if (isLoading) {
+    dialogBody = (
+      <div className="flex items-center justify-center h-40">
+        <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  } else if (isViewMode) {
+    dialogBody = (
+      <div className="flex flex-col gap-4">
+        <div className="rounded-md border divide-y text-sm">
+          <div className="grid grid-cols-2 gap-2 p-3 divide-x">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground">Invoice</span>
+              <span className="font-medium">{repayNum || "—"}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 pl-3">
+              <span className="text-muted-foreground">Contract No</span>
+              <span className="font-medium">{conNumDisplay || "—"}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 p-3 divide-x">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground">Farmer</span>
+              <span className="font-medium">{farmerNameDisplay || "—"}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 pl-3">
+              <span className="text-muted-foreground">Tobacco Type</span>
+              <span className="font-medium">{tobaccoTypeDisplay || "—"}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 p-3 divide-x">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground">Delivery (kg)</span>
+              <span className="font-medium text-[#009640]">
+                {Number.isNaN(parsedViewQty) ? "—" : `${parsedViewQty.toLocaleString()} kg`}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5 pl-3">
+              <span className="text-muted-foreground">Oven</span>
+              <span className="font-medium">{ovenName || "—"}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 p-3 divide-x">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground">Date</span>
+              <span className="font-medium">{repayDate || "—"}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 pl-3">
+              <span className="text-muted-foreground">Note</span>
+              <span className="font-medium">{note || "—"}</span>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="pt-2">
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Close
+          </Button>
+        </DialogFooter>
+      </div>
+    )
+  } else {
+    dialogBody = (
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
+        {/* Repay Number */}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="repay_num">Repay Number</Label>
+          <Input
+            id="repay_num"
+            value={repayNum}
+            readOnly
+            placeholder="Generating..."
+            className="bg-muted/40 cursor-default font-mono"
+          />
+        </div>
+
+        {/* Add mode: Farmer search */}
+        {isAddMode && (
+          <div className="space-y-1 flex flex-col">
+            <Label className="text-sm font-medium">Farmer</Label>
+            <FarmerCombobox
+              token={token}
+              selectedFarmer={selectedFarmer}
+              onSelectFarmer={(f) => {
+                setSelectedFarmer(f)
+                setSelectedContract(null)
+              }}
+            />
+          </div>
+        )}
+
+        {/* Add mode: Contract selection */}
+        {isAddMode && selectedFarmer && (
+          <ContractSelectField
+            token={token}
+            selectedFarmer={selectedFarmer}
+            selectedContract={selectedContract}
+            onSelectContract={setSelectedContract}
+          />
+        )}
+
+        {/* Edit mode: readonly contract context */}
+        {!isAddMode && (
+          <>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="con_num">Contract</Label>
+              <Input id="con_num" value={conNumDisplay} readOnly className="bg-muted/40 cursor-default" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="farmer">Farmer</Label>
+              <Input id="farmer" value={farmerNameDisplay} readOnly className="bg-muted/40 cursor-default" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="tobacco_type">Tobacco Type</Label>
+              <Input id="tobacco_type" value={tobaccoTypeDisplay} readOnly className="bg-muted/40 cursor-default" />
+            </div>
+          </>
+        )}
+
+        {/* Quantity */}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="quantity">Quantity (kg)</Label>
+          <Input
+            id="quantity"
+            type="number"
+            min={0.01}
+            max={remaining ?? undefined}
+            step="any"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="Enter quantity..."
+            required
+          />
+        </div>
+
+        {/* Oven */}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="oven">
+            Oven <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <OvenSelect ovens={ovens} value={ovenId} onChange={setOvenId} disabled={false} />
+        </div>
+
+        {/* Date */}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="repay_date">Date</Label>
+          <Input
+            id="repay_date"
+            type="date"
+            value={repayDate}
+            onChange={(e) => setRepayDate(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Note */}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="note">
+            Note <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <Input
+            id="note"
+            placeholder="Add a note..."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </div>
+
+        <DialogFooter className="pt-2">
+          <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="bg-[#009640] hover:bg-[#007a33] text-white"
+          >
+            {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save
+          </Button>
+        </DialogFooter>
+      </form>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -467,139 +661,7 @@ export function RepayRecordDialog({
           </DialogTitle>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
-            {/* Repay Number */}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="repay_num">Repay Number</Label>
-              <Input
-                id="repay_num"
-                value={repayNum}
-                readOnly
-                placeholder="Generating..."
-                className="bg-muted/40 cursor-default font-mono"
-              />
-            </div>
-
-            {/* Add mode: Farmer search */}
-            {isAddMode && (
-              <div className="space-y-1 flex flex-col">
-                <Label className="text-sm font-medium">Farmer</Label>
-                <FarmerCombobox
-                  token={token}
-                  selectedFarmer={selectedFarmer}
-                  onSelectFarmer={(f) => {
-                    setSelectedFarmer(f)
-                    setSelectedContract(null)
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Add mode: Contract selection */}
-            {isAddMode && selectedFarmer && (
-              <ContractSelectField
-                token={token}
-                selectedFarmer={selectedFarmer}
-                selectedContract={selectedContract}
-                onSelectContract={setSelectedContract}
-              />
-            )}
-
-            {/* Edit/View mode: readonly contract context */}
-            {!isAddMode && (
-              <>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="con_num">Contract</Label>
-                  <Input id="con_num" value={conNumDisplay} readOnly className="bg-muted/40 cursor-default" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="farmer">Farmer</Label>
-                  <Input id="farmer" value={farmerNameDisplay} readOnly className="bg-muted/40 cursor-default" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="tobacco_type">Tobacco Type</Label>
-                  <Input id="tobacco_type" value={tobaccoTypeDisplay} readOnly className="bg-muted/40 cursor-default" />
-                </div>
-              </>
-            )}
-
-            {/* Quantity */}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="quantity">Quantity (kg)</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min={0.01}
-                max={remaining ?? undefined}
-                step="any"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder="Enter quantity..."
-                readOnly={isViewMode}
-                className={readOnlyInputClass}
-                required
-              />
-            </div>
-
-            {/* Oven */}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="oven">
-                Oven <span className="text-muted-foreground">(optional)</span>
-              </Label>
-              <OvenSelect ovens={ovens} value={ovenId} onChange={setOvenId} disabled={isViewMode} />
-            </div>
-
-            {/* Date */}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="repay_date">Date</Label>
-              <Input
-                id="repay_date"
-                type="date"
-                value={repayDate}
-                onChange={(e) => setRepayDate(e.target.value)}
-                readOnly={isViewMode}
-                className={readOnlyInputClass}
-                required
-              />
-            </div>
-
-            {/* Note */}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="note">
-                Note <span className="text-muted-foreground">(optional)</span>
-              </Label>
-              <Input
-                id="note"
-                placeholder="Add a note..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                readOnly={isViewMode}
-                className={readOnlyInputClass}
-              />
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
-                {isViewMode ? "Close" : "Cancel"}
-              </Button>
-              {!isViewMode && (
-                <Button
-                  type="submit"
-                  disabled={isPending}
-                  className="bg-[#009640] hover:bg-[#007a33] text-white"
-                >
-                  {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save
-                </Button>
-              )}
-            </DialogFooter>
-          </form>
-        )}
+        {dialogBody}
       </DialogContent>
     </Dialog>
   )

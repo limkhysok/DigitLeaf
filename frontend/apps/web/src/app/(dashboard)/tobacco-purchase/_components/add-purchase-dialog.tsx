@@ -186,11 +186,11 @@
     returns: ReturnItemType[]
   ): boolean {
     if (!buyer) {
-      toast.error("Please select a Buyer")
+      toast.error("Please select a Representative")
       return false
     }
     if (!vendor) {
-      toast.error("Please select a Vendor")
+      toast.error("Please select a Farmer")
       return false
     }
     if (!region) {
@@ -254,7 +254,7 @@
     if (vendors.length === 0) {
       return (
         <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">
-          No vendors found
+          No farmers found
         </div>
       )
     }
@@ -1006,9 +1006,9 @@
                     </div>
                   </div>
 
-                  {/* Buyer */}
+                  {/* Representative */}
                   <div className="md:col-span-1 lg:col-span-1 lg:order-6 space-y-1.5">
-                    <Label className="text-sm">Buyer</Label>
+                    <Label className="text-sm">Representative</Label>
                     <Popover open={isBuyerOpen} onOpenChange={(open) => {
                       setIsBuyerOpen(open)
                       if (!open) {
@@ -1020,7 +1020,7 @@
                         <div className="relative group">
                           <IconUser className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                           <Input
-                            placeholder="Search buyer..."
+                            placeholder="Search representative..."
                             value={buyerSearch}
                             onChange={(e) => {
                               const val = e.target.value
@@ -1133,9 +1133,9 @@
                     </Popover>
                   </div>
 
-                  {/* Vendor */}
+                  {/* Farmer */}
                   <div className="lg:col-span-1 lg:order-3 space-y-1.5">
-                    <Label className="text-sm">Vendor</Label>
+                    <Label className="text-sm">Farmer</Label>
                     <Popover open={isVendorOpen} onOpenChange={(open) => {
                       setIsVendorOpen(open)
                       if (!open) {
@@ -1147,7 +1147,7 @@
                         <div className="relative group">
                           <IconBuildingStore className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                           <Input
-                            placeholder="Search vendor..."
+                            placeholder="Search farmer..."
                             value={vendorSearch}
                             onChange={(e) => {
                               const val = e.target.value
@@ -1185,7 +1185,7 @@
                     </Popover>
                   </div>
 
-                  {/* Vendor Address */}
+                  {/* Farmer Address */}
                   <div className="md:col-span-2 lg:col-span-1 lg:order-2 space-y-1.5">
                     <Label className="text-sm">Address</Label>
                     <div className="relative">

@@ -76,16 +76,16 @@ export function FilterBar({
               Contract No
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
-              checked={columnVisibility.contractor}
-              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, contractor: v })}
-            >
-              Contractor
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
               checked={columnVisibility.representative}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, representative: v })}
             >
               Representative
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={columnVisibility.contractor}
+              onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, contractor: v })}
+            >
+              Farmer
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.tobaccoType}
@@ -162,7 +162,7 @@ export function FilterBar({
 
         {/* Search */}
         <Input
-          placeholder="Search Contract No, Contractor..."
+          placeholder="Search Contract No, Farmer..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-md h-8 w-64 text-xs placeholder:text-sm"

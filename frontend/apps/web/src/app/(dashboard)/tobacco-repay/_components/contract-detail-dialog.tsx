@@ -63,14 +63,14 @@ export function ContractDetailDialog({
                   <span className="font-medium">{detail.contract_number || "—"}</span>
                 </div>
                 <div className="flex flex-col gap-0.5 pl-2">
-                  <span className="text-muted-foreground">Contractor</span>
-                  <span className="font-medium">{detail.contract_contractor_name || "—"}</span>
+                  <span className="text-muted-foreground">Representative</span>
+                  <span className="font-medium">{detail.representative || "—"}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 p-2 divide-x">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground">Representative</span>
-                  <span className="font-medium">{detail.representative || "—"}</span>
+                  <span className="text-muted-foreground">Farmer</span>
+                  <span className="font-medium">{detail.contract_contractor_name || "—"}</span>
                 </div>
                 <div className="flex flex-col gap-0.5 pl-2">
                   <span className="text-muted-foreground">Tobacco Type</span>
@@ -102,7 +102,7 @@ export function ContractDetailDialog({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Repay No.</TableHead>
+                    <TableHead>Invoice</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-left">Delivery (kg)</TableHead>
                     <TableHead>Note</TableHead>
