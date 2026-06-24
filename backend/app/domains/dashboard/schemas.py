@@ -60,3 +60,14 @@ class PurchaseByBuyerItem(BaseModel):
 class PurchaseByBuyerResponse(BaseModel):
     year: int
     items: list[PurchaseByBuyerItem]
+
+
+class PurchaseByTobaccoTypeItem(BaseModel):
+    tobacco_id: int
+    tobacco_name: str
+    weight_kg: float
+
+
+class PurchaseByTobaccoTypeResponse(BaseModel):
+    year: int
+    items: list[PurchaseByTobaccoTypeItem]

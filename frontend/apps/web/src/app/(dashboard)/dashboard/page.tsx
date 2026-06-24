@@ -12,6 +12,7 @@ import type { TrendPreset } from "@/types"
 import { KpiCards } from "./_components/kpi-cards"
 import { TrendChartCard } from "./_components/trend-chart-card"
 import { PurchaseByBuyerChart } from "./_components/purchase-by-buyer-chart"
+import { PurchaseByTobaccoTypeChart } from "./_components/purchase-by-tobacco-type-chart"
 import { toISODate } from "./_components/utils"
 import type { Fmt } from "./_components/types"
 
@@ -57,6 +58,14 @@ export default function DashboardPage() {
   const { data: buyerStats, isLoading: isBuyerStatsLoading } = useQuery({
     queryKey: ["dashboard-purchase-by-buyer"],
     queryFn: () => apiClient.getPurchaseByBuyer(tokens!.access_token),
+    enabled,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: tobaccoTypeStats, isLoading: isTobaccoTypeStatsLoading } = useQuery({
+    queryKey: ["dashboard-purchase-by-tobacco-type"],
+    queryFn: () => apiClient.getPurchaseByTobaccoType(tokens!.access_token),
     enabled,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
@@ -137,6 +146,25 @@ export default function DashboardPage() {
               isLoading={isBuyerStatsLoading}
               vendorLabel={t.dashboard.purchaseByBuyer.vendorLabel}
               noDataLabel={t.dashboard.purchaseByBuyer.noData}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="shadow-sm border-border/50">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">{t.dashboard.purchaseByTobaccoType.title}</CardTitle>
+            <CardDescription>{t.dashboard.purchaseByTobaccoType.subtitle}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PurchaseByTobaccoTypeChart
+              items={tobaccoTypeStats?.items}
+              isLoading={isTobaccoTypeStatsLoading}
+              weightLabel={t.dashboard.purchaseByTobaccoType.weightLabel}
+              totalLabel={t.dashboard.purchaseByTobaccoType.totalLabel}
+              noDataLabel={t.dashboard.purchaseByTobaccoType.noData}
+              fmtKg={fmtKg}
             />
           </CardContent>
         </Card>

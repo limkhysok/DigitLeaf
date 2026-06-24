@@ -1,5 +1,11 @@
 import { API_BASE_URL } from "./config";
-import type { DashboardSummary, PurchaseTrendParams, PurchaseTrendResponse, PurchaseByBuyerResponse } from "../types";
+import type {
+  DashboardSummary,
+  PurchaseTrendParams,
+  PurchaseTrendResponse,
+  PurchaseByBuyerResponse,
+  PurchaseByTobaccoTypeResponse,
+} from "../types";
 
 export const dashboardApi = {
   async getDashboardSummary(accessToken: string): Promise<DashboardSummary> {
@@ -41,6 +47,18 @@ export const dashboardApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to fetch purchase by buyer");
+    }
+    return response.json();
+  },
+
+  async getPurchaseByTobaccoType(accessToken: string, year?: number): Promise<PurchaseByTobaccoTypeResponse> {
+    const params = year ? `?year=${year}` : "";
+    const response = await fetch(`${API_BASE_URL}/dashboard/purchase-by-tobacco-type${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch purchase by tobacco type");
     }
     return response.json();
   },

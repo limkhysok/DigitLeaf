@@ -71,3 +71,14 @@ export interface PurchaseByBuyerResponse {
   year: number;
   items: PurchaseByBuyerItem[];
 }
+
+export interface PurchaseByTobaccoTypeItem {
+  tobacco_id: number;
+  tobacco_name: string;
+  weight_kg: number;
+}
+
+export interface PurchaseByTobaccoTypeResponse {
+  year: number;
+  items: PurchaseByTobaccoTypeItem[];
+}

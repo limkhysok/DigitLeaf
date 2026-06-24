@@ -383,6 +383,13 @@ export const translations = {
         vendorLabel: "Vendors",
         noData: "No purchase data yet.",
       },
+      purchaseByTobaccoType: {
+        title: "Tobacco Purchased by Type",
+        subtitle: "Annual weight by type",
+        weightLabel: "Weight (kg)",
+        totalLabel: "Total Weight",
+        noData: "No purchase data yet.",
+      },
     },
   },
   kh: {
@@ -763,6 +770,13 @@ export const translations = {
         title: "ការទិញតាមអ្នកទិញ",
         subtitle: "ចំនួនអ្នកលក់ក្នុងមួយអ្នកទិញសម្រាប់ឆ្នាំនេះ។",
         vendorLabel: "អ្នកលក់",
+        noData: "មិនទាន់មានទិន្នន័យទិញនៅឡើយទេ។",
+      },
+      purchaseByTobaccoType: {
+        title: "ការទិញសន្លឹកថ្នាំតាមប្រភេទ",
+        subtitle: "ទម្ងន់សុទ្ធដែលបានទិញពីកសិករក្នុងឆ្នាំនេះ តាមប្រភេទសន្លឹកថ្នាំ។",
+        weightLabel: "ទម្ងន់ (គីឡូ)",
+        totalLabel: "ទម្ងន់សរុប",
         noData: "មិនទាន់មានទិន្នន័យទិញនៅឡើយទេ។",
       },
     },
@@ -1147,6 +1161,13 @@ export type TranslationType = {
       readonly title: string;
       readonly subtitle: string;
       readonly vendorLabel: string;
+      readonly noData: string;
+    };
+    readonly purchaseByTobaccoType: {
+      readonly title: string;
+      readonly subtitle: string;
+      readonly weightLabel: string;
+      readonly totalLabel: string;
       readonly noData: string;
     };
   };

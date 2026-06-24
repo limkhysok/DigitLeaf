@@ -1,3 +1,4 @@
+import unicodedata
 from typing import Any, Literal
 from datetime import date, datetime, timedelta
 from fastapi import HTTPException
@@ -6,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func, col
 from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration import crud as sack_registration_crud
-from app.domains.tobacco_purchase.models import TobaccoPurchase
+from app.domains.tobacco_purchase.models import TobaccoPurchase, TobaccoPurchaseDetail, Tobacco
 from app.domains.tobacco_purchase.models.purchaser import Purchaser
 from app.domains.tobacco_repay.models import TContract, TContractRepay
 from app.domains.farmer_contract.models import MfConYear
@@ -14,6 +15,12 @@ from app.domains.farmers.models import MemberFarmer
 
 TrendPreset = Literal["7d", "30d", "3m", "9m", "12m", "custom"]
 PRESET_DAYS: dict[str, int] = {"7d": 7, "30d": 30, "3m": 90, "9m": 270, "12m": 365}
+
+def _clean_display_name(name: str) -> str:
+    # Strip zero-width/invisible Unicode formatting chars (category "Cf", e.g. U+200B
+    # ZERO WIDTH SPACE) that occasionally leak into legacy Khmer text fields and break
+    # SVG text rendering — the whole label disappears instead of just looking odd.
+    return "".join(c for c in name if unicodedata.category(c) != "Cf").strip()
 
 
 async def _get_today_purchases(session: AsyncSession) -> dict[str, Any]:
@@ -272,6 +279,40 @@ async def get_purchase_by_buyer(session: AsyncSession, year: int) -> dict[str, A
         for row in rows
     ]
     items.sort(key=lambda x: x["vendor_count"], reverse=True)
+    return {"year": year, "items": items}
+
+
+async def get_purchase_by_tobacco_type(session: AsyncSession, year: int) -> dict[str, Any]:
+    stmt = (
+        select(
+            TobaccoPurchaseDetail.tobacco_name,
+            func.coalesce(func.sum(TobaccoPurchaseDetail.qty), 0.0).label("weight_kg"),
+        )
+        .join(TobaccoPurchase, col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
+        .where(func.year(TobaccoPurchase.tp_date) == year)
+        .group_by(col(TobaccoPurchaseDetail.tobacco_name))
+    )
+    rows = (await session.execute(stmt)).all()
+
+    tobacco_ids = [row.tobacco_name for row in rows]
+    tobacco_names: dict[int, str] = {}
+    if tobacco_ids:
+        tobaccos = (
+            await session.execute(select(Tobacco).where(col(Tobacco.t_id).in_(tobacco_ids)))
+        ).scalars().all()
+        tobacco_names = {
+            t.t_id: _clean_display_name(t.t_name_kh or t.t_name) for t in tobaccos if t.t_id is not None
+        }
+
+    items: list[dict[str, Any]] = [
+        {
+            "tobacco_id": row.tobacco_name,
+            "tobacco_name": tobacco_names.get(row.tobacco_name, str(row.tobacco_name)),
+            "weight_kg": round(float(row.weight_kg), 2),
+        }
+        for row in rows
+    ]
+    items.sort(key=lambda x: x["weight_kg"], reverse=True)
     return {"year": year, "items": items}
 
 
