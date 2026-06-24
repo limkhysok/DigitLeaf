@@ -15,7 +15,7 @@ function TrendIcon({ positive }: Readonly<{ positive: boolean }>) {
 
 function KpiChangeBadge({ positive, children }: Readonly<{ positive: boolean; children: ReactNode }>) {
   return (
-    <Badge variant="outline" className="absolute right-4 top-4 gap-1 text-foreground">
+    <Badge variant="outline" className="absolute right-6 top-6 gap-1 text-foreground">
       <TrendIcon positive={positive} />
       {children}
     </Badge>
@@ -101,7 +101,7 @@ function SackRegistrationCard({
       <Card className="h-full shadow-sm border-border/50 hover:border-primary/20 hover:shadow-md transition-all">
         <CardContent className="relative p-6">
           <p className="text-sm font-medium text-muted-foreground">{t.dashboard.sackRegistration.title}</p>
-          <Badge variant="outline" className="absolute right-4 top-4 gap-1 text-foreground">
+          <Badge variant="outline" className="absolute right-6 top-6 gap-1 text-foreground">
             <IconTrendingUp className="size-3" />+{fmtKg(data.sack_registration.sack_weight_kg.today)} kg
           </Badge>
           <span className="mt-4 block text-2xl font-semibold tabular-nums">
