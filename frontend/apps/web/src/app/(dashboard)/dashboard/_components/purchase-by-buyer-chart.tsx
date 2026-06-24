@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { Label, Pie, PieChart } from "recharts"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@workspace/ui/components/chart"
@@ -88,6 +88,12 @@ export function PurchaseByBuyerChart({
       })),
     [items, total]
   )
+  const renderCenterLabel = useCallback(
+    (props: { viewBox?: object }) => (
+      <BuyerPieCenterLabel viewBox={props.viewBox} total={total} vendorLabel={vendorLabel} />
+    ),
+    [total, vendorLabel]
+  )
 
   if (isLoading || !items) {
     return <Skeleton className="h-75 w-full rounded-xl" />
@@ -111,11 +117,7 @@ export function PurchaseByBuyerChart({
             labelLine={false}
             label={pieSliceLabel}
           >
-            <Label
-              content={({ viewBox }) => (
-                <BuyerPieCenterLabel viewBox={viewBox} total={total} vendorLabel={vendorLabel} />
-              )}
-            />
+            <Label content={renderCenterLabel} />
           </Pie>
         </PieChart>
       </ChartContainer>

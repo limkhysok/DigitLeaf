@@ -280,6 +280,6 @@ async def get_summary(session: AsyncSession) -> dict[str, Any]:
     return {
         "today_purchases": await _get_today_purchases(session),
         "sack_registration": await sack_registration_crud.get_stats(session),
-        "outstanding_repay": await _get_outstanding_repay(session, current_year),
+        "outstanding_repay": await _get_outstanding_repay(session, current_year - 1),
         "farmer_contracts": await _get_farmer_contracts(session, current_year),
     }
