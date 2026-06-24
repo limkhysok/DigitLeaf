@@ -29,7 +29,7 @@ class TContract(SQLModel, table=True):
     qty: float | None = Field(default=None)
     price: float | None = Field(default=None)
     rate: float | None = Field(default=None)
-    f_id: int | None = Field(default=None)
+    f_id: int | None = Field(default=None, index=True)
     do_date: _datetime | None = Field(default=None, sa_column=Column("do_date", DateTime, nullable=True))
     ip_address: str | None = Field(default=None, sa_column=Column("ip_address", Text, nullable=True))
     year: int | None = Field(default=None)

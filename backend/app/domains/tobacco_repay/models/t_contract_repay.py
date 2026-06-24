@@ -1,10 +1,13 @@
 from datetime import date as _date, datetime as _datetime
-from sqlalchemy import Column, Date, DateTime, Text
+from sqlalchemy import Column, Date, DateTime, Index, Text
 from sqlmodel import Field, SQLModel
 
 
 class TContractRepay(SQLModel, table=True):
     __tablename__ = "t_contract_repay"  # type: ignore[assignment]
+    __table_args__ = (
+        Index("ix_tcr_con_id_qty_repay", "con_id", "qty_repay"),
+    )
 
     repay_id: int | None = Field(default=None, primary_key=True)
     repay_num: str | None = Field(default=None, max_length=50)
