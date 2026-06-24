@@ -14,6 +14,7 @@ from app.domains.dashboard.schemas import (
     PurchaseTrendResponse,
     PurchaseByBuyerResponse,
     PurchaseByTobaccoTypeResponse,
+    RepayByTobaccoTypeResponse,
 )
 
 router = APIRouter(route_class=AuditLogRoute)
@@ -54,3 +55,12 @@ async def get_purchase_by_tobacco_type(
     year: int | None = Query(None),
 ):
     return await crud.get_purchase_by_tobacco_type(session=session, year=year or datetime.now(CAMBODIA_TZ).year)
+
+
+@router.get("/repay-by-tobacco-type", response_model=RepayByTobaccoTypeResponse)
+async def get_repay_by_tobacco_type(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+    year: int | None = Query(None),
+):
+    return await crud.get_repay_by_tobacco_type(session=session, year=year or datetime.now(CAMBODIA_TZ).year - 1)

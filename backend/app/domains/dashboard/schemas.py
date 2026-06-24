@@ -71,3 +71,14 @@ class PurchaseByTobaccoTypeItem(BaseModel):
 class PurchaseByTobaccoTypeResponse(BaseModel):
     year: int
     items: list[PurchaseByTobaccoTypeItem]
+
+
+class RepayByTobaccoTypeItem(BaseModel):
+    tobacco_id: int
+    tobacco_name: str
+    weight_kg: float
+
+
+class RepayByTobaccoTypeResponse(BaseModel):
+    year: int
+    items: list[RepayByTobaccoTypeItem]

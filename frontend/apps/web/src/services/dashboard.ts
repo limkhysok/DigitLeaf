@@ -5,6 +5,7 @@ import type {
   PurchaseTrendResponse,
   PurchaseByBuyerResponse,
   PurchaseByTobaccoTypeResponse,
+  RepayByTobaccoTypeResponse,
 } from "../types";
 
 export const dashboardApi = {
@@ -59,6 +60,18 @@ export const dashboardApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to fetch purchase by tobacco type");
+    }
+    return response.json();
+  },
+
+  async getRepayByTobaccoType(accessToken: string, year?: number): Promise<RepayByTobaccoTypeResponse> {
+    const params = year ? `?year=${year}` : "";
+    const response = await fetch(`${API_BASE_URL}/dashboard/repay-by-tobacco-type${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch repay by tobacco type");
     }
     return response.json();
   },

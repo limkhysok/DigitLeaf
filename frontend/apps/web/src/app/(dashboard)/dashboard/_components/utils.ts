@@ -29,3 +29,14 @@ export function pieSliceLabel(props: unknown) {
   const pct = (props as { pct?: number }).pct
   return pct == null ? "" : `${pct.toFixed(0)}%`
 }
+
+let measureCanvas: HTMLCanvasElement | null = null
+
+export function measureTextWidth(text: string, font: string): number {
+  if (typeof document === "undefined") return text.length * 7
+  measureCanvas ??= document.createElement("canvas")
+  const ctx = measureCanvas.getContext("2d")
+  if (!ctx) return text.length * 7
+  ctx.font = font
+  return ctx.measureText(text).width
+}

@@ -9,7 +9,7 @@ from app.core.config import CAMBODIA_TZ
 from app.domains.sack_registration import crud as sack_registration_crud
 from app.domains.tobacco_purchase.models import TobaccoPurchase, TobaccoPurchaseDetail, Tobacco
 from app.domains.tobacco_purchase.models.purchaser import Purchaser
-from app.domains.tobacco_repay.models import TContract, TContractRepay
+from app.domains.tobacco_repay.models import ConTobacco, TContract, TContractRepay, TobaccoGroup
 from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmers.models import MemberFarmer
 
@@ -339,6 +339,57 @@ async def get_purchase_by_tobacco_type(session: AsyncSession, year: int) -> dict
         {
             "tobacco_id": row.tobacco_name,
             "tobacco_name": tobacco_names.get(row.tobacco_name, str(row.tobacco_name)),
+            "weight_kg": round(float(row.weight_kg), 2),
+        }
+        for row in rows
+    ]
+    items.sort(key=lambda x: x["weight_kg"], reverse=True)
+    return {"year": year, "items": items}
+
+
+async def get_repay_by_tobacco_type(session: AsyncSession, year: int) -> dict[str, Any]:
+    # Mirrors the join structure used by _get_outstanding_repay: a contract's "year" is
+    # the MfConYear row matching the farmer (f_id) and the contract date's year, not
+    # TContractRepay.repay_date — repays for a contract can land in the following year.
+    stmt = (
+        select(
+            ConTobacco.t_id,
+            ConTobacco.tobacco,
+            TobaccoGroup.name,
+            func.coalesce(func.sum(TContractRepay.qty_repay), 0.0).label("weight_kg"),
+        )
+        .select_from(TContractRepay)
+        .join(TContract, col(TContractRepay.con_id) == col(TContract.con_id))
+        .join(MemberFarmer, col(TContract.f_id) == col(MemberFarmer.mf_id))
+        .join(
+            MfConYear,
+            (col(MfConYear.mf_id) == col(TContract.f_id))
+            & (col(MfConYear.year) == func.year(TContract.con_date)),
+        )
+        .outerjoin(ConTobacco, col(TContract.tobac_type) == col(ConTobacco.t_id))
+        .outerjoin(TobaccoGroup, sa_cast(ConTobacco.tobacco_type, Integer) == col(TobaccoGroup.id))
+        .where(col(MfConYear.year) == year)
+        .group_by(col(ConTobacco.t_id), col(ConTobacco.tobacco), col(TobaccoGroup.name))
+    )
+    rows = (await session.execute(stmt)).all()
+
+    # con_tobacco has distinct t_id rows that share an identical display name (e.g. two
+    # sub-types both labeled "សន្លឹកកណ្តាល"), which would otherwise render as duplicate
+    # bars. Disambiguate using the tobacco_groups name, the only other field that varies
+    # between them — same idea as _disambiguate_tobacco_names for the purchase chart.
+    name_counts: dict[str, int] = {}
+    for row in rows:
+        name = row.tobacco or "Unknown"
+        name_counts[name] = name_counts.get(name, 0) + 1
+
+    items: list[dict[str, Any]] = [
+        {
+            "tobacco_id": row.t_id or 0,
+            "tobacco_name": (
+                f"{row.tobacco} ({row.name})"
+                if row.tobacco and row.name and name_counts[row.tobacco] > 1
+                else (row.tobacco or "Unknown")
+            ),
             "weight_kg": round(float(row.weight_kg), 2),
         }
         for row in rows

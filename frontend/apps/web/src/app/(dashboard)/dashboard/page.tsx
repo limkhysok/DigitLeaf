@@ -13,6 +13,7 @@ import { KpiCards } from "./_components/kpi-cards"
 import { TrendChartCard } from "./_components/trend-chart-card"
 import { PurchaseByBuyerChart } from "./_components/purchase-by-buyer-chart"
 import { PurchaseByTobaccoTypeChart } from "./_components/purchase-by-tobacco-type-chart"
+import { RepayByTobaccoTypeChart } from "./_components/repay-by-tobacco-type-chart"
 import { toISODate } from "./_components/utils"
 import type { Fmt } from "./_components/types"
 
@@ -66,6 +67,14 @@ export default function DashboardPage() {
   const { data: tobaccoTypeStats, isLoading: isTobaccoTypeStatsLoading } = useQuery({
     queryKey: ["dashboard-purchase-by-tobacco-type"],
     queryFn: () => apiClient.getPurchaseByTobaccoType(tokens!.access_token),
+    enabled,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: repayTobaccoTypeStats, isLoading: isRepayTobaccoTypeStatsLoading } = useQuery({
+    queryKey: ["dashboard-repay-by-tobacco-type"],
+    queryFn: () => apiClient.getRepayByTobaccoType(tokens!.access_token),
     enabled,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
@@ -151,20 +160,34 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-sm border-border/50">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">{t.dashboard.purchaseByTobaccoType.title}</CardTitle>
-            <CardDescription>{t.dashboard.purchaseByTobaccoType.subtitle}</CardDescription>
+            <CardTitle className="text-lg font-semibold whitespace-nowrap">{t.dashboard.purchaseByTobaccoType.title}</CardTitle>
           </CardHeader>
           <CardContent>
             <PurchaseByTobaccoTypeChart
               items={tobaccoTypeStats?.items}
               isLoading={isTobaccoTypeStatsLoading}
               weightLabel={t.dashboard.purchaseByTobaccoType.weightLabel}
-              totalLabel={t.dashboard.purchaseByTobaccoType.totalLabel}
               noDataLabel={t.dashboard.purchaseByTobaccoType.noData}
-              fmtKg={fmtKg}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-border/50">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold whitespace-nowrap">
+              {t.dashboard.repayByTobaccoType.title}
+              {repayTobaccoTypeStats ? ` (${repayTobaccoTypeStats.year})` : ""}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RepayByTobaccoTypeChart
+              items={repayTobaccoTypeStats?.items}
+              isLoading={isRepayTobaccoTypeStatsLoading}
+              weightLabel={t.dashboard.repayByTobaccoType.weightLabel}
+              noDataLabel={t.dashboard.repayByTobaccoType.noData}
             />
           </CardContent>
         </Card>

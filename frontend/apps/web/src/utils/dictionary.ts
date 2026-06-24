@@ -390,6 +390,11 @@ export const translations = {
         totalLabel: "Total Weight",
         noData: "No purchase data yet.",
       },
+      repayByTobaccoType: {
+        title: "Tobacco Repaid by Type",
+        weightLabel: "Weight (kg)",
+        noData: "No repay data yet.",
+      },
     },
   },
   kh: {
@@ -778,6 +783,11 @@ export const translations = {
         weightLabel: "ទម្ងន់ (គីឡូ)",
         totalLabel: "ទម្ងន់សរុប",
         noData: "មិនទាន់មានទិន្នន័យទិញនៅឡើយទេ។",
+      },
+      repayByTobaccoType: {
+        title: "ការសងសន្លឹកថ្នាំតាមប្រភេទ",
+        weightLabel: "ទម្ងន់ (គីឡូ)",
+        noData: "មិនទាន់មានទិន្នន័យសងនៅឡើយទេ។",
       },
     },
   }
@@ -1168,6 +1178,11 @@ export type TranslationType = {
       readonly subtitle: string;
       readonly weightLabel: string;
       readonly totalLabel: string;
+      readonly noData: string;
+    };
+    readonly repayByTobaccoType: {
+      readonly title: string;
+      readonly weightLabel: string;
       readonly noData: string;
     };
   };

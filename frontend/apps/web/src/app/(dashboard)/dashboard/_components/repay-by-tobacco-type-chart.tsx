@@ -2,16 +2,16 @@ import { useEffect, useMemo, useState } from "react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@workspace/ui/components/chart"
-import type { PurchaseByTobaccoTypeItem } from "@/types"
+import type { RepayByTobaccoTypeItem } from "@/types"
 import { measureTextWidth } from "./utils"
 
-export function PurchaseByTobaccoTypeChart({
+export function RepayByTobaccoTypeChart({
   items,
   isLoading,
   weightLabel,
   noDataLabel,
 }: Readonly<{
-  items: PurchaseByTobaccoTypeItem[] | undefined
+  items: RepayByTobaccoTypeItem[] | undefined
   isLoading: boolean
   weightLabel: string
   noDataLabel: string
@@ -20,7 +20,7 @@ export function PurchaseByTobaccoTypeChart({
     () => ({
       weight_kg: {
         label: weightLabel,
-        color: "var(--primary)",
+        color: "#d97706",
       },
     }),
     [weightLabel]
@@ -48,14 +48,11 @@ export function PurchaseByTobaccoTypeChart({
   // A callback ref re-fires whenever the node actually attaches, no matter when.
   const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null)
   const [containerWidth, setContainerWidth] = useState(0)
-
-  const tickFont = useMemo(
-    () => (containerEl ? `12px ${getComputedStyle(containerEl).fontFamily}` : "12px sans-serif"),
-    [containerEl]
-  )
+  const [tickFont, setTickFont] = useState("12px sans-serif")
 
   useEffect(() => {
     if (!containerEl) return
+    setTickFont(`12px ${getComputedStyle(containerEl).fontFamily}`)
     // Debounced so the sidebar's width-transition doesn't trigger a full chart
     // re-layout on every intermediate frame, only once the resize settles.
     let timeoutId: ReturnType<typeof setTimeout> | undefined
