@@ -1,5 +1,5 @@
 import unicodedata
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 from datetime import date, datetime, timedelta
 from fastapi import HTTPException
 from sqlalchemy import Integer, cast as sa_cast
@@ -21,6 +21,39 @@ def _clean_display_name(name: str) -> str:
     # ZERO WIDTH SPACE) that occasionally leak into legacy Khmer text fields and break
     # SVG text rendering — the whole label disappears instead of just looking odd.
     return "".join(c for c in name if unicodedata.category(c) != "Cf").strip()
+
+
+def _common_prefix_len(strings: list[str]) -> int:
+    length = 0
+    for chars in zip(*strings):
+        if len(set(chars)) > 1:
+            break
+        length += 1
+    return length
+
+
+def _disambiguate_tobacco_names(tobaccos: Sequence[Tobacco]) -> dict[int, str]:
+    # Distinct sub-types can share an identical t_name_kh when that field wasn't kept
+    # in sync with t_name — e.g. t_id=54 "BL (Fresh)" and t_id=811 "BL (Fresh) ជើង"
+    # both have t_name_kh "សន្លឹកស្រស់ហាលម្លប់", making them look like a duplicate
+    # bug in the chart. Disambiguate by appending whatever part of the English
+    # t_name isn't shared across the colliding group.
+    groups: dict[str, list[Tobacco]] = {}
+    for t in tobaccos:
+        if t.t_id is None:
+            continue
+        groups.setdefault(_clean_display_name(t.t_name_kh or t.t_name), []).append(t)
+
+    names: dict[int, str] = {}
+    for display_name, group in groups.items():
+        if len(group) == 1:
+            names[group[0].t_id] = display_name  # type: ignore[index]
+            continue
+        prefix_len = _common_prefix_len([t.t_name for t in group])
+        for t in group:
+            extra = t.t_name[prefix_len:].strip(" ()")
+            names[t.t_id] = f"{display_name} ({extra})" if extra else display_name  # type: ignore[index]
+    return names
 
 
 async def _get_today_purchases(session: AsyncSession) -> dict[str, Any]:
@@ -300,9 +333,7 @@ async def get_purchase_by_tobacco_type(session: AsyncSession, year: int) -> dict
         tobaccos = (
             await session.execute(select(Tobacco).where(col(Tobacco.t_id).in_(tobacco_ids)))
         ).scalars().all()
-        tobacco_names = {
-            t.t_id: _clean_display_name(t.t_name_kh or t.t_name) for t in tobaccos if t.t_id is not None
-        }
+        tobacco_names = _disambiguate_tobacco_names(tobaccos)
 
     items: list[dict[str, Any]] = [
         {

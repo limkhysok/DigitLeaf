@@ -6,6 +6,19 @@ import type { PurchaseByBuyerItem } from "@/types"
 import { BUYER_PIE_COLORS, type BuyerSlice } from "./types"
 import { pieSliceLabel } from "./utils"
 
+function BuyerPieSliceLabel(props: unknown) {
+  const { x, y, textAnchor } = props as {
+    x: number
+    y: number
+    textAnchor?: "start" | "middle" | "end" | "inherit"
+  }
+  return (
+    <text x={x} y={y} textAnchor={textAnchor} fill="#000000" dominantBaseline="middle">
+      {pieSliceLabel(props)}
+    </text>
+  )
+}
+
 function BuyerTooltip({
   active,
   payload,
@@ -115,7 +128,7 @@ export function PurchaseByBuyerChart({
             innerRadius={60}
             strokeWidth={2}
             labelLine={false}
-            label={pieSliceLabel}
+            label={BuyerPieSliceLabel}
           >
             <Label content={renderCenterLabel} />
           </Pie>
