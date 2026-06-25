@@ -6,12 +6,16 @@ from app.core.config import CAMBODIA_TZ
 from sqlalchemy import Column, TEXT
 
 class AuditLog(SQLModel, table=True):
-    __tablename__ = "dl_audit_log"
-    
+    """Maps to the pre-existing legacy `user_action` table (not managed by our migrations)."""
+    __tablename__ = "user_action" # type: ignore
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[int] = Field(default=None, index=True)
-    endpoint: str = Field(max_length=255)
-    method: str = Field(max_length=10)
-    ip_address: Optional[str] = Field(default=None, max_length=50)
-    user_agent: Optional[str] = Field(default=None, sa_column=Column(TEXT))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    page_name: str = Field(sa_column=Column(TEXT, nullable=False))
+    date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    field_type: str = Field(default="", sa_column=Column(TEXT, nullable=False))
+    old_value: str = Field(default="", sa_column=Column(TEXT, nullable=False))
+    new_value: str = Field(default="", sa_column=Column(TEXT, nullable=False))
+    user: str = Field(max_length=100)
+    action: str = Field(max_length=50)
+    log_on: str = Field(default="", max_length=50)
+    ip_address: str = Field(default="", sa_column=Column(TEXT, nullable=False))

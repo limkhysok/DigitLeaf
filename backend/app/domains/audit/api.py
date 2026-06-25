@@ -23,7 +23,7 @@ async def read_audit_logs(
     skip = (page - 1) * limit
     total = (await session.scalar(select(func.count()).select_from(AuditLog))) or 0
     result = await session.execute(
-        select(AuditLog).order_by(col(AuditLog.created_at).desc()).offset(skip).limit(limit)
+        select(AuditLog).order_by(col(AuditLog.date).desc()).offset(skip).limit(limit)
     )
     items = [AuditLogPublic.model_validate(row) for row in result.scalars().all()]
     return AuditLogListResponse(items=items, total=total, has_more=(skip + len(items)) < total)

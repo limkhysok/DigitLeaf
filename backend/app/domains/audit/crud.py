@@ -6,16 +6,14 @@ async def create_audit_log(
     session: AsyncSession,
     endpoint: str,
     method: str,
-    user_id: int | None = None,
+    user: str | None = None,
     ip_address: str | None = None,
-    user_agent: str | None = None,
 ) -> AuditLog:
     db_log = AuditLog(
-        user_id=user_id,
-        endpoint=endpoint,
-        method=method,
-        ip_address=ip_address,
-        user_agent=user_agent,
+        page_name=endpoint,
+        action=method,
+        user=user or "",
+        ip_address=ip_address or "",
     )
     session.add(db_log)
     await session.commit()

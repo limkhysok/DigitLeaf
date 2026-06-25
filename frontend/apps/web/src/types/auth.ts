@@ -18,10 +18,13 @@ export interface UserSession {
 
 export interface AuditLog {
   id: number;
-  user_id: number;
-  endpoint: string;
-  method: string;
+  page_name: string | null;
+  field_type: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  user: string | null;
+  action: string | null;
+  log_on: string | null;
   ip_address: string | null;
-  user_agent: string | null;
-  created_at: string;
+  date: string;
 }

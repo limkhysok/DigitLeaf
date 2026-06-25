@@ -81,9 +81,9 @@ class UserTokenAdmin(ModelView, model=UserToken):
 
 
 class AuditLogAdmin(ModelView, model=AuditLog):
-    column_list = [AuditLog.id, AuditLog.user_id, AuditLog.endpoint, AuditLog.method, AuditLog.created_at]  # type: ignore[assignment]
-    column_searchable_list = [AuditLog.user_id, AuditLog.endpoint]  # type: ignore[assignment]
-    column_default_sort = [(AuditLog.created_at, True)]  # type: ignore[assignment]
+    column_list = [AuditLog.id, AuditLog.user, AuditLog.page_name, AuditLog.action, AuditLog.date]  # type: ignore[assignment]
+    column_searchable_list = [AuditLog.user, AuditLog.page_name]  # type: ignore[assignment]
+    column_default_sort = [(AuditLog.date, True)]  # type: ignore[assignment]
     page_size = 100
     icon = "fa-solid fa-list"
 

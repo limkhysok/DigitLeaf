@@ -5,12 +5,15 @@ from typing import List, Optional
 
 class AuditLogPublic(BaseModel):
     id: int
-    user_id: Optional[int] = None
-    endpoint: str
-    method: str
+    page_name: Optional[str] = None
+    field_type: Optional[str] = None
+    old_value: Optional[str] = None
+    new_value: Optional[str] = None
+    user: Optional[str] = None
+    action: Optional[str] = None
+    log_on: Optional[str] = None
     ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    created_at: datetime
+    date: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

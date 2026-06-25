@@ -9,20 +9,19 @@ from app.core import security
 
 
 
-def _extract_user_info(auth_header: str | None) -> tuple[str | None, int | None]:
+def _extract_user_info(auth_header: str | None) -> str | None:
     if not auth_header or not auth_header.startswith("Bearer "):
-        return None, None
+        return None
     token = auth_header.split(" ")[1]
     payload = security.decode_token(token)
     if not payload:
-        return None, None
-    return payload.get("sub"), payload.get("user_id")
+        return None
+    return payload.get("sub")
 
 
 async def _log_to_db(
     ip_address: str | None,
-    user_agent: str | None,
-    user_id: int | None,
+    user: str | None,
     endpoint: str,
     method: str,
 ) -> None:
@@ -32,9 +31,8 @@ async def _log_to_db(
                 session=db_session,
                 endpoint=endpoint,
                 method=method,
-                user_id=user_id,
+                user=user,
                 ip_address=ip_address,
-                user_agent=user_agent,
             )
     except Exception as log_error:
         logger.error(f"Failed to write audit log to DB: {log_error}")
@@ -46,12 +44,11 @@ class AuditLogRoute(APIRoute):
 
         async def custom_route_handler(request: Request) -> Response:
             ip_address = request.client.host if request.client else None
-            user_agent = request.headers.get("user-agent")
 
             headers_dict = dict(request.headers)
             auth_header = headers_dict.pop("authorization", None)
 
-            _, user_id = _extract_user_info(auth_header)
+            user = _extract_user_info(auth_header)
 
             try:
                 response = await original_route_handler(request)
@@ -59,8 +56,7 @@ class AuditLogRoute(APIRoute):
             finally:
                 await _log_to_db(
                     ip_address=ip_address,
-                    user_agent=user_agent,
-                    user_id=user_id,
+                    user=user,
                     endpoint=request.url.path,
                     method=request.method,
                 )
