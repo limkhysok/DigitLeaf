@@ -12,11 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { TobaccoPurchase, PurchaserItem } from "@/services/api-client"
+import { TobaccoPurchase, PurchaserItem, RegionItem } from "@/services/api-client"
 import { formatPurchaseDate } from "./utils"
 
 interface ColumnHelpers {
   purchasers: PurchaserItem[]
+  regions: RegionItem[]
   onView: (rec: TobaccoPurchase) => void
   onEdit: (rec: TobaccoPurchase) => void
   onDelete: (id: number) => void
@@ -24,7 +25,7 @@ interface ColumnHelpers {
   onDownload: (rec: TobaccoPurchase) => void
 }
 
-export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint, onDownload }: ColumnHelpers): ColumnDef<TobaccoPurchase>[] {
+export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPrint, onDownload }: ColumnHelpers): ColumnDef<TobaccoPurchase>[] {
   return [
     {
       id: "select",
@@ -76,6 +77,16 @@ export function getColumns({ purchasers, onView, onEdit, onDelete, onPrint, onDo
       accessorKey: "vendor_name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Farmer" />,
       cell: ({ row }) => <div className="truncate min-w-20 max-w-37.5">{row.original.vendor_name || "-"}</div>,
+    },
+    {
+      id: "region",
+      accessorFn: (row) => row.region,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Region" />,
+      cell: ({ row }) => {
+        const regionId = row.getValue("region") as number | null
+        const region = regions.find(r => r.reg_id === regionId)
+        return <div className="tabular-nums font-sm">{region?.reg_name_kh || region?.reg_name || "-"}</div>
+      },
     },
     {
       accessorKey: "tobacco_item_count",

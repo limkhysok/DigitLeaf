@@ -207,12 +207,13 @@ export default function TobaccoPurchasePage() {
 
   const columns = React.useMemo(() => getColumns({
     purchasers,
+    regions,
     onView: handleView,
     onEdit: handleEdit,
     onDelete: (id: number) => setDeleteId(id),
     onPrint: handlePrint,
     onDownload: handleDownloadPdf,
-  }), [purchasers, handleView, handleEdit, handlePrint, handleDownloadPdf])
+  }), [purchasers, regions, handleView, handleEdit, handlePrint, handleDownloadPdf])
 
   const sorting = React.useMemo(() => {
     if (sortGrandTotal) return [{ id: "grand_total", desc: sortGrandTotal === "desc" }]
