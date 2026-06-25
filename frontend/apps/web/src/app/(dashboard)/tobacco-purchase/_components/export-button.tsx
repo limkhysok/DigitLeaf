@@ -24,9 +24,10 @@ import { useAuth } from "@/hooks/use-auth"
 import { format, subDays, subMonths, subYears } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
 
-type DatePreset = "7d" | "30d" | "3m" | "6m" | "1y" | "custom"
+type DatePreset = "today" | "7d" | "30d" | "3m" | "6m" | "1y" | "custom"
 
 const PRESET_LABELS: Record<DatePreset, string> = {
+  today: "Today",
   "7d": "Last 7 days",
   "30d": "Last 30 days",
   "3m": "Last 3 months",
@@ -43,6 +44,7 @@ function toLocalYMD(d: Date) {
 
 function presetToRange(preset: DatePreset, today: Date): { from: Date; to: Date } | null {
   switch (preset) {
+    case "today": return { from: today, to: today }
     case "7d": return { from: subDays(today, 7), to: today }
     case "30d": return { from: subDays(today, 30), to: today }
     case "3m": return { from: subMonths(today, 3), to: today }
@@ -63,7 +65,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
 
   const [open, setOpen] = React.useState(false)
   const [buyerId, setBuyerId] = React.useState<number | null>(null)
-  const [preset, setPreset] = React.useState<DatePreset>("30d")
+  const [preset, setPreset] = React.useState<DatePreset>("today")
   const [customFrom, setCustomFrom] = React.useState<Date | undefined>(undefined)
   const [customTo, setCustomTo] = React.useState<Date | undefined>(today)
   const [fromCalendarOpen, setFromCalendarOpen] = React.useState(false)

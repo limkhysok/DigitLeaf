@@ -19,12 +19,12 @@ _LEFT = Alignment(horizontal="left", vertical="center")
 _THIN_SIDE = Side(border_style="thin", color="000000")
 _FULL_BORDER = Border(left=_THIN_SIDE, right=_THIN_SIDE, top=_THIN_SIDE, bottom=_THIN_SIDE)
 
-_DATA_COLUMNS = ("A", "B", "C", "D", "E", "F", "G", "H")
-_NUMERIC_COLUMNS = ("E", "F", "G")
+_DATA_COLUMNS = ("A", "B", "C", "D", "E", "F", "G", "H", "I")
+_NUMERIC_COLUMNS = ("E", "F", "G", "H")
 
 # Relative column widths as % of the table — proportions stay fixed while the
 # absolute scale (_TABLE_WIDTH_UNITS) can be tuned to fit the printable page.
-_COLUMN_WIDTH_PERCENT = {"A": 7, "B": 12, "C": 14, "D": 18, "E": 11, "F": 13, "G": 13, "H": 12}
+_COLUMN_WIDTH_PERCENT = {"A": 5, "B": 13, "C": 11, "D": 17, "E": 10, "F": 13, "G": 10, "H": 13, "I": 8}
 _TABLE_WIDTH_UNITS = 110  # total width, in Excel column-width units, at 100%
 
 
@@ -42,13 +42,13 @@ def _write_titles(
     ws["B1"] = "របាយការណ៍ទូទាត់ វិក្កយបត្រ ទិញសន្លឹកថ្នាំមួយលើកៗ"
     ws["B1"].font = _KHMER_TITLE
     ws["B1"].alignment = _CENTER
-    ws.merge_cells("B1:G3")
+    ws.merge_cells("B1:H3")
 
     fields = {
         "A4": f"អ្នកតំណាង : {_header_value(representative)}",
-        "F4": f"ថ្ងៃ/ខែ/ឆ្នាំ: {report_date.strftime('%d/%m/%Y')}",
+        "G4": f"ថ្ងៃ/ខែ/ឆ្នាំ: {report_date.strftime('%d/%m/%Y')}",
         "A5": f"តំបន់ : {_header_value(region)}",
-        "F5": f"ទីតាំង/ឡ: {_header_value(oven)}",
+        "G5": f"ទីតាំង/ឡ: {_header_value(oven)}",
     }
     for cell_ref, text in fields.items():
         ws[cell_ref] = text
@@ -59,13 +59,14 @@ def _write_titles(
 def _write_table_headers(ws: Worksheet) -> None:
     headers = {
         "A8": "ល.រ",
-        "B8": "លេខកូដ\nFarmer ID",
-        "C8": "លេខប័ណ្ណ\nInv No",
+        "B8": "លេខប័ណ្ណ\nInv No",
+        "C8": "លេខកូដ\nFarmer ID",
         "D8": "ប្រភេទ\nGrade",
-        "E8": "ចំនួនគីឡូ\nQty Kg",
-        "F8": "តម្លៃរាយ\nUnit Price",
-        "G8": "តម្លៃសរុប\nTotal Amount",
-        "H8": "សម្គាល់\nRemark",
+        "E8": "ទម្ងន់មុនថ្លឹង\nG.Weight",
+        "F8": "ទម្ងន់ថ្លឹងហើយ\nN.Weight",
+        "G8": "តម្លៃរាយ\nUnit Price",
+        "H8": "តម្លៃសរុប\nT.Amount",
+        "I8": "សម្គាល់\nNote",
     }
     for cell_ref, text in headers.items():
         ws[cell_ref] = text
@@ -81,13 +82,14 @@ def _write_table_headers(ws: Worksheet) -> None:
 def _write_data_row(ws: Worksheet, row_idx: int, row_no: int, row: dict[str, Any]) -> None:
     values: dict[str, Any] = {
         "A": row_no,
-        "B": row.get("farmer_id"),
-        "C": row.get("invoice_num"),
+        "B": row.get("invoice_num"),
+        "C": row.get("farmer_id"),
         "D": row.get("grade"),
-        "E": row.get("qty_kg"),
-        "F": row.get("unit_price"),
-        "G": row.get("total_amount"),
-        "H": row.get("remark"),
+        "E": row.get("gross_weight"),
+        "F": row.get("qty_kg"),
+        "G": row.get("unit_price"),
+        "H": row.get("total_amount"),
+        "I": row.get("remark"),
     }
     ws.row_dimensions[row_idx].height = 30
     for col_letter in _DATA_COLUMNS:
@@ -102,13 +104,14 @@ def _write_data_row(ws: Worksheet, row_idx: int, row_no: int, row: dict[str, Any
 
 def _write_totals_row(ws: Worksheet, row_idx: int, rows: list[dict[str, Any]]) -> None:
     ws[f"D{row_idx}"] = "សរុប / Total"
-    ws[f"E{row_idx}"] = sum(r.get("qty_kg") or 0 for r in rows)
-    ws[f"G{row_idx}"] = sum(r.get("total_amount") or 0 for r in rows)
-    for col_letter in ("D", "E", "F", "G"):
+    ws[f"E{row_idx}"] = sum(r.get("gross_weight") or 0 for r in rows)
+    ws[f"F{row_idx}"] = sum(r.get("qty_kg") or 0 for r in rows)
+    ws[f"H{row_idx}"] = sum(r.get("total_amount") or 0 for r in rows)
+    for col_letter in ("D", "E", "F", "G", "H"):
         cell = ws[f"{col_letter}{row_idx}"]
         cell.font = _KHMER_BOLD
         cell.border = _FULL_BORDER
-        if col_letter in ("E", "G"):
+        if col_letter in ("E", "F", "H"):
             cell.number_format = "#,##0.00"
 
 
@@ -122,9 +125,9 @@ def build_tobacco_purchase_template(
 ) -> io.BytesIO:
     """Build the buyer's tobacco-purchase settlement report as an .xlsx stream.
 
-    `rows` holds one dict per purchase (farmer_id, invoice_num, grade, qty_kg,
-    unit_price, total_amount, remark); header fields fall back to a blank,
-    fillable line when not supplied.
+    `rows` holds one dict per purchase (farmer_id, invoice_num, grade,
+    gross_weight, qty_kg, unit_price, total_amount, remark); header fields
+    fall back to a blank, fillable line when not supplied.
     """
     report_date = report_date or date.today()
     rows = rows or []
@@ -134,7 +137,7 @@ def build_tobacco_purchase_template(
     ws.title = "Sheet1"
     ws.views.sheetView[0].showGridLines = True
 
-    ws.page_margins = PageMargins(left=1, right=1, top=1, bottom=1)
+    ws.page_margins = PageMargins(left=0.3, right=0.3, top=0.2, bottom=0.3)
     ws.page_setup.fitToWidth = 1
     ws.page_setup.fitToHeight = 0
     ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)

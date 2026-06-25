@@ -646,6 +646,7 @@ def _purchase_to_report_rows(p: TobaccoPurchase, tobacco_map: dict[int, str]) ->
             "farmer_id": farmer_id,
             "invoice_num": p.invoice_num,
             "grade": tobacco_map.get(d.tobacco_name, str(d.tobacco_name)),
+            "gross_weight": d.gross_weight,
             "qty_kg": d.qty,
             "unit_price": d.price,
             "total_amount": d.total_amount,
