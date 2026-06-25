@@ -103,8 +103,8 @@ erDiagram
         int id PK
         int represent_id FK "Ref: represent.represent_id"
         int member_farmer_id FK "Ref: member_farmer.mf_id"
-        int dl_user_id FK "Ref: dl_user.id"
-        string dl_user_name
+        int action_by_id FK "Ref: dl_user.id"
+        string action_by
         int status "0=Pending, 1=Approved, 2=Rejected"
         float sack_in_kg "Weight registered"
         string notes

@@ -1,0 +1,530 @@
+"use client"
+
+import * as React from "react"
+import { IconCheck, IconSearch, IconX, IconFileInvoice, IconLeaf, IconWeight, IconReplace, IconSeedling } from "@tabler/icons-react"
+import { Input } from "@workspace/ui/components/input"
+import { Label } from "@workspace/ui/components/label"
+import { Popover, PopoverContent, PopoverAnchor } from "@workspace/ui/components/popover"
+import { cn } from "@workspace/ui/lib/utils"
+import { ConTobaccoItem, TobaccoRepayCreate } from "@/services/api-client"
+import { VendorContractItem } from "@/types/tobacco-purchase"
+
+export type ReturnItemType = Partial<TobaccoRepayCreate> & { tempId: string, con_num?: string }
+
+function formatTobaccoLabel(t: Readonly<{ tobacco?: string | null; group_name?: string | null }>): string {
+  return `${t.group_name ?? "-"} | ${t.tobacco ?? ""}`
+}
+
+function isContractRepayable(c: VendorContractItem): boolean {
+  if (typeof c.qty !== "number") return true
+  return c.qty - (c.total_returned ?? 0) > 0
+}
+
+interface ReturnCardProps {
+  item: ReturnItemType
+  index: number
+  isReadOnly?: boolean
+  tobaccoTypes: ConTobaccoItem[]
+  vendorContracts: VendorContractItem[]
+  onRemove: (idx: number) => void
+  onChange: (idx: number, field: string, val: string | number) => void
+}
+
+export const ReturnDetailCard = React.memo(({
+  item, index, isReadOnly, tobaccoTypes, vendorContracts, onRemove, onChange
+}: ReturnCardProps) => {
+  const [openTobac, setOpenTobac] = React.useState(false)
+  const [openCon, setOpenCon] = React.useState(false)
+
+  const [searchTobac, setSearchTobac] = React.useState(() => {
+    const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+    return t ? formatTobaccoLabel(t) : ""
+  })
+  const [searchCon, setSearchCon] = React.useState(item.con_num || "")
+
+  const selectedContract = React.useMemo(() =>
+    vendorContracts.find(c => c.con_id === item.con_id),
+    [vendorContracts, item.con_id])
+
+  const repayableContracts = React.useMemo(() =>
+    vendorContracts.filter(isContractRepayable),
+    [vendorContracts])
+
+  React.useEffect(() => {
+    if (item.con_id || repayableContracts.length !== 1) return
+    const only = repayableContracts[0]
+    if (!only) return
+    onChange(index, "con_id", only.con_id)
+    onChange(index, "con_num", only.con_num)
+    if (only.tobac_type) {
+      onChange(index, "tobac_type", only.tobac_type)
+    }
+  }, [repayableContracts, item.con_id, index, onChange])
+
+  React.useEffect(() => {
+    if (selectedContract?.tobacco) {
+      setSearchTobac(formatTobaccoLabel(selectedContract))
+      if (item.tobac_type !== selectedContract.tobac_type && selectedContract.tobac_type !== undefined) {
+        onChange(index, "tobac_type", selectedContract.tobac_type)
+      }
+    } else {
+      const activeTobacType = item.tobac_type
+      if (activeTobacType) {
+        const t = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
+        setSearchTobac(t ? formatTobaccoLabel(t) : `Unknown ID: ${activeTobacType}`)
+      } else {
+        setSearchTobac(selectedContract ? "No tobacco type in contract" : "")
+      }
+    }
+  }, [item.tobac_type, tobaccoTypes, selectedContract, index, onChange])
+
+  React.useEffect(() => {
+    setSearchCon(item.con_num || "")
+  }, [item.con_num])
+
+  const contractQty = selectedContract?.qty
+  const remaining = typeof contractQty === "number"
+    ? contractQty - (selectedContract?.total_returned ?? 0)
+    : null
+  const isFullyRepaid = typeof remaining === "number" && remaining <= 0
+
+  let remainingText = ""
+  if (typeof contractQty === "number") {
+    remainingText = isFullyRepaid ? " (Completed)" : ` (${remaining} / ${contractQty} Left)`
+  }
+
+  return (
+    <div className="border-b border-l border-r border-black/40 overflow-hidden relative">
+      {/* X button — mobile only, absolute top-right */}
+      {!isReadOnly && (
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          className="absolute top-1 right-1 md:hidden h-6 w-6 flex items-center justify-center rounded-sm text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors z-10"
+        >
+          <IconX className="size-3.5" />
+        </button>
+      )}
+      <div className="px-4 md:pl-4 md:pr-2 py-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          {/* Row 1: No + Contract — own grid on mobile, transparent on md+ */}
+          <div className="grid grid-cols-[1fr_9fr] gap-3 md:contents">
+
+          {/* col1 row1 — No + Seedling icon */}
+          <div className="flex flex-col items-start gap-1 md:gap-0 shrink-0 md:space-y-1">
+            <span className="text-sm text-center font-medium text-foreground block whitespace-nowrap">No {index + 1}</span>
+            <div className="h-8 w-8 flex items-center justify-center bg-white pr-1">
+              <IconSeedling className="h-6 w-6 text-foreground/70" />
+            </div>
+          </div>
+
+          {/* col2 row1 — Contract Selection */}
+          <div className="min-w-0 space-y-1 md:w-[30%]">
+            <Label className="text-sm font-medium text-foreground">Contract ID</Label>
+            <Popover open={openCon} onOpenChange={(isOpen) => {
+              setOpenCon(isOpen)
+              if (!isOpen) setSearchCon(item.con_num || "")
+            }}>
+              <PopoverAnchor asChild>
+                <div className="relative group">
+                  <IconFileInvoice className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
+                  <Input
+                    placeholder="Search contract..."
+                    value={searchCon}
+                    onChange={(e) => { setSearchCon(e.target.value); if (!openCon) setOpenCon(true) }}
+                    onFocus={() => { setSearchCon(""); setOpenCon(true) }}
+                    onClick={() => { setSearchCon(""); setOpenCon(true) }}
+                    disabled={isReadOnly}
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                  />
+                  <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-64 p-0 border-border/50 z-120"
+                align="start"
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement
+                  if (target.closest('.group')) e.preventDefault()
+                }}
+              >
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+                  {repayableContracts.length === 0 ? (
+                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
+                  ) : repayableContracts
+                    .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
+                    .map((c) => (
+                      <button
+                        key={c.con_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center border-b border-black/20 px-3 py-2 text-sm outline-none ",
+                          item.con_id === c.con_id && "bg-white"
+                        )}
+                        onClick={() => {
+                          onChange(index, "con_id", c.con_id)
+                          onChange(index, "con_num", c.con_num)
+                          if (c.tobac_type) {
+                            onChange(index, "tobac_type", c.tobac_type)
+                          }
+                          setSearchCon(c.con_num)
+                          setOpenCon(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.con_id === c.con_id ? "opacity-100" : "opacity-0")} />
+                        {c.con_num}
+                      </button>
+                    ))
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          </div>{/* end row-1 wrapper */}
+
+          {/* Row 2: Tobacco + Repay — own grid on mobile, transparent on md+ */}
+          <div className="grid grid-cols-1 gap-3 md:contents">
+
+          {/* col1 row2 — Tobacco Item */}
+          <div className="min-w-0 space-y-1 md:w-[40%]">
+            <Label className="text-sm font-medium text-foreground">Tobacco Type</Label>
+            <Popover open={openTobac} onOpenChange={(isOpen) => {
+              setOpenTobac(isOpen)
+              if (!isOpen) {
+                const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+                setSearchTobac(t ? formatTobaccoLabel(t) : "")
+              }
+            }}>
+              <PopoverAnchor asChild>
+                <div className="relative group">
+                  <IconLeaf className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
+                  <Input
+                    placeholder="Search type..."
+                    value={searchTobac}
+                    onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
+                    onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
+                    onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
+                    disabled={isReadOnly || !!item.con_id}
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7 disabled:opacity-70 disabled:cursor-not-allowed"
+                  />
+                  <IconSearch className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-64 p-0 border-border/50 z-120"
+                align="start"
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement
+                  if (target.closest('.group')) e.preventDefault()
+                }}
+              >
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+                  {tobaccoTypes
+                    .filter(t => {
+                      const s = searchTobac.toLowerCase()
+                      return t.tobacco?.toLowerCase().includes(s) || t.group_name?.toLowerCase().includes(s)
+                    })
+                    .map((t) => (
+                      <button
+                        key={t.t_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center px-3 py-2 outline-none border-b border-black/20",
+                          item.tobac_type === t.t_id && "bg-white"
+                        )}
+                        onClick={() => {
+                          onChange(index, "tobac_type", t.t_id)
+                          setSearchTobac(formatTobaccoLabel(t))
+                          setOpenTobac(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">{t.group_name ?? "-"}</span>
+                          <span className="text-sm font-medium text-foreground">{t.tobacco || "-"}</span>
+                        </div>
+                      </button>
+                    ))
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* col2 row2 — Repay */}
+          <div className="min-w-0 space-y-1 md:w-[30%]">
+            <Label className="text-sm font-medium text-foreground block">
+              Repay<span className={cn("text-sm font-medium", isFullyRepaid ? "text-red-500" : "text-muted-foreground")}>{remainingText}</span>
+            </Label>
+            <div className="relative">
+              <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
+              <Input type="number" step="0.01"
+                className="h-8 text-sm rounded-sm font-bold bg-white border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-6 pr-7"
+                value={item.qty_repay ?? ""} disabled={isReadOnly || isFullyRepaid}
+                onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+            </div>
+          </div>
+          </div>{/* end row-2 wrapper */}
+
+          {!isReadOnly && (
+            <div className="hidden md:block shrink-0">
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="h-8 w-6 flex items-center justify-center rounded-sm text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <IconX className="size-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})
+ReturnDetailCard.displayName = "ReturnDetailCard"
+
+export const ReturnDetailDesktopCard = React.memo(({
+  item, index, isReadOnly, tobaccoTypes, vendorContracts, onRemove, onChange
+}: ReturnCardProps) => {
+  const [openTobac, setOpenTobac] = React.useState(false)
+  const [openCon, setOpenCon] = React.useState(false)
+
+  const [searchTobac, setSearchTobac] = React.useState(() => {
+    const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+    return t ? formatTobaccoLabel(t) : ""
+  })
+  const [searchCon, setSearchCon] = React.useState(item.con_num || "")
+
+  const selectedContract = React.useMemo(() =>
+    vendorContracts.find(c => c.con_id === item.con_id),
+    [vendorContracts, item.con_id])
+
+  const repayableContracts = React.useMemo(() =>
+    vendorContracts.filter(isContractRepayable),
+    [vendorContracts])
+
+  React.useEffect(() => {
+    if (item.con_id || repayableContracts.length !== 1) return
+    const only = repayableContracts[0]
+    if (!only) return
+    onChange(index, "con_id", only.con_id)
+    onChange(index, "con_num", only.con_num)
+    if (only.tobac_type) {
+      onChange(index, "tobac_type", only.tobac_type)
+    }
+  }, [repayableContracts, item.con_id, index, onChange])
+
+  React.useEffect(() => {
+    if (selectedContract?.tobacco) {
+      setSearchTobac(formatTobaccoLabel(selectedContract))
+      if (item.tobac_type !== selectedContract.tobac_type && selectedContract.tobac_type !== undefined) {
+        onChange(index, "tobac_type", selectedContract.tobac_type)
+      }
+    } else {
+      const activeTobacType = item.tobac_type
+      if (activeTobacType) {
+        const t = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
+        setSearchTobac(t ? formatTobaccoLabel(t) : `Unknown ID: ${activeTobacType}`)
+      } else {
+        setSearchTobac(selectedContract ? "No tobacco type in contract" : "")
+      }
+    }
+  }, [item.tobac_type, tobaccoTypes, selectedContract, index, onChange])
+
+  React.useEffect(() => {
+    setSearchCon(item.con_num || "")
+  }, [item.con_num])
+
+  const contractQty = selectedContract?.qty
+  const remaining = typeof contractQty === "number"
+    ? contractQty - (selectedContract?.total_returned ?? 0)
+    : null
+  const isFullyRepaid = typeof remaining === "number" && remaining <= 0
+
+  let remainingText = ""
+  if (typeof contractQty === "number") {
+    remainingText = isFullyRepaid ? "(Completed)" : `(${remaining} / ${contractQty} Left)`
+  }
+
+  return (
+    <div className={cn(
+      "relative border-b border-l border-r border-black/40 rounded-none transition-all pl-5 pr-3 pt-4 pb-5 mb-0",
+      "focus-within:border-black/20"
+    )}>
+      <div className="flex gap-4 items-end">
+          <div className="shrink-0 space-y-1">
+            <span className="text-sm font-medium text-center text-foreground block tracking-tighter">No {index + 1}</span>
+            <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-sm bg-white">
+              <IconReplace className="h-4 w-4 text-foreground/70" />
+            </div>
+          </div>
+
+          <div className="w-[28%] space-y-1">
+            <Label className="text-sm">Contract Number</Label>
+            <Popover open={openCon} onOpenChange={(isOpen) => {
+              setOpenCon(isOpen)
+              if (!isOpen) setSearchCon(item.con_num || "")
+            }}>
+              <PopoverAnchor asChild>
+                <div className="relative group">
+                  <IconFileInvoice className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                  <Input
+                    placeholder="Search contract..."
+                    value={searchCon}
+                    onChange={(e) => { setSearchCon(e.target.value); if (!openCon) setOpenCon(true) }}
+                    onFocus={() => { setSearchCon(""); setOpenCon(true) }}
+                    onClick={() => { setSearchCon(""); setOpenCon(true) }}
+                    disabled={isReadOnly}
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10"
+                  />
+                  <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-64 p-0 border-black/20 z-120"
+                align="start"
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement
+                  if (target.closest('.group')) e.preventDefault()
+                }}
+              >
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+                  {repayableContracts.length === 0 ? (
+                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
+                  ) : repayableContracts
+                    .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
+                    .map((c) => (
+                      <button
+                        key={c.con_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none",
+                          item.con_id === c.con_id && "bg-white"
+                        )}
+                        onClick={() => {
+                          onChange(index, "con_id", c.con_id)
+                          onChange(index, "con_num", c.con_num)
+                          if (c.tobac_type) {
+                            onChange(index, "tobac_type", c.tobac_type)
+                          }
+                          setSearchCon(c.con_num)
+                          setOpenCon(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.con_id === c.con_id ? "opacity-100" : "opacity-0")} />
+                        {c.con_num}
+                      </button>
+                    ))
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="w-[28%] space-y-1">
+            <Label className="text-sm">Tobacco Item</Label>
+            <Popover open={openTobac} onOpenChange={(isOpen) => {
+              setOpenTobac(isOpen)
+              if (!isOpen) {
+                const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+                setSearchTobac(t ? formatTobaccoLabel(t) : "")
+              }
+            }}>
+              <PopoverAnchor asChild>
+                <div className="relative group">
+                  <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+                  <Input
+                    placeholder="Search item..."
+                    value={searchTobac}
+                    onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
+                    onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
+                    onClick={() => { setSearchTobac(""); setOpenTobac(true) }}
+                    disabled={isReadOnly || !!item.con_id}
+                    className="h-8 text-sm rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-10 disabled:opacity-70 disabled:cursor-not-allowed"
+                  />
+                  <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 opacity-30 pointer-events-none group-focus-within:opacity-60 transition-opacity" />
+                </div>
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-64 p-0 border-black/20 z-120"
+                align="start"
+                onMouseDown={(e) => { if ((e.target as HTMLElement).closest('button')) e.preventDefault() }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement
+                  if (target.closest('.group')) e.preventDefault()
+                }}
+              >
+                <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
+                  {tobaccoTypes
+                    .filter(t => {
+                      const s = searchTobac.toLowerCase()
+                      return t.tobacco?.toLowerCase().includes(s) || t.group_name?.toLowerCase().includes(s)
+                    })
+                    .map((t) => (
+                      <button
+                        key={t.t_id}
+                        type="button"
+                        className={cn(
+                          "relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none",
+                          item.tobac_type === t.t_id && "bg-white"
+                        )}
+                        onClick={() => {
+                          onChange(index, "tobac_type", t.t_id)
+                          setSearchTobac(formatTobaccoLabel(t))
+                          setOpenTobac(false)
+                        }}
+                      >
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
+                        <div className="flex flex-col items-start">
+                          <span className="font-bold">{t.group_name ?? "-"}</span>
+                          <span className="text-[11px] text-muted-foreground">{t.tobacco || "-"}</span>
+                        </div>
+                      </button>
+                    ))
+                  }
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex-1 space-y-1">
+            <Label className="text-sm">
+              Repay<span className={cn("text-sm", isFullyRepaid ? "text-red-500 font-medium" : "")}>{remainingText}</span>
+            </Label>
+            <div className="relative">
+              <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
+              <Input type="number" step="0.01"
+                className="h-8 text-sm rounded-sm font-semibold bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-emerald-500/30 pl-8 pr-8"
+                value={item.qty_repay ?? ""} disabled={isReadOnly || isFullyRepaid}
+                onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
+              />
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">Kg</span>
+            </div>
+          </div>
+
+          {!isReadOnly && (
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="h-8 w-6 flex items-center justify-center rounded-sm text-muted-foreground/60 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <IconX className="size-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+    </div>
+  )
+})
+ReturnDetailDesktopCard.displayName = "ReturnDetailDesktopCard"

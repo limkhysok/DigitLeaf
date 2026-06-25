@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from typing import Optional
 
 
 class UserCreate(BaseModel):
@@ -26,9 +25,9 @@ class RolePublic(BaseModel):
 class UserPublic(BaseModel):
     id: int
     user_name: str
-    role: Optional[RolePublic] = None
+    role: RolePublic | None = None
     totp_enabled: bool = False
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

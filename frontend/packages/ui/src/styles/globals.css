@@ -135,6 +135,7 @@
 [data-sidebar="sidebar"] {
   background-color: #ffffff !important;
   color: #000000 !important;
+  font-weight: 500 !important;
 }
 
 [data-sidebar="menu-button"] {
@@ -147,12 +148,12 @@
 }
 
 [data-sidebar="menu-button"][data-active="true"] {
-  background-color: #009640 !important;
-  color: #ffffff !important;
+  background-color: #e3e3e380 !important;
+  color: #000000 !important;
 }
 
 [data-sidebar="menu-button"][data-active="true"]:hover {
-  background-color: #008a3b !important;
+  background-color: #adadad80 !important;
 }
 
 @layer base {

@@ -21,14 +21,16 @@ from app.domains.rbac.models.role import Role
 from app.domains.rbac.models.permission import Permission
 from app.domains.rbac.models.role_permission import RolePermissionLink
 from app.domains.sack_registration.models.sack_registration import SackRegistration
-from app.domains.tobacco_purchase.models.purchase import TobaccoPurchase
-from app.domains.tobacco_purchase.models.purchase_detail import TobaccoPurchaseDetail
+from app.domains.tobacco_purchase.models.tobacco_purchase import TobaccoPurchase
+from app.domains.tobacco_purchase.models.tobacco_purchase_detail import TobaccoPurchaseDetail
+from app.core.sequence import DailySequence
 
 # Referenced here so Pylance sees them as used; their import registers
 # each table with SQLModel.metadata for Alembic autogenerate.
 _register_models = (
     User, UserMFA, UserToken, AuditLog, Role, Permission,
     RolePermissionLink, SackRegistration, TobaccoPurchase, TobaccoPurchaseDetail,
+    DailySequence,
 )
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.

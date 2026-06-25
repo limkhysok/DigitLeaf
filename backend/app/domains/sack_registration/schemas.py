@@ -1,16 +1,22 @@
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+from pydantic import BaseModel, Field, ConfigDict, model_validator, field_validator
 from datetime import datetime
-from typing import Optional
 
 
 class SackRegistrationCreate(BaseModel):
     represent_id: int = Field(..., description="Selected represent ID from dropdown")
-    member_farmer_name: Optional[str] = Field(default=None, max_length=255, description="Search farmer by name")
-    member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Search farmer by identity card")
-    status: int = Field(default=0, description="0=pending, 1=approved, 2=rejected")
-    sack_in_kg: Optional[float] = Field(default=None, ge=0, description="Sack weight in kilograms")
-    notes: Optional[str] = Field(default=None, max_length=500)
-    registered_at: Optional[datetime] = Field(default=None, description="Date of registration (defaults to now)")
+    member_farmer_name: str | None = Field(default=None, max_length=255, description="Search farmer by name")
+    member_farmer_identity_card: str | None = Field(default=None, max_length=100, description="Search farmer by identity card")
+    sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
+    notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("sack_in_kg")
+    @classmethod
+    def validate_sack_kg_precision(cls, v: float | None) -> float | None:
+        if v is not None:
+            parts = str(v).split(".")
+            if len(parts) == 2 and len(parts[1]) > 2:
+                raise ValueError("sack_in_kg must have at most 2 decimal places")
+        return v
 
     @model_validator(mode="after")
     def require_farmer_lookup(self):
@@ -20,24 +26,33 @@ class SackRegistrationCreate(BaseModel):
 
 
 class SackRegistrationUpdate(BaseModel):
-    member_farmer_identity_card: Optional[str] = Field(default=None, max_length=100, description="Change farmer by mf_code")
-    status: Optional[int] = Field(default=None, description="0=pending, 1=approved, 2=rejected")
-    sack_in_kg: Optional[float] = Field(default=None, ge=0, description="Sack weight in kilograms")
-    notes: Optional[str] = Field(default=None, max_length=500)
+    represent_id: int | None = Field(default=None, description="Change represent; if provided, farmer must belong to this represent")
+    member_farmer_mf_code: str | None = Field(default=None, max_length=100, description="Change farmer by mf_code; must belong to the effective represent")
+    sack_in_kg: float | None = Field(default=None, ge=0, description="Sack weight in kilograms")
+    notes: str | None = Field(default=None, max_length=500)
+
+    @field_validator("sack_in_kg")
+    @classmethod
+    def validate_sack_kg_precision(cls, v: float | None) -> float | None:
+        if v is not None:
+            parts = str(v).split(".")
+            if len(parts) == 2 and len(parts[1]) > 2:
+                raise ValueError("sack_in_kg must have at most 2 decimal places")
+        return v
 
 
 class SackRegistrationPublic(BaseModel):
     id: int
     represent_id: int
     represent_name: str
-    member_farmer_id: int
+    farmer_id: int
     member_farmer_name: str
-    dl_user_id: int
-    dl_user_name: str
-    status: int
-    sack_in_kg: Optional[float] = None
-    notes: Optional[str] = None
-    registered_at: datetime
+    member_farmer_mf_code: str
+    action_by_id: int
+    action_by: str
+    sack_in_kg: float | None = None  # remaining unconsumed quota, not the raw stored value
+    registered_sack_in_kg: float | None = None  # raw stored value; edit this, not sack_in_kg
+    notes: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -50,8 +65,18 @@ class SackRegistrationListResponse(BaseModel):
     has_more: bool
 
 
-class SackRegistrationStatusCounts(BaseModel):
-    all: int
-    pending: int
-    approved: int
-    rejected: int
+class RegistrationCounts(BaseModel):
+    total: int
+    today: int
+
+
+class SackWeightKg(BaseModel):
+    total: float
+    today: float
+    yesterday: float
+
+
+class SackRegistrationStats(BaseModel):
+    registration_counts: RegistrationCounts
+    sack_weight_kg: SackWeightKg
+    change_pct: float
