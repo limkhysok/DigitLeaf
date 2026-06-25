@@ -291,7 +291,7 @@ async def create_repay(
         note=obj_in.note,
         oven=obj_in.oven,
         user=user_name,
-        do_date=datetime.now(),
+        do_date=datetime.now(CAMBODIA_TZ),
         ip_address=ip_address,
     )
     db.add(db_obj)
@@ -391,7 +391,7 @@ async def update_repay(
         setattr(db_obj, key, value)
 
     db_obj.edit_user = user_name
-    db_obj.edit_do_date = datetime.now()
+    db_obj.edit_do_date = datetime.now(CAMBODIA_TZ)
     db_obj.edit_ip_address = ip_address
 
     db.add(db_obj)
@@ -484,7 +484,7 @@ async def create_contract(
         f_id=obj_in.f_id,
         year=_fallback(obj_in.year, obj_in.con_date.year),
         user=user_name,
-        do_date=datetime.now(),
+        do_date=datetime.now(CAMBODIA_TZ),
         ip_address=ip_address,
     )
     db.add(db_obj)
