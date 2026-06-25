@@ -12,14 +12,23 @@ from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
 from app.domains.farmer_contract.models.mf_con_year import MfConYear
 from app.core.config import CAMBODIA_TZ
-from app.core.sequence import next_daily_seq
 
 async def generate_repay_num(db: AsyncSession) -> str:
     # Format: TR + DDMMYY + "-" + 2-digit daily sequence (e.g. TR200626-01).
-    # Same atomic per-day counter as generate_invoice_num, under a "TR" prefix.
+    # FOR UPDATE locks today's repay_num range so concurrent repayments
+    # serialize on the MAX() read instead of racing (InnoDB takes a gap lock
+    # on the scanned index range even when no row for today exists yet).
     today = datetime.now(CAMBODIA_TZ).date()
-    seq = await next_daily_seq(db, "TR", today)
-    return f"TR{today.strftime('%d%m%y')}-{seq:02d}"
+    prefix = f"TR{today.strftime('%d%m%y')}-"
+    last_num = await db.scalar(
+        select(TContractRepay.repay_num)
+        .where(col(TContractRepay.repay_num).like(f"{prefix}%"))
+        .order_by(col(TContractRepay.repay_num).desc())
+        .limit(1)
+        .with_for_update()
+    )
+    seq = int(last_num.split("-")[-1]) + 1 if last_num else 1
+    return f"{prefix}{seq:02d}"
 
 
 async def generate_contract_num(db: AsyncSession) -> str:
@@ -116,27 +125,27 @@ async def get_tobacco_repays(
             | col(TContract.contractor).contains(search)
             | col(Represent.represent_name).contains(search)
         )
-    stmt = cast(Select[Any], (
+    stmt = (
         stmt
-        .group_by(  # type: ignore[arg-type]
-            TContract.con_id,
-            TContract.con_num,
-            TContract.represent,
-            Represent.represent_name,
-            TContract.f_id,
-            MemberFarmer.mf_id,
-            MemberFarmer.name,
-            MfConYear.mf_id,
-            MfConYear.mf_con_id,
-            TContract.contractor,
-            MfConYear.year,
-            TContract.tobac_type,
-            ConTobacco.tobacco,
+        .group_by(
+            col(TContract.con_id),
+            col(TContract.con_num),
+            col(TContract.represent),
+            col(Represent.represent_name),
+            col(TContract.f_id),
+            col(MemberFarmer.mf_id),
+            col(MemberFarmer.name),
+            col(MfConYear.mf_id),
+            col(MfConYear.mf_con_id),
+            col(TContract.contractor),
+            col(MfConYear.year),
+            col(TContract.tobac_type),
+            col(ConTobacco.tobacco),
         )
         .order_by(col(TContract.con_id).desc())
         .limit(limit)
         .offset(skip)
-    ))
+    )
     result = await db.execute(stmt)
     rows = result.all()
 

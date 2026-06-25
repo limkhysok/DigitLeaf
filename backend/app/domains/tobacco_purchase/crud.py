@@ -18,16 +18,24 @@ from .schemas import Purchase, PurchaseCreate, PurchaseUpdate, VendorItem, Purch
 from datetime import datetime
 
 from app.core.config import CAMBODIA_TZ
-from app.core.sequence import next_daily_seq
 
 
 async def generate_invoice_num(db: AsyncSession) -> str:
     # Format: TP + DDMMYY + "-" + 2-digit daily sequence (e.g. TP200626-01).
-    # The sequence is an atomic per-day counter (see next_daily_seq), so it
-    # resets to 01 every day and never collides under concurrent requests.
+    # FOR UPDATE locks today's invoice_num range so concurrent purchases
+    # serialize on the MAX() read instead of racing (InnoDB takes a gap lock
+    # on the scanned index range even when no row for today exists yet).
     today = datetime.now(CAMBODIA_TZ).date()
-    seq = await next_daily_seq(db, "TP", today)
-    return f"TP{today.strftime('%d%m%y')}-{seq:02d}"
+    prefix = f"TP{today.strftime('%d%m%y')}-"
+    last_num = await db.scalar(
+        select(TobaccoPurchase.invoice_num)
+        .where(col(TobaccoPurchase.invoice_num).like(f"{prefix}%"))
+        .order_by(col(TobaccoPurchase.invoice_num).desc())
+        .limit(1)
+        .with_for_update()
+    )
+    seq = int(last_num.split("-")[-1]) + 1 if last_num else 1
+    return f"{prefix}{seq:02d}"
 
 
 async def get_vendor_available_sack_kg(
