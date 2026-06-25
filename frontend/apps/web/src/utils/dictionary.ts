@@ -351,9 +351,9 @@ export const translations = {
         },
       },
       purchaseByBuyer: {
-        title: "Purchases by Buyer",
-        subtitle: "Vendor count per buyer this year.",
-        vendorLabel: "Vendors",
+        title: "Purchases by Representative",
+        subtitle: "Farmer count per representative this year.",
+        vendorLabel: "Farmers",
         noData: "No purchase data yet.",
       },
       purchaseByTobaccoType: {
@@ -718,9 +718,9 @@ export const translations = {
         },
       },
       purchaseByBuyer: {
-        title: "ការទិញតាមអ្នកទិញ",
-        subtitle: "ចំនួនអ្នកលក់ក្នុងមួយអ្នកទិញសម្រាប់ឆ្នាំនេះ។",
-        vendorLabel: "អ្នកលក់",
+        title: "ការទិញតាមតំណាង",
+        subtitle: "ចំនួនកសិករក្នុងមួយតំណាងសម្រាប់ឆ្នាំនេះ។",
+        vendorLabel: "កសិករ",
         noData: "មិនទាន់មានទិន្នន័យទិញនៅឡើយទេ។",
       },
       purchaseByTobaccoType: {
