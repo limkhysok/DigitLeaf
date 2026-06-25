@@ -261,12 +261,19 @@ async def create_repay(
     user_name: str,
     ip_address: str | None = None,
 ) -> TContractRepay:
-    contract = await db.get(TContract, obj_in.con_id)
+    # Lock the contract row so concurrent repay submissions against it serialize
+    # instead of both reading the same stale "remaining" total and over-repaying
+    # it — mirrors _validate_repay_quota in tobacco_purchase/crud.py.
+    contract = (
+        await db.execute(select(TContract).where(TContract.con_id == obj_in.con_id).with_for_update())
+    ).scalar_one_or_none()
     if not contract:
         raise ValueError(f"Contract id {obj_in.con_id} not found")
 
     total_repaid = await db.scalar(
-        select(func.sum(TContractRepay.qty_repay)).where(TContractRepay.con_id == obj_in.con_id)
+        select(func.sum(TContractRepay.qty_repay))
+        .where(TContractRepay.con_id == obj_in.con_id)
+        .with_for_update()
     ) or 0.0
     remaining = (contract.qty or 0.0) - total_repaid
     if obj_in.qty_repay > remaining:
@@ -361,12 +368,18 @@ async def update_repay(
     update_data = obj_in.model_dump(exclude_unset=True)
 
     if update_data.get("qty_repay") is not None:
-        contract = await db.get(TContract, db_obj.con_id)
+        # Same lock-before-check as create_repay — without it, two concurrent
+        # edits raising different repays on the same contract could both read
+        # the same stale "remaining" total and jointly over-repay it.
+        contract = (
+            await db.execute(select(TContract).where(TContract.con_id == db_obj.con_id).with_for_update())
+        ).scalar_one_or_none()
         if contract:
             total_repaid_others = await db.scalar(
                 select(func.sum(TContractRepay.qty_repay))
                 .where(TContractRepay.con_id == db_obj.con_id)
                 .where(TContractRepay.repay_id != repay_id)
+                .with_for_update()
             ) or 0.0
             remaining = (contract.qty or 0.0) - total_repaid_others
             if update_data["qty_repay"] > remaining:
