@@ -375,6 +375,7 @@ export default function TobaccoPurchasePage() {
           queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
           queryClient.invalidateQueries({ queryKey: ["tobacco-repays"] })
           queryClient.invalidateQueries({ queryKey: ["tobacco-repay-years"] })
+          queryClient.invalidateQueries({ queryKey: ["vendorContracts"] })
           queryClient.resetQueries({ queryKey: ["sack-registrations"] })
         }}
         onPrint={handlePrint}

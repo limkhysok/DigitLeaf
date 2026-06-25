@@ -605,6 +605,8 @@ function RecordRepaymentDialog({
       toast.success("Repayment recorded successfully")
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
+      queryClient.invalidateQueries({ queryKey: ["vendorContracts"] })
+      queryClient.invalidateQueries({ queryKey: ["repay-record-vendor-contracts"] })
       handleClose()
     },
     onError: (err: Error) => {
