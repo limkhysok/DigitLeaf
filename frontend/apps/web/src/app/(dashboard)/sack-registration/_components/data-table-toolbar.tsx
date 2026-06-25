@@ -6,6 +6,13 @@ import { IconX } from "@tabler/icons-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { DataTableViewOptions } from "@workspace/ui/components/data-table-view-options"
 import dynamic from "next/dynamic"
 import { useLanguage } from "@/hooks/use-language"
@@ -20,6 +27,8 @@ interface DataTableToolbarProps<TData> {
   action?: React.ReactNode
   searchInput: string
   setSearchInput: (v: string) => void
+  statusFilter: string
+  setStatusFilter: (v: string) => void
 }
 
 export function DataTableToolbar<TData>({
@@ -27,6 +36,8 @@ export function DataTableToolbar<TData>({
   action,
   searchInput,
   setSearchInput,
+  statusFilter,
+  setStatusFilter,
 }: Readonly<DataTableToolbarProps<TData>>) {
   const [localInput, setLocalInput] = React.useState(searchInput)
   const isFiltered = table.getState().columnFilters.length > 0 || localInput !== ""
@@ -53,6 +64,16 @@ export function DataTableToolbar<TData>({
             }}
           />
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-8 w-28 rounded-sm! text-xs md:text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t.sackRegistration.filters.statusAll}</SelectItem>
+            <SelectItem value="pending">{t.sackRegistration.filters.statusPending}</SelectItem>
+            <SelectItem value="confirmed">{t.sackRegistration.filters.statusConfirmed}</SelectItem>
+          </SelectContent>
+        </Select>
         {isFiltered && (
           <Button
             variant="ghost"

@@ -36,6 +36,7 @@ async def list_registrations(
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
     sort_sack_in_kg: Optional[Literal["asc", "desc"]] = None,
+    status: Optional[Literal["pending", "confirmed"]] = None,
 ):
     skip = (page - 1) * limit
     items, total = await crud.get_all(
@@ -46,6 +47,7 @@ async def list_registrations(
         date_from=date_from,
         date_to=date_to,
         sort_sack_in_kg=sort_sack_in_kg,
+        status=status,
     )
     return SackRegistrationListResponse(
         items=items,  # type: ignore[arg-type]
@@ -61,6 +63,7 @@ async def export_registrations(
     search: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    status: Optional[Literal["pending", "confirmed"]] = None,
 ):
     _EXPORT_LIMIT = 10_000
     items, total = await crud.get_all(
@@ -70,6 +73,7 @@ async def export_registrations(
         search=search,
         date_from=date_from,
         date_to=date_to,
+        status=status,
     )
     if total > _EXPORT_LIMIT:
         raise HTTPException(

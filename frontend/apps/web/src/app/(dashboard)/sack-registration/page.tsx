@@ -50,6 +50,7 @@ export default function SackRegistrationPage() {
 
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
   const [debouncedSearch] = useDebounce(searchInput, 400)
+  const [statusFilter, setStatusFilter] = useQueryState("status", parseAsString.withDefault("all"))
 
   const { data: represents = [] } = useQuery({
     queryKey: ["represents"],
@@ -64,12 +65,13 @@ export default function SackRegistrationPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["sack-registrations", debouncedSearch],
+    queryKey: ["sack-registrations", debouncedSearch, statusFilter],
     queryFn: ({ pageParam }) =>
       apiClient.getSackRegistrations(tokens!.access_token, {
         page: pageParam,
         limit: PAGE_SIZE,
         search: debouncedSearch || undefined,
+        status: statusFilter === "all" ? undefined : (statusFilter as "pending" | "confirmed"),
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
@@ -175,6 +177,8 @@ export default function SackRegistrationPage() {
           action={actionNode}
           searchInput={searchInput}
           setSearchInput={setSearchInput}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
         />
       )}
 

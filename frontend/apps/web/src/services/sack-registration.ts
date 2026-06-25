@@ -96,6 +96,7 @@ export const sackRegistrationApi = {
     if (params.search) query.set("search", params.search);
     if (params.date_from) query.set("date_from", params.date_from);
     if (params.date_to) query.set("date_to", params.date_to);
+    if (params.status) query.set("status", params.status);
     const response = await fetch(
       `${API_BASE_URL}/sack-registrations/?${query}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
