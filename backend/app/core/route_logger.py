@@ -7,6 +7,7 @@ from app.db.session import async_session_maker
 from app.domains.audit.crud import create_audit_log
 from app.core import security
 
+AUDITED_METHODS = {"PUT", "PATCH", "DELETE"}
 
 
 def _extract_user_info(auth_header: str | None) -> str | None:
@@ -54,11 +55,12 @@ class AuditLogRoute(APIRoute):
                 response = await original_route_handler(request)
                 return response
             finally:
-                await _log_to_db(
-                    ip_address=ip_address,
-                    user=user,
-                    endpoint=request.url.path,
-                    method=request.method,
-                )
+                if request.method in AUDITED_METHODS:
+                    await _log_to_db(
+                        ip_address=ip_address,
+                        user=user,
+                        endpoint=request.url.path,
+                        method=request.method,
+                    )
 
         return custom_route_handler
