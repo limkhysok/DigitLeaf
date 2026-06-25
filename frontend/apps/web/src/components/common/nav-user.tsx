@@ -21,12 +21,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import Image from "next/image"
 
-const ROLE_AVATAR: Record<string, string> = {
-  admin: "/avatars/avatar-admin.svg",
-  manager: "/avatars/avatar-manager.svg",
-  staff: "/avatars/avatar-staff.svg",
-}
-
 export function NavUser({
   user,
 }: Readonly<{
@@ -34,7 +28,7 @@ export function NavUser({
     name: string
     email: string
     avatar: string
-    role?: string
+    accessType?: string
   }
 }>) {
   const { mounted } = useSidebar()
@@ -56,9 +50,9 @@ export function NavUser({
           <div className="absolute inset-0 rounded-full border-2 border-[#009640]/0 group-hover:border-[#009640]/20 group-hover:scale-110 transition-all duration-500 group-hover:shadow-[0_0_15px_rgba(0,150,64,0.2)]" />
 
           <div className="flex h-full w-full items-center justify-center rounded-full overflow-hidden relative border border-green-600/20 bg-[#ecfdf5]">
-            {ROLE_AVATAR[user.role?.toLowerCase() ?? ""] ? (
+            {user.accessType?.toLowerCase() === "all" ? (
               <Image
-                src={ROLE_AVATAR[user.role?.toLowerCase() ?? ""] ?? "/avatars/avatar-default.svg"}
+                src="/avatars/avatar-admin.svg"
                 alt={user.name}
                 width={32}
                 height={32}

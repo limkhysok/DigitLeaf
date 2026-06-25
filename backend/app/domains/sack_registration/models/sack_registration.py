@@ -15,7 +15,7 @@ class SackRegistration(SQLModel, table=True):
     # FK
     represent_id: int = Field(index=True, foreign_key="represent.represent_id")
     farmer_id: int = Field(index=True, foreign_key="member_farmer.mf_id")
-    action_by_id: int = Field(index=True, foreign_key="dl_user.id")
+    action_by_id: int = Field(index=True)
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ), index=True)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))

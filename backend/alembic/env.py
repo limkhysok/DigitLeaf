@@ -14,7 +14,6 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from app.core.config import settings
 from app.domains.users.models.user import User
-from app.domains.auth.models.mfa import UserMFA
 from app.domains.auth.models.token import UserToken
 from app.domains.audit.models.audit_log import AuditLog
 from app.domains.rbac.models.role import Role
@@ -28,7 +27,7 @@ from app.core.sequence import DailySequence
 # Referenced here so Pylance sees them as used; their import registers
 # each table with SQLModel.metadata for Alembic autogenerate.
 _register_models = (
-    User, UserMFA, UserToken, AuditLog, Role, Permission,
+    User, UserToken, AuditLog, Role, Permission,
     RolePermissionLink, SackRegistration, TobaccoPurchase, TobaccoPurchaseDetail,
     DailySequence,
 )
@@ -52,7 +51,7 @@ def include_object(
     _compare_to: Any,
 ) -> bool:
     if type_ == "table":
-        return bool(name and (name.startswith("dl_") or name == "alembic_version"))
+        return bool(name and (name.startswith("dl_") or name in ("user", "alembic_version")))
     return True
 
 def run_migrations_offline() -> None:

@@ -4,8 +4,6 @@ export interface TokenResponse {
   expires_in: number;
   scope: string;
   refresh_token: string;
-  mfa_required?: boolean;
-  username?: string;
 }
 
 export interface UserSession {

@@ -1,39 +1,29 @@
 erDiagram
     %% USERS & RBAC DOMAINS
-    dl_user ||--o| dl_user_mfa : "1:1 MFA protection"
-    dl_role ||--o{ dl_user : "Role assigned to many users"
     dl_role ||--o{ dl_role_permission : "Linked by role_id"
     dl_permission ||--o{ dl_role_permission : "Linked by permission_id"
-    dl_user ||--o{ dl_user_token : "1:N sessions"
-    dl_user ||--o{ dl_audit_log : "Audit trail"
 
     %% SACK REGISTRATION & FARMER DOMAINS
     represent ||--o{ member_farmer : "Grouped under representative"
     member_farmer ||--o{ mf_con_year : "Has yearly contract info"
     represent ||--o{ dl_sack_registration : "Registered represent group"
     member_farmer ||--o{ dl_sack_registration : "Registered farmer"
-    dl_user ||--o{ dl_sack_registration : "Registered by operator"
 
     %% TOBACCO PURCHASE DOMAINS
     tobacco_purchase ||--o{ tobacco_purchase_detail : "1:N invoice itemized lines"
 
-    dl_user {
+    user {
         int id PK
-        int role_id FK "Ref: dl_role.id"
-        string user_name "Unique"
+        string user_name
         string password "Hashed Password"
-        boolean is_active
-        datetime created_at
-        datetime updated_at
-    }
-
-    dl_user_mfa {
-        int id PK
-        int user_id FK "Ref: dl_user.id"
-        string otp_code
-        datetime otp_expiry
-        string totp_secret
-        boolean totp_enabled
+        string access_type "'all' grants full access; drives login scopes"
+        string login_type
+        string user "Username of account creator"
+        datetime do_date "Created at"
+        string ip_address
+        string edit_user "Username of last editor"
+        datetime edit_do_date "Updated at"
+        string edit_ip_address
     }
 
     dl_role {
@@ -55,7 +45,7 @@ erDiagram
 
     dl_user_token {
         int id PK
-        int user_id FK "Ref: dl_user.id"
+        int user_id "Ref: user.id (no DB-enforced FK)"
         string user_name
         string refresh_token
         datetime created_at
@@ -64,7 +54,7 @@ erDiagram
 
     dl_audit_log {
         int id PK
-        int user_id FK "Ref: dl_user.id"
+        int user_id "Ref: user.id (no DB-enforced FK)"
         string user_name
         string endpoint
         string method
@@ -103,7 +93,7 @@ erDiagram
         int id PK
         int represent_id FK "Ref: represent.represent_id"
         int member_farmer_id FK "Ref: member_farmer.mf_id"
-        int action_by_id FK "Ref: dl_user.id"
+        int action_by_id "Ref: user.id (no DB-enforced FK)"
         string action_by
         int status "0=Pending, 1=Approved, 2=Rejected"
         float sack_in_kg "Weight registered"

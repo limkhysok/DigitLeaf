@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
+from typing import Any
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class UserCreate(BaseModel):
@@ -9,35 +10,22 @@ class UserCreate(BaseModel):
     password: str = Field(
         ..., min_length=8, max_length=128, description="The password, min 8 characters"
     )
-    role_name: str = Field(
-        default="Farmer",
-        min_length=1,
-        max_length=50,
-        description="The role name to assign",
-    )
-
-
-class RolePublic(BaseModel):
-    name: str
-    model_config = ConfigDict(from_attributes=True)
+    access_type: str = Field(default="", max_length=255, description="Access level, e.g. 'all' for full access")
+    login_type: str = Field(default="", max_length=255)
 
 
 class UserPublic(BaseModel):
     id: int
     user_name: str
-    role: RolePublic | None = None
-    totp_enabled: bool = False
-    created_at: datetime | None = None
+    access_type: str
+    login_type: str
+    do_date: datetime | None = None
+
+    @field_validator("do_date", mode="before")
+    @classmethod
+    def parse_zero_date(cls, v: Any) -> datetime | None:
+        if str(v) == "0000-00-00 00:00:00":
+            return None
+        return v
 
     model_config = ConfigDict(from_attributes=True)
-
-class UserChangePassword(BaseModel):
-    current_password: str = Field(..., description="The user's current password")
-    new_password: str = Field(
-        ..., min_length=8, max_length=128, description="The new password, min 8 characters"
-    )
-
-class UserAdminResetPassword(BaseModel):
-    new_password: str = Field(
-        ..., min_length=8, max_length=128, description="The new password, min 8 characters"
-    )

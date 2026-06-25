@@ -11,8 +11,6 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
-  verifyOTP: (username: string, otp: string) => Promise<void>
-  verifyTOTP: (username: string, totp: string) => Promise<void>
   refreshUserProfile: () => Promise<void>
   tokens: TokenResponse | null
 }
@@ -119,7 +117,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       if (pathname === "/" || pathname?.includes("/login")) {
         router.push("/dashboard")
       }
-    } else if (pathname && !pathname.includes("/login") && !pathname.includes("/2fa-verify") && pathname !== "/") {
+    } else if (pathname && !pathname.includes("/login") && pathname !== "/") {
       router.push("/login")
     }
   }, [isLoading, user, pathname, router])
@@ -128,14 +126,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     setIsLoading(true)
     try {
       const response = await apiClient.login(username, password)
-      
-      if (response.mfa_required) {
-        setIsLoading(false)
-        const verifyUrl = `/2fa-verify?username=${encodeURIComponent(username)}`
-        router.push(verifyUrl)
-        toast.info("Two-factor authentication required")
-        return
-      }
       saveTokensToStorage(response)
       await fetchCurrentUser(response)
       setIsLoading(false)
@@ -145,42 +135,6 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       setIsLoading(false)
       const err = error as Error
       toast.error(err.message || "Login failed")
-      throw error
-    }
-  }, [fetchCurrentUser, router, saveTokensToStorage])
-
-  const verifyOTP = useCallback(async (username: string, otp: string) => {
-    setIsLoading(true)
-    try {
-      const newTokens = await apiClient.verifyOTP(username, otp)
-      saveTokensToStorage(newTokens)
-      await fetchCurrentUser(newTokens)
-      setIsLoading(false)
-      router.push("/dashboard")
-      toast.success("Verification successful!")
-
-    } catch (error) {
-      setIsLoading(false)
-      const err = error as Error
-      toast.error(err.message || "Verification failed")
-      throw error
-    }
-  }, [fetchCurrentUser, router, saveTokensToStorage])
-
-  const verifyTOTP = useCallback(async (username: string, totp: string) => {
-    setIsLoading(true)
-    try {
-      const newTokens = await apiClient.verifyTOTP(username, totp)
-      saveTokensToStorage(newTokens)
-      await fetchCurrentUser(newTokens)
-      setIsLoading(false)
-      router.push("/dashboard")
-      toast.success("Verification successful!")
-
-    } catch (error) {
-      setIsLoading(false)
-      const err = error as Error
-      toast.error(err.message || "Verification failed")
       throw error
     }
   }, [fetchCurrentUser, router, saveTokensToStorage])
@@ -241,18 +195,16 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   }, [router, saveTokensToStorage, tokens?.access_token])
 
   const contextValue = React.useMemo(
-    () => ({ 
-      user, 
-      isLoading, 
-      isAuthenticated: !!user, 
-      login, 
-      logout, 
-      verifyOTP, 
-      verifyTOTP,
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: !!user,
+      login,
+      logout,
       refreshUserProfile,
-      tokens 
+      tokens
     }),
-    [user, isLoading, tokens, login, logout, verifyOTP, verifyTOTP, refreshUserProfile]
+    [user, isLoading, tokens, login, logout, refreshUserProfile]
   )
 
   return (

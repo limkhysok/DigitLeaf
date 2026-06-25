@@ -27,7 +27,6 @@ export const translations = {
       tabs: {
         details: "Profile Details",
         sessions: "Active Sessions",
-        security: "Security & 2FA",
       },
       details: {
         memberSince: "Member Since",
@@ -46,32 +45,6 @@ export const translations = {
         confirmTerminateDesc: "You'll be signed out of every device immediately. You will need to log in again on each one.",
         confirmTerminateAction: "Yes, terminate all",
       },
-      security: {
-        passwordTitle: "Password Management",
-        passwordSubtitle: "Keep your account secure with a strong password",
-        changePassword: "Change Password",
-        currentPassword: "Current Password",
-        newPassword: "New Password",
-        confirmPassword: "Confirm Password",
-        updatePassword: "Update Password",
-        currentPasswordPlaceholder: "Enter current password",
-        newPasswordPlaceholder: "Enter new password",
-        confirmPasswordPlaceholder: "Confirm new password",
-        twoFactorTitle: "Two-factor Authentication",
-        twoFactorSubtitle: "Protect your account with time-based verification codes.",
-        authenticatorApp: "Authenticator App",
-        active: "Active",
-        setup2FA: "Set Up 2FA",
-        disable2FA: "Disable 2FA",
-        scanQR: "Scan with authenticator app",
-        manualKey: "Manual secret key",
-        enterCode: "Enter 6-digit code",
-        verifyActivate: "Verify & Activate",
-        disableConfirmTitle: "Disable Security Layer?",
-        disableConfirmDesc: "Enter your 6-digit code to confirm removal of 2FA protection.",
-        verificationCode: "Verification Code",
-        confirmDisable: "Confirm Disable",
-      }
     },
     common: {
       selectLanguage: "Select Language",
@@ -421,7 +394,6 @@ export const translations = {
       tabs: {
         details: "ព័ត៌មានប្រវត្តិរូប",
         sessions: "វគ្គសកម្ម",
-        security: "សុវត្ថិភាព និង 2FA",
       },
       details: {
         memberSince: "សមាជិកតាំងពី",
@@ -440,32 +412,6 @@ export const translations = {
         confirmTerminateDesc: "អ្នកនឹងត្រូវបានចាកចេញពីគ្រប់ឧបករណ៍ភ្លាមៗ។ អ្នកនឹងត្រូវចូលម្តងទៀតនៅលើឧបករណ៍នីមួយៗ។",
         confirmTerminateAction: "បាទ បញ្ចប់ទាំងអស់",
       },
-      security: {
-        passwordTitle: "ការគ្រប់គ្រងពាក្យសម្ងាត់",
-        passwordSubtitle: "រក្សាគណនីរបស់អ្នកឱ្យមានសុវត្ថិភាពជាមួយនឹងពាក្យសម្ងាត់ខ្លាំង",
-        changePassword: "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
-        currentPassword: "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
-        newPassword: "ពាក្យសម្ងាត់ថ្មី",
-        confirmPassword: "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
-        updatePassword: "ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់",
-        currentPasswordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន",
-        newPasswordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់ថ្មី",
-        confirmPasswordPlaceholder: "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
-        twoFactorTitle: "ការផ្ទៀងផ្ទាត់កត្តាពីរ (2FA)",
-        twoFactorSubtitle: "ការពារគណនីរបស់អ្នកជាមួយនឹងលេខកូដផ្ទៀងផ្ទាត់តាមពេលវេលា។",
-        authenticatorApp: "កម្មវិធីផ្ទៀងផ្ទាត់ (Authenticator)",
-        active: "សកម្ម",
-        setup2FA: "ដំឡើង 2FA",
-        disable2FA: "បិទ 2FA",
-        scanQR: "ស្កេនជាមួយកម្មវិធីផ្ទៀងផ្ទាត់",
-        manualKey: "កូនសោសម្ងាត់ដោយដៃ",
-        enterCode: "បញ្ចូលលេខកូដ ៦ ខ្ទង់",
-        verifyActivate: "ផ្ទៀងផ្ទាត់ និងធ្វើឱ្យសកម្ម",
-        disableConfirmTitle: "បិទស្រទាប់សុវត្ថិភាពមែនទេ?",
-        disableConfirmDesc: "បញ្ចូលលេខកូដ ៦ ខ្ទង់របស់អ្នកដើម្បីបញ្ជាក់ពីការដកការការពារ 2FA ចេញ។",
-        verificationCode: "លេខកូដផ្ទៀងផ្ទាត់",
-        confirmDisable: "បញ្ជាក់ការបិទ",
-      }
     },
     common: {
       selectLanguage: "ជ្រើសរើសភាសា",
@@ -817,7 +763,6 @@ export type TranslationType = {
     readonly tabs: {
       readonly details: string;
       readonly sessions: string;
-      readonly security: string;
     };
     readonly details: {
       readonly memberSince: string;
@@ -835,32 +780,6 @@ export type TranslationType = {
       readonly confirmTerminateTitle: string;
       readonly confirmTerminateDesc: string;
       readonly confirmTerminateAction: string;
-    };
-    readonly security: {
-      readonly passwordTitle: string;
-      readonly passwordSubtitle: string;
-      readonly changePassword: string;
-      readonly currentPassword: string;
-      readonly newPassword: string;
-      readonly confirmPassword: string;
-      readonly updatePassword: string;
-      readonly currentPasswordPlaceholder: string;
-      readonly newPasswordPlaceholder: string;
-      readonly confirmPasswordPlaceholder: string;
-      readonly twoFactorTitle: string;
-      readonly twoFactorSubtitle: string;
-      readonly authenticatorApp: string;
-      readonly active: string;
-      readonly setup2FA: string;
-      readonly disable2FA: string;
-      readonly scanQR: string;
-      readonly manualKey: string;
-      readonly enterCode: string;
-      readonly verifyActivate: string;
-      readonly disableConfirmTitle: string;
-      readonly disableConfirmDesc: string;
-      readonly verificationCode: string;
-      readonly confirmDisable: string;
     };
   };
   readonly common: {

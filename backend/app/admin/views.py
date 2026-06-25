@@ -28,8 +28,7 @@ class AdminAuth(AuthenticationBackend):
             if not user or not security.verify_password(password, user.password):
                 return False
 
-            is_admin = user.role and user.role.name.lower() in ["admin", "manager"]
-            if not is_admin:
+            if not user.is_full_access:
                 return False
 
             user_name = user.user_name
@@ -65,12 +64,12 @@ authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
 
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.user_name, User.role, User.is_active, User.created_at]  # type: ignore[assignment]
+    column_list = [User.id, User.user_name, User.access_type, User.login_type, User.do_date]  # type: ignore[assignment]
     column_searchable_list = [User.user_name]  # type: ignore[assignment]
-    column_sortable_list = [User.id, User.user_name, User.is_active, User.created_at]  # type: ignore[assignment]
+    column_sortable_list = [User.id, User.user_name, User.do_date]  # type: ignore[assignment]
     page_size = 100
 
-    form_columns = [User.user_name, User.password, User.role]  # type: ignore[assignment]
+    form_columns = [User.user_name, User.password, User.access_type, User.login_type]  # type: ignore[assignment]
     icon = "fa-solid fa-users"
 
 

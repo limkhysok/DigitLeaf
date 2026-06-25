@@ -24,7 +24,7 @@
               name: user?.user_name || "Guest",
               email: `${user?.user_name || "guest"}@example.com`,
               avatar: "",
-              role: user?.role?.name ?? ""
+              accessType: user?.access_type ?? ""
             }} />
           </div>
         </div>

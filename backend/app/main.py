@@ -14,7 +14,6 @@ from app.db.session import engine, init_db
 # Core models for mapping to prevent relationship resolution errors
 from app.domains.rbac.models import Role, Permission, RolePermissionLink
 from app.domains.users.models import User
-from app.domains.auth.models import UserMFA
 from app.admin import (
     authentication_backend, UserAdmin, UserTokenAdmin,
     AuditLogAdmin, RoleAdmin, PermissionAdmin
@@ -22,7 +21,7 @@ from app.admin import (
 from app.domains.tobacco_purchase import models as tobacco_models  # Ensure tobacco models are registered
 
 # Register models with SQLModel/SQLAlchemy to prevent relationship resolution errors
-_ = (Role, Permission, RolePermissionLink, User, UserMFA)
+_ = (Role, Permission, RolePermissionLink, User)
 _ = tobacco_models
 
 # Setup structured logging

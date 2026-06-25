@@ -7,7 +7,7 @@ class UserToken(SQLModel, table=True):
     __tablename__ = "dl_user_token" # type: ignore[arg-type]
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="dl_user.id", index=True)
+    user_id: int = Field(index=True)
     user_name: str = Field(max_length=255, index=True)
     refresh_token: str = Field(max_length=512, index=True)
     ip_address: Optional[str] = Field(default=None, max_length=50)

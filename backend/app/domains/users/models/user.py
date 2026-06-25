@@ -1,38 +1,29 @@
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
-from sqlmodel import Field, SQLModel, Relationship
+from typing import Optional
+from sqlalchemy import Column, Text
+from sqlmodel import Field, SQLModel
 
 from app.core.config import CAMBODIA_TZ
 
-if TYPE_CHECKING:
-    from app.domains.rbac.models.role import Role
-    from app.domains.auth.models.mfa import UserMFA
-
 
 class User(SQLModel, table=True):
-    __tablename__ = "dl_user" # type: ignore[assignment]
+    __tablename__ = "user" # type: ignore[assignment]
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_name: str = Field(max_length=255, unique=True, index=True)
     password: str = Field(max_length=255)
-    is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
-
-    role_id: Optional[int] = Field(default=None, foreign_key="dl_role.id")
-    role: Optional["Role"] = Relationship(
-        back_populates="users",
-        sa_relationship_kwargs={"lazy": "selectin"},
-    )
-
-    mfa: Optional["UserMFA"] = Relationship(
-        back_populates="user",
-        sa_relationship_kwargs={"uselist": False, "lazy": "selectin"},
-    )
+    access_type: str = Field(default="", max_length=255)
+    login_type: str = Field(default="", max_length=255)
+    user: str = Field(default="", max_length=50)
+    do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    ip_address: str = Field(default="", sa_column=Column("ip_address", Text, nullable=False))
+    edit_user: str = Field(default="", max_length=50)
+    edit_do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
+    edit_ip_address: str = Field(default="", sa_column=Column("edit_ip_address", Text, nullable=False))
 
     def __str__(self):
         return self.user_name
 
     @property
-    def totp_enabled(self) -> bool:
-        return self.mfa.totp_enabled if self.mfa else False
+    def is_full_access(self) -> bool:
+        return self.access_type.strip().lower() == "all"

@@ -9,7 +9,7 @@ class AuditLog(SQLModel, table=True):
     __tablename__ = "dl_audit_log"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[int] = Field(default=None, foreign_key="dl_user.id", index=True)
+    user_id: Optional[int] = Field(default=None, index=True)
     endpoint: str = Field(max_length=255)
     method: str = Field(max_length=10)
     ip_address: Optional[str] = Field(default=None, max_length=50)
