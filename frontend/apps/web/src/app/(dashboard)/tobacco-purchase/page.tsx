@@ -134,6 +134,8 @@ export default function TobaccoPurchasePage() {
       toast.success("Record deleted successfully")
       queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
       queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
+      queryClient.invalidateQueries({ queryKey: ["tobacco-repays"] })
+      queryClient.invalidateQueries({ queryKey: ["tobacco-repay-years"] })
       queryClient.resetQueries({ queryKey: ["sack-registrations"] })
     } catch (err) {
       toast.error((err as Error).message)
@@ -370,6 +372,8 @@ export default function TobaccoPurchasePage() {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
           queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
+          queryClient.invalidateQueries({ queryKey: ["tobacco-repays"] })
+          queryClient.invalidateQueries({ queryKey: ["tobacco-repay-years"] })
           queryClient.resetQueries({ queryKey: ["sack-registrations"] })
         }}
         onPrint={handlePrint}
