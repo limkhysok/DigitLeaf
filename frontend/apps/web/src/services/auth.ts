@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import type { TokenResponse, UserProfile, UserSession, AuditLog } from "../types";
+import type { TokenResponse, UserProfile, AuditLog } from "../types";
 
 export const authApi = {
   async login(username: string, password: string): Promise<TokenResponse> {
@@ -50,17 +50,6 @@ export const authApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to logout");
-    }
-    return response.json();
-  },
-
-  async getSessions(accessToken: string): Promise<UserSession[]> {
-    const response = await fetch(`${API_BASE_URL}/auth/sessions`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Failed to fetch sessions");
     }
     return response.json();
   },

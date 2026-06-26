@@ -160,28 +160,6 @@ Deletes all refresh tokens for the current user. The existing access token remai
 
 ---
 
-### GET `/auth/sessions`
-Lists all active refresh token sessions for the current user.
-
-**Auth required:** Yes
-
-**Response `200 OK`:**
-```json
-[
-  {
-    "id": 1,
-    "user_id": 1,
-    "user_name": "johndoe",
-    "refresh_token": "eyJ...",
-    "expires_at": "2026-05-22T08:00:00+07:00",
-    "ip_address": "127.0.0.1",
-    "user_agent": "Mozilla/5.0..."
-  }
-]
-```
-
----
-
 ### POST `/auth/totp/setup`
 Generates a new TOTP secret and QR provisioning URI for the current user. Must be followed by `/auth/totp/enable` to activate.
 

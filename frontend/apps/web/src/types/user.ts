@@ -3,6 +3,7 @@ export interface UserProfile {
   user_name: string;
   access_type: string;
   login_type: string;
+  region: number | null;
   do_date: string | null;
 }
 

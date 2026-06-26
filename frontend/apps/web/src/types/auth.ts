@@ -6,16 +6,6 @@ export interface TokenResponse {
   refresh_token: string;
 }
 
-export interface UserSession {
-  id: number;
-  user_name: string;
-  refresh_token: string;
-  ip_address: string | null;
-  user_agent: string | null;
-  created_at: string;
-  expires_at: string;
-}
-
 export interface AuditLog {
   id: number;
   page_name: string | null;

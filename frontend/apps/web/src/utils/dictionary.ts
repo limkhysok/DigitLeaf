@@ -24,26 +24,11 @@ export const translations = {
     profile: {
       title: "Profile",
       subtitle: "Manage your workspace account and security.",
-      tabs: {
-        details: "Profile Details",
-        sessions: "Active Sessions",
-      },
       details: {
         memberSince: "Member Since",
         role: "Role",
         username: "Username",
-      },
-      sessions: {
-        title: "Active Sessions",
-        subtitle: "Manage your login sessions across devices.",
-        terminateAll: "Terminate All Sessions",
-        current: "Current",
-        started: "Started",
-        expires: "Expires",
-        noSessions: "No other active sessions found.",
-        confirmTerminateTitle: "Terminate All Sessions?",
-        confirmTerminateDesc: "You'll be signed out of every device immediately. You will need to log in again on each one.",
-        confirmTerminateAction: "Yes, terminate all",
+        region: "Region",
       },
     },
     common: {
@@ -391,26 +376,11 @@ export const translations = {
     profile: {
       title: "ប្រវត្តិរូប",
       subtitle: "គ្រប់គ្រងគណនីការងារ និងសុវត្ថិភាពរបស់អ្នក។",
-      tabs: {
-        details: "ព័ត៌មានប្រវត្តិរូប",
-        sessions: "វគ្គសកម្ម",
-      },
       details: {
         memberSince: "សមាជិកតាំងពី",
         role: "តួនាទី",
         username: "ឈ្មោះអ្នកប្រើប្រាស់",
-      },
-      sessions: {
-        title: "វគ្គសកម្ម",
-        subtitle: "គ្រប់គ្រងវគ្គចូលប្រើរបស់អ្នកនៅលើឧបករណ៍ផ្សេងៗ។",
-        terminateAll: "បញ្ចប់វគ្គទាំងអស់",
-        current: "បច្ចុប្បន្ន",
-        started: "បានចាប់ផ្តើម",
-        expires: "ផុតកំណត់",
-        noSessions: "រកមិនឃើញវគ្គសកម្មផ្សេងទៀតទេ។",
-        confirmTerminateTitle: "បញ្ចប់វគ្គទាំងអស់មែនទេ?",
-        confirmTerminateDesc: "អ្នកនឹងត្រូវបានចាកចេញពីគ្រប់ឧបករណ៍ភ្លាមៗ។ អ្នកនឹងត្រូវចូលម្តងទៀតនៅលើឧបករណ៍នីមួយៗ។",
-        confirmTerminateAction: "បាទ បញ្ចប់ទាំងអស់",
+        region: "តំបន់",
       },
     },
     common: {
@@ -760,26 +730,11 @@ export type TranslationType = {
   readonly profile: {
     readonly title: string;
     readonly subtitle: string;
-    readonly tabs: {
-      readonly details: string;
-      readonly sessions: string;
-    };
     readonly details: {
       readonly memberSince: string;
       readonly role: string;
       readonly username: string;
-    };
-    readonly sessions: {
-      readonly title: string;
-      readonly subtitle: string;
-      readonly terminateAll: string;
-      readonly current: string;
-      readonly started: string;
-      readonly expires: string;
-      readonly noSessions: string;
-      readonly confirmTerminateTitle: string;
-      readonly confirmTerminateDesc: string;
-      readonly confirmTerminateAction: string;
+      readonly region: string;
     };
   };
   readonly common: {

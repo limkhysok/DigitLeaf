@@ -47,8 +47,3 @@ async def delete_specific_token(session: AsyncSession, refresh_token: str) -> No
     if token:
         await session.delete(token)
         await session.commit()
-
-
-async def get_user_tokens(session: AsyncSession, user_name: str) -> list[UserToken]:
-    result = await session.execute(select(UserToken).where(UserToken.user_name == user_name))
-    return list(result.scalars().all())

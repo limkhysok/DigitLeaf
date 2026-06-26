@@ -129,11 +129,3 @@ async def logout(
 ):
     await crud_token.delete_user_token(session, current_user.user_name)
     return {"message": "Successfully logged out of all sessions"}
-
-
-@router.get("/sessions")
-async def get_active_sessions(
-    session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: CurrentUser,
-):
-    return await crud_token.get_user_tokens(session, current_user.user_name)
