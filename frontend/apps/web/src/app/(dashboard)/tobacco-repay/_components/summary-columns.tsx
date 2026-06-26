@@ -10,6 +10,7 @@ import { TobaccoRepayItem } from "@/services/api-client"
 type SortField = "Quantity" | "total_repaid"
 
 interface ColumnHelpers {
+  t: any
   sortBy: SortField | null
   sortOrder: "asc" | "desc"
   onSort: (field: SortField) => void
@@ -48,7 +49,8 @@ function SortableHeader({
   )
 }
 
-export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnHelpers): ColumnDef<TobaccoRepayItem>[] {
+export function getSummaryColumns({ t, sortBy, sortOrder, onSort, onView }: ColumnHelpers): ColumnDef<TobaccoRepayItem>[] {
+  const tbl = t.tobaccoRepay.summaryTable
   return [
     {
       id: "select",
@@ -59,7 +61,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label={tbl.selectAll}
           className="translate-y-0.5"
         />
       ),
@@ -67,7 +69,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label={tbl.selectRow}
           className="translate-y-0.5"
         />
       ),
@@ -76,7 +78,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
     },
     {
       id: "no",
-      header: () => "No.",
+      header: () => tbl.no,
       cell: ({ row }) => <div className="text-muted-foreground">{row.index + 1}</div>,
       enableSorting: false,
       enableHiding: false,
@@ -84,31 +86,31 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
     {
       id: "contractNo",
       accessorKey: "contract_number",
-      header: () => "Contract No",
+      header: () => tbl.contractNo,
       cell: ({ row }) => <div className="font-medium">{row.getValue("contractNo") || "—"}</div>,
     },
     {
       id: "representative",
       accessorKey: "representative",
-      header: () => "Representative",
+      header: () => tbl.representative,
       cell: ({ row }) => <div>{row.getValue("representative") || "—"}</div>,
     },
     {
       id: "contractor",
       accessorKey: "contract_contractor_name",
-      header: () => "Farmer",
+      header: () => tbl.farmer,
       cell: ({ row }) => <div>{row.getValue("contractor") || "—"}</div>,
     },
     {
       id: "tobaccoType",
       accessorKey: "tobacco_type",
-      header: () => "Tobacco Type",
+      header: () => tbl.tobaccoType,
       cell: ({ row }) => <div>{row.getValue("tobaccoType") || "—"}</div>,
     },
     {
       id: "year",
       accessorKey: "contract_year",
-      header: () => <div className="text-center">Year</div>,
+      header: () => <div className="text-center">{tbl.year}</div>,
       cell: ({ row }) => <div className="text-center font-medium">{row.getValue("year") || "—"}</div>,
     },
     {
@@ -116,7 +118,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
       accessorKey: "Quantity",
       header: () => (
         <div className="text-right">
-          <SortableHeader label="Amount (kg)" field="Quantity" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+          <SortableHeader label={tbl.amountKg} field="Quantity" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
         </div>
       ),
       cell: ({ row }) => {
@@ -129,7 +131,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
       accessorKey: "total_repaid",
       header: () => (
         <div className="text-right">
-          <SortableHeader label="Delivery (kg)" field="total_repaid" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+          <SortableHeader label={tbl.deliveryKg} field="total_repaid" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
         </div>
       ),
       cell: ({ row }) => {
@@ -139,7 +141,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
     },
     {
       id: "status",
-      header: () => <div className="text-center">Status</div>,
+      header: () => <div className="text-center">{tbl.status}</div>,
       cell: ({ row }) => {
         const rec = row.original
         const isCompleted = rec.Quantity != null && rec.total_repaid != null && rec.total_repaid === rec.Quantity
@@ -147,11 +149,11 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
           <div className="text-center">
             {isCompleted ? (
               <Badge variant="outline" className="bg-green-500/15 text-green-700 dark:border-green-400/50 dark:bg-green-400/15 dark:text-green-300 px-3 py-1 text-[13px] font-semibold">
-                Completed
+                {tbl.completed}
               </Badge>
             ) : (
               <Badge variant="outline" className="bg-yellow-500/15 text-yellow-700 dark:border-yellow-400/50 dark:bg-yellow-400/15 dark:text-yellow-300 px-3 py-1 text-sm font-semibold tracking-wide">
-                Pending
+                {tbl.pending}
               </Badge>
             )}
           </div>
@@ -160,7 +162,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Actions</div>,
+      header: () => <div className="text-right">{tbl.actions}</div>,
       cell: ({ row }) => {
         const rec = row.original
         return (
@@ -171,7 +173,7 @@ export function getSummaryColumns({ sortBy, sortOrder, onSort, onView }: ColumnH
               className="h-7 w-7"
               onClick={(e) => { e.stopPropagation(); onView(rec) }}
             >
-              <span className="sr-only">View</span>
+              <span className="sr-only">{tbl.view}</span>
               <IconEye className="h-4 w-4 text-muted-foreground/70" />
             </Button>
           </div>

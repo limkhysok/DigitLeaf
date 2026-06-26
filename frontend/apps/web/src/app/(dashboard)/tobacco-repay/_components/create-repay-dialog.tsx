@@ -37,6 +37,7 @@ import {
 import { Command as CommandPrimitive } from "cmdk"
 import { cn } from "@workspace/ui/lib/utils"
 import { apiClient, TobaccoRepayItem, MemberFarmerItem, ConTobaccoItem } from "@/services/api-client"
+import { useLanguage } from "@/hooks/use-language"
 
 interface CreateRepayDialogProps {
   open: boolean
@@ -57,6 +58,8 @@ function FarmerSearchField({
   selectedFarmer: MemberFarmerItem | null
   onSelectFarmer: (farmer: MemberFarmerItem | null) => void
 }>) {
+  const { t } = useLanguage()
+  const cc = t.tobaccoRepay.createContract
   const [farmerOpen, setFarmerOpen] = React.useState(false)
   const [farmerQuery, setFarmerQuery] = React.useState("")
   const [debouncedFarmerQuery] = useDebounce(farmerQuery, 350)
@@ -70,7 +73,7 @@ function FarmerSearchField({
 
   return (
     <div className="space-y-1 flex flex-col">
-      <Label className="text-sm font-medium">Farmer</Label>
+      <Label className="text-sm font-medium">{cc.farmer}</Label>
       <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
         <Popover
           open={farmerOpen}
@@ -95,7 +98,7 @@ function FarmerSearchField({
                   setFarmerOpen(true)
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
-                placeholder="Search farmer..."
+                placeholder={cc.farmerSearchPlaceholder}
               />
               <IconChevronDown className="absolute right-3 top-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
             </div>
@@ -111,7 +114,7 @@ function FarmerSearchField({
                   <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <CommandEmpty>No farmer found.</CommandEmpty>
+                <CommandEmpty>{cc.noFarmerFound}</CommandEmpty>
               )}
               <CommandGroup>
                 {farmers.map((f) => (
@@ -169,20 +172,22 @@ function TobaccoSearchField({
   selectedTobacco: ConTobaccoItem | null
   onSelectTobacco: (tobacco: ConTobaccoItem | null) => void
 }>) {
+  const { t } = useLanguage()
+  const cc = t.tobaccoRepay.createContract
   const [tobaccoOpen, setTobaccoOpen] = React.useState(false)
   const [tobaccoSearch, setTobaccoSearch] = React.useState("")
 
   const filteredTobacco = React.useMemo(() => {
     if (!tobaccoSearch.trim()) return tobaccoTypes
     const q = tobaccoSearch.toLowerCase()
-    return tobaccoTypes.filter((t) =>
-      t.tobacco?.toLowerCase().includes(q) || t.group_name?.toLowerCase().includes(q)
+    return tobaccoTypes.filter((item) =>
+      item.tobacco?.toLowerCase().includes(q) || item.group_name?.toLowerCase().includes(q)
     )
   }, [tobaccoTypes, tobaccoSearch])
 
   return (
     <div className="space-y-1 flex flex-col">
-      <Label className="text-sm font-medium">Tobacco Type</Label>
+      <Label className="text-sm font-medium">{cc.tobaccoType}</Label>
       <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
         <Popover
           open={tobaccoOpen}
@@ -207,7 +212,7 @@ function TobaccoSearchField({
                   setTobaccoOpen(true)
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
-                placeholder="Search tobacco type..."
+                placeholder={cc.tobaccoSearchPlaceholder}
               />
               <IconChevronDown className="absolute right-3 top-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
             </div>
@@ -223,26 +228,26 @@ function TobaccoSearchField({
                   <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <CommandEmpty>No tobacco type found.</CommandEmpty>
+                <CommandEmpty>{cc.noTobaccoFound}</CommandEmpty>
               )}
               <CommandGroup>
-                {filteredTobacco.map((t) => (
+                {filteredTobacco.map((item) => (
                   <CommandItem
-                    key={t.t_id}
-                    value={formatTobaccoLabel(t)}
+                    key={item.t_id}
+                    value={formatTobaccoLabel(item)}
                     onSelect={() => {
-                      onSelectTobacco(t)
-                      setTobaccoSearch(formatTobaccoLabel(t))
+                      onSelectTobacco(item)
+                      setTobaccoSearch(formatTobaccoLabel(item))
                       setTobaccoOpen(false)
                     }}
                   >
                     <IconCheck
                       className={cn(
                         "mr-2 h-4 w-4",
-                        selectedTobacco?.t_id === t.t_id ? "opacity-100" : "opacity-0"
+                        selectedTobacco?.t_id === item.t_id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <span className="font-medium">{formatTobaccoLabel(t)}</span>
+                    <span className="font-medium">{formatTobaccoLabel(item)}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -272,6 +277,8 @@ function CreateContractDialog({
   token: string
   selectedYear: string
 }>) {
+  const { t } = useLanguage()
+  const cc = t.tobaccoRepay.createContract
   const queryClient = useQueryClient()
 
   const [conNum, setConNum] = React.useState<string>("")
@@ -293,8 +300,8 @@ function CreateContractDialog({
 
   React.useEffect(() => {
     if (open && nextContractNum) {
-      const t = setTimeout(() => setConNum(nextContractNum), 0)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => setConNum(nextContractNum), 0)
+      return () => clearTimeout(timer)
     }
   }, [open, nextContractNum])
 
@@ -347,20 +354,20 @@ function CreateContractDialog({
         note: conNote.trim() || undefined,
       }),
     onSuccess: () => {
-      toast.success("Contract created successfully")
+      toast.success(cc.toastSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
       handleClose()
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to create contract")
+      toast.error(err.message || cc.toastError)
     },
   })
 
   function validateCreateSubmit() {
-    if (!selectedFarmer) return "Please select a farmer"
-    if (!selectedTobacco) return "Please select a tobacco type"
-    if (Number.isNaN(parsedConQty) || parsedConQty <= 0) return "Enter a valid quantity"
-    if (Number.isNaN(parsedConPrice) || parsedConPrice <= 0) return "Enter a valid price"
+    if (!selectedFarmer) return cc.errSelectFarmer
+    if (!selectedTobacco) return cc.errSelectTobacco
+    if (Number.isNaN(parsedConQty) || parsedConQty <= 0) return cc.errInvalidQty
+    if (Number.isNaN(parsedConPrice) || parsedConPrice <= 0) return cc.errInvalidPrice
     return null
   }
 
@@ -380,7 +387,7 @@ function CreateContractDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconFilePlus className="h-5 w-5 text-[#009640]" />
-            Create Contract
+            {cc.title}
           </DialogTitle>
         </DialogHeader>
 
@@ -399,23 +406,23 @@ function CreateContractDialog({
           {/* Row: Contract Number | Representative */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_num">Contract Number</Label>
+              <Label htmlFor="con_num">{cc.contractNumber}</Label>
               <Input
                 id="con_num"
                 value={conNum}
                 readOnly
-                placeholder="Generating..."
+                placeholder={cc.generating}
                 className="bg-muted/40 cursor-default font-mono"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="represent">
-                Representative <span className="text-muted-foreground">(optional)</span>
+                {cc.representative} <span className="text-muted-foreground">{cc.optional}</span>
               </Label>
               <Select value={representId} onValueChange={setRepresentId}>
                 <SelectTrigger id="represent" className="w-full">
-                  <SelectValue placeholder="Select a representative..." />
+                  <SelectValue placeholder={cc.selectRepresentativePlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {represents.map((r) => (
@@ -431,7 +438,7 @@ function CreateContractDialog({
           {/* Row: Quantity | Price */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_qty">Quantity (kg)</Label>
+              <Label htmlFor="con_qty">{cc.quantityKg}</Label>
               <Input
                 id="con_qty"
                 type="number"
@@ -439,13 +446,13 @@ function CreateContractDialog({
                 step="any"
                 value={conQty}
                 onChange={(e) => setConQty(e.target.value)}
-                placeholder="Enter quantity..."
+                placeholder={cc.quantityPlaceholder}
                 required
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_price">Price</Label>
+              <Label htmlFor="con_price">{cc.price}</Label>
               <Input
                 id="con_price"
                 type="number"
@@ -453,7 +460,7 @@ function CreateContractDialog({
                 step="any"
                 value={conPrice}
                 onChange={(e) => setConPrice(e.target.value)}
-                placeholder="Enter price..."
+                placeholder={cc.pricePlaceholder}
                 required
               />
             </div>
@@ -463,7 +470,7 @@ function CreateContractDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="con_rate">
-                Rate <span className="text-muted-foreground">(optional)</span>
+                {cc.rate} <span className="text-muted-foreground">{cc.optional}</span>
               </Label>
               <Input
                 id="con_rate"
@@ -472,12 +479,12 @@ function CreateContractDialog({
                 step="any"
                 value={conRate}
                 onChange={(e) => setConRate(e.target.value)}
-                placeholder="Enter rate..."
+                placeholder={cc.ratePlaceholder}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_date">Date</Label>
+              <Label htmlFor="con_date">{cc.date}</Label>
               <Input
                 id="con_date"
                 type="date"
@@ -491,11 +498,11 @@ function CreateContractDialog({
           {/* Note */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="con_note">
-              Note <span className="text-muted-foreground">(optional)</span>
+              {cc.note} <span className="text-muted-foreground">{cc.optional}</span>
             </Label>
             <Input
               id="con_note"
-              placeholder="Add a note..."
+              placeholder={cc.notePlaceholder}
               value={conNote}
               onChange={(e) => setConNote(e.target.value)}
             />
@@ -503,7 +510,7 @@ function CreateContractDialog({
 
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isCreatingContract}>
-              Cancel
+              {cc.cancel}
             </Button>
             <Button
               type="submit"
@@ -511,7 +518,7 @@ function CreateContractDialog({
               className="bg-[#009640] hover:bg-[#007a33] text-white"
             >
               {isCreatingContract && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save
+              {cc.save}
             </Button>
           </DialogFooter>
         </form>
@@ -533,6 +540,8 @@ function RecordRepaymentDialog({
   record: TobaccoRepayItem
   selectedYear: string
 }>) {
+  const { t } = useLanguage()
+  const rr = t.tobaccoRepay.recordRepay
   const queryClient = useQueryClient()
 
   const [repayNum, setRepayNum] = React.useState<string>("")
@@ -555,15 +564,15 @@ function RecordRepaymentDialog({
 
   React.useEffect(() => {
     if (open && nextRepayNum) {
-      const t = setTimeout(() => setRepayNum(nextRepayNum), 0)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => setRepayNum(nextRepayNum), 0)
+      return () => clearTimeout(timer)
     }
   }, [open, nextRepayNum])
 
   React.useEffect(() => {
     if (open && remaining != null) {
-      const t = setTimeout(() => setQuantity(String(remaining)), 0)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => setQuantity(String(remaining)), 0)
+      return () => clearTimeout(timer)
     }
   }, [open, remaining])
 
@@ -602,7 +611,7 @@ function RecordRepaymentDialog({
         note: note.trim() || undefined,
       }),
     onSuccess: () => {
-      toast.success("Repayment recorded successfully")
+      toast.success(rr.toastSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["vendorContracts"] })
@@ -610,7 +619,7 @@ function RecordRepaymentDialog({
       handleClose()
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to record repayment")
+      toast.error(err.message || rr.toastError)
     },
   })
 
@@ -618,11 +627,11 @@ function RecordRepaymentDialog({
     e.preventDefault()
     if (!record.id || !record.f_id || !record.contract_number) return
     if (Number.isNaN(parsedQty) || parsedQty <= 0) {
-      toast.error("Enter a valid quantity to repay")
+      toast.error(rr.errInvalidQty)
       return
     }
     if (remaining != null && parsedQty > remaining) {
-      toast.error(`Quantity exceeds remaining balance (${remaining.toLocaleString()} kg)`)
+      toast.error(rr.errExceedsRemaining.replace("{remaining}", remaining.toLocaleString()))
       return
     }
     mutate()
@@ -634,7 +643,7 @@ function RecordRepaymentDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconCash className="h-5 w-5 text-[#009640]" />
-            Record Repayment
+            {rr.title}
           </DialogTitle>
         </DialogHeader>
 
@@ -642,23 +651,23 @@ function RecordRepaymentDialog({
           {/* Quantity summary */}
           <div className="rounded-md border bg-muted/30 px-3 py-2.5 flex flex-col gap-1 text-xs text-muted-foreground">
             <div className="flex justify-between">
-              <span>Tobacco Type</span>
+              <span>{rr.tobaccoType}</span>
               <span className="font-medium text-foreground">{record.tobacco_type ?? "—"}</span>
             </div>
             <div className="flex justify-between">
-              <span>Total Quantity</span>
+              <span>{rr.totalQuantity}</span>
               <span className="font-medium text-foreground">
                 {record.Quantity == null ? "—" : `${record.Quantity.toLocaleString()} kg`}
               </span>
             </div>
             <div className="flex justify-between">
-              <span>Already Repaid</span>
+              <span>{rr.alreadyRepaid}</span>
               <span className="font-medium text-foreground">
                 {record.total_repaid == null ? "—" : `${record.total_repaid.toLocaleString()} kg`}
               </span>
             </div>
             <div className="flex justify-between border-t pt-1 mt-0.5">
-              <span>Remaining</span>
+              <span>{rr.remaining}</span>
               <span className={`font-semibold ${remaining == null || remaining > 0 ? "text-[#009640]" : "text-red-500"}`}>
                 {remaining == null ? "—" : `${remaining.toLocaleString()} kg`}
               </span>
@@ -667,19 +676,19 @@ function RecordRepaymentDialog({
 
           {/* Repay Number — auto-generated, read-only */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="repay_num">Repay Number</Label>
+            <Label htmlFor="repay_num">{rr.repayNumber}</Label>
             <Input
               id="repay_num"
               value={repayNum}
               readOnly
-              placeholder="Generating..."
+              placeholder={rr.generating}
               className="bg-muted/40 cursor-default font-mono"
             />
           </div>
 
           {/* Contract — read-only */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="contract">Contract</Label>
+            <Label htmlFor="contract">{rr.contract}</Label>
             <Input
               id="contract"
               value={record.contract_number ?? ""}
@@ -691,7 +700,7 @@ function RecordRepaymentDialog({
 
           {/* Quantity */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="quantity">Quantity (kg)</Label>
+            <Label htmlFor="quantity">{rr.quantityKg}</Label>
             <Input
               id="quantity"
               type="number"
@@ -700,14 +709,14 @@ function RecordRepaymentDialog({
               step="any"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder="Enter quantity..."
+              placeholder={rr.quantityPlaceholder}
               required
             />
           </div>
 
           {/* Farmer — read-only */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="farmer">Farmer</Label>
+            <Label htmlFor="farmer">{rr.farmer}</Label>
             <Input
               id="farmer"
               value={record.farmer_name ?? ""}
@@ -720,11 +729,11 @@ function RecordRepaymentDialog({
           {/* Oven */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="oven">
-              Oven <span className="text-muted-foreground">(optional)</span>
+              {rr.oven} <span className="text-muted-foreground">{rr.optional}</span>
             </Label>
             <Select value={effectiveOvenId} onValueChange={setOvenId} disabled={ovens.length === 1}>
               <SelectTrigger id="oven" className="w-full">
-                <SelectValue placeholder="Select an oven..." />
+                <SelectValue placeholder={rr.selectOvenPlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 {ovens.map((ov) => (
@@ -738,7 +747,7 @@ function RecordRepaymentDialog({
 
           {/* Date */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="repay_date">Date</Label>
+            <Label htmlFor="repay_date">{rr.date}</Label>
             <Input
               id="repay_date"
               type="date"
@@ -751,11 +760,11 @@ function RecordRepaymentDialog({
           {/* Note */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="note">
-              Note <span className="text-muted-foreground">(optional)</span>
+              {rr.note} <span className="text-muted-foreground">{rr.optional}</span>
             </Label>
             <Input
               id="note"
-              placeholder="Add a note..."
+              placeholder={rr.notePlaceholder}
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -763,7 +772,7 @@ function RecordRepaymentDialog({
 
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
-              Cancel
+              {rr.cancel}
             </Button>
             <Button
               type="submit"
@@ -777,7 +786,7 @@ function RecordRepaymentDialog({
               className="bg-[#009640] hover:bg-[#007a33] text-white"
             >
               {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save
+              {rr.save}
             </Button>
           </DialogFooter>
         </form>

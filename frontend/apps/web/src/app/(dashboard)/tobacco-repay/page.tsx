@@ -104,9 +104,9 @@ export default function TobaccoRepayPage() {
   const { ref: sentinelRef, inView } = useInView({ rootMargin: "100px" })
   React.useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage().catch(() => toast.error("Failed to load more records"))
+      fetchNextPage().catch(() => toast.error(t.tobaccoRepay.loadMoreError))
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, t])
 
   // Client-side sort on loaded records (search is server-side)
   const sortedRecords = React.useMemo(() => {
@@ -132,11 +132,12 @@ export default function TobaccoRepayPage() {
   }, [sortBy])
 
   const columns = React.useMemo(() => getSummaryColumns({
+    t,
     sortBy,
     sortOrder,
     onSort: handleColumnSort,
     onView: handleViewSummary,
-  }), [sortBy, sortOrder, handleColumnSort, handleViewSummary])
+  }), [t, sortBy, sortOrder, handleColumnSort, handleViewSummary])
 
   const table = useReactTable({
     data: sortedRecords,
@@ -164,7 +165,11 @@ export default function TobaccoRepayPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
-          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">Manage and track tobacco repay records from {currentYearMinusOne} - {new Date().getFullYear()}.</p>
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">
+            {t.tobaccoRepay.subtitle
+              .replace("{from}", currentYearMinusOne)
+              .replace("{to}", String(new Date().getFullYear()))}
+          </p>
         </div>
       </div>
 
@@ -185,8 +190,8 @@ export default function TobaccoRepayPage() {
 
       <Tabs defaultValue="summary" className="w-full">
         <TabsList className="mb-4 bg-white/60">
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="summary">{t.tobaccoRepay.tabs.summary}</TabsTrigger>
+          <TabsTrigger value="history">{t.tobaccoRepay.tabs.history}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="mt-0 space-y-4">
@@ -234,9 +239,9 @@ export default function TobaccoRepayPage() {
             <IconCash className="h-10 w-10 text-[#009640] stroke-[1.5]" />
           </div>
           <div className="flex flex-col items-center text-center px-4">
-            <h3 className="text-xl font-medium text-gray-900">No Repay Records</h3>
+            <h3 className="text-xl font-medium text-gray-900">{t.tobaccoRepay.empty.summaryTitle}</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              There are no tobacco repay records for {selectedYear} currently.
+              {t.tobaccoRepay.empty.summaryDesc.replace("{year}", selectedYear)}
             </p>
           </div>
         </div>
@@ -277,7 +282,7 @@ export default function TobaccoRepayPage() {
       ════════════════════════════════════════════════════════════════════ */}
       {!isLoading && sortedRecords.length > 0 && (
         <div className="hidden lg:block">
-          <DataTable table={table} noRecordsText="No results." />
+          <DataTable table={table} noRecordsText={t.tobaccoRepay.noResults} />
         </div>
       )}
 

@@ -35,6 +35,7 @@ import {
 import { RepayRecordDialog, RepayRecordDialogMode } from "./repay-record-dialog"
 import { printRepayInvoice, downloadRepayInvoicePdf } from "./repay-invoice-print"
 import { RepayExportButton } from "./repay-export-button"
+import { useLanguage } from "@/hooks/use-language"
 
 const PAGE_SIZE = 20
 
@@ -51,6 +52,8 @@ export function TobaccoRepayHistory({
   setSelectedYear,
   availableYears,
 }: Readonly<TobaccoRepayHistoryProps>) {
+  const { t } = useLanguage()
+  const hist = t.tobaccoRepay.history
   const [searchInput, setSearchInput] = React.useState("")
   const [search] = useDebounce(searchInput, 400)
   const [yearOpen, setYearOpen] = React.useState(false)

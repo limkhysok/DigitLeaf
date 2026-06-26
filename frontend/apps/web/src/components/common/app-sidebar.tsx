@@ -8,6 +8,7 @@
               IconClover,
               IconFileDescription,
               IconCashBanknote,
+              IconUsers,
             } from "@tabler/icons-react"
 
             import {
@@ -19,9 +20,13 @@
             import Image from "next/image"
             import { NavMain } from "@/components/common/nav-main"
             import { useLanguage } from "@/hooks/use-language"
+            import { useAuth } from "@/hooks/use-auth"
+            import { hasScope } from "@/utils/rbac"
 
             export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               const { t } = useLanguage()
+              const { tokens } = useAuth()
+              const canManageMembers = hasScope(tokens, "manage_users", "admin")
 
               const navData = React.useMemo(() => [
                 {
@@ -50,7 +55,14 @@
                   url: "/tobacco-repay",
                   icon: IconCashBanknote,
                 },
-              ], [t])
+                ...(canManageMembers
+                  ? [{
+                    title: t.sidebar.memberHub,
+                    url: "/member-hub",
+                    icon: IconUsers,
+                  }]
+                  : []),
+              ], [t, canManageMembers])
 
               const mounted = useSyncExternalStore(
                 () => () => { },

@@ -4,6 +4,7 @@ import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { IconLoader2, IconEye } from "@tabler/icons-react"
 import { apiClient } from "@/services/api-client"
+import { useLanguage } from "@/hooks/use-language"
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,8 @@ export function ContractDetailDialog({
   token,
   conId,
 }: Readonly<ContractDetailDialogProps>) {
+  const { t } = useLanguage()
+  const cd = t.tobaccoRepay.contractDetail
   const { data: detail, isLoading } = useQuery({
     queryKey: ["contract-repay-detail", conId],
     queryFn: () => apiClient.getContractRepayDetail(token, conId ?? 0),
@@ -46,7 +49,7 @@ export function ContractDetailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconEye className="h-5 w-5 text-[#009640]" />
-            Contract Detail
+            {cd.title}
           </DialogTitle>
         </DialogHeader>
 
@@ -59,38 +62,38 @@ export function ContractDetailDialog({
             <div className="rounded-md border divide-y text-sm">
               <div className="grid grid-cols-2 gap-2 p-2 divide-x">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground">Contract No</span>
+                  <span className="text-muted-foreground">{cd.contractNo}</span>
                   <span className="font-medium">{detail.contract_number || "—"}</span>
                 </div>
                 <div className="flex flex-col gap-0.5 pl-2">
-                  <span className="text-muted-foreground">Representative</span>
+                  <span className="text-muted-foreground">{cd.representative}</span>
                   <span className="font-medium">{detail.representative || "—"}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 p-2 divide-x">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground">Farmer</span>
+                  <span className="text-muted-foreground">{cd.farmer}</span>
                   <span className="font-medium">{detail.contract_contractor_name || "—"}</span>
                 </div>
                 <div className="flex flex-col gap-0.5 pl-2">
-                  <span className="text-muted-foreground">Tobacco Type</span>
+                  <span className="text-muted-foreground">{cd.tobaccoType}</span>
                   <span className="font-medium">{detail.tobacco_type || "—"}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 p-2 divide-x">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-muted-foreground">Year</span>
+                  <span className="text-muted-foreground">{cd.year}</span>
                   <span className="font-medium">{detail.contract_year ?? "—"}</span>
                 </div>
                 <div className="flex flex-col gap-0.5 pl-2">
-                  <span className="text-muted-foreground">Amount (kg)</span>
+                  <span className="text-muted-foreground">{cd.amountKg}</span>
                   <span className="font-medium">{detail.Quantity == null ? "—" : detail.Quantity.toLocaleString()}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 p-2 divide-x">
                 <div />
                 <div className="flex flex-col gap-0.5 pl-2">
-                  <span className="text-muted-foreground">Delivery (kg)</span>
+                  <span className="text-muted-foreground">{cd.deliveryKg}</span>
                   <span className="font-medium text-[#009640]">
                     {detail.total_repaid == null ? "—" : detail.total_repaid.toLocaleString()}
                   </span>
@@ -102,17 +105,17 @@ export function ContractDetailDialog({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Invoice</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-left">Delivery (kg)</TableHead>
-                    <TableHead>Note</TableHead>
+                    <TableHead>{cd.invoice}</TableHead>
+                    <TableHead>{cd.date}</TableHead>
+                    <TableHead className="text-left">{cd.deliveryKg}</TableHead>
+                    <TableHead>{cd.note}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {detail.repays.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No repay records yet.
+                        {cd.noRepayRecords}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -135,7 +138,7 @@ export function ContractDetailDialog({
 
         <DialogFooter className="pt-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {cd.close}
           </Button>
         </DialogFooter>
       </DialogContent>

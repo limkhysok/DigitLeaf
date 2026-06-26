@@ -5,6 +5,7 @@ import type { VisibilityState } from "@tanstack/react-table"
 import {
   IconCirclePlus, IconX, IconAdjustmentsHorizontal, IconPlus,
 } from "@tabler/icons-react"
+import { useLanguage } from "@/hooks/use-language"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -43,6 +44,7 @@ export function FilterBar({
   columnVisibility, setColumnVisibility,
   onAdd,
 }: Readonly<FilterBarProps>) {
+  const { t } = useLanguage()
   const [yearOpen, setYearOpen] = React.useState(false)
 
   const isFiltered = sortBy !== null || searchInput !== ""
@@ -63,59 +65,59 @@ export function FilterBar({
           <DropdownMenuTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8">
               <IconAdjustmentsHorizontal className="mr-2 h-4 w-4" />
-              View
+              {t.tobaccoRepay.toolbar.view}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <DropdownMenuLabel>{t.tobaccoRepay.toolbar.toggleColumns}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={columnVisibility.contractNo}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, contractNo: v })}
             >
-              Contract No
+              {t.tobaccoRepay.toolbar.columns.contractNo}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.representative}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, representative: v })}
             >
-              Representative
+              {t.tobaccoRepay.toolbar.columns.representative}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.contractor}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, contractor: v })}
             >
-              Farmer
+              {t.tobaccoRepay.toolbar.columns.farmer}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.tobaccoType}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, tobaccoType: v })}
             >
-              Tobacco Type
+              {t.tobaccoRepay.toolbar.columns.tobaccoType}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.year}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, year: v })}
             >
-              Year
+              {t.tobaccoRepay.toolbar.columns.year}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.qty}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, qty: v })}
             >
-              Quantity
+              {t.tobaccoRepay.toolbar.columns.qty}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.totalReturned}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, totalReturned: v })}
             >
-              Total Returned
+              {t.tobaccoRepay.toolbar.columns.totalReturned}
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={columnVisibility.status}
               onCheckedChange={(v) => setColumnVisibility({ ...columnVisibility, status: v })}
             >
-              Status
+              {t.tobaccoRepay.toolbar.columns.status}
             </DropdownMenuCheckboxItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -125,7 +127,7 @@ export function FilterBar({
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              Year
+              {t.tobaccoRepay.toolbar.year}
               <Separator orientation="vertical" className="mx-2 h-4" />
               <Badge variant="secondary" className="rounded-sm px-1 font-normal">
                 {selectedYear}
@@ -151,7 +153,7 @@ export function FilterBar({
         {/* Reset */}
         {isFiltered && (
           <Button variant="ghost" onClick={clearAll} className="h-8 px-2 lg:px-3 shrink-0">
-            Reset
+            {t.tobaccoRepay.toolbar.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -162,7 +164,7 @@ export function FilterBar({
 
         {/* Search */}
         <Input
-          placeholder="Search Contract No, Farmer..."
+          placeholder={t.tobaccoRepay.toolbar.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-md h-8 w-64 text-xs placeholder:text-sm"
@@ -175,7 +177,7 @@ export function FilterBar({
           onClick={onAdd}
         >
           <IconPlus className="mr-1.5 h-3.5 w-3.5" />
-          Add
+          {t.tobaccoRepay.toolbar.add}
         </Button>
 
       </div>

@@ -5,6 +5,7 @@ import { TobaccoRepayItem } from "@/services/api-client"
 import { IconCash, IconUser, IconUsers, IconLeaf, IconPackage, IconReceipt } from "@tabler/icons-react"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
+import { useLanguage } from "@/hooks/use-language"
 
 export const TobaccoRepayCard = React.memo(({
   rec,
@@ -13,6 +14,8 @@ export const TobaccoRepayCard = React.memo(({
   rec: TobaccoRepayItem
   index: number
 }) => {
+  const { t } = useLanguage()
+  const card = t.tobaccoRepay.card
   return (
     <Card className="group flex flex-col overflow-hidden border border-border/80 bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-lg shadow-sm">
       {/* ROW 1: Header (Index, Year badge) */}
@@ -44,7 +47,7 @@ export const TobaccoRepayCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconReceipt className="h-3.5 w-3.5" />
-              Contract No
+              {card.contractNo}
             </span>
             <span className="text-sm font-semibold truncate text-right text-foreground">
               {rec.contract_number || "—"}
@@ -55,7 +58,7 @@ export const TobaccoRepayCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconUsers className="h-3.5 w-3.5" />
-              Representative
+              {card.representative}
             </span>
             <span className="text-sm font-medium truncate text-right text-foreground" title={rec.representative ?? undefined}>
               {rec.representative || "—"}
@@ -66,7 +69,7 @@ export const TobaccoRepayCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconUser className="h-3.5 w-3.5" />
-              Farmer
+              {card.farmer}
             </span>
             <span className="text-sm font-medium truncate text-right text-foreground" title={rec.contract_contractor_name ?? undefined}>
               {rec.contract_contractor_name || "—"}
@@ -77,7 +80,7 @@ export const TobaccoRepayCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconLeaf className="h-3.5 w-3.5" />
-              Tobacco Type
+              {card.tobaccoType}
             </span>
             <span className="text-sm font-medium text-right text-foreground">
               {rec.tobacco_type || "—"}
@@ -88,7 +91,7 @@ export const TobaccoRepayCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconPackage className="h-3.5 w-3.5" />
-              Amount (kg)
+              {card.amountKg}
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-foreground">
               {rec.Quantity == null ? "—" : rec.Quantity.toLocaleString()}
@@ -99,7 +102,7 @@ export const TobaccoRepayCard = React.memo(({
           <div className="flex items-center justify-between gap-2 py-0.5 px-1.5 -mx-1.5 rounded-sm hover:bg-muted/40 transition-colors">
             <span className="text-sm text-foreground flex items-center gap-1.5 shrink-0">
               <IconCash className="h-3.5 w-3.5" />
-              Delivery (kg)
+              {card.deliveryKg}
             </span>
             <span className="text-sm font-semibold tabular-nums text-right text-[#009640]">
               {rec.total_repaid == null ? "—" : rec.total_repaid.toLocaleString()}

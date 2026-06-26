@@ -12,3 +12,8 @@ async def get_user_by_username(session: AsyncSession, user_name: str) -> Optiona
 async def get_user_by_id(session: AsyncSession, user_id: int) -> Optional[User]:
     result = await session.execute(select(User).where(User.id == user_id))
     return result.scalars().first()
+
+
+async def list_users(session: AsyncSession) -> list[User]:
+    result = await session.execute(select(User).order_by(User.user_name))
+    return list(result.scalars().all())

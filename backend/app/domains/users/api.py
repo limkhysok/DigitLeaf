@@ -12,6 +12,17 @@ from app.core.route_logger import AuditLogRoute
 router = APIRouter(route_class=AuditLogRoute)
 
 
+@router.get(
+    "/",
+    response_model=list[UserPublic],
+)
+async def list_users(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
+):
+    return await crud.list_users(session=session)
+
+
 @router.post(
     "/",
     response_model=UserPublic,

@@ -7,6 +7,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import { useLanguage } from "@/hooks/use-language"
 import { cn } from "@workspace/ui/lib/utils"
 
 interface MobileFilterBarProps {
@@ -32,6 +33,7 @@ export function MobileFilterBar({
   availableYears,
   onAdd,
 }: Readonly<MobileFilterBarProps>) {
+  const { t } = useLanguage()
   const [yearOpen, setYearOpen] = React.useState(false)
   const hasActiveFilters = sortBy !== null
 
@@ -56,18 +58,18 @@ export function MobileFilterBar({
           <PopoverContent className="w-72 p-4" align="start">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between border-b pb-2">
-                <h3 className="text-sm font-semibold">Filters</h3>
+                <h3 className="text-sm font-semibold">{t.tobaccoRepay.mobileFilter.filters}</h3>
                 <button
                   onClick={() => setSortBy(null)}
                   className="text-[10px] text-[#009640] font-medium hover:underline"
                 >
-                  Reset Sort
+                  {t.tobaccoRepay.mobileFilter.resetSort}
                 </button>
               </div>
 
               {/* Year select */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Year</span>
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.tobaccoRepay.mobileFilter.year}</span>
                 <Popover open={yearOpen} onOpenChange={setYearOpen}>
                   <PopoverTrigger asChild>
                     <button className="flex h-8 w-full items-center justify-between rounded-md border border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
@@ -94,7 +96,7 @@ export function MobileFilterBar({
 
               {/* Sort by Amount (kg) */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Amount (kg)</span>
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.tobaccoRepay.mobileFilter.amountKg}</span>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     onClick={() => { setSortBy("Quantity"); setSortOrder("asc") }}
@@ -105,7 +107,7 @@ export function MobileFilterBar({
                         : "bg-muted/30 text-muted-foreground border-border"
                     )}
                   >
-                    <IconSortAscending className="size-3.5" /> Smallest
+                    <IconSortAscending className="size-3.5" /> {t.tobaccoRepay.mobileFilter.smallest}
                   </button>
                   <button
                     onClick={() => { setSortBy("Quantity"); setSortOrder("desc") }}
@@ -116,14 +118,14 @@ export function MobileFilterBar({
                         : "bg-muted/30 text-muted-foreground border-border"
                     )}
                   >
-                    <IconSortDescending className="size-3.5" /> Largest
+                    <IconSortDescending className="size-3.5" /> {t.tobaccoRepay.mobileFilter.largest}
                   </button>
                 </div>
               </div>
 
               {/* Sort by Delivery (kg) */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Delivery (kg)</span>
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t.tobaccoRepay.mobileFilter.deliveryKg}</span>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     onClick={() => { setSortBy("total_repaid"); setSortOrder("asc") }}
@@ -134,7 +136,7 @@ export function MobileFilterBar({
                         : "bg-muted/30 text-muted-foreground border-border"
                     )}
                   >
-                    <IconSortAscending className="size-3.5" /> Smallest
+                    <IconSortAscending className="size-3.5" /> {t.tobaccoRepay.mobileFilter.smallest}
                   </button>
                   <button
                     onClick={() => { setSortBy("total_repaid"); setSortOrder("desc") }}
@@ -145,7 +147,7 @@ export function MobileFilterBar({
                         : "bg-muted/30 text-muted-foreground border-border"
                     )}
                   >
-                    <IconSortDescending className="size-3.5" /> Largest
+                    <IconSortDescending className="size-3.5" /> {t.tobaccoRepay.mobileFilter.largest}
                   </button>
                 </div>
               </div>
@@ -159,7 +161,7 @@ export function MobileFilterBar({
             onClick={() => setSortBy(null)}
             className="h-8 px-2 rounded-sm shrink-0"
           >
-            Reset
+            {t.tobaccoRepay.mobileFilter.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -168,7 +170,7 @@ export function MobileFilterBar({
       {/* Center: Search */}
       <div className="flex-1 flex">
         <Input
-          placeholder="Search Contract No, Farmer..."
+          placeholder={t.tobaccoRepay.mobileFilter.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="rounded-sm! h-8 w-full text-xs placeholder:text-sm"
@@ -179,7 +181,7 @@ export function MobileFilterBar({
       <div className="flex items-center gap-2 shrink-0">
         <Button size="sm" onClick={onAdd} className="h-8 px-2 flex gap-1.5 rounded-sm">
           <IconCirclePlusFilled className="h-4 w-4" />
-          <span className="hidden sm:inline">Add</span>
+          <span className="hidden sm:inline">{t.tobaccoRepay.mobileFilter.add}</span>
         </Button>
       </div>
     </div>

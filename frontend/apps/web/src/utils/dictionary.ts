@@ -12,6 +12,7 @@ export const translations = {
       invoice: "Invoice",
       farmerContract: "Farmer Contract",
       tobaccoRepay: "Tobacco Repay",
+      memberHub: "Member Hub",
     },
     breadcrumb: {
       workspace: "Workspace",
@@ -183,6 +184,18 @@ export const translations = {
       asc: "Asc",
       desc: "Desc",
     },
+    memberHub: {
+      title: "Member Hub",
+      subtitle: "Manage system members and roles",
+      accessDenied: "You don't have permission to view this page",
+      noRecordsFound: "No members found",
+      columns: {
+        username: "Username",
+        role: "Role",
+        region: "Region",
+        created: "Created",
+      },
+    },
     tobaccoPurchase: {
       title: "Tobacco Purchase",
       subtitle: "Manage tobacco purchase records and details.",
@@ -275,6 +288,246 @@ export const translations = {
         total: "Total",
       }
     },
+    tobaccoRepay: {
+      subtitle: "Manage and track tobacco repay records from {from} - {to}.",
+      loadMoreError: "Failed to load more records",
+      tabs: {
+        summary: "Summary",
+        history: "History",
+      },
+      empty: {
+        summaryTitle: "No Repay Records",
+        summaryDesc: "There are no tobacco repay records for {year} currently.",
+      },
+      noResults: "No results.",
+      toolbar: {
+        view: "View",
+        toggleColumns: "Toggle columns",
+        columns: {
+          contractNo: "Contract No",
+          representative: "Representative",
+          farmer: "Farmer",
+          tobaccoType: "Tobacco Type",
+          year: "Year",
+          qty: "Quantity",
+          totalReturned: "Total Returned",
+          status: "Status",
+        },
+        year: "Year",
+        reset: "Reset",
+        searchPlaceholder: "Search Contract No, Farmer...",
+        add: "Add",
+      },
+      mobileFilter: {
+        filters: "Filters",
+        resetSort: "Reset Sort",
+        year: "Year",
+        amountKg: "Amount (kg)",
+        deliveryKg: "Delivery (kg)",
+        smallest: "Smallest",
+        largest: "Largest",
+        reset: "Reset",
+        searchPlaceholder: "Search Contract No, Farmer...",
+        add: "Add",
+      },
+      summaryTable: {
+        no: "No.",
+        contractNo: "Contract No",
+        representative: "Representative",
+        farmer: "Farmer",
+        tobaccoType: "Tobacco Type",
+        year: "Year",
+        amountKg: "Amount (kg)",
+        deliveryKg: "Delivery (kg)",
+        completed: "Completed",
+        pending: "Pending",
+        actions: "Actions",
+        selectAll: "Select all",
+        selectRow: "Select row",
+        view: "View",
+      },
+      createContract: {
+        title: "Create Contract",
+        farmer: "Farmer",
+        farmerSearchPlaceholder: "Search farmer...",
+        noFarmerFound: "No farmer found.",
+        tobaccoType: "Tobacco Type",
+        tobaccoSearchPlaceholder: "Search tobacco type...",
+        noTobaccoFound: "No tobacco type found.",
+        contractNumber: "Contract Number",
+        generating: "Generating...",
+        representative: "Representative",
+        optional: "(optional)",
+        selectRepresentativePlaceholder: "Select a representative...",
+        quantityKg: "Quantity (kg)",
+        quantityPlaceholder: "Enter quantity...",
+        price: "Price",
+        pricePlaceholder: "Enter price...",
+        rate: "Rate",
+        ratePlaceholder: "Enter rate...",
+        date: "Date",
+        note: "Note",
+        notePlaceholder: "Add a note...",
+        cancel: "Cancel",
+        save: "Save",
+        toastSuccess: "Contract created successfully",
+        toastError: "Failed to create contract",
+        errSelectFarmer: "Please select a farmer",
+        errSelectTobacco: "Please select a tobacco type",
+        errInvalidQty: "Enter a valid quantity",
+        errInvalidPrice: "Enter a valid price",
+      },
+      recordRepay: {
+        title: "Record Repayment",
+        tobaccoType: "Tobacco Type",
+        totalQuantity: "Total Quantity",
+        alreadyRepaid: "Already Repaid",
+        remaining: "Remaining",
+        repayNumber: "Repay Number",
+        generating: "Generating...",
+        contract: "Contract",
+        quantityKg: "Quantity (kg)",
+        quantityPlaceholder: "Enter quantity...",
+        farmer: "Farmer",
+        oven: "Oven",
+        optional: "(optional)",
+        selectOvenPlaceholder: "Select an oven...",
+        date: "Date",
+        note: "Note",
+        notePlaceholder: "Add a note...",
+        cancel: "Cancel",
+        save: "Save",
+        toastSuccess: "Repayment recorded successfully",
+        toastError: "Failed to record repayment",
+        errInvalidQty: "Enter a valid quantity to repay",
+        errExceedsRemaining: "Quantity exceeds remaining balance ({remaining} kg)",
+      },
+      repayRecordDialog: {
+        titleAdd: "Add Repay Record",
+        titleEdit: "Edit Repay Record",
+        titleView: "View Repay Record",
+        farmerSearchPlaceholder: "Search farmer...",
+        noFarmerFound: "No farmer found.",
+        contract: "Contract",
+        loadingContracts: "Loading contracts...",
+        selectContractPlaceholder: "Select a contract...",
+        remaining: "Remaining",
+        repayNumber: "Repay Number",
+        generating: "Generating...",
+        farmer: "Farmer",
+        tobaccoType: "Tobacco Type",
+        quantityKg: "Quantity (kg)",
+        quantityPlaceholder: "Enter quantity...",
+        oven: "Oven",
+        optional: "(optional)",
+        selectOvenPlaceholder: "Select an oven...",
+        date: "Date",
+        note: "Note",
+        notePlaceholder: "Add a note...",
+        cancel: "Cancel",
+        save: "Save",
+        close: "Close",
+        viewInvoice: "Invoice",
+        viewContractNo: "Contract No",
+        viewFarmer: "Farmer",
+        viewTobaccoType: "Tobacco Type",
+        viewDeliveryKg: "Delivery (kg)",
+        viewOven: "Oven",
+        viewDate: "Date",
+        viewNote: "Note",
+        toastCreateSuccess: "Repayment recorded successfully",
+        toastCreateError: "Failed to record repayment",
+        toastUpdateSuccess: "Repay record updated successfully",
+        toastUpdateError: "Failed to update repay record",
+        errInvalidQty: "Enter a valid quantity",
+        errSelectFarmer: "Please select a farmer",
+        errSelectContract: "Please select a contract",
+        errExceedsRemaining: "Quantity exceeds remaining balance ({remaining} kg)",
+      },
+      contractDetail: {
+        title: "Contract Detail",
+        contractNo: "Contract No",
+        representative: "Representative",
+        farmer: "Farmer",
+        tobaccoType: "Tobacco Type",
+        year: "Year",
+        amountKg: "Amount (kg)",
+        deliveryKg: "Delivery (kg)",
+        invoice: "Invoice",
+        date: "Date",
+        note: "Note",
+        noRepayRecords: "No repay records yet.",
+        close: "Close",
+      },
+      card: {
+        contractNo: "Contract No",
+        representative: "Representative",
+        farmer: "Farmer",
+        tobaccoType: "Tobacco Type",
+        amountKg: "Amount (kg)",
+        deliveryKg: "Delivery (kg)",
+      },
+      history: {
+        year: "Year",
+        searchPlaceholder: "Search Contract, Repay No...",
+        add: "Add",
+        emptyTitle: "No History Records",
+        emptyDesc: "There are no tobacco repay history records for {year} currently.",
+        noResults: "No results.",
+        deleteConfirmTitle: "Are you sure?",
+        deleteConfirmDesc: "This action cannot be undone. This will permanently delete the repay record.",
+        cancel: "Cancel",
+        delete: "Delete",
+        deleting: "Deleting...",
+        toastDeleteSuccess: "Repay record deleted",
+        toastDeleteError: "Failed to delete repay record",
+        toastPrintError: "Failed to print repay record",
+        toastLoadPrintError: "Failed to load repay record for printing",
+        toastLoadDownloadError: "Failed to load repay record for download",
+        toastDownloadError: "Failed to download repay record",
+      },
+      historyTable: {
+        no: "No.",
+        invoice: "Invoice",
+        contractNo: "Contract No.",
+        representative: "Representative",
+        farmer: "Farmer",
+        tobacco: "Tobacco",
+        deliveryKg: "Delivery (kg)",
+        year: "Year",
+        date: "Date",
+        actions: "Actions",
+        openMenu: "Open menu",
+        view: "View",
+        edit: "Edit",
+        print: "Print",
+        downloadPdf: "Download as PDF",
+        delete: "Delete",
+        selectAll: "Select all",
+        selectRow: "Select row",
+      },
+      exportButton: {
+        export: "Export",
+        title: "Export Repay History",
+        description: "Choose a representative and date range to export.",
+        representative: "Representative",
+        allRepresentatives: "All representatives",
+        selectRepresentativePlaceholder: "Select representative",
+        dateRange: "Date range",
+        last7Days: "Last 7 days",
+        last30Days: "Last 30 days",
+        last3Months: "Last 3 months",
+        last6Months: "Last 6 months",
+        lastYear: "Last year",
+        customRange: "Custom range",
+        from: "From",
+        to: "To",
+        pickDate: "Pick date",
+        downloadXlsx: "Download .xlsx",
+        toastSuccess: "Exported successfully",
+        toastError: "Failed to export repay history",
+      },
+    },
     dashboard: {
       title: "Dashboard",
       subtitle: "Daily operational overview and performance metrics.",
@@ -363,6 +616,7 @@ export const translations = {
       invoice: "វិក្កយបត្រ",
       farmerContract: "កិច្ចសន្យាកសិករ",
       tobaccoRepay: "ការសងសន្លឹកថ្នាំ",
+      memberHub: "មជ្ឈមណ្ឌលសមាជិក",
     },
     breadcrumb: {
       workspace: "កន្លែងធ្វើការ",
@@ -509,6 +763,246 @@ export const translations = {
         average: "មធ្យម / ករណី",
       }
     },
+    tobaccoRepay: {
+      subtitle: "គ្រប់គ្រង និងតាមដានកំណត់ត្រាសងសន្លឹកថ្នាំជក់ពីឆ្នាំ {from} - {to}។",
+      loadMoreError: "បរាជ័យក្នុងការទាញយកបន្ថែម",
+      tabs: {
+        summary: "សង្ខេប",
+        history: "ប្រវត្តិ",
+      },
+      empty: {
+        summaryTitle: "មិនមានកំណត់ត្រាសងទេ",
+        summaryDesc: "មិនមានកំណត់ត្រាសងសន្លឹកថ្នាំជក់សម្រាប់ឆ្នាំ {year} នាពេលនេះទេ។",
+      },
+      noResults: "គ្មានលទ្ធផល។",
+      toolbar: {
+        view: "មើល",
+        toggleColumns: "បិទ/បើក ជួរឈរ",
+        columns: {
+          contractNo: "លេខកិច្ចសន្យា",
+          representative: "តំណាង",
+          farmer: "កសិករ",
+          tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+          year: "ឆ្នាំ",
+          qty: "ចំនួន",
+          totalReturned: "សងសរុប",
+          status: "ស្ថានភាព",
+        },
+        year: "ឆ្នាំ",
+        reset: "កំណត់ឡើងវិញ",
+        searchPlaceholder: "ស្វែងរកលេខកិច្ចសន្យា កសិករ...",
+        add: "បន្ថែម",
+      },
+      mobileFilter: {
+        filters: "តម្រង",
+        resetSort: "កំណត់ឡើងវិញ",
+        year: "ឆ្នាំ",
+        amountKg: "ចំនួន(គីឡូ)",
+        deliveryKg: "ការសង(គីឡូ)",
+        smallest: "តូចបំផុត",
+        largest: "ធំបំផុត",
+        reset: "កំណត់ឡើងវិញ",
+        searchPlaceholder: "ស្វែងរកលេខកិច្ចសន្យា កសិករ...",
+        add: "បន្ថែម",
+      },
+      summaryTable: {
+        no: "ល.រ",
+        contractNo: "លេខកិច្ចសន្យា",
+        representative: "តំណាង",
+        farmer: "កសិករ",
+        tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        year: "ឆ្នាំ",
+        amountKg: "ចំនួន(គីឡូ)",
+        deliveryKg: "ការសង(គីឡូ)",
+        completed: "បានបញ្ចប់",
+        pending: "កំពុងរង់ចាំ",
+        actions: "សកម្មភាព",
+        selectAll: "ជ្រើសរើសទាំងអស់",
+        selectRow: "ជ្រើសរើសជួរដេក",
+        view: "មើល",
+      },
+      createContract: {
+        title: "បង្កើតកិច្ចសន្យា",
+        farmer: "កសិករ",
+        farmerSearchPlaceholder: "ស្វែងរកកសិករ...",
+        noFarmerFound: "រកមិនឃើញកសិករទេ។",
+        tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        tobaccoSearchPlaceholder: "ស្វែងរកប្រភេទសន្លឹកថ្នាំ...",
+        noTobaccoFound: "រកមិនឃើញប្រភេទសន្លឹកថ្នាំទេ។",
+        contractNumber: "លេខកិច្ចសន្យា",
+        generating: "កំពុងបង្កើត...",
+        representative: "តំណាង",
+        optional: "(ស្រេចចិត្ត)",
+        selectRepresentativePlaceholder: "ជ្រើសរើសតំណាង...",
+        quantityKg: "ចំនួន(គីឡូ)",
+        quantityPlaceholder: "បញ្ចូលចំនួន...",
+        price: "តម្លៃ",
+        pricePlaceholder: "បញ្ចូលតម្លៃ...",
+        rate: "អត្រា",
+        ratePlaceholder: "បញ្ចូលអត្រា...",
+        date: "កាលបរិច្ឆេទ",
+        note: "កំណត់ចំណាំ",
+        notePlaceholder: "បញ្ចូលកំណត់ចំណាំ...",
+        cancel: "បោះបង់",
+        save: "រក្សាទុក",
+        toastSuccess: "បានបង្កើតកិច្ចសន្យាដោយជោគជ័យ",
+        toastError: "បរាជ័យក្នុងការបង្កើតកិច្ចសន្យា",
+        errSelectFarmer: "សូមជ្រើសរើសកសិករ",
+        errSelectTobacco: "សូមជ្រើសរើសប្រភេទសន្លឹកថ្នាំ",
+        errInvalidQty: "សូមបញ្ចូលចំនួនឱ្យបានត្រឹមត្រូវ",
+        errInvalidPrice: "សូមបញ្ចូលតម្លៃឱ្យបានត្រឹមត្រូវ",
+      },
+      recordRepay: {
+        title: "កត់ត្រាការសង",
+        tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        totalQuantity: "ចំនួនសរុប",
+        alreadyRepaid: "បានសងរួច",
+        remaining: "នៅសល់",
+        repayNumber: "លេខសងសន្លឹកថ្នាំ",
+        generating: "កំពុងបង្កើត...",
+        contract: "កិច្ចសន្យា",
+        quantityKg: "ចំនួន(គីឡូ)",
+        quantityPlaceholder: "បញ្ចូលចំនួន...",
+        farmer: "កសិករ",
+        oven: "ឡ",
+        optional: "(ស្រេចចិត្ត)",
+        selectOvenPlaceholder: "ជ្រើសរើសឡ...",
+        date: "កាលបរិច្ឆេទ",
+        note: "កំណត់ចំណាំ",
+        notePlaceholder: "បញ្ចូលកំណត់ចំណាំ...",
+        cancel: "បោះបង់",
+        save: "រក្សាទុក",
+        toastSuccess: "បានកត់ត្រាការសងដោយជោគជ័យ",
+        toastError: "បរាជ័យក្នុងការកត់ត្រាការសង",
+        errInvalidQty: "សូមបញ្ចូលចំនួនសងឱ្យបានត្រឹមត្រូវ",
+        errExceedsRemaining: "ចំនួនលើសសមតុល្យនៅសល់ ({remaining} គីឡូ)",
+      },
+      repayRecordDialog: {
+        titleAdd: "បន្ថែមកំណត់ត្រាសង",
+        titleEdit: "កែសម្រួលកំណត់ត្រាសង",
+        titleView: "មើលកំណត់ត្រាសង",
+        farmerSearchPlaceholder: "ស្វែងរកកសិករ...",
+        noFarmerFound: "រកមិនឃើញកសិករទេ។",
+        contract: "កិច្ចសន្យា",
+        loadingContracts: "កំពុងទាញយកកិច្ចសន្យា...",
+        selectContractPlaceholder: "ជ្រើសរើសកិច្ចសន្យា...",
+        remaining: "នៅសល់",
+        repayNumber: "លេខសងសន្លឹកថ្នាំ",
+        generating: "កំពុងបង្កើត...",
+        farmer: "កសិករ",
+        tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        quantityKg: "ចំនួន(គីឡូ)",
+        quantityPlaceholder: "បញ្ចូលចំនួន...",
+        oven: "ឡ",
+        optional: "(ស្រេចចិត្ត)",
+        selectOvenPlaceholder: "ជ្រើសរើសឡ...",
+        date: "កាលបរិច្ឆេទ",
+        note: "កំណត់ចំណាំ",
+        notePlaceholder: "បញ្ចូលកំណត់ចំណាំ...",
+        cancel: "បោះបង់",
+        save: "រក្សាទុក",
+        close: "បិទ",
+        viewInvoice: "វិក្កយបត្រ",
+        viewContractNo: "លេខកិច្ចសន្យា",
+        viewFarmer: "កសិករ",
+        viewTobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        viewDeliveryKg: "ការសង(គីឡូ)",
+        viewOven: "ឡ",
+        viewDate: "កាលបរិច្ឆេទ",
+        viewNote: "កំណត់ចំណាំ",
+        toastCreateSuccess: "បានកត់ត្រាការសងដោយជោគជ័យ",
+        toastCreateError: "បរាជ័យក្នុងការកត់ត្រាការសង",
+        toastUpdateSuccess: "បានធ្វើបច្ចុប្បន្នភាពកំណត់ត្រាសងដោយជោគជ័យ",
+        toastUpdateError: "បរាជ័យក្នុងការធ្វើបច្ចុប្បន្នភាពកំណត់ត្រាសង",
+        errInvalidQty: "សូមបញ្ចូលចំនួនឱ្យបានត្រឹមត្រូវ",
+        errSelectFarmer: "សូមជ្រើសរើសកសិករ",
+        errSelectContract: "សូមជ្រើសរើសកិច្ចសន្យា",
+        errExceedsRemaining: "ចំនួនលើសសមតុល្យនៅសល់ ({remaining} គីឡូ)",
+      },
+      contractDetail: {
+        title: "ព័ត៌មានលម្អិតកិច្ចសន្យា",
+        contractNo: "លេខកិច្ចសន្យា",
+        representative: "តំណាង",
+        farmer: "កសិករ",
+        tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        year: "ឆ្នាំ",
+        amountKg: "ចំនួន(គីឡូ)",
+        deliveryKg: "ការសង(គីឡូ)",
+        invoice: "វិក្កយបត្រ",
+        date: "កាលបរិច្ឆេទ",
+        note: "កំណត់ចំណាំ",
+        noRepayRecords: "មិនទាន់មានកំណត់ត្រាសងនៅឡើយទេ។",
+        close: "បិទ",
+      },
+      card: {
+        contractNo: "លេខកិច្ចសន្យា",
+        representative: "តំណាង",
+        farmer: "កសិករ",
+        tobaccoType: "ប្រភេទសន្លឹកថ្នាំ",
+        amountKg: "ចំនួន(គីឡូ)",
+        deliveryKg: "ការសង(គីឡូ)",
+      },
+      history: {
+        year: "ឆ្នាំ",
+        searchPlaceholder: "ស្វែងរកកិច្ចសន្យា លេខសង...",
+        add: "បន្ថែម",
+        emptyTitle: "មិនមានកំណត់ត្រាប្រវត្តិទេ",
+        emptyDesc: "មិនមានកំណត់ត្រាប្រវត្តិសងសន្លឹកថ្នាំជក់សម្រាប់ឆ្នាំ {year} នាពេលនេះទេ។",
+        noResults: "គ្មានលទ្ធផល។",
+        deleteConfirmTitle: "តើអ្នកប្រាកដទេ?",
+        deleteConfirmDesc: "សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានឡើយ។ វានឹងលុបកំណត់ត្រាសងជាអចិន្ត្រៃយ៍។",
+        cancel: "បោះបង់",
+        delete: "លុប",
+        deleting: "កំពុងលុប...",
+        toastDeleteSuccess: "បានលុបកំណត់ត្រាសង",
+        toastDeleteError: "បរាជ័យក្នុងការលុបកំណត់ត្រាសង",
+        toastPrintError: "បរាជ័យក្នុងការបញ្ចូលកំណត់ត្រាសង",
+        toastLoadPrintError: "បរាជ័យក្នុងការទាញយកកំណត់ត្រាសងសម្រាប់បញ្ចូល",
+        toastLoadDownloadError: "បរាជ័យក្នុងការទាញយកកំណត់ត្រាសងសម្រាប់ទាញយក",
+        toastDownloadError: "បរាជ័យក្នុងការទាញយកកំណត់ត្រាសង",
+      },
+      historyTable: {
+        no: "ល.រ",
+        invoice: "វិក្កយបត្រ",
+        contractNo: "លេខកិច្ចសន្យា",
+        representative: "តំណាង",
+        farmer: "កសិករ",
+        tobacco: "សន្លឹកថ្នាំ",
+        deliveryKg: "ការសង(គីឡូ)",
+        year: "ឆ្នាំ",
+        date: "កាលបរិច្ឆេទ",
+        actions: "សកម្មភាព",
+        openMenu: "បើកម៉ឺនុយ",
+        view: "មើល",
+        edit: "កែសម្រួល",
+        print: "បញ្ចូល",
+        downloadPdf: "ទាញយកជា PDF",
+        delete: "លុប",
+        selectAll: "ជ្រើសរើសទាំងអស់",
+        selectRow: "ជ្រើសរើសជួរដេក",
+      },
+      exportButton: {
+        export: "នាំចេញ",
+        title: "នាំចេញប្រវត្តិសង",
+        description: "ជ្រើសរើសតំណាង និងចន្លោះកាលបរិច្ឆេទដើម្បីនាំចេញ។",
+        representative: "តំណាង",
+        allRepresentatives: "តំណាងទាំងអស់",
+        selectRepresentativePlaceholder: "ជ្រើសរើសតំណាង",
+        dateRange: "ចន្លោះកាលបរិច្ឆេទ",
+        last7Days: "៧ ថ្ងៃចុងក្រោយ",
+        last30Days: "៣០ ថ្ងៃចុងក្រោយ",
+        last3Months: "៣ ខែចុងក្រោយ",
+        last6Months: "៦ ខែចុងក្រោយ",
+        lastYear: "១ ឆ្នាំចុងក្រោយ",
+        customRange: "កំណត់ដោយខ្លួនឯង",
+        from: "ពី",
+        to: "ដល់",
+        pickDate: "ជ្រើសរើសកាលបរិច្ឆេទ",
+        downloadXlsx: "ទាញយក .xlsx",
+        toastSuccess: "បាននាំចេញដោយជោគជ័យ",
+        toastError: "បរាជ័យក្នុងការនាំចេញប្រវត្តិសង",
+      },
+    },
     farmerContract: {
       subtitle: "បង្ហាញបញ្ជីឈ្មោះកសិករដែលមានកិច្ចសន្យាក្នុងឆ្នាំ ២០២៦។",
       searchPlaceholder: "ស្វែងរកឈ្មោះ ឬអត្តសញ្ញាណប័ណ្ណ...",
@@ -533,6 +1027,18 @@ export const translations = {
       smallestFirst: "តិចបំផុតមុន",
       asc: "ឡើង",
       desc: "ចុះ",
+    },
+    memberHub: {
+      title: "មជ្ឈមណ្ឌលសមាជិក",
+      subtitle: "គ្រប់គ្រងសមាជិក និងតួនាទីប្រព័ន្ធ",
+      accessDenied: "អ្នកមិនមានសិទ្ធិមើលទំព័រនេះទេ",
+      noRecordsFound: "រកមិនឃើញសមាជិកទេ",
+      columns: {
+        username: "ឈ្មោះអ្នកប្រើប្រាស់",
+        role: "តួនាទី",
+        region: "តំបន់",
+        created: "បានបង្កើត",
+      },
     },
     tobaccoPurchase: {
       title: "ទិញសន្លឹកថ្នាំជក់",
@@ -716,6 +1222,7 @@ export type TranslationType = {
     readonly invoice: string;
     readonly farmerContract: string;
     readonly tobaccoRepay: string;
+    readonly memberHub: string;
   };
   readonly breadcrumb: {
     readonly workspace: string;
@@ -887,6 +1394,18 @@ export type TranslationType = {
     readonly asc: string;
     readonly desc: string;
   };
+  readonly memberHub: {
+    readonly title: string;
+    readonly subtitle: string;
+    readonly accessDenied: string;
+    readonly noRecordsFound: string;
+    readonly columns: {
+      readonly username: string;
+      readonly role: string;
+      readonly region: string;
+      readonly created: string;
+    };
+  };
   readonly tobaccoPurchase: {
     readonly title: string;
     readonly subtitle: string;
@@ -977,6 +1496,246 @@ export type TranslationType = {
       readonly netWeightAbbr: string;
       readonly totalAmount: string;
       readonly total: string;
+    };
+  };
+  readonly tobaccoRepay: {
+    readonly subtitle: string;
+    readonly loadMoreError: string;
+    readonly tabs: {
+      readonly summary: string;
+      readonly history: string;
+    };
+    readonly empty: {
+      readonly summaryTitle: string;
+      readonly summaryDesc: string;
+    };
+    readonly noResults: string;
+    readonly toolbar: {
+      readonly view: string;
+      readonly toggleColumns: string;
+      readonly columns: {
+        readonly contractNo: string;
+        readonly representative: string;
+        readonly farmer: string;
+        readonly tobaccoType: string;
+        readonly year: string;
+        readonly qty: string;
+        readonly totalReturned: string;
+        readonly status: string;
+      };
+      readonly year: string;
+      readonly reset: string;
+      readonly searchPlaceholder: string;
+      readonly add: string;
+    };
+    readonly mobileFilter: {
+      readonly filters: string;
+      readonly resetSort: string;
+      readonly year: string;
+      readonly amountKg: string;
+      readonly deliveryKg: string;
+      readonly smallest: string;
+      readonly largest: string;
+      readonly reset: string;
+      readonly searchPlaceholder: string;
+      readonly add: string;
+    };
+    readonly summaryTable: {
+      readonly no: string;
+      readonly contractNo: string;
+      readonly representative: string;
+      readonly farmer: string;
+      readonly tobaccoType: string;
+      readonly year: string;
+      readonly amountKg: string;
+      readonly deliveryKg: string;
+      readonly completed: string;
+      readonly pending: string;
+      readonly actions: string;
+      readonly selectAll: string;
+      readonly selectRow: string;
+      readonly view: string;
+    };
+    readonly createContract: {
+      readonly title: string;
+      readonly farmer: string;
+      readonly farmerSearchPlaceholder: string;
+      readonly noFarmerFound: string;
+      readonly tobaccoType: string;
+      readonly tobaccoSearchPlaceholder: string;
+      readonly noTobaccoFound: string;
+      readonly contractNumber: string;
+      readonly generating: string;
+      readonly representative: string;
+      readonly optional: string;
+      readonly selectRepresentativePlaceholder: string;
+      readonly quantityKg: string;
+      readonly quantityPlaceholder: string;
+      readonly price: string;
+      readonly pricePlaceholder: string;
+      readonly rate: string;
+      readonly ratePlaceholder: string;
+      readonly date: string;
+      readonly note: string;
+      readonly notePlaceholder: string;
+      readonly cancel: string;
+      readonly save: string;
+      readonly toastSuccess: string;
+      readonly toastError: string;
+      readonly errSelectFarmer: string;
+      readonly errSelectTobacco: string;
+      readonly errInvalidQty: string;
+      readonly errInvalidPrice: string;
+    };
+    readonly recordRepay: {
+      readonly title: string;
+      readonly tobaccoType: string;
+      readonly totalQuantity: string;
+      readonly alreadyRepaid: string;
+      readonly remaining: string;
+      readonly repayNumber: string;
+      readonly generating: string;
+      readonly contract: string;
+      readonly quantityKg: string;
+      readonly quantityPlaceholder: string;
+      readonly farmer: string;
+      readonly oven: string;
+      readonly optional: string;
+      readonly selectOvenPlaceholder: string;
+      readonly date: string;
+      readonly note: string;
+      readonly notePlaceholder: string;
+      readonly cancel: string;
+      readonly save: string;
+      readonly toastSuccess: string;
+      readonly toastError: string;
+      readonly errInvalidQty: string;
+      readonly errExceedsRemaining: string;
+    };
+    readonly repayRecordDialog: {
+      readonly titleAdd: string;
+      readonly titleEdit: string;
+      readonly titleView: string;
+      readonly farmerSearchPlaceholder: string;
+      readonly noFarmerFound: string;
+      readonly contract: string;
+      readonly loadingContracts: string;
+      readonly selectContractPlaceholder: string;
+      readonly remaining: string;
+      readonly repayNumber: string;
+      readonly generating: string;
+      readonly farmer: string;
+      readonly tobaccoType: string;
+      readonly quantityKg: string;
+      readonly quantityPlaceholder: string;
+      readonly oven: string;
+      readonly optional: string;
+      readonly selectOvenPlaceholder: string;
+      readonly date: string;
+      readonly note: string;
+      readonly notePlaceholder: string;
+      readonly cancel: string;
+      readonly save: string;
+      readonly close: string;
+      readonly viewInvoice: string;
+      readonly viewContractNo: string;
+      readonly viewFarmer: string;
+      readonly viewTobaccoType: string;
+      readonly viewDeliveryKg: string;
+      readonly viewOven: string;
+      readonly viewDate: string;
+      readonly viewNote: string;
+      readonly toastCreateSuccess: string;
+      readonly toastCreateError: string;
+      readonly toastUpdateSuccess: string;
+      readonly toastUpdateError: string;
+      readonly errInvalidQty: string;
+      readonly errSelectFarmer: string;
+      readonly errSelectContract: string;
+      readonly errExceedsRemaining: string;
+    };
+    readonly contractDetail: {
+      readonly title: string;
+      readonly contractNo: string;
+      readonly representative: string;
+      readonly farmer: string;
+      readonly tobaccoType: string;
+      readonly year: string;
+      readonly amountKg: string;
+      readonly deliveryKg: string;
+      readonly invoice: string;
+      readonly date: string;
+      readonly note: string;
+      readonly noRepayRecords: string;
+      readonly close: string;
+    };
+    readonly card: {
+      readonly contractNo: string;
+      readonly representative: string;
+      readonly farmer: string;
+      readonly tobaccoType: string;
+      readonly amountKg: string;
+      readonly deliveryKg: string;
+    };
+    readonly history: {
+      readonly year: string;
+      readonly searchPlaceholder: string;
+      readonly add: string;
+      readonly emptyTitle: string;
+      readonly emptyDesc: string;
+      readonly noResults: string;
+      readonly deleteConfirmTitle: string;
+      readonly deleteConfirmDesc: string;
+      readonly cancel: string;
+      readonly delete: string;
+      readonly deleting: string;
+      readonly toastDeleteSuccess: string;
+      readonly toastDeleteError: string;
+      readonly toastPrintError: string;
+      readonly toastLoadPrintError: string;
+      readonly toastLoadDownloadError: string;
+      readonly toastDownloadError: string;
+    };
+    readonly historyTable: {
+      readonly no: string;
+      readonly invoice: string;
+      readonly contractNo: string;
+      readonly representative: string;
+      readonly farmer: string;
+      readonly tobacco: string;
+      readonly deliveryKg: string;
+      readonly year: string;
+      readonly date: string;
+      readonly actions: string;
+      readonly openMenu: string;
+      readonly view: string;
+      readonly edit: string;
+      readonly print: string;
+      readonly downloadPdf: string;
+      readonly delete: string;
+      readonly selectAll: string;
+      readonly selectRow: string;
+    };
+    readonly exportButton: {
+      readonly export: string;
+      readonly title: string;
+      readonly description: string;
+      readonly representative: string;
+      readonly allRepresentatives: string;
+      readonly selectRepresentativePlaceholder: string;
+      readonly dateRange: string;
+      readonly last7Days: string;
+      readonly last30Days: string;
+      readonly last3Months: string;
+      readonly last6Months: string;
+      readonly lastYear: string;
+      readonly customRange: string;
+      readonly from: string;
+      readonly to: string;
+      readonly pickDate: string;
+      readonly downloadXlsx: string;
+      readonly toastSuccess: string;
+      readonly toastError: string;
     };
   };
   readonly dashboard: {

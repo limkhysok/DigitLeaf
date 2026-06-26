@@ -37,6 +37,7 @@ import {
 import { Command as CommandPrimitive } from "cmdk"
 import { cn } from "@workspace/ui/lib/utils"
 import { apiClient, MemberFarmerItem, OvenItem, RepayHistoryDetail, VendorContractItem } from "@/services/api-client"
+import { useLanguage } from "@/hooks/use-language"
 
 export type RepayRecordDialogMode = "add" | "edit" | "view"
 
@@ -51,10 +52,10 @@ interface RepayRecordDialogProps {
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
-function titleForMode(mode: RepayRecordDialogMode) {
-  if (mode === "add") return "Add Repay Record"
-  if (mode === "view") return "View Repay Record"
-  return "Edit Repay Record"
+function titleForMode(mode: RepayRecordDialogMode, rd: any) {
+  if (mode === "add") return rd.titleAdd
+  if (mode === "view") return rd.titleView
+  return rd.titleEdit
 }
 
 function FarmerCombobox({
@@ -66,6 +67,8 @@ function FarmerCombobox({
   selectedFarmer: MemberFarmerItem | null
   onSelectFarmer: (farmer: MemberFarmerItem | null) => void
 }>) {
+  const { t } = useLanguage()
+  const rd = t.tobaccoRepay.repayRecordDialog
   const [farmerOpen, setFarmerOpen] = React.useState(false)
   const [farmerQuery, setFarmerQuery] = React.useState(selectedFarmer?.name ?? "")
   const [debouncedFarmerQuery] = useDebounce(farmerQuery, 350)
@@ -102,7 +105,7 @@ function FarmerCombobox({
                 setFarmerOpen(true)
               }}
               onPointerDown={(e) => e.stopPropagation()}
-              placeholder="Search farmer..."
+              placeholder={rd.farmerSearchPlaceholder}
             />
             <IconChevronDown className="absolute right-3 top-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
           </div>
@@ -118,7 +121,7 @@ function FarmerCombobox({
                 <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <CommandEmpty>No farmer found.</CommandEmpty>
+              <CommandEmpty>{rd.noFarmerFound}</CommandEmpty>
             )}
             <CommandGroup>
               {farmers.map((f) => (
@@ -161,6 +164,8 @@ function ContractSelectField({
   selectedContract: VendorContractItem | null
   onSelectContract: (contract: VendorContractItem | null) => void
 }>) {
+  const { t } = useLanguage()
+  const rd = t.tobaccoRepay.repayRecordDialog
   const { data: vendorContracts = [], isFetching: isFetchingContracts } = useQuery({
     queryKey: ["repay-record-vendor-contracts", selectedFarmer.mf_id],
     queryFn: () => apiClient.getVendorContracts(token, selectedFarmer.mf_id),
@@ -173,7 +178,7 @@ function ContractSelectField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor="contract_select">Contract</Label>
+      <Label htmlFor="contract_select">{rd.contract}</Label>
       <Select
         value={selectedContract ? String(selectedContract.con_id) : ""}
         onValueChange={(v) => {
@@ -183,7 +188,7 @@ function ContractSelectField({
         disabled={isFetchingContracts}
       >
         <SelectTrigger id="contract_select" className="w-full">
-          <SelectValue placeholder={isFetchingContracts ? "Loading contracts..." : "Select a contract..."} />
+          <SelectValue placeholder={isFetchingContracts ? rd.loadingContracts : rd.selectContractPlaceholder} />
         </SelectTrigger>
         <SelectContent>
           {vendorContracts.map((c) => (
@@ -195,7 +200,7 @@ function ContractSelectField({
       </Select>
       {selectedContract && (
         <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground flex justify-between">
-          <span>Remaining</span>
+          <span>{rd.remaining}</span>
           <span className="font-medium text-foreground">
             {remaining == null ? "—" : `${remaining.toLocaleString()} kg`}
           </span>
@@ -221,10 +226,12 @@ function OvenSelect({
   onChange: (v: string) => void
   disabled: boolean
 }>) {
+  const { t } = useLanguage()
+  const rd = t.tobaccoRepay.repayRecordDialog
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
       <SelectTrigger id="oven" className="w-full">
-        <SelectValue placeholder="Select an oven..." />
+        <SelectValue placeholder={rd.selectOvenPlaceholder} />
       </SelectTrigger>
       <SelectContent>
         {ovens.map((ov) => (
@@ -312,6 +319,8 @@ export function RepayRecordDialog({
   repayId,
   selectedYear,
 }: Readonly<RepayRecordDialogProps>) {
+  const { t } = useLanguage()
+  const rd = t.tobaccoRepay.repayRecordDialog
   const queryClient = useQueryClient()
   const isAddMode = mode === "add"
   const isViewMode = mode === "view"
@@ -397,7 +406,7 @@ export function RepayRecordDialog({
         note: note.trim() || undefined,
       }),
     onSuccess: () => {
-      toast.success("Repayment recorded successfully")
+      toast.success(rd.toastCreateSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["repay-record-vendor-contracts"] })
@@ -405,7 +414,7 @@ export function RepayRecordDialog({
       handleClose()
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to record repayment")
+      toast.error(err.message || rd.toastCreateError)
     },
   })
 
@@ -418,7 +427,7 @@ export function RepayRecordDialog({
         note: note.trim() || undefined,
       }),
     onSuccess: () => {
-      toast.success("Repay record updated successfully")
+      toast.success(rd.toastUpdateSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["repay-detail", repayId] })
@@ -427,27 +436,27 @@ export function RepayRecordDialog({
       handleClose()
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to update repay record")
+      toast.error(err.message || rd.toastUpdateError)
     },
   })
 
   function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     if (Number.isNaN(parsedQty) || parsedQty <= 0) {
-      toast.error("Enter a valid quantity")
+      toast.error(rd.errInvalidQty)
       return
     }
     if (isAddMode) {
       if (!selectedFarmer) {
-        toast.error("Please select a farmer")
+        toast.error(rd.errSelectFarmer)
         return
       }
       if (!selectedContract) {
-        toast.error("Please select a contract")
+        toast.error(rd.errSelectContract)
         return
       }
       if (remaining != null && parsedQty > remaining) {
-        toast.error(`Quantity exceeds remaining balance (${remaining.toLocaleString()} kg)`)
+        toast.error(rd.errExceedsRemaining.replace("{remaining}", remaining.toLocaleString()))
         return
       }
       createRepay()
@@ -459,7 +468,7 @@ export function RepayRecordDialog({
   const isPending = isCreating || isUpdating
   const isLoading = !isAddMode && isLoadingDetail
 
-  const titleText = titleForMode(mode)
+  const titleText = titleForMode(mode, rd)
 
   const ovenDisplay = ovens.find((o) => String(o.id) === ovenId)
   const ovenName = ovenDisplay ? formatOvenLabel(ovenDisplay) : null
@@ -478,43 +487,43 @@ export function RepayRecordDialog({
         <div className="rounded-md border divide-y text-sm">
           <div className="grid grid-cols-2 gap-2 p-3 divide-x">
             <div className="flex flex-col gap-0.5">
-              <span className="text-muted-foreground">Invoice</span>
+              <span className="text-muted-foreground">{rd.viewInvoice}</span>
               <span className="font-medium">{repayNum || "—"}</span>
             </div>
             <div className="flex flex-col gap-0.5 pl-3">
-              <span className="text-muted-foreground">Contract No</span>
+              <span className="text-muted-foreground">{rd.viewContractNo}</span>
               <span className="font-medium">{conNumDisplay || "—"}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 p-3 divide-x">
             <div className="flex flex-col gap-0.5">
-              <span className="text-muted-foreground">Farmer</span>
+              <span className="text-muted-foreground">{rd.viewFarmer}</span>
               <span className="font-medium">{farmerNameDisplay || "—"}</span>
             </div>
             <div className="flex flex-col gap-0.5 pl-3">
-              <span className="text-muted-foreground">Tobacco Type</span>
+              <span className="text-muted-foreground">{rd.viewTobaccoType}</span>
               <span className="font-medium">{tobaccoTypeDisplay || "—"}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 p-3 divide-x">
             <div className="flex flex-col gap-0.5">
-              <span className="text-muted-foreground">Delivery (kg)</span>
+              <span className="text-muted-foreground">{rd.viewDeliveryKg}</span>
               <span className="font-medium text-[#009640]">
                 {Number.isNaN(parsedViewQty) ? "—" : `${parsedViewQty.toLocaleString()} kg`}
               </span>
             </div>
             <div className="flex flex-col gap-0.5 pl-3">
-              <span className="text-muted-foreground">Oven</span>
+              <span className="text-muted-foreground">{rd.viewOven}</span>
               <span className="font-medium">{ovenName || "—"}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 p-3 divide-x">
             <div className="flex flex-col gap-0.5">
-              <span className="text-muted-foreground">Date</span>
+              <span className="text-muted-foreground">{rd.viewDate}</span>
               <span className="font-medium">{repayDate || "—"}</span>
             </div>
             <div className="flex flex-col gap-0.5 pl-3">
-              <span className="text-muted-foreground">Note</span>
+              <span className="text-muted-foreground">{rd.viewNote}</span>
               <span className="font-medium">{note || "—"}</span>
             </div>
           </div>
@@ -522,7 +531,7 @@ export function RepayRecordDialog({
 
         <DialogFooter className="pt-2">
           <Button type="button" variant="outline" onClick={handleClose}>
-            Close
+            {rd.close}
           </Button>
         </DialogFooter>
       </div>
@@ -532,12 +541,12 @@ export function RepayRecordDialog({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
         {/* Repay Number */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="repay_num">Repay Number</Label>
+          <Label htmlFor="repay_num">{rd.repayNumber}</Label>
           <Input
             id="repay_num"
             value={repayNum}
             readOnly
-            placeholder="Generating..."
+            placeholder={rd.generating}
             className="bg-muted/40 cursor-default font-mono"
           />
         </div>
@@ -545,7 +554,7 @@ export function RepayRecordDialog({
         {/* Add mode: Farmer search */}
         {isAddMode && (
           <div className="space-y-1 flex flex-col">
-            <Label className="text-sm font-medium">Farmer</Label>
+            <Label className="text-sm font-medium">{rd.farmer}</Label>
             <FarmerCombobox
               token={token}
               selectedFarmer={selectedFarmer}
@@ -571,15 +580,15 @@ export function RepayRecordDialog({
         {!isAddMode && (
           <>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_num">Contract</Label>
+              <Label htmlFor="con_num">{rd.contract}</Label>
               <Input id="con_num" value={conNumDisplay} readOnly className="bg-muted/40 cursor-default" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="farmer">Farmer</Label>
+              <Label htmlFor="farmer">{rd.farmer}</Label>
               <Input id="farmer" value={farmerNameDisplay} readOnly className="bg-muted/40 cursor-default" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="tobacco_type">Tobacco Type</Label>
+              <Label htmlFor="tobacco_type">{rd.tobaccoType}</Label>
               <Input id="tobacco_type" value={tobaccoTypeDisplay} readOnly className="bg-muted/40 cursor-default" />
             </div>
           </>
@@ -587,7 +596,7 @@ export function RepayRecordDialog({
 
         {/* Quantity */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="quantity">Quantity (kg)</Label>
+          <Label htmlFor="quantity">{rd.quantityKg}</Label>
           <Input
             id="quantity"
             type="number"
@@ -596,7 +605,7 @@ export function RepayRecordDialog({
             step="any"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            placeholder="Enter quantity..."
+            placeholder={rd.quantityPlaceholder}
             required
           />
         </div>
@@ -604,14 +613,14 @@ export function RepayRecordDialog({
         {/* Oven */}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="oven">
-            Oven <span className="text-muted-foreground">(optional)</span>
+            {rd.oven} <span className="text-muted-foreground">{rd.optional}</span>
           </Label>
           <OvenSelect ovens={ovens} value={ovenId} onChange={setOvenId} disabled={false} />
         </div>
 
         {/* Date */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="repay_date">Date</Label>
+          <Label htmlFor="repay_date">{rd.date}</Label>
           <Input
             id="repay_date"
             type="date"
@@ -624,11 +633,11 @@ export function RepayRecordDialog({
         {/* Note */}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="note">
-            Note <span className="text-muted-foreground">(optional)</span>
+            {rd.note} <span className="text-muted-foreground">{rd.optional}</span>
           </Label>
           <Input
             id="note"
-            placeholder="Add a note..."
+            placeholder={rd.notePlaceholder}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
@@ -636,7 +645,7 @@ export function RepayRecordDialog({
 
         <DialogFooter className="pt-2">
           <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
-            Cancel
+            {rd.cancel}
           </Button>
           <Button
             type="submit"
@@ -644,7 +653,7 @@ export function RepayRecordDialog({
             className="bg-[#009640] hover:bg-[#007a33] text-white"
           >
             {isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save
+            {rd.save}
           </Button>
         </DialogFooter>
       </form>

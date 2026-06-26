@@ -14,4 +14,15 @@ export const userApi = {
     }
     return response.json();
   },
+
+  async listUsers(accessToken: string): Promise<UserProfile[]> {
+    const response = await fetch(`${API_BASE_URL}/users/`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch members");
+    }
+    return response.json();
+  },
 };
