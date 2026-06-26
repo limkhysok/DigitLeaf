@@ -28,7 +28,7 @@ ROLES = [
 
 ROLE_PERMISSIONS = {
     "admin": ["login_system", "manage_users", "view_audit_logs", "approve_leave"],
-    "boss": ["login_system", "view_audit_logs", "approve_leave"],
+    "boss": ["login_system", "manage_users", "view_audit_logs", "approve_leave"],
     "office_staff": ["login_system"],
     "field_staff": ["login_system"],
 }

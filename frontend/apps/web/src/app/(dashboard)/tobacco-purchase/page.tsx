@@ -60,6 +60,7 @@ export default function TobaccoPurchasePage() {
   const [search] = useDebounce(searchInput, 400)
 
   const [buyerFilter, setBuyerFilter] = useQueryState("buyer", parseAsInteger)
+  const [regionFilter, setRegionFilter] = useQueryState("region", parseAsInteger)
   const [sortGrandTotal, setSortGrandTotal] = useQueryState("sort_grand_total", parseAsString)
   const [sortNetWeight, setSortNetWeight] = useQueryState("sort_net_weight", parseAsString)
 
@@ -84,13 +85,14 @@ export default function TobaccoPurchasePage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["tobacco-purchases", search, buyerFilter, sortGrandTotal, sortNetWeight],
+    queryKey: ["tobacco-purchases", search, buyerFilter, regionFilter, sortGrandTotal, sortNetWeight],
     queryFn: ({ pageParam = 1 }) =>
       apiClient.getTobaccoPurchases(tokens!.access_token, {
         page: pageParam,
         limit: PAGE_SIZE,
         search: search || undefined,
         buyer: buyerFilter ?? undefined,
+        region: regionFilter ?? undefined,
         sort_grand_total: (sortGrandTotal as SortDir) ?? undefined,
         sort_net_weight: (sortNetWeight as SortDir) ?? undefined,
       }),
@@ -268,6 +270,8 @@ export default function TobaccoPurchasePage() {
   const sharedFilterProps = {
     purchasers,
     buyerFilter, setBuyerFilter: (v: number | null) => { setBuyerFilter(v) },
+    regions,
+    regionFilter, setRegionFilter: (v: number | null) => { setRegionFilter(v) },
   }
 
   const sharedCardProps = {
@@ -307,6 +311,9 @@ export default function TobaccoPurchasePage() {
           purchasers={purchasers}
           buyerFilter={buyerFilter}
           setBuyerFilter={setBuyerFilter}
+          regions={regions}
+          regionFilter={regionFilter}
+          setRegionFilter={setRegionFilter}
           searchInput={searchInput || ""}
           setSearchInput={setSearchInput}
         />

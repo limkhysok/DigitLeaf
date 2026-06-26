@@ -8,7 +8,7 @@ import { Input } from "@workspace/ui/components/input"
 import { Separator } from "@workspace/ui/components/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { cn } from "@workspace/ui/lib/utils"
-import type { PurchaserItem } from "@/services/api-client"
+import type { PurchaserItem, RegionItem } from "@/services/api-client"
 import { useLanguage } from "@/hooks/use-language"
 
 
@@ -19,6 +19,9 @@ interface MobileFilterBarProps {
   purchasers: PurchaserItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
+  regions: RegionItem[]
+  regionFilter: number | null
+  setRegionFilter: (v: number | null) => void
   className?: string
 }
 
@@ -26,11 +29,15 @@ export function MobileFilterBar({
   searchInput, setSearchInput, onAdd,
   purchasers,
   buyerFilter, setBuyerFilter,
+  regions,
+  regionFilter, setRegionFilter,
   className,
 }: Readonly<MobileFilterBarProps>) {
   const { t } = useLanguage()
   const activeCount = [buyerFilter !== null].filter(Boolean).length
+  const regionActiveCount = [regionFilter !== null].filter(Boolean).length
   const clearAll = () => setBuyerFilter(null)
+  const clearRegion = () => setRegionFilter(null)
 
   return (
     <div className={cn("flex items-center gap-2", className || "flex lg:hidden")}>
@@ -86,12 +93,63 @@ export function MobileFilterBar({
         </PopoverContent>
       </Popover>
 
+      {/* Region filter popover */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            suppressHydrationWarning
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-8 px-3 rounded-md border-dashed shrink-0 transition-all",
+              regionActiveCount > 0
+                ? "border-primary/60 bg-primary/5 text-primary hover:bg-primary/10"
+                : "border-border bg-background hover:bg-muted/30 text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <IconCirclePlus className="size-4 shrink-0" />
+            <span className="ml-1.5">{t.tobaccoPurchase.table.region}</span>
+            {regionActiveCount > 0 && (
+              <>
+                <Separator orientation="vertical" className="mx-2 h-4" />
+                <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                  {regionActiveCount}
+                </Badge>
+              </>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-4" align="start">
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between border-b pb-2">
+              <h3 className="text-sm font-semibold">{t.tobaccoPurchase.table.region}</h3>
+              {regionActiveCount > 0 && (
+                <button
+                  onClick={clearRegion}
+                  className="text-xs text-destructive hover:text-destructive/80 underline underline-offset-2 transition-colors"
+                >
+                  {t.common.reset}
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5 pb-2">
+              <PillButton active={regionFilter === null} onClick={() => setRegionFilter(null)}>{t.sackRegistration.filters.statusAll}</PillButton>
+              {regions.map(r => (
+                <PillButton key={r.reg_id} active={regionFilter === r.reg_id} onClick={() => setRegionFilter(r.reg_id)}>
+                  {r.reg_name}
+                </PillButton>
+              ))}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+
       {/* Reset button — visible when a filter is active */}
-      {activeCount > 0 && (
+      {(activeCount > 0 || regionActiveCount > 0) && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={clearAll}
+          onClick={() => { clearAll(); clearRegion(); }}
           className="h-8 px-2 shrink-0"
         >
           {t.common.reset}

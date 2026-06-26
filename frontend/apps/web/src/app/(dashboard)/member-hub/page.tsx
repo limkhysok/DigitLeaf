@@ -10,7 +10,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
 import { toast } from "sonner"
 import { Input } from "@workspace/ui/components/input"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -157,7 +156,7 @@ export default function MemberHubPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{t.memberHub.title}</h1>
-          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">
+          <p className="text-muted-foreground text-sm md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">
             {t.memberHub.subtitle}
           </p>
         </div>
@@ -171,7 +170,7 @@ export default function MemberHubPage() {
           placeholder={t.memberHub.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="rounded-md h-8 w-full sm:w-62.5 text-xs placeholder:text-sm"
+          className="rounded-md h-8 w-full sm:w-62.5 text-sm placeholder:text-sm"
         />
       </div>
 
@@ -239,7 +238,6 @@ export default function MemberHubPage() {
               </TableHeader>
               <TableBody className="bg-white text-black">
                 {filteredMembers.map((member: UserProfile, idx: number) => {
-                  const initials = member.user_name.substring(0, 2).toUpperCase()
                   return (
                     <TableRow key={member.id} className="group/row" data-state={selectedIds.has(member.id) && "selected"}>
                       <TableCell>
@@ -252,26 +250,19 @@ export default function MemberHubPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2.5">
-                          <Avatar className="size-7 rounded-full border border-border/60 shrink-0">
-                            <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground rounded-full">
-                              {initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium capitalize">{member.user_name}</span>
-                        </div>
+                        <span className="font-medium capitalize">{member.user_name}</span>
                       </TableCell>
                       <TableCell>
                         <Select
                           value={member.role_id ? String(member.role_id) : ""}
                           onValueChange={(value) => changeRole({ userId: member.id, roleId: Number(value) })}
                         >
-                          <SelectTrigger className="h-7 w-40 text-xs capitalize">
+                          <SelectTrigger className="h-7 w-40 text-sm capitalize">
                             <SelectValue placeholder="—" />
                           </SelectTrigger>
                           <SelectContent>
                             {(roles ?? []).map((role) => (
-                              <SelectItem key={role.id} value={String(role.id)} className="capitalize text-xs">
+                              <SelectItem key={role.id} value={String(role.id)} className="capitalize text-sm">
                                 {role.name.replaceAll("_", " ")}
                               </SelectItem>
                             ))}
@@ -299,7 +290,7 @@ export default function MemberHubPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setRegionsTarget(member)}
-                            className="h-7 text-xs"
+                            className="h-7 text-sm"
                           >
                             <IconMapPin className="h-3.5 w-3.5" />
                             {t.memberHub.manageRegions}

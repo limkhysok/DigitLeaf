@@ -255,6 +255,8 @@ export const translations = {
       toolbar: {
         representative: "Representative",
         noRepresentativesFound: "No representatives found.",
+        region: "Region",
+        noRegionsFound: "No regions found.",
         clearFilter: "Clear filter",
         searchPlaceholder: "Search records...",
         columnNo: "No.",
@@ -1272,6 +1274,8 @@ export const translations = {
       toolbar: {
         representative: "តំណាង",
         noRepresentativesFound: "រកមិនឃើញតំណាងទេ។",
+        region: "តំបន់",
+        noRegionsFound: "រកមិនឃើញតំបន់ទេ។",
         clearFilter: "សម្អាតតម្រង",
         searchPlaceholder: "ស្វែងរកកំណត់ត្រា...",
         columnNo: "ល.រ",
@@ -1811,6 +1815,8 @@ export type TranslationType = {
     readonly toolbar: {
       readonly representative: string;
       readonly noRepresentativesFound: string;
+      readonly region: string;
+      readonly noRegionsFound: string;
       readonly clearFilter: string;
       readonly searchPlaceholder: string;
       readonly columnNo: string;

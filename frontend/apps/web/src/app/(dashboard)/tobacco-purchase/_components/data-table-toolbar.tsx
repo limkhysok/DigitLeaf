@@ -20,7 +20,7 @@ import {
 } from "@workspace/ui/components/command"
 import { cn } from "@workspace/ui/lib/utils"
 
-import type { PurchaserItem } from "@/services/api-client"
+import type { PurchaserItem, RegionItem } from "@/services/api-client"
 import { useLanguage } from "@/hooks/use-language"
 
 const ExportButton = dynamic(
@@ -35,6 +35,9 @@ interface DataTableToolbarProps<TData> {
   purchasers: PurchaserItem[]
   buyerFilter: number | null
   setBuyerFilter: (v: number | null) => void
+  regions: RegionItem[]
+  regionFilter: number | null
+  setRegionFilter: (v: number | null) => void
   searchInput: string
   setSearchInput: (v: string) => void
 }
@@ -46,15 +49,19 @@ export function DataTableToolbar<TData>({
   purchasers,
   buyerFilter,
   setBuyerFilter,
+  regions,
+  regionFilter,
+  setRegionFilter,
   searchInput,
   setSearchInput,
 }: Readonly<DataTableToolbarProps<TData>>) {
   const { t } = useLanguage()
   const tb = t.tobaccoPurchase.toolbar
-  const isFiltered = buyerFilter !== null || searchInput !== ""
+  const isFiltered = buyerFilter !== null || regionFilter !== null || searchInput !== ""
 
   const clearAll = () => {
     setBuyerFilter(null)
+    setRegionFilter(null)
     setSearchInput("")
   }
 
@@ -147,6 +154,84 @@ export function DataTableToolbar<TData>({
                     <CommandGroup>
                       <CommandItem
                         onSelect={() => setBuyerFilter(null)}
+                        className="justify-center text-center"
+                      >
+                        {tb.clearFilter}
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Region Dropdown */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
+              <IconCirclePlus className="mr-2 h-4 w-4" />
+              {tb.region}
+              {regionFilter !== null && (
+                <>
+                  <Separator orientation="vertical" className="mx-2 h-4" />
+                  <Badge
+                    variant="secondary"
+                    className="rounded-sm px-1 font-normal lg:hidden"
+                  >
+                    1
+                  </Badge>
+                  <div className="hidden space-x-1 lg:flex">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-sm px-1 font-normal"
+                    >
+                      {regions.find(r => r.reg_id === regionFilter)?.reg_name}
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-50 p-0" align="start">
+            <Command>
+              <CommandList>
+                <CommandEmpty>{tb.noRegionsFound}</CommandEmpty>
+                <CommandGroup>
+                  {regions.map((r) => {
+                    const isSelected = regionFilter === r.reg_id
+                    return (
+                      <CommandItem
+                        key={r.reg_id}
+                        onSelect={() => {
+                          if (isSelected) {
+                            setRegionFilter(null)
+                          } else {
+                            setRegionFilter(r.reg_id)
+                          }
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "opacity-50 [&_svg]:invisible"
+                          )}
+                        >
+                          <IconCheck className={cn("h-4 w-4")} />
+                        </div>
+                        <span>{r.reg_name}</span>
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+                {regionFilter !== null && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => setRegionFilter(null)}
                         className="justify-center text-center"
                       >
                         {tb.clearFilter}

@@ -114,6 +114,7 @@ async def list_purchases(
     limit: int = Query(20, ge=1, le=500),
     search: Optional[str] = None,
     buyer: Optional[int] = None,
+    region: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ):
@@ -124,6 +125,7 @@ async def list_purchases(
         limit=limit,
         search=search,
         buyer=buyer,
+        region=region,
         sort_grand_total=sort_grand_total,
         sort_net_weight=sort_net_weight,
     )

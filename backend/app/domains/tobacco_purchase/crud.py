@@ -412,6 +412,7 @@ async def get_purchases(
     limit: int = 20,
     search: Optional[str] = None,
     buyer: Optional[int] = None,
+    region: Optional[int] = None,
     sort_grand_total: Optional[Literal["asc", "desc"]] = None,
     sort_net_weight: Optional[Literal["asc", "desc"]] = None,
 ) -> Tuple[List[Any], int]:
@@ -485,6 +486,10 @@ async def get_purchases(
     if buyer is not None:
         data_base = data_base.where(col(TobaccoPurchase.buyer) == buyer)
         count_base = count_base.where(col(TobaccoPurchase.buyer) == buyer)
+
+    if region is not None:
+        data_base = data_base.where(col(TobaccoPurchase.region) == region)
+        count_base = count_base.where(col(TobaccoPurchase.region) == region)
 
     total = await db.scalar(select(func.count()).select_from(count_base.subquery()))
 
@@ -631,7 +636,16 @@ async def get_purchasers(db: AsyncSession) -> List[Purchaser]:
 
 
 async def get_regions(db: AsyncSession) -> List[Region]:
-    result = await db.execute(select(Region).where(Region.do_not_show == 0))
+    # Region.do_not_show is not maintained (always 0 for every row, including
+    # legacy/unrelated entries like country names), so "active" regions are
+    # derived the same way as active purchasers: via the Represent flag.
+    result = await db.execute(
+        select(Region)
+        .join(Purchaser, col(Region.reg_id) == col(Purchaser.region))
+        .join(Represent, col(Purchaser.p_id) == col(Represent.p_id))
+        .where(Represent.do_not_show == 0)
+        .distinct()
+    )
     return list(result.scalars().all())
 
 
