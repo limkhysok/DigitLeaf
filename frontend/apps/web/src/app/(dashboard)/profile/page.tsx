@@ -35,33 +35,33 @@ const LEAF_PATTERN = [
 
 export default function ProfilePage() {
   const { user, tokens, logout } = useAuth()
-  const { t, language } = useLanguage()
+  const { t } = useLanguage()
 
   const [regionName, setRegionName] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
     const loadRegion = async () => {
-      if (!tokens?.access_token || user?.region == null) {
+      if (!tokens?.access_token || !user?.regions?.length) {
         if (isMounted) setRegionName(null)
         return
       }
       try {
         const regions = await apiClient.getRegions(tokens.access_token)
-        const match = regions.find((r) => r.reg_id === user.region)
-        if (!match) {
+        const matches = regions.filter((r) => user.regions.includes(r.reg_id))
+        if (!matches.length) {
           if (isMounted) setRegionName(null)
           return
         }
-        const name = language === "kh" ? match.reg_name_kh || match.reg_name : match.reg_name
-        if (isMounted) setRegionName(name)
+        const names = matches.map((m) => (m.reg_name_kh ? `${m.reg_name} | ${m.reg_name_kh}` : m.reg_name))
+        if (isMounted) setRegionName(names.join(", "))
       } catch (err) {
         console.error("Failed to fetch region", err)
       }
     }
     loadRegion()
     return () => { isMounted = false }
-  }, [tokens, user?.region, language])
+  }, [tokens, user?.regions])
 
   if (!user) {
     return (

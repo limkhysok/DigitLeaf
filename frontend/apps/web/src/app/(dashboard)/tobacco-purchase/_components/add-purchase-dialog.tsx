@@ -1,6 +1,7 @@
   "use client"
 
   import * as React from "react"
+  import { useLanguage } from "@/hooks/use-language"
 
   import {
     apiClient,
@@ -115,10 +116,12 @@
   }
 
   function TobaccoQuotaDisplay({ displayRemainingQuota }: Readonly<{ displayRemainingQuota: number | null }>) {
+    const { t } = useLanguage();
+
     if (displayRemainingQuota === null) return null;
     return (
       <div className="flex shrink-0 mr-1">
-        <span className="block text-sm md:text-base lg:text-base font-medium text-foreground mr-1">Quota: </span>
+        <span className="block text-sm md:text-base lg:text-base font-medium text-foreground mr-1">{t.tobaccoPurchase.dialog.quotaLabel}</span>
         <div className="flex items-baseline gap-0.5">
           <span className={cn("text-sm md:text-base lg:text-base font-medium",
             displayRemainingQuota >= 0 ? "text-foreground" : "text-red-500"
@@ -137,24 +140,24 @@
     )
   }
 
-  function getDialogLabels(isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
+  function getDialogLabels(t: any, isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
     if (isReadOnly) {
       return {
         title: "View Tobacco Purchase",
-        mobileTitle: "View Tobacco",
+        mobileTitle: t.tobaccoPurchase.dialog.mobileViewTitle,
         description: "Viewing purchase details.",
       }
     }
     if (initialData) {
       return {
         title: "Edit Tobacco Purchase",
-        mobileTitle: "Edit Tobacco",
+        mobileTitle: t.tobaccoPurchase.dialog.mobileEditTitle,
         description: "Update the purchase information below.",
       }
     }
     return {
       title: "New Tobacco Purchase",
-      mobileTitle: "Add Tobacco",
+      mobileTitle: t.tobaccoPurchase.dialog.mobileNewTitle,
       description: "Enter purchase details and item breakdown.",
     }
   }
@@ -178,6 +181,7 @@
   }
 
   function validatePurchaseForm(
+    t: any,
     buyer: string,
     vendor: VendorIdType,
     region: string,
@@ -186,32 +190,32 @@
     returns: ReturnItemType[]
   ): boolean {
     if (!buyer) {
-      toast.error("Please select a Representative")
+      toast.error(t.tobaccoPurchase.dialog.toastSelectBuyer)
       return false
     }
     if (!vendor) {
-      toast.error("Please select a Farmer")
+      toast.error(t.tobaccoPurchase.dialog.toastSelectVendor)
       return false
     }
     if (!region) {
-      toast.error("Please select a Region")
+      toast.error(t.tobaccoPurchase.dialog.toastSelectRegion)
       return false
     }
     if (!rate) {
-      toast.error("Please enter a valid exchange rate")
+      toast.error(t.tobaccoPurchase.dialog.toastSelectRate)
       return false
     }
     const realDetails = details.filter(d => !isBlankDetail(d))
     if (realDetails.length === 0 && returns.length === 0) {
-      toast.error("Please add at least one tobacco purchase or repay item")
+      toast.error(t.tobaccoPurchase.dialog.toastAddDetail)
       return false
     }
     if (realDetails.some(d => !d.tobacco_name || !d.gross_weight || !d.price)) {
-      toast.error("Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg")
+      toast.error(t.tobaccoPurchase.dialog.toastCompleteDetail)
       return false
     }
     if (returns.some(r => !r.con_id || !r.tobac_type || !r.qty_repay)) {
-      toast.error("Please ensure all repay items have a Contract, Tobacco Grade, and Quantity")
+      toast.error(t.tobaccoPurchase.dialog.toastCompleteReturn)
       return false
     }
     return true
@@ -244,6 +248,8 @@
     vendor: VendorIdType;
     onSelect: (f: MemberFarmerItem) => void;
   }>) {
+    const { t } = useLanguage();
+
     if (isVendorsLoading) {
       return (
         <div className="flex items-center justify-center py-4">
@@ -306,10 +312,12 @@
     onDetailChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
     onPreviewImage: (url: string) => void
   }>) {
+    const { t } = useLanguage();
+
     return (
       <div className="md:hidden rounded-sm">
         <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
-          <h3 className="flex items-center gap-2 py-2 px-4 text-foreground font-medium">Tobacco Purchase</h3>
+          <h3 className="flex items-center gap-2 py-2 px-4 text-foreground font-medium">{t.tobaccoPurchase.dialog.sectionPurchaseTitle}</h3>
           <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
         </div>
         <div className="space-y-0">
@@ -318,7 +326,7 @@
               <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
                 <IconPlus className="size-5 text-muted-foreground/20" />
               </div>
-              <p className="text-[13px] font-bold text-foreground">No items yet</p>
+              <p className="text-[13px] font-bold text-foreground">{t.tobaccoPurchase.dialog.noItemsYet}</p>
               <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
               {!isReadOnly && (
                 <Button type="button" variant="outline" size="sm" onClick={onAddDetail}
@@ -346,15 +354,15 @@
           {details.length > 0 && (
             <div className="bg-white ml-auto rounded-b-sm py-3 px-5 flex flex-row justify-between items-center w-full md:w-[46%] border-t border-b border-l border-r border-black/40">
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                <span className="text-[11px] font-bold text-foreground uppercase text-left">{t.tobaccoPurchase.dialog.totalLabel}</span>
                 <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
+                <span className="text-[11px] font-bold text-foreground uppercase">{t.tobaccoPurchase.dialog.totalWeightLabel}</span>
                 <span className="text-base font-semibold text-foreground text-right">{totalNetWeight.toFixed(2)} Kg</span>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-[11px] font-bold text-foreground uppercase">Grand Total</span>
+                <span className="text-[11px] font-bold text-foreground uppercase">{t.tobaccoPurchase.dialog.grandTotalLabel}</span>
                 <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
               </div>
             </div>
@@ -387,10 +395,12 @@
     onDetailChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
     onPreviewImage: (url: string) => void
   }>) {
+    const { t } = useLanguage();
+
     return (
       <div className="hidden md:block lg:hidden rounded-sm">
         <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border-b border-t border-l border-r border-black/40">
-          <h3 className="flex items-center gap-2 py-2 px-5 text-foreground font-medium">Tobacco Purchase</h3>
+          <h3 className="flex items-center gap-2 py-2 px-5 text-foreground font-medium">{t.tobaccoPurchase.dialog.sectionPurchaseTitle}</h3>
           <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
         </div>
         {details.length === 0 ? (
@@ -398,7 +408,7 @@
             <div className="size-12 rounded-full bg-white flex items-center justify-center border border-dashed border-black/20">
               <IconPlus className="size-5 text-muted-foreground/20" />
             </div>
-            <p className="text-[13px] font-bold text-foreground">No items yet</p>
+            <p className="text-[13px] font-bold text-foreground">{t.tobaccoPurchase.dialog.noItemsYet}</p>
             <p className="text-[12px] text-muted-foreground/60 text-center max-w-56">Add tobacco items to build the purchase invoice.</p>
             {!isReadOnly && (
               <Button type="button" variant="outline" size="sm" onClick={onAddDetail}
@@ -426,15 +436,15 @@
         {details.length > 0 && (
           <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-t border-b border-l border-r border-black/40">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+              <span className="text-[11px] font-bold text-foreground uppercase text-left">{t.tobaccoPurchase.dialog.totalLabel}</span>
               <span className="text-base font-semibold text-foreground text-left">{details.length} Item</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
+              <span className="text-[11px] font-bold text-foreground uppercase text-center">{t.tobaccoPurchase.dialog.totalWeightLabel}</span>
               <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
             </div>
             <div className="flex flex-col items-end">
-              <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
+              <span className="text-[11px] font-bold text-foreground uppercase text-right">{t.tobaccoPurchase.dialog.grandTotalLabel}</span>
               <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
             </div>
           </div>
@@ -466,6 +476,8 @@
     onDetailChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
     onPreviewImage: (url: string) => void
   }>) {
+    const { t } = useLanguage();
+
     return (
       <div className="hidden lg:block">
         {details.length === 0 ? (
@@ -474,8 +486,8 @@
               <IconPlus className="size-6 text-muted-foreground/20" />
             </div>
             <div className="space-y-1 text-center">
-              <p className="text-[14px] font-bold text-foreground">No tobacco items recorded yet</p>
-              <p className="text-[12px] text-muted-foreground/60 max-w-64">Start building your purchase invoice by adding tobacco items.</p>
+              <p className="text-[14px] font-bold text-foreground">{t.tobaccoPurchase.dialog.noItemsRecorded}</p>
+              <p className="text-[12px] text-muted-foreground/60 max-w-64">{t.tobaccoPurchase.dialog.startBuilding}</p>
             </div>
             {!isReadOnly && (
               <Button type="button" variant="outline" size="sm" onClick={onAddDetail}
@@ -488,7 +500,7 @@
           <div className="rounded-sm border border-black/40 mb-2">
             <div className="flex py-1 px-4 items-center justify-between rounded-t-sm bg-white border-b border-black/40">
               <div className="flex items-center gap-2 py-2 px-1">
-                <h3 className="text-base font-medium text-foreground">Tobacco Purchase</h3>
+                <h3 className="text-base font-medium text-foreground">{t.tobaccoPurchase.dialog.sectionPurchaseTitle}</h3>
               </div>
               <TobaccoQuotaDisplay displayRemainingQuota={displayRemainingQuota} />
             </div>
@@ -508,15 +520,15 @@
             {/* Desktop Summary Bar */}
             <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-2.5">
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+                <span className="text-[11px] font-bold text-foreground uppercase text-left">{t.tobaccoPurchase.dialog.totalLabel}</span>
                 <span className="text-base font-semibold text-foreground">{details.length} Item</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-foreground uppercase text-center">Total Weight</span>
+                <span className="text-[11px] font-bold text-foreground uppercase text-center">{t.tobaccoPurchase.dialog.totalWeightLabel}</span>
                 <span className="text-base font-semibold text-foreground text-center">{totalNetWeight.toFixed(2)} Kg</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-foreground uppercase text-right">Grand Total</span>
+                <span className="text-[11px] font-bold text-foreground uppercase text-right">{t.tobaccoPurchase.dialog.grandTotalLabel}</span>
                 <span className="text-base font-semibold text-foreground text-right">{Math.round(grandTotal).toLocaleString()} ៛</span>
               </div>
             </div>
@@ -543,12 +555,14 @@
     onRemoveReturn: (idx: number) => void
     onReturnChange: (idx: number, field: string, val: string | number) => void
   }>) {
+    const { t } = useLanguage();
+
     if (returns.length === 0) return null
     return (
       <div className="mt-3 mb-2 rounded-md">
         <div className="flex py-1 px-1 items-center justify-between rounded-t-sm bg-white border border-black/40">
           <div className="flex items-center gap-2 py-2 px-4">
-            <h3 className="text-base font-medium text-foreground">Tobacco Repay</h3>
+            <h3 className="text-base font-medium text-foreground">{t.tobaccoPurchase.dialog.sectionRepayTitle}</h3>
           </div>
         </div>
 
@@ -571,11 +585,11 @@
         {/* Mobile & Tablet Summary Bar */}
         <div className="flex lg:hidden bg-white rounded-b-sm py-3 px-5 flex-row justify-between items-center border-b border-l border-r border-black/40">
           <div className="flex flex-col">
-            <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+            <span className="text-[11px] font-bold text-foreground uppercase text-left">{t.tobaccoPurchase.dialog.totalLabel}</span>
             <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-[11px] font-bold text-foreground uppercase">Total Weight</span>
+            <span className="text-[11px] font-bold text-foreground uppercase">{t.tobaccoPurchase.dialog.totalWeightLabel}</span>
             <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
           </div>
         </div>
@@ -598,11 +612,11 @@
           {/* Desktop Summary Bar */}
           <div className="bg-white rounded-b-sm flex flex-row justify-between items-center px-5 py-3 border-b border-l border-r border-black/40">
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-foreground uppercase text-left">Total</span>
+              <span className="text-[11px] font-bold text-foreground uppercase text-left">{t.tobaccoPurchase.dialog.totalLabel}</span>
               <span className="text-base font-semibold text-foreground text-left">{returns.length} Item</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-foreground uppercase text-right">Total Weight</span>
+              <span className="text-[11px] font-bold text-foreground uppercase text-right">{t.tobaccoPurchase.dialog.totalWeightLabel}</span>
               <span className="text-base font-semibold text-foreground text-right">{totalRepayWeight.toFixed(2)} Kg</span>
             </div>
           </div>
@@ -624,6 +638,8 @@
     ovens,
     tobaccoTypes,
   }: Readonly<AddPurchaseDialogProps>) {
+    const { t } = useLanguage();
+
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [printAfterSave, setPrintAfterSave] = React.useState(false)
     const [previewImage, setPreviewImage] = React.useState<string | null>(null)
@@ -914,7 +930,7 @@
 
     const handleSubmit = async (e: React.BaseSyntheticEvent, shouldPrint = false) => {
       e.preventDefault()
-      if (!validatePurchaseForm(buyer, vendor, region, rate, details, returns)) {
+      if (!validatePurchaseForm(t, buyer, vendor, region, rate, details, returns)) {
         return
       }
 
@@ -925,7 +941,7 @@
         let savedRepays: RepayHistoryDetail[] = []
         if (initialData?.tp_id) {
           savedRecord = await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
-          toast.success("Purchase updated successfully")
+          toast.success(t.tobaccoPurchase.dialog.toastSuccessUpdate)
         } else {
           const result = await apiClient.createTobaccoPurchase(accessToken, payload)
           savedRecord = result.purchase
@@ -955,7 +971,7 @@
       return sum + net * (Number(item.price) || 0)
     }, 0)
 
-    const { title, mobileTitle, description } = getDialogLabels(isReadOnly, initialData)
+    const { title, mobileTitle, description } = getDialogLabels(t, isReadOnly, initialData)
 
     const selectedVendorItem = vendors.find((v) => String(v.mf_id) === String(vendor))
     const displayTobacNum = selectedVendorItem?.tobac_num == null
@@ -995,7 +1011,7 @@
 
                   {/* Invoice No. */}
                   <div className="lg:col-span-1 lg:order-1 space-y-1.5">
-                    <Label className="text-sm">Invoice</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.invoiceLabel}</Label>
                     <div className="relative">
                       <IconFileInvoice className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                       <Input
@@ -1008,7 +1024,7 @@
 
                   {/* Representative */}
                   <div className="md:col-span-1 lg:col-span-1 lg:order-6 space-y-1.5">
-                    <Label className="text-sm">Representative</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.representativeLabel}</Label>
                     <Popover open={isBuyerOpen} onOpenChange={(open) => {
                       setIsBuyerOpen(open)
                       if (!open) {
@@ -1020,7 +1036,7 @@
                         <div className="relative group">
                           <IconUser className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                           <Input
-                            placeholder="Search representative..."
+                            placeholder={t.tobaccoPurchase.dialog.representativeSearchPlaceholder}
                             value={buyerSearch}
                             onChange={(e) => {
                               const val = e.target.value
@@ -1073,7 +1089,7 @@
 
                   {/* Region */}
                   <div className="lg:col-span-1 lg:order-5 space-y-1.5">
-                    <Label className="text-sm">Region</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.regionLabel}</Label>
                     <Popover open={isRegionOpen} onOpenChange={setIsRegionOpen}>
                       <PopoverAnchor asChild>
                         <div className="relative group">
@@ -1135,7 +1151,7 @@
 
                   {/* Farmer */}
                   <div className="lg:col-span-1 lg:order-3 space-y-1.5">
-                    <Label className="text-sm">Farmer</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.farmerLabel}</Label>
                     <Popover open={isVendorOpen} onOpenChange={(open) => {
                       setIsVendorOpen(open)
                       if (!open) {
@@ -1147,7 +1163,7 @@
                         <div className="relative group">
                           <IconBuildingStore className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                           <Input
-                            placeholder="Search farmer..."
+                            placeholder={t.tobaccoPurchase.dialog.farmerSearchPlaceholder}
                             value={vendorSearch}
                             onChange={(e) => {
                               const val = e.target.value
@@ -1187,7 +1203,7 @@
 
                   {/* Farmer Address */}
                   <div className="md:col-span-2 lg:col-span-1 lg:order-2 space-y-1.5">
-                    <Label className="text-sm">Address</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.addressLabel}</Label>
                     <div className="relative">
                       <IconHome className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                       <Input
@@ -1202,7 +1218,7 @@
 
                   {/* Oven */}
                   <div className="lg:col-span-1 lg:order-4 space-y-1.5">
-                    <Label className="text-sm">Oven</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.ovenLabel}</Label>
                     <Popover open={isOvenOpen} onOpenChange={setIsOvenOpen}>
                       <PopoverAnchor asChild>
                         <div className="relative group">
@@ -1262,7 +1278,7 @@
 
                   {/* Exchange Rate */}
                   <div className="lg:col-span-1 lg:order-8 space-y-1.5">
-                    <Label className="text-sm">Exchange Rate</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.exchangeRateLabel}</Label>
                     <div className="relative group">
                       <IconCashPlus className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                       <Input
@@ -1285,7 +1301,7 @@
                       <Input
                         value={tpNote}
                         onChange={(e) => setTpNote(e.target.value)}
-                        placeholder="Type notes here..."
+                        placeholder={t.tobaccoPurchase.dialog.remarkPlaceholder}
                         disabled={isReadOnly}
                         className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
                       />
@@ -1294,7 +1310,7 @@
 
                   {/* Purchase Date */}
                   <div className="lg:col-span-1 lg:order-7 space-y-1.5">
-                    <Label className="text-sm">Purchase Date</Label>
+                    <Label className="text-sm">{t.tobaccoPurchase.dialog.purchaseDateLabel}</Label>
                     <div className="relative">
                       <IconCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                       <Input
@@ -1304,7 +1320,7 @@
                           setDateDisplay(masked)
                           setTpDate(parseMaskedDate(masked))
                         }}
-                        placeholder="DD/MM/YYYY"
+                        placeholder={t.tobaccoPurchase.dialog.purchaseDatePlaceholder}
                         maxLength={10}
                         disabled={isReadOnly}
                         className="pl-8 h-8 text-[13px] rounded-sm bg-white border border-black/20 focus-visible:ring-1 focus-visible:ring-black/20 transition-all"
@@ -1428,7 +1444,7 @@
         {previewImage && (
           <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
             <DialogContent className="max-w-3xl p-0 bg-transparent border-none flex items-center justify-center z-120 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 [&>button]:hidden">
-              <DialogTitle className="sr-only">Tobacco Purchase Detail Image Preview</DialogTitle>
+              <DialogTitle className="sr-only">{t.tobaccoPurchase.dialog.previewTitle}</DialogTitle>
               <DialogDescription className="sr-only">Preview of the uploaded image for the tobacco purchase detail.</DialogDescription>
               <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-sm bg-black/90 p-1.5 flex items-center justify-center group/preview">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1465,6 +1481,8 @@
     onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
     onPreviewImage: (url: string) => void
   }) => {
+    const { t } = useLanguage();
+
     const [open, setOpen] = React.useState(false)
     const [search, setSearch] = React.useState(() => {
       const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
@@ -1490,7 +1508,7 @@
         {/* Tobacco Type — full width, X button on label row */}
         <div className="px-5 pt-3 md:px-6 md:pt-4">
           <div className="flex items-center justify-between mb-1.5">
-            <Label className="text-sm">Tobacco Type</Label>
+            <Label className="text-sm">{t.tobaccoPurchase.detailCard.tobaccoTypeLabel}</Label>
             {!isReadOnly && (
               <button
                 type="button"
@@ -1535,7 +1553,7 @@
             >
               <div className="max-h-62.5 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                 {tobaccoTypes.length === 0 ? (
-                  <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
+                  <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">{t.tobaccoPurchase.detailCard.noTobaccoItemsFound}</div>
                 ) : tobaccoTypes
                   .filter(t => {
                     const s = search.toLowerCase()
@@ -1637,7 +1655,7 @@
 
           {/* Col 2 row 1: Gross Weight */}
           <div className="px-3 pt-3 space-y-1">
-            <Label className="text-sm">Gross Weight</Label>
+            <Label className="text-sm">{t.tobaccoPurchase.detailCard.grossWeightLabel}</Label>
             <div className="relative">
               <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="1"
@@ -1651,7 +1669,7 @@
 
           {/* Col 2 row 2: Remork */}
           <div className=" px-3 pt-1.5 space-y-1">
-            <Label className="text-sm">Remork</Label>
+            <Label className="text-sm">{t.tobaccoPurchase.detailCard.remorkLabel}</Label>
             <div className="relative">
               <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number" step="1"
@@ -1666,9 +1684,9 @@
           {/* Col 2 row 3: Sack */}
           <div className="px-3 pt-1.5 pb-2 space-y-1">
             <div className="flex items-center justify-between">
-              <Label className="text-sm">Sack</Label>
+              <Label className="text-sm">{t.tobaccoPurchase.detailCard.sackLabel}</Label>
               <div className="flex items-center gap-1.5">
-                <span className={cn("text-[10px] font-medium transition-colors", detail.farmer_own_sack ? "text-green-600" : "text-muted-foreground/40")}>Own</span>
+                <span className={cn("text-[10px] font-medium transition-colors", detail.farmer_own_sack ? "text-green-600" : "text-muted-foreground/40")}>{t.tobaccoPurchase.detailCard.ownLabel}</span>
                 {isReadOnly ? (
                   <div className={cn(
                     "relative inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent cursor-not-allowed opacity-70",
@@ -1711,7 +1729,7 @@
 
           {/* Row 5: Price/Kg — full width */}
           <div className="col-span-2 px-2 pt-0 pb-2 space-y-1">
-            <Label className="text-sm">Price/Kg</Label>
+            <Label className="text-sm">{t.tobaccoPurchase.detailCard.priceKgLabel}</Label>
             <div className="relative">
               <IconCashPlus className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
               <Input type="number"
@@ -1728,11 +1746,11 @@
         {/* Footer: Net Weight | Total */}
         <div className="grid grid-cols-2">
           <div className="px-6 py-3 space-y-0.5 bg-input/50">
-            <Label className="text-sm text-left">Net Weight</Label>
+            <Label className="text-sm text-left">{t.tobaccoPurchase.detailCard.netWeightLabel}</Label>
             <p className="text-sm font-bold tabular-nums text-left">{netWeight.toFixed(2)}</p>
           </div>
           <div className="px-6 py-3 space-y-0.5 bg-input/50">
-            <Label className="block text-sm text-right">Total</Label>
+            <Label className="block text-sm text-right">{t.tobaccoPurchase.dialog.totalLabel}</Label>
             <p className="text-sm font-bold tabular-nums text-right">
               ៛{total.toLocaleString()}
             </p>
@@ -1806,6 +1824,8 @@
     onChange: (idx: number, field: keyof TobaccoPurchaseDetail, val: string | number) => void
     onPreviewImage: (url: string) => void
   }) => {
+    const { t } = useLanguage();
+
     const [open, setOpen] = React.useState(false)
     const [search, setSearch] = React.useState(() => {
       const t = tobaccoTypes.find(item => item.t_id === detail.tobacco_name)
@@ -1861,7 +1881,7 @@
             {/* Row 1: Tobacco Type 50% | Gross Weight 25% | Price/Kg 25% */}
             <div className="flex">
               <div className="w-[50%] pr-4 space-y-1">
-                <Label className="text-sm">Tobacco Type</Label>
+                <Label className="text-sm">{t.tobaccoPurchase.detailCard.tobaccoTypeLabel}</Label>
                 <Popover open={open} onOpenChange={(isOpen) => {
                   setOpen(isOpen)
                   if (!isOpen) {
@@ -1896,7 +1916,7 @@
                   >
                     <div className="max-h-62.5 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                       {tobaccoTypes.length === 0 ? (
-                        <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">No tobacco items found</div>
+                        <div className="px-3 py-4 text-[12px] text-muted-foreground text-center">{t.tobaccoPurchase.detailCard.noTobaccoItemsFound}</div>
                       ) : tobaccoTypes
                         .filter(t => {
                           const s = search.toLowerCase()
@@ -1930,7 +1950,7 @@
               </div>
 
               <div className="w-[25%] pr-4 space-y-1">
-                <Label className="text-sm">Gross Weight</Label>
+                <Label className="text-sm">{t.tobaccoPurchase.detailCard.grossWeightLabel}</Label>
                 <div className="relative">
                   <IconWeight className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input type="number" step="1"
@@ -1943,7 +1963,7 @@
               </div>
 
               <div className="w-[25%] space-y-1">
-                <Label className="text-sm">Price/Kg</Label>
+                <Label className="text-sm">{t.tobaccoPurchase.detailCard.priceKgLabel}</Label>
                 <div className="relative">
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-60 pointer-events-none">៛</span>
                   <Input type="number"
@@ -1958,7 +1978,7 @@
             {/* Row 2: Remork 25% | Sack 25% | Net Weight 25% | Total Amount 25% */}
             <div className="flex">
               <div className="w-[25%] pr-4 space-y-1">
-                <Label className="text-sm">Remork</Label>
+                <Label className="text-sm">{t.tobaccoPurchase.detailCard.remorkLabel}</Label>
                 <div className="relative">
                   <IconTruck className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input type="number" step="1"
@@ -1972,9 +1992,9 @@
 
               <div className="w-[25%] pr-4 space-y-1">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Sack</Label>
+                  <Label className="text-sm">{t.tobaccoPurchase.detailCard.sackLabel}</Label>
                   <div className="flex items-center gap-1.5">
-                    <span className={cn("text-[10px] font-medium transition-colors", detail.farmer_own_sack ? "text-green-600" : "text-muted-foreground/40")}>Own</span>
+                    <span className={cn("text-[10px] font-medium transition-colors", detail.farmer_own_sack ? "text-green-600" : "text-muted-foreground/40")}>{t.tobaccoPurchase.detailCard.ownLabel}</span>
                     {isReadOnly ? (
                       <div className={cn(
                         "relative inline-flex h-4 w-7 shrink-0 rounded-full border-2 border-transparent cursor-not-allowed opacity-70",
@@ -2016,7 +2036,7 @@
               </div>
 
               <div className="w-[25%] pr-4 space-y-1">
-                <Label className="text-sm">Net Weight</Label>
+                <Label className="text-sm">{t.tobaccoPurchase.detailCard.netWeightLabel}</Label>
                 <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between bg-input/50">
                   <div className="flex items-center gap-1.5">
                     <IconWeight className="h-3.5 w-3.5 text-foreground/80 shrink-0" />
@@ -2027,7 +2047,7 @@
               </div>
 
               <div className="w-[25%] space-y-1">
-                <Label className="text-sm">Total Amount</Label>
+                <Label className="text-sm">{t.tobaccoPurchase.detailCard.totalAmountLabel}</Label>
                 <div className="h-8 border border-black/20 rounded-sm px-2.5 flex items-center justify-between bg-input/50">
                   <span className="text-sm font-bold">៛</span>
                   <span className="text-sm font-bold tabular-nums">{total.toLocaleString()}</span>

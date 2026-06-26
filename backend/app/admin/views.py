@@ -64,12 +64,12 @@ authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
 
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.user_name, User.access_type, User.login_type, User.region, User.do_date]  # type: ignore[assignment]
+    column_list = [User.id, User.user_name, User.access_type, User.login_type, User.do_date]  # type: ignore[assignment]
     column_searchable_list = [User.user_name]  # type: ignore[assignment]
     column_sortable_list = [User.id, User.user_name, User.do_date]  # type: ignore[assignment]
     page_size = 100
 
-    form_columns = [User.user_name, User.password, User.access_type, User.login_type, User.region]  # type: ignore[assignment]
+    form_columns = [User.user_name, User.password, User.access_type, User.login_type]  # type: ignore[assignment]
     icon = "fa-solid fa-users"
 
 

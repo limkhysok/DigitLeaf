@@ -12,7 +12,7 @@ class UserCreate(BaseModel):
     )
     access_type: str = Field(default="", max_length=255, description="Access level, e.g. 'all' for full access")
     login_type: str = Field(default="", max_length=255)
-    region: int | None = Field(default=None, description="reg_id of the region this user is assigned to")
+    regions: list[int] = Field(default_factory=list, description="reg_ids of the regions this user is assigned to")
 
 
 class UserPublic(BaseModel):
@@ -20,7 +20,7 @@ class UserPublic(BaseModel):
     user_name: str
     access_type: str
     login_type: str
-    region: int | None = None
+    regions: list[int] = []
     do_date: datetime | None = None
 
     @field_validator("do_date", mode="before")
@@ -31,3 +31,7 @@ class UserPublic(BaseModel):
         return v
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserRegionsUpdate(BaseModel):
+    regions: list[int] = Field(default_factory=list)

@@ -23,18 +23,9 @@ import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
 import { format, subDays, subMonths, subYears } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
+import { useLanguage } from "@/hooks/use-language"
 
 type DatePreset = "today" | "7d" | "30d" | "3m" | "6m" | "1y" | "custom"
-
-const PRESET_LABELS: Record<DatePreset, string> = {
-  today: "Today",
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
-  "3m": "Last 3 months",
-  "6m": "Last 6 months",
-  "1y": "Last year",
-  custom: "Custom range",
-}
 
 function toLocalYMD(d: Date) {
   const offset = d.getTimezoneOffset()
@@ -60,6 +51,17 @@ interface ExportButtonProps {
 
 export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
   const { tokens } = useAuth()
+  const { t } = useLanguage()
+  const eb = t.tobaccoPurchase.exportButton
+  const PRESET_LABELS: Record<DatePreset, string> = {
+    today: eb.today,
+    "7d": eb.last7Days,
+    "30d": eb.last30Days,
+    "3m": eb.last3Months,
+    "6m": eb.last6Months,
+    "1y": eb.lastYear,
+    custom: eb.customRange,
+  }
   const accessToken = tokens?.access_token
   const today = new Date()
 
@@ -96,10 +98,10 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
       a.remove()
       globalThis.URL.revokeObjectURL(url)
 
-      toast.success("Exported successfully")
+      toast.success(eb.toastSuccess)
       setOpen(false)
     } catch (err) {
-      toast.error((err as Error).message || "Failed to export")
+      toast.error((err as Error).message || eb.toastError)
     } finally {
       setIsExporting(false)
     }
@@ -110,24 +112,24 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 gap-1.5 flex shrink-0">
           <IconDownload className="h-4 w-4" />
-          <span className="hidden sm:inline">Export</span>
+          <span className="hidden sm:inline">{eb.export}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4" align="start">
         <div className="flex flex-col gap-4">
           <div className="space-y-1">
-            <h4 className="text-sm font-semibold">Export Settlement Report</h4>
-            <p className="text-xs text-muted-foreground">Choose a representative and date range to export.</p>
+            <h4 className="text-sm font-semibold">{eb.title}</h4>
+            <p className="text-xs text-muted-foreground">{eb.description}</p>
           </div>
 
           <div className="grid gap-2">
-            <Label className="text-sm font-medium">Representative</Label>
+            <Label className="text-sm font-medium">{eb.representative}</Label>
             <Select
               value={buyerId === null ? undefined : String(buyerId)}
               onValueChange={(v) => setBuyerId(Number(v))}
             >
               <SelectTrigger className="h-8 text-sm w-full">
-                <SelectValue placeholder="Select representative" />
+                <SelectValue placeholder={eb.selectRepresentativePlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 {purchasers.map((p) => (
@@ -138,7 +140,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
           </div>
 
           <div className="grid gap-2">
-            <Label className="text-sm font-medium">Date range</Label>
+            <Label className="text-sm font-medium">{eb.dateRange}</Label>
             <Select value={preset} onValueChange={(v) => setPreset(v as DatePreset)}>
               <SelectTrigger className="h-8 text-sm w-full">
                 <SelectValue />
@@ -154,7 +156,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
           {preset === "custom" && (
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-1">
-                <Label className="text-xs font-medium text-muted-foreground">From</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{eb.from}</Label>
                 <Popover open={fromCalendarOpen} onOpenChange={setFromCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -165,7 +167,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
                       )}
                     >
                       <IconCalendar className="mr-1.5 h-3.5 w-3.5" />
-                      {customFrom ? format(customFrom, "PP") : "Pick date"}
+                      {customFrom ? format(customFrom, "PP") : eb.pickDate}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -182,7 +184,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
                 </Popover>
               </div>
               <div className="grid gap-1">
-                <Label className="text-xs font-medium text-muted-foreground">To</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{eb.to}</Label>
                 <Popover open={toCalendarOpen} onOpenChange={setToCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -193,7 +195,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
                       )}
                     >
                       <IconCalendar className="mr-1.5 h-3.5 w-3.5" />
-                      {customTo ? format(customTo, "PP") : "Pick date"}
+                      {customTo ? format(customTo, "PP") : eb.pickDate}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -221,7 +223,7 @@ export function ExportButton({ purchasers }: Readonly<ExportButtonProps>) {
               ? <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
               : <IconDownload className="h-4 w-4 mr-2" />
             }
-            Download .xlsx
+            {eb.downloadXlsx}
           </Button>
         </div>
       </PopoverContent>

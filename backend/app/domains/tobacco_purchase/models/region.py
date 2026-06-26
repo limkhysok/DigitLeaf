@@ -7,3 +7,4 @@ class Region(SQLModel, table=True):
     reg_name: str = Field(max_length=255)
     reg_name_kh: str | None = Field(default=None, max_length=255)
     do_not_show: int = Field(default=0)
+    w_id: int = Field(default=0)

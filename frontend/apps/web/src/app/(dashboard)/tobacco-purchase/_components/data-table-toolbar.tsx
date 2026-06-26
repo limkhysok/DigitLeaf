@@ -21,6 +21,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { PurchaserItem } from "@/services/api-client"
+import { useLanguage } from "@/hooks/use-language"
 
 const ExportButton = dynamic(
   () => import("./export-button").then((m) => ({ default: m.ExportButton })),
@@ -48,6 +49,8 @@ export function DataTableToolbar<TData>({
   searchInput,
   setSearchInput,
 }: Readonly<DataTableToolbarProps<TData>>) {
+  const { t } = useLanguage()
+  const tb = t.tobaccoPurchase.toolbar
   const isFiltered = buyerFilter !== null || searchInput !== ""
 
   const clearAll = () => {
@@ -62,18 +65,18 @@ export function DataTableToolbar<TData>({
         <div className="hidden lg:flex items-center">
           <DataTableViewOptions
             table={table}
-            title="View"
-            label="Toggle columns"
+            title={t.common.view}
+            label={t.common.toggleColumns}
             columnLabels={{
-              no: "No.",
-              invoice_num: "Invoice No",
-              buyer: "Representative",
-              vendor_name: "Farmer",
-              tobacco_item_count: "Items",
-              net_weight: "Total Weight",
-              grand_total: "Grand Total",
-              purchase_date: "Date",
-              actions: "Actions",
+              no: tb.columnNo,
+              invoice_num: tb.columnInvoiceNo,
+              buyer: tb.columnRepresentative,
+              vendor_name: tb.columnFarmer,
+              tobacco_item_count: tb.columnItems,
+              net_weight: tb.columnTotalWeight,
+              grand_total: tb.columnGrandTotal,
+              purchase_date: tb.columnDate,
+              actions: tb.columnActions,
             }}
           />
         </div>
@@ -83,7 +86,7 @@ export function DataTableToolbar<TData>({
           <PopoverTrigger asChild>
             <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed">
               <IconCirclePlus className="mr-2 h-4 w-4" />
-              Representative
+              {tb.representative}
               {buyerFilter !== null && (
                 <>
                   <Separator orientation="vertical" className="mx-2 h-4" />
@@ -108,7 +111,7 @@ export function DataTableToolbar<TData>({
           <PopoverContent className="w-50 p-0" align="start">
             <Command>
               <CommandList>
-                <CommandEmpty>No representatives found.</CommandEmpty>
+                <CommandEmpty>{tb.noRepresentativesFound}</CommandEmpty>
                 <CommandGroup>
                   {purchasers.map((p) => {
                     const isSelected = buyerFilter === p.p_id
@@ -146,7 +149,7 @@ export function DataTableToolbar<TData>({
                         onSelect={() => setBuyerFilter(null)}
                         className="justify-center text-center"
                       >
-                        Clear filter
+                        {tb.clearFilter}
                       </CommandItem>
                     </CommandGroup>
                   </>
@@ -164,7 +167,7 @@ export function DataTableToolbar<TData>({
             onClick={clearAll}
             className="h-8 px-2 lg:px-3 shrink-0"
           >
-            Reset
+            {t.common.reset}
             <IconX className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -173,7 +176,7 @@ export function DataTableToolbar<TData>({
       {/* Center Group (Search) */}
       <div className="flex-1 flex justify-center lg:justify-end">
         <Input
-          placeholder="Search records..."
+          placeholder={tb.searchPlaceholder}
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
           className="rounded-md h-8 w-full lg:max-w-none lg:w-62.5 text-xs md:text-sm placeholder:text-sm"

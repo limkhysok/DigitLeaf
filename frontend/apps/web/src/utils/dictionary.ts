@@ -189,11 +189,18 @@ export const translations = {
       subtitle: "Manage system members and roles",
       accessDenied: "You don't have permission to view this page",
       noRecordsFound: "No members found",
+      searchPlaceholder: "Search by username...",
+      manageRegions: "Manage Regions",
+      regionsUpdated: "Regions updated",
+      noRegionsAvailable: "No regions available",
+      selectAllRegions: "Select all regions",
+      save: "Save",
       columns: {
+        no: "No",
         username: "Username",
         role: "Role",
         region: "Region",
-        created: "Created",
+        actions: "Actions",
       },
     },
     tobaccoPurchase: {
@@ -220,7 +227,163 @@ export const translations = {
         grandTotal: "Grand Total",
         actions: "Actions",
         noRecords: "No records found.",
-        noRecordsMatch: "No records match your search."
+        noRecordsMatch: "No records match your filters."
+      },
+      list: {
+        deleteTitle: "Are you sure?",
+        deleteDesc: "This action cannot be undone. This will permanently delete the purchase record and all its associated details.",
+        cancel: "Cancel",
+        delete: "Delete",
+        deleting: "Deleting...",
+        toastLoadDetailsError: "Failed to load purchase details",
+        toastDeleteSuccess: "Record deleted successfully",
+        toastLoadPrintError: "Failed to load purchase details for printing",
+        toastGeneratingPdf: "Generating PDF…",
+        toastDownloadSuccess: "Invoice downloaded",
+        toastDownloadError: "Failed to download invoice",
+      },
+      toolbar: {
+        representative: "Representative",
+        noRepresentativesFound: "No representatives found.",
+        clearFilter: "Clear filter",
+        searchPlaceholder: "Search records...",
+        columnNo: "No.",
+        columnInvoiceNo: "Invoice No",
+        columnRepresentative: "Representative",
+        columnFarmer: "Farmer",
+        columnItems: "Items",
+        columnTotalWeight: "Total Weight",
+        columnGrandTotal: "Grand Total",
+        columnDate: "Date",
+        columnActions: "Actions",
+      },
+      columns: {
+        openMenu: "Open menu",
+        view: "View",
+        edit: "Edit",
+        print: "Print",
+        downloadPdf: "Download as PDF",
+        delete: "Delete",
+        no: "No.",
+        invoiceNo: "Invoice No",
+        representative: "Representative",
+        farmer: "Farmer",
+        region: "Region",
+        items: "Items",
+        rate: "Rate",
+        totalWeight: "Total Weight",
+        grandTotal: "Grand Total",
+        date: "Date",
+      },
+      exportButton: {
+        export: "Export",
+        title: "Export Settlement Report",
+        description: "Choose a representative and date range to export.",
+        representative: "Representative",
+        selectRepresentativePlaceholder: "Select representative",
+        dateRange: "Date range",
+        today: "Today",
+        last7Days: "Last 7 days",
+        last30Days: "Last 30 days",
+        last3Months: "Last 3 months",
+        last6Months: "Last 6 months",
+        lastYear: "Last year",
+        customRange: "Custom range",
+        from: "From",
+        to: "To",
+        pickDate: "Pick date",
+        downloadXlsx: "Download .xlsx",
+        toastSuccess: "Exported successfully",
+        toastError: "Failed to export",
+      },
+      dialog: {
+        mobileNewTitle: "Add Tobacco",
+        mobileEditTitle: "Edit Tobacco",
+        mobileViewTitle: "View Tobacco",
+        invoiceLabel: "Invoice",
+        representativeLabel: "Representative",
+        representativeSearchPlaceholder: "Search representative...",
+        regionLabel: "Region",
+        regionPlaceholder: "Region...",
+        farmerLabel: "Farmer",
+        farmerSearchPlaceholder: "Search farmer...",
+        noFarmersFound: "No farmers found",
+        addressLabel: "Address",
+        addressPlaceholder: "Enter address...",
+        ovenLabel: "Oven",
+        ovenPlaceholder: "Oven...",
+        exchangeRateLabel: "Exchange Rate",
+        remarkLabel: "Remark (Optional)",
+        remarkPlaceholder: "Type notes here...",
+        purchaseDateLabel: "Purchase Date",
+        purchaseDatePlaceholder: "DD/MM/YYYY",
+        quotaLabel: "Quota: ",
+        sectionPurchaseTitle: "Tobacco Purchase",
+        sectionRepayTitle: "Tobacco Repay",
+        noItemsYet: "No items yet",
+        addItemsHint: "Add tobacco items to build the purchase invoice.",
+        addFirstItem: "Add First Item",
+        noItemsRecorded: "No tobacco items recorded yet",
+        startBuilding: "Start building your purchase invoice by adding tobacco items.",
+        totalLabel: "Total",
+        itemUnit: "Item",
+        totalWeightLabel: "Total Weight",
+        grandTotalLabel: "Grand Total",
+        addPurchaseBtn: "Purchase",
+        addRepayBtn: "Repay",
+        close: "Close",
+        cancel: "Cancel",
+        saveAndPrint: "Save & Print",
+        updateShort: "Update",
+        saveShort: "Save",
+        updatePurchase: "Update Purchase",
+        savePurchase: "Save Purchase",
+        previewTitle: "Tobacco Purchase Detail Image Preview",
+        previewDesc: "Preview of the uploaded image for the tobacco purchase detail.",
+        toastSelectBuyer: "Please select a Representative",
+        toastSelectVendor: "Please select a Farmer",
+        toastSelectRegion: "Please select a Region",
+        toastSelectRate: "Please enter a valid exchange rate",
+        toastAddDetail: "Please add at least one tobacco purchase or repay item",
+        toastCompleteDetail: "Please ensure all item details have a Tobacco Grade, Gross Weight, and Price/Kg",
+        toastCompleteReturn: "Please ensure all repay items have a Contract, Tobacco Grade, and Quantity",
+        toastSuccessSave: "Purchase recorded successfully",
+        toastSuccessUpdate: "Purchase updated successfully",
+        toastSuccessRepay: "Repay recorded successfully",
+      },
+      detailCard: {
+        tobaccoTypeLabel: "Tobacco Type",
+        searchItemPlaceholder: "Search item...",
+        searchAndSelectPlaceholder: "Search and select tobacco type...",
+        noTobaccoItemsFound: "No tobacco items found",
+        itemLabel: "Item",
+        grossWeightLabel: "Gross Weight",
+        remorkLabel: "Remork",
+        sackLabel: "Sack",
+        ownLabel: "Own",
+        priceKgLabel: "Price/Kg",
+        netWeightLabel: "Net Weight",
+        totalLabel: "Total",
+        totalAmountLabel: "Total Amount",
+        viewPhoto: "View Photo",
+        takeCameraPhoto: "Take Camera Photo",
+        uploadExisting: "Upload Existing",
+      },
+      returnSection: {
+        contractIdLabel: "Contract ID",
+        contractNumberLabel: "Contract Number",
+        searchContractPlaceholder: "Search contract...",
+        noContractsFound: "No contracts found",
+        tobaccoTypeLabel: "Tobacco Type",
+        tobaccoItemLabel: "Tobacco Item",
+        searchTypePlaceholder: "Search type...",
+        searchItemPlaceholder: "Search item...",
+        noLabel: "No",
+        repayLabel: "Repay",
+        completedSuffix: "(Completed)",
+        leftSuffix: "({remaining} / {total} Left)",
+        noTobaccoTypeInContract: "No tobacco type in contract",
+        kg: "Kg",
       },
       form: {
         newTitle: "New Tobacco Purchase",
@@ -1033,11 +1196,18 @@ export const translations = {
       subtitle: "គ្រប់គ្រងសមាជិក និងតួនាទីប្រព័ន្ធ",
       accessDenied: "អ្នកមិនមានសិទ្ធិមើលទំព័រនេះទេ",
       noRecordsFound: "រកមិនឃើញសមាជិកទេ",
+      searchPlaceholder: "ស្វែងរកតាមឈ្មោះអ្នកប្រើប្រាស់...",
+      manageRegions: "គ្រប់គ្រងតំបន់",
+      regionsUpdated: "បានធ្វើបច្ចុប្បន្នភាពតំបន់",
+      noRegionsAvailable: "មិនមានតំបន់",
+      selectAllRegions: "ជ្រើសរើសគ្រប់តំបន់ទាំងអស់",
+      save: "រក្សាទុក",
       columns: {
+        no: "ល.រ",
         username: "ឈ្មោះអ្នកប្រើប្រាស់",
         role: "តួនាទី",
         region: "តំបន់",
-        created: "បានបង្កើត",
+        actions: "សកម្មភាព",
       },
     },
     tobaccoPurchase: {
@@ -1064,7 +1234,163 @@ export const translations = {
         grandTotal: "តម្លៃសរុប",
         actions: "សកម្មភាព",
         noRecords: "រកមិនឃើញកំណត់ត្រាទិញទេ។",
-        noRecordsMatch: "គ្មានកំណត់ត្រាត្រូវនឹងការស្វែងរករបស់អ្នកឡើយ។"
+        noRecordsMatch: "គ្មានកំណត់ត្រាត្រូវនឹងតម្រងរបស់អ្នកឡើយ។"
+      },
+      list: {
+        deleteTitle: "តើអ្នកប្រាកដទេ?",
+        deleteDesc: "សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានឡើយ។ វានឹងលុបកំណត់ត្រាទិញ និងព័ត៌មានលម្អិតទាំងអស់ដែលពាក់ព័ន្ធជាអចិន្ត្រៃយ៍។",
+        cancel: "បោះបង់",
+        delete: "លុប",
+        deleting: "កំពុងលុប...",
+        toastLoadDetailsError: "បរាជ័យក្នុងការទាញយកព័ត៌មានលម្អិតនៃការទិញ",
+        toastDeleteSuccess: "បានលុបកំណត់ត្រាដោយជោគជ័យ",
+        toastLoadPrintError: "បរាជ័យក្នុងការទាញយកព័ត៌មានលម្អិតសម្រាប់បញ្ចូល",
+        toastGeneratingPdf: "កំពុងបង្កើត PDF...",
+        toastDownloadSuccess: "បានទាញយកវិក្កយបត្រ",
+        toastDownloadError: "បរាជ័យក្នុងការទាញយកវិក្កយបត្រ",
+      },
+      toolbar: {
+        representative: "តំណាង",
+        noRepresentativesFound: "រកមិនឃើញតំណាងទេ។",
+        clearFilter: "សម្អាតតម្រង",
+        searchPlaceholder: "ស្វែងរកកំណត់ត្រា...",
+        columnNo: "ល.រ",
+        columnInvoiceNo: "លេខវិក្កយបត្រ",
+        columnRepresentative: "តំណាង",
+        columnFarmer: "កសិករ",
+        columnItems: "មុខទំនិញ",
+        columnTotalWeight: "ទម្ងន់សរុប",
+        columnGrandTotal: "តម្លៃសរុប",
+        columnDate: "កាលបរិច្ឆេទ",
+        columnActions: "សកម្មភាព",
+      },
+      columns: {
+        openMenu: "បើកម៉ឺនុយ",
+        view: "មើល",
+        edit: "កែសម្រួល",
+        print: "បញ្ចូល",
+        downloadPdf: "ទាញយកជា PDF",
+        delete: "លុប",
+        no: "ល.រ",
+        invoiceNo: "លេខវិក្កយបត្រ",
+        representative: "តំណាង",
+        farmer: "កសិករ",
+        region: "តំបន់",
+        items: "មុខទំនិញ",
+        rate: "អត្រា",
+        totalWeight: "ទម្ងន់សរុប",
+        grandTotal: "តម្លៃសរុប",
+        date: "កាលបរិច្ឆេទ",
+      },
+      exportButton: {
+        export: "នាំចេញ",
+        title: "នាំចេញរបាយការណ៍ទូទាត់",
+        description: "ជ្រើសរើសតំណាង និងចន្លោះកាលបរិច្ឆេទដើម្បីនាំចេញ។",
+        representative: "តំណាង",
+        selectRepresentativePlaceholder: "ជ្រើសរើសតំណាង",
+        dateRange: "ចន្លោះកាលបរិច្ឆេទ",
+        today: "ថ្ងៃនេះ",
+        last7Days: "៧ ថ្ងៃចុងក្រោយ",
+        last30Days: "៣០ ថ្ងៃចុងក្រោយ",
+        last3Months: "៣ ខែចុងក្រោយ",
+        last6Months: "៦ ខែចុងក្រោយ",
+        lastYear: "១ ឆ្នាំចុងក្រោយ",
+        customRange: "កំណត់ដោយខ្លួនឯង",
+        from: "ពី",
+        to: "ដល់",
+        pickDate: "ជ្រើសរើសកាលបរិច្ឆេទ",
+        downloadXlsx: "ទាញយក .xlsx",
+        toastSuccess: "បាននាំចេញដោយជោគជ័យ",
+        toastError: "បរាជ័យក្នុងការនាំចេញ",
+      },
+      dialog: {
+        mobileNewTitle: "បន្ថែមថ្នាំជក់",
+        mobileEditTitle: "កែសម្រួលថ្នាំជក់",
+        mobileViewTitle: "មើលថ្នាំជក់",
+        invoiceLabel: "វិក្កយបត្រ",
+        representativeLabel: "តំណាង",
+        representativeSearchPlaceholder: "ស្វែងរកតំណាង...",
+        regionLabel: "តំបន់",
+        regionPlaceholder: "តំបន់...",
+        farmerLabel: "កសិករ",
+        farmerSearchPlaceholder: "ស្វែងរកកសិករ...",
+        noFarmersFound: "រកមិនឃើញកសិករទេ",
+        addressLabel: "អាសយដ្ឋាន",
+        addressPlaceholder: "បញ្ចូលអាសយដ្ឋាន...",
+        ovenLabel: "ឡ",
+        ovenPlaceholder: "ឡ...",
+        exchangeRateLabel: "អត្រាប្តូរប្រាក់",
+        remarkLabel: "សម្គាល់ (ស្រេចចិត្ត)",
+        remarkPlaceholder: "សូមវាយបញ្ចូលកំណត់ចំណាំ...",
+        purchaseDateLabel: "កាលបរិច្ឆេទទិញ",
+        purchaseDatePlaceholder: "ថ្ងៃ/ខែ/ឆ្នាំ",
+        quotaLabel: "កូតា៖ ",
+        sectionPurchaseTitle: "ការទិញសន្លឹកថ្នាំជក់",
+        sectionRepayTitle: "ការសងសន្លឹកថ្នាំជក់",
+        noItemsYet: "មិនទាន់មានទំនិញនៅឡើយទេ",
+        addItemsHint: "បន្ថែមទំនិញថ្នាំជក់ដើម្បីបង្កើតវិក្កយបត្រទិញ។",
+        addFirstItem: "បន្ថែមទំនិញដំបូង",
+        noItemsRecorded: "មិនទាន់មានទំនិញថ្នាំជក់ត្រូវបានកត់ត្រានៅឡើយទេ",
+        startBuilding: "ចាប់ផ្តើមបង្កើតវិក្កយបត្រទិញដោយបន្ថែមទំនិញថ្នាំជក់។",
+        totalLabel: "សរុប",
+        itemUnit: "ទំនិញ",
+        totalWeightLabel: "ទម្ងន់សរុប",
+        grandTotalLabel: "តម្លៃសរុប",
+        addPurchaseBtn: "ទិញ",
+        addRepayBtn: "សង",
+        close: "បិទ",
+        cancel: "បោះបង់",
+        saveAndPrint: "រក្សាទុក និងបញ្ចូល",
+        updateShort: "ធ្វើបច្ចុប្បន្នភាព",
+        saveShort: "រក្សាទុក",
+        updatePurchase: "ធ្វើបច្ចុប្បន្នភាពការទិញ",
+        savePurchase: "រក្សាទុកការទិញ",
+        previewTitle: "មើលរូបភាពលម្អិតទំនិញទិញសន្លឹកថ្នាំជក់",
+        previewDesc: "ការមើលជាមុននៃរូបភាពដែលបានបញ្ចូលសម្រាប់ព័ត៌មានលម្អិតនៃការទិញ។",
+        toastSelectBuyer: "សូមជ្រើសរើសតំណាង",
+        toastSelectVendor: "សូមជ្រើសរើសកសិករ",
+        toastSelectRegion: "សូមជ្រើសរើសតំបន់",
+        toastSelectRate: "សូមបញ្ចូលអត្រាប្តូរប្រាក់ឱ្យបានត្រឹមត្រូវ",
+        toastAddDetail: "សូមបន្ថែមទំនិញទិញ ឬសងយ៉ាងហោចណាស់មួយ",
+        toastCompleteDetail: "សូមប្រាកដថាទំនិញទាំងអស់មានកម្រិតថ្នាក់ ទម្ងន់សរុប និងតម្លៃ/គីឡូ",
+        toastCompleteReturn: "សូមប្រាកដថាទំនិញសងទាំងអស់មានកិច្ចសន្យា កម្រិតថ្នាក់ និងចំនួន",
+        toastSuccessSave: "បានរក្សាទុកការទិញដោយជោគជ័យ",
+        toastSuccessUpdate: "បានធ្វើបច្ចុប្បន្នភាពការទិញដោយជោគជ័យ",
+        toastSuccessRepay: "បានកត់ត្រាការសងដោយជោគជ័យ",
+      },
+      detailCard: {
+        tobaccoTypeLabel: "ប្រភេទសន្លឹកថ្នាំ",
+        searchItemPlaceholder: "ស្វែងរកទំនិញ...",
+        searchAndSelectPlaceholder: "ស្វែងរក និងជ្រើសរើសប្រភេទសន្លឹកថ្នាំ...",
+        noTobaccoItemsFound: "រកមិនឃើញទំនិញថ្នាំជក់ទេ",
+        itemLabel: "ទំនិញ",
+        grossWeightLabel: "ទម្ងន់សរុប",
+        remorkLabel: "រ៉ឺម៉ក",
+        sackLabel: "បាវ",
+        ownLabel: "ផ្ទាល់ខ្លួន",
+        priceKgLabel: "តម្លៃ/គីឡូ",
+        netWeightLabel: "ទម្ងន់សុទ្ធ",
+        totalLabel: "សរុប",
+        totalAmountLabel: "ទឹកប្រាក់សរុប",
+        viewPhoto: "មើលរូបភាព",
+        takeCameraPhoto: "ថតរូបភាព",
+        uploadExisting: "ផ្ទុកឡើងរូបភាព",
+      },
+      returnSection: {
+        contractIdLabel: "លេខកិច្ចសន្យា",
+        contractNumberLabel: "លេខកិច្ចសន្យា",
+        searchContractPlaceholder: "ស្វែងរកកិច្ចសន្យា...",
+        noContractsFound: "រកមិនឃើញកិច្ចសន្យាទេ",
+        tobaccoTypeLabel: "ប្រភេទសន្លឹកថ្នាំ",
+        tobaccoItemLabel: "ទំនិញសន្លឹកថ្នាំ",
+        searchTypePlaceholder: "ស្វែងរកប្រភេទ...",
+        searchItemPlaceholder: "ស្វែងរកទំនិញ...",
+        noLabel: "លេខ",
+        repayLabel: "សង",
+        completedSuffix: "(បានបញ្ចប់)",
+        leftSuffix: "({remaining} / {total} នៅសល់)",
+        noTobaccoTypeInContract: "គ្មានប្រភេទសន្លឹកថ្នាំក្នុងកិច្ចសន្យាទេ",
+        kg: "គីឡូ",
       },
       form: {
         newTitle: "ការទិញសន្លឹកថ្នាំជក់ថ្មី",
@@ -1399,11 +1725,18 @@ export type TranslationType = {
     readonly subtitle: string;
     readonly accessDenied: string;
     readonly noRecordsFound: string;
+    readonly searchPlaceholder: string;
+    readonly manageRegions: string;
+    readonly regionsUpdated: string;
+    readonly noRegionsAvailable: string;
+    readonly selectAllRegions: string;
+    readonly save: string;
     readonly columns: {
+      readonly no: string;
       readonly username: string;
       readonly role: string;
       readonly region: string;
-      readonly created: string;
+      readonly actions: string;
     };
   };
   readonly tobaccoPurchase: {
@@ -1431,6 +1764,162 @@ export type TranslationType = {
       readonly actions: string;
       readonly noRecords: string;
       readonly noRecordsMatch: string;
+    };
+    readonly list: {
+      readonly deleteTitle: string;
+      readonly deleteDesc: string;
+      readonly cancel: string;
+      readonly delete: string;
+      readonly deleting: string;
+      readonly toastLoadDetailsError: string;
+      readonly toastDeleteSuccess: string;
+      readonly toastLoadPrintError: string;
+      readonly toastGeneratingPdf: string;
+      readonly toastDownloadSuccess: string;
+      readonly toastDownloadError: string;
+    };
+    readonly toolbar: {
+      readonly representative: string;
+      readonly noRepresentativesFound: string;
+      readonly clearFilter: string;
+      readonly searchPlaceholder: string;
+      readonly columnNo: string;
+      readonly columnInvoiceNo: string;
+      readonly columnRepresentative: string;
+      readonly columnFarmer: string;
+      readonly columnItems: string;
+      readonly columnTotalWeight: string;
+      readonly columnGrandTotal: string;
+      readonly columnDate: string;
+      readonly columnActions: string;
+    };
+    readonly columns: {
+      readonly openMenu: string;
+      readonly view: string;
+      readonly edit: string;
+      readonly print: string;
+      readonly downloadPdf: string;
+      readonly delete: string;
+      readonly no: string;
+      readonly invoiceNo: string;
+      readonly representative: string;
+      readonly farmer: string;
+      readonly region: string;
+      readonly items: string;
+      readonly rate: string;
+      readonly totalWeight: string;
+      readonly grandTotal: string;
+      readonly date: string;
+    };
+    readonly exportButton: {
+      readonly export: string;
+      readonly title: string;
+      readonly description: string;
+      readonly representative: string;
+      readonly selectRepresentativePlaceholder: string;
+      readonly dateRange: string;
+      readonly today: string;
+      readonly last7Days: string;
+      readonly last30Days: string;
+      readonly last3Months: string;
+      readonly last6Months: string;
+      readonly lastYear: string;
+      readonly customRange: string;
+      readonly from: string;
+      readonly to: string;
+      readonly pickDate: string;
+      readonly downloadXlsx: string;
+      readonly toastSuccess: string;
+      readonly toastError: string;
+    };
+    readonly dialog: {
+      readonly mobileNewTitle: string;
+      readonly mobileEditTitle: string;
+      readonly mobileViewTitle: string;
+      readonly invoiceLabel: string;
+      readonly representativeLabel: string;
+      readonly representativeSearchPlaceholder: string;
+      readonly regionLabel: string;
+      readonly regionPlaceholder: string;
+      readonly farmerLabel: string;
+      readonly farmerSearchPlaceholder: string;
+      readonly noFarmersFound: string;
+      readonly addressLabel: string;
+      readonly addressPlaceholder: string;
+      readonly ovenLabel: string;
+      readonly ovenPlaceholder: string;
+      readonly exchangeRateLabel: string;
+      readonly remarkLabel: string;
+      readonly remarkPlaceholder: string;
+      readonly purchaseDateLabel: string;
+      readonly purchaseDatePlaceholder: string;
+      readonly quotaLabel: string;
+      readonly sectionPurchaseTitle: string;
+      readonly sectionRepayTitle: string;
+      readonly noItemsYet: string;
+      readonly addItemsHint: string;
+      readonly addFirstItem: string;
+      readonly noItemsRecorded: string;
+      readonly startBuilding: string;
+      readonly totalLabel: string;
+      readonly itemUnit: string;
+      readonly totalWeightLabel: string;
+      readonly grandTotalLabel: string;
+      readonly addPurchaseBtn: string;
+      readonly addRepayBtn: string;
+      readonly close: string;
+      readonly cancel: string;
+      readonly saveAndPrint: string;
+      readonly updateShort: string;
+      readonly saveShort: string;
+      readonly updatePurchase: string;
+      readonly savePurchase: string;
+      readonly previewTitle: string;
+      readonly previewDesc: string;
+      readonly toastSelectBuyer: string;
+      readonly toastSelectVendor: string;
+      readonly toastSelectRegion: string;
+      readonly toastSelectRate: string;
+      readonly toastAddDetail: string;
+      readonly toastCompleteDetail: string;
+      readonly toastCompleteReturn: string;
+      readonly toastSuccessSave: string;
+      readonly toastSuccessUpdate: string;
+      readonly toastSuccessRepay: string;
+    };
+    readonly detailCard: {
+      readonly tobaccoTypeLabel: string;
+      readonly searchItemPlaceholder: string;
+      readonly searchAndSelectPlaceholder: string;
+      readonly noTobaccoItemsFound: string;
+      readonly itemLabel: string;
+      readonly grossWeightLabel: string;
+      readonly remorkLabel: string;
+      readonly sackLabel: string;
+      readonly ownLabel: string;
+      readonly priceKgLabel: string;
+      readonly netWeightLabel: string;
+      readonly totalLabel: string;
+      readonly totalAmountLabel: string;
+      readonly viewPhoto: string;
+      readonly takeCameraPhoto: string;
+      readonly uploadExisting: string;
+    };
+    readonly returnSection: {
+      readonly contractIdLabel: string;
+      readonly contractNumberLabel: string;
+      readonly searchContractPlaceholder: string;
+      readonly noContractsFound: string;
+      readonly tobaccoTypeLabel: string;
+      readonly tobaccoItemLabel: string;
+      readonly searchTypePlaceholder: string;
+      readonly searchItemPlaceholder: string;
+      readonly noLabel: string;
+      readonly repayLabel: string;
+      readonly completedSuffix: string;
+      readonly leftSuffix: string;
+      readonly noTobaccoTypeInContract: string;
+      readonly kg: string;
     };
     readonly form: {
       readonly newTitle: string;

@@ -16,6 +16,7 @@ import { TobaccoPurchase, PurchaserItem, RegionItem } from "@/services/api-clien
 import { formatPurchaseDate } from "./utils"
 
 interface ColumnHelpers {
+  t: any
   purchasers: PurchaserItem[]
   regions: RegionItem[]
   onView: (rec: TobaccoPurchase) => void
@@ -25,7 +26,8 @@ interface ColumnHelpers {
   onDownload: (rec: TobaccoPurchase) => void
 }
 
-export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPrint, onDownload }: ColumnHelpers): ColumnDef<TobaccoPurchase>[] {
+export function getColumns({ t, purchasers, regions, onView, onEdit, onDelete, onPrint, onDownload }: ColumnHelpers): ColumnDef<TobaccoPurchase>[] {
+  const col = t.tobaccoPurchase.columns
   return [
     {
       id: "select",
@@ -36,7 +38,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label={col.no}
           className="translate-y-0.5"
         />
       ),
@@ -44,7 +46,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label={col.no}
           className="translate-y-0.5"
         />
       ),
@@ -53,20 +55,20 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
     },
     {
       id: "no",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="No." />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.no} />,
       cell: ({ row }) => <div className="font-medium text-muted-foreground">{row.index + 1}</div>,
       enableSorting: false,
       enableHiding: false,
     },
     {
       accessorKey: "invoice_num",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Invoice No" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.invoiceNo} />,
       cell: ({ row }) => <div className="tabular-nums font-sm">{row.getValue("invoice_num")}</div>,
     },
     {
       id: "buyer",
       accessorFn: (row) => row.buyer,
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Representative" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.representative} />,
       cell: ({ row }) => {
         const buyerId = row.getValue("buyer") as number
         const purchaser = purchasers.find(p => p.p_id === buyerId)
@@ -75,13 +77,13 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
     },
     {
       accessorKey: "vendor_name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Farmer" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.farmer} />,
       cell: ({ row }) => <div className="truncate min-w-20 max-w-37.5">{row.original.vendor_name || "-"}</div>,
     },
     {
       id: "region",
       accessorFn: (row) => row.region,
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Region" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.region} />,
       cell: ({ row }) => {
         const regionId = row.getValue("region") as number | null
         const region = regions.find(r => r.reg_id === regionId)
@@ -90,7 +92,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
     },
     {
       accessorKey: "tobacco_item_count",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Items" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.items} />,
       cell: ({ row }) => {
         const val = row.getValue("tobacco_item_count") as number | null
         if (val == null) return <span className="text-[#9CA3AF] text-xs">-</span>
@@ -104,7 +106,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
     {
       accessorKey: "rate",
       id: "rate",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Rate" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.rate} />,
       cell: ({ row }) => {
         const val = row.original.rate
         return (
@@ -118,7 +120,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
       accessorKey: "total_net_weight",
       // ID must be net_weight for the server-side sorting logic if we map it
       id: "net_weight",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Total Weight" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.totalWeight} />,
       cell: ({ row }) => {
         const val = row.original.total_net_weight
         return (
@@ -131,7 +133,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
     {
       accessorKey: "grand_total",
       id: "grand_total",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Grand Total" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.grandTotal} />,
       cell: ({ row }) => {
         const val = row.original.grand_total
         return (
@@ -144,7 +146,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
     {
       id: "purchase_date",
       accessorFn: (row) => row.tp_date,
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={col.date} />,
       cell: ({ row }) => {
         const rec = row.original
         return <div className="tabular-nums font-sm">{formatPurchaseDate(rec.tp_date)}</div>
@@ -158,26 +160,26 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{col.openMenu}</span>
                 <IconDots className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => onView(rec)}>
                 <IconEye className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                View
+                {col.view}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(rec)}>
                 <IconPencil className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                Edit
+                {col.edit}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onPrint(rec)}>
                 <IconPrinter className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                Print
+                {col.print}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload(rec)}>
                 <IconFileTypePdf className="mr-2 h-4 w-4 text-muted-foreground/70" />
-                Download as PDF
+                {col.downloadPdf}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -185,7 +187,7 @@ export function getColumns({ purchasers, regions, onView, onEdit, onDelete, onPr
                 className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
                 <IconTrash className="mr-2 h-4 w-4" />
-                Delete
+                {col.delete}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

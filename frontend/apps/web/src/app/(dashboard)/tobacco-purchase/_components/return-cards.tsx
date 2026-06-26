@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverAnchor } from "@workspace/ui/components
 import { cn } from "@workspace/ui/lib/utils"
 import { ConTobaccoItem, TobaccoRepayCreate } from "@/services/api-client"
 import { VendorContractItem } from "@/types/tobacco-purchase"
+import { useLanguage } from "@/hooks/use-language"
 
 export type ReturnItemType = Partial<TobaccoRepayCreate> & { tempId: string, con_num?: string }
 
@@ -33,12 +34,14 @@ interface ReturnCardProps {
 export const ReturnDetailCard = React.memo(({
   item, index, isReadOnly, tobaccoTypes, vendorContracts, onRemove, onChange
 }: ReturnCardProps) => {
+  const { t } = useLanguage()
+  const rs = t.tobaccoPurchase.returnSection
   const [openTobac, setOpenTobac] = React.useState(false)
   const [openCon, setOpenCon] = React.useState(false)
 
   const [searchTobac, setSearchTobac] = React.useState(() => {
-    const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-    return t ? formatTobaccoLabel(t) : ""
+    const tt = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+    return tt ? formatTobaccoLabel(tt) : ""
   })
   const [searchCon, setSearchCon] = React.useState(item.con_num || "")
 
@@ -70,13 +73,13 @@ export const ReturnDetailCard = React.memo(({
     } else {
       const activeTobacType = item.tobac_type
       if (activeTobacType) {
-        const t = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
-        setSearchTobac(t ? formatTobaccoLabel(t) : `Unknown ID: ${activeTobacType}`)
+        const tt = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
+        setSearchTobac(tt ? formatTobaccoLabel(tt) : `Unknown ID: ${activeTobacType}`)
       } else {
-        setSearchTobac(selectedContract ? "No tobacco type in contract" : "")
+        setSearchTobac(selectedContract ? rs.noTobaccoTypeInContract : "")
       }
     }
-  }, [item.tobac_type, tobaccoTypes, selectedContract, index, onChange])
+  }, [item.tobac_type, tobaccoTypes, selectedContract, index, onChange, rs])
 
   React.useEffect(() => {
     setSearchCon(item.con_num || "")
@@ -90,7 +93,9 @@ export const ReturnDetailCard = React.memo(({
 
   let remainingText = ""
   if (typeof contractQty === "number") {
-    remainingText = isFullyRepaid ? " (Completed)" : ` (${remaining} / ${contractQty} Left)`
+    remainingText = isFullyRepaid
+      ? ` ${rs.completedSuffix}`
+      : ` ${rs.leftSuffix.replace("{remaining}", String(remaining)).replace("{total}", String(contractQty))}`
   }
 
   return (
@@ -112,7 +117,7 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col1 row1 — No + Seedling icon */}
           <div className="flex flex-col items-start gap-1 md:gap-0 shrink-0 md:space-y-1">
-            <span className="text-sm text-center font-medium text-foreground block whitespace-nowrap">No {index + 1}</span>
+            <span className="text-sm text-center font-medium text-foreground block whitespace-nowrap">{rs.noLabel} {index + 1}</span>
             <div className="h-8 w-8 flex items-center justify-center bg-white pr-1">
               <IconSeedling className="h-6 w-6 text-foreground/70" />
             </div>
@@ -120,7 +125,7 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col2 row1 — Contract Selection */}
           <div className="min-w-0 space-y-1 md:w-[30%]">
-            <Label className="text-sm font-medium text-foreground">Contract ID</Label>
+            <Label className="text-sm font-medium text-foreground">{rs.contractIdLabel}</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
               if (!isOpen) setSearchCon(item.con_num || "")
@@ -129,7 +134,7 @@ export const ReturnDetailCard = React.memo(({
                 <div className="relative group">
                   <IconFileInvoice className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
                   <Input
-                    placeholder="Search contract..."
+                    placeholder={rs.searchContractPlaceholder}
                     value={searchCon}
                     onChange={(e) => { setSearchCon(e.target.value); if (!openCon) setOpenCon(true) }}
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
@@ -152,7 +157,7 @@ export const ReturnDetailCard = React.memo(({
               >
                 <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                   {repayableContracts.length === 0 ? (
-                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
+                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">{rs.noContractsFound}</div>
                   ) : repayableContracts
                     .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
                     .map((c) => (
@@ -189,19 +194,19 @@ export const ReturnDetailCard = React.memo(({
 
           {/* col1 row2 — Tobacco Item */}
           <div className="min-w-0 space-y-1 md:w-[40%]">
-            <Label className="text-sm font-medium text-foreground">Tobacco Type</Label>
+            <Label className="text-sm font-medium text-foreground">{rs.tobaccoTypeLabel}</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
               if (!isOpen) {
-                const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-                setSearchTobac(t ? formatTobaccoLabel(t) : "")
+                const tt = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+                setSearchTobac(tt ? formatTobaccoLabel(tt) : "")
               }
             }}>
               <PopoverAnchor asChild>
                 <div className="relative group">
                   <IconLeaf className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
                   <Input
-                    placeholder="Search type..."
+                    placeholder={rs.searchTypePlaceholder}
                     value={searchTobac}
                     onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}
@@ -224,28 +229,28 @@ export const ReturnDetailCard = React.memo(({
               >
                 <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                   {tobaccoTypes
-                    .filter(t => {
+                    .filter(tt => {
                       const s = searchTobac.toLowerCase()
-                      return t.tobacco?.toLowerCase().includes(s) || t.group_name?.toLowerCase().includes(s)
+                      return tt.tobacco?.toLowerCase().includes(s) || tt.group_name?.toLowerCase().includes(s)
                     })
-                    .map((t) => (
+                    .map((tt) => (
                       <button
-                        key={t.t_id}
+                        key={tt.t_id}
                         type="button"
                         className={cn(
                           "relative flex w-full cursor-pointer select-none items-center px-3 py-2 outline-none border-b border-black/20",
-                          item.tobac_type === t.t_id && "bg-white"
+                          item.tobac_type === tt.t_id && "bg-white"
                         )}
                         onClick={() => {
-                          onChange(index, "tobac_type", t.t_id)
-                          setSearchTobac(formatTobaccoLabel(t))
+                          onChange(index, "tobac_type", tt.t_id)
+                          setSearchTobac(formatTobaccoLabel(tt))
                           setOpenTobac(false)
                         }}
                       >
-                        <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === t.t_id ? "opacity-100" : "opacity-0")} />
+                        <IconCheck className={cn("mr-2 h-3 w-3", item.tobac_type === tt.t_id ? "opacity-100" : "opacity-0")} />
                         <div className="flex flex-col items-start">
-                          <span className="font-medium">{t.group_name ?? "-"}</span>
-                          <span className="text-sm font-medium text-foreground">{t.tobacco || "-"}</span>
+                          <span className="font-medium">{tt.group_name ?? "-"}</span>
+                          <span className="text-sm font-medium text-foreground">{tt.tobacco || "-"}</span>
                         </div>
                       </button>
                     ))
@@ -258,7 +263,7 @@ export const ReturnDetailCard = React.memo(({
           {/* col2 row2 — Repay */}
           <div className="min-w-0 space-y-1 md:w-[30%]">
             <Label className="text-sm font-medium text-foreground block">
-              Repay<span className={cn("text-sm font-medium", isFullyRepaid ? "text-red-500" : "text-muted-foreground")}>{remainingText}</span>
+              {rs.repayLabel}<span className={cn("text-sm font-medium", isFullyRepaid ? "text-red-500" : "text-muted-foreground")}>{remainingText}</span>
             </Label>
             <div className="relative">
               <IconWeight className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/80 pointer-events-none" />
@@ -267,7 +272,7 @@ export const ReturnDetailCard = React.memo(({
                 value={item.qty_repay ?? ""} disabled={isReadOnly || isFullyRepaid}
                 onChange={(e) => onChange(index, "qty_repay", e.target.value === "" ? 0 : Number.parseFloat(e.target.value))}
               />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">Kg</span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">{rs.kg}</span>
             </div>
           </div>
           </div>{/* end row-2 wrapper */}
@@ -293,12 +298,14 @@ ReturnDetailCard.displayName = "ReturnDetailCard"
 export const ReturnDetailDesktopCard = React.memo(({
   item, index, isReadOnly, tobaccoTypes, vendorContracts, onRemove, onChange
 }: ReturnCardProps) => {
+  const { t } = useLanguage()
+  const rs = t.tobaccoPurchase.returnSection
   const [openTobac, setOpenTobac] = React.useState(false)
   const [openCon, setOpenCon] = React.useState(false)
 
   const [searchTobac, setSearchTobac] = React.useState(() => {
-    const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-    return t ? formatTobaccoLabel(t) : ""
+    const tt = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+    return tt ? formatTobaccoLabel(tt) : ""
   })
   const [searchCon, setSearchCon] = React.useState(item.con_num || "")
 
@@ -330,13 +337,13 @@ export const ReturnDetailDesktopCard = React.memo(({
     } else {
       const activeTobacType = item.tobac_type
       if (activeTobacType) {
-        const t = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
-        setSearchTobac(t ? formatTobaccoLabel(t) : `Unknown ID: ${activeTobacType}`)
+        const tt = tobaccoTypes.find(t_item => t_item.t_id == activeTobacType)
+        setSearchTobac(tt ? formatTobaccoLabel(tt) : `Unknown ID: ${activeTobacType}`)
       } else {
-        setSearchTobac(selectedContract ? "No tobacco type in contract" : "")
+        setSearchTobac(selectedContract ? rs.noTobaccoTypeInContract : "")
       }
     }
-  }, [item.tobac_type, tobaccoTypes, selectedContract, index, onChange])
+  }, [item.tobac_type, tobaccoTypes, selectedContract, index, onChange, rs])
 
   React.useEffect(() => {
     setSearchCon(item.con_num || "")
@@ -350,7 +357,9 @@ export const ReturnDetailDesktopCard = React.memo(({
 
   let remainingText = ""
   if (typeof contractQty === "number") {
-    remainingText = isFullyRepaid ? "(Completed)" : `(${remaining} / ${contractQty} Left)`
+    remainingText = isFullyRepaid
+      ? rs.completedSuffix
+      : rs.leftSuffix.replace("{remaining}", String(remaining)).replace("{total}", String(contractQty))
   }
 
   return (
@@ -360,14 +369,14 @@ export const ReturnDetailDesktopCard = React.memo(({
     )}>
       <div className="flex gap-4 items-end">
           <div className="shrink-0 space-y-1">
-            <span className="text-sm font-medium text-center text-foreground block tracking-tighter">No {index + 1}</span>
+            <span className="text-sm font-medium text-center text-foreground block tracking-tighter">{rs.noLabel} {index + 1}</span>
             <div className="h-8 w-9 flex items-center justify-center border border-black/20 rounded-sm bg-white">
               <IconReplace className="h-4 w-4 text-foreground/70" />
             </div>
           </div>
 
           <div className="w-[28%] space-y-1">
-            <Label className="text-sm">Contract Number</Label>
+            <Label className="text-sm">{rs.contractNumberLabel}</Label>
             <Popover open={openCon} onOpenChange={(isOpen) => {
               setOpenCon(isOpen)
               if (!isOpen) setSearchCon(item.con_num || "")
@@ -376,7 +385,7 @@ export const ReturnDetailDesktopCard = React.memo(({
                 <div className="relative group">
                   <IconFileInvoice className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input
-                    placeholder="Search contract..."
+                    placeholder={rs.searchContractPlaceholder}
                     value={searchCon}
                     onChange={(e) => { setSearchCon(e.target.value); if (!openCon) setOpenCon(true) }}
                     onFocus={() => { setSearchCon(""); setOpenCon(true) }}
@@ -399,7 +408,7 @@ export const ReturnDetailDesktopCard = React.memo(({
               >
                 <div className="max-h-60 overflow-y-auto p-1" onWheel={(e) => e.stopPropagation()}>
                   {repayableContracts.length === 0 ? (
-                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">No contracts found</div>
+                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">{rs.noContractsFound}</div>
                   ) : repayableContracts
                     .filter(c => c.con_num?.toLowerCase().includes(searchCon.toLowerCase()))
                     .map((c) => (
@@ -431,19 +440,19 @@ export const ReturnDetailDesktopCard = React.memo(({
           </div>
 
           <div className="w-[28%] space-y-1">
-            <Label className="text-sm">Tobacco Item</Label>
+            <Label className="text-sm">{rs.tobaccoItemLabel}</Label>
             <Popover open={openTobac} onOpenChange={(isOpen) => {
               setOpenTobac(isOpen)
               if (!isOpen) {
-                const t = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
-                setSearchTobac(t ? formatTobaccoLabel(t) : "")
+                const tt = tobaccoTypes.find(t_item => t_item.t_id === item.tobac_type)
+                setSearchTobac(tt ? formatTobaccoLabel(tt) : "")
               }
             }}>
               <PopoverAnchor asChild>
                 <div className="relative group">
                   <IconLeaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/80 pointer-events-none" />
                   <Input
-                    placeholder="Search item..."
+                    placeholder={rs.searchItemPlaceholder}
                     value={searchTobac}
                     onChange={(e) => { setSearchTobac(e.target.value); if (!openTobac) setOpenTobac(true) }}
                     onFocus={() => { setSearchTobac(""); setOpenTobac(true) }}

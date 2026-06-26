@@ -119,9 +119,9 @@ export default function TobaccoPurchasePage() {
       setIsViewOnly(viewOnly)
       setDialogOpen(true)
     } catch {
-      toast.error("Failed to load purchase details")
+      toast.error(t.tobaccoPurchase.list.toastLoadDetailsError)
     }
-  }, [tokens])
+  }, [tokens, t])
 
   const handleEdit = React.useCallback((record: TobaccoPurchase) => openRecord(record, false), [openRecord])
   const handleView = React.useCallback((record: TobaccoPurchase) => openRecord(record, true), [openRecord])
@@ -131,7 +131,7 @@ export default function TobaccoPurchasePage() {
     setIsDeleting(true)
     try {
       await apiClient.deleteTobaccoPurchase(tokens.access_token, deleteId)
-      toast.success("Record deleted successfully")
+      toast.success(t.tobaccoPurchase.list.toastDeleteSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-purchases"] })
       queryClient.invalidateQueries({ queryKey: ["farmer-contracts"] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays"] })
@@ -183,12 +183,12 @@ export default function TobaccoPurchasePage() {
       if (!data) return
       await printInvoice(data)
     } catch {
-      toast.error("Failed to load purchase details for printing")
+      toast.error(t.tobaccoPurchase.list.toastLoadPrintError)
     }
-  }, [loadInvoiceData])
+  }, [loadInvoiceData, t])
 
   const handleDownloadPdf = React.useCallback(async (record: TobaccoPurchase) => {
-    const toastId = toast.loading("Generating PDF…")
+    const toastId = toast.loading(t.tobaccoPurchase.list.toastGeneratingPdf)
     try {
       const data = await loadInvoiceData(record)
       if (!data) {
@@ -196,16 +196,17 @@ export default function TobaccoPurchasePage() {
         return
       }
       await downloadInvoicePdf(data)
-      toast.success("Invoice downloaded", { id: toastId })
+      toast.success(t.tobaccoPurchase.list.toastDownloadSuccess, { id: toastId })
     } catch {
-      toast.error("Failed to download invoice", { id: toastId })
+      toast.error(t.tobaccoPurchase.list.toastDownloadError, { id: toastId })
     }
-  }, [loadInvoiceData])
+  }, [loadInvoiceData, t])
 
   // ── Derived state ──
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
   const columns = React.useMemo(() => getColumns({
+    t,
     purchasers,
     regions,
     onView: handleView,
@@ -213,7 +214,7 @@ export default function TobaccoPurchasePage() {
     onDelete: (id: number) => setDeleteId(id),
     onPrint: handlePrint,
     onDownload: handleDownloadPdf,
-  }), [purchasers, regions, handleView, handleEdit, handlePrint, handleDownloadPdf])
+  }), [t, purchasers, regions, handleView, handleEdit, handlePrint, handleDownloadPdf])
 
   const sorting = React.useMemo(() => {
     if (sortGrandTotal) return [{ id: "grand_total", desc: sortGrandTotal === "desc" }]
@@ -282,8 +283,9 @@ export default function TobaccoPurchasePage() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">Tobacco Purchase</h1>
-          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">            Manage tobacco purchase records and details.
+          <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{t.tobaccoPurchase.title}</h1>
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">
+            {t.tobaccoPurchase.subtitle}
           </p>
         </div>
       </div>
@@ -334,7 +336,7 @@ export default function TobaccoPurchasePage() {
       {/* ── Empty state ── */}
       {!isLoading && records.length === 0 && (
         <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-          No records match your filters.
+          {t.tobaccoPurchase.table.noRecordsMatch}
         </div>
       )}
 
@@ -351,7 +353,7 @@ export default function TobaccoPurchasePage() {
       {/* ── Desktop view (≥lg) ── */}
       {!isLoading && records.length > 0 && (
         <div className="hidden lg:block">
-          <DataTable table={table} />
+          <DataTable table={table} noRecordsText={t.tobaccoPurchase.table.noRecordsMatch} />
         </div>
       )}
 
@@ -391,14 +393,13 @@ export default function TobaccoPurchasePage() {
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t.tobaccoPurchase.list.deleteTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the purchase record
-              and all its associated details.
+              {t.tobaccoPurchase.list.deleteDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-row justify-end gap-2 sm:space-x-0">
-            <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="mt-0">{t.tobaccoPurchase.list.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault()
@@ -407,7 +408,7 @@ export default function TobaccoPurchasePage() {
               className="bg-red-600 hover:bg-red-700 text-white"
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t.tobaccoPurchase.list.deleting : t.tobaccoPurchase.list.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

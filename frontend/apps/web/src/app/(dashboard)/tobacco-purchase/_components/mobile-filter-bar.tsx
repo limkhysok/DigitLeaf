@@ -75,7 +75,7 @@ export function MobileFilterBar({
               )}
             </div>
             <div className="flex flex-wrap gap-1.5 pb-2">
-              <PillButton active={buyerFilter === null} onClick={() => setBuyerFilter(null)}>All</PillButton>
+              <PillButton active={buyerFilter === null} onClick={() => setBuyerFilter(null)}>{t.sackRegistration.filters.statusAll}</PillButton>
               {purchasers.map(p => (
                 <PillButton key={p.p_id} active={buyerFilter === p.p_id} onClick={() => setBuyerFilter(p.p_id)}>
                   {p.p_name}

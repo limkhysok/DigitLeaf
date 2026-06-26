@@ -10,6 +10,11 @@ export const authApi = {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params.toString(),
+    }).catch((error) => {
+      if (error instanceof Error && error.message === "Failed to fetch") {
+        throw new Error("Error Internal Server");
+      }
+      throw error;
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

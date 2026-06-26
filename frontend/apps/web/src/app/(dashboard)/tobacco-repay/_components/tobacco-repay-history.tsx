@@ -86,33 +86,33 @@ export function TobaccoRepayHistory({
   const { mutate: deleteRepay, isPending: isDeleting } = useMutation({
     mutationFn: (id: number) => apiClient.deleteTobaccoRepay(token, id),
     onSuccess: () => {
-      toast.success("Repay record deleted")
+      toast.success(hist.toastDeleteSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
       setDeleteId(null)
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to delete repay record")
+      toast.error(err.message || hist.toastDeleteError)
     },
   })
 
   const { mutate: printRecord, isPending: isPrinting } = useMutation({
     mutationFn: (rec: RepayHistoryItem) => apiClient.getRepayDetail(token, rec.repay_id),
     onSuccess: (detail) => {
-      printRepayInvoice({ record: detail }).catch(() => toast.error("Failed to print repay record"))
+      printRepayInvoice({ record: detail }).catch(() => toast.error(hist.toastPrintError))
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to load repay record for printing")
+      toast.error(err.message || hist.toastLoadPrintError)
     },
   })
 
   const { mutate: downloadRecordPdf, isPending: isDownloadingRecordPdf } = useMutation({
     mutationFn: (rec: RepayHistoryItem) => apiClient.getRepayDetail(token, rec.repay_id),
     onSuccess: (detail) => {
-      downloadRepayInvoicePdf({ record: detail }).catch(() => toast.error("Failed to download repay record"))
+      downloadRepayInvoicePdf({ record: detail }).catch(() => toast.error(hist.toastDownloadError))
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to load repay record for download")
+      toast.error(err.message || hist.toastLoadDownloadError)
     },
   })
 
@@ -150,6 +150,7 @@ export function TobaccoRepayHistory({
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const columns = React.useMemo(() => getColumns({
+    t,
     onView: handleView,
     onEdit: handleEdit,
     onPrint: (rec) => printRecord(rec),
@@ -157,7 +158,7 @@ export function TobaccoRepayHistory({
     onDelete: (id) => setDeleteId(id),
     isPrinting,
     isDownloading: isDownloadingRecordPdf,
-  }), [handleView, handleEdit, printRecord, downloadRecordPdf, isPrinting, isDownloadingRecordPdf])
+  }), [t, handleView, handleEdit, printRecord, downloadRecordPdf, isPrinting, isDownloadingRecordPdf])
 
   const table = useReactTable({
     data: filteredRecords,
@@ -182,7 +183,7 @@ export function TobaccoRepayHistory({
             <PopoverTrigger asChild>
               <Button suppressHydrationWarning variant="outline" size="sm" className="h-8 border-dashed bg-white">
                 <IconCirclePlus className="mr-2 h-4 w-4" />
-                Year
+                {hist.year}
                 <Separator orientation="vertical" className="mx-2 h-4" />
                 <Badge variant="secondary" className="rounded-sm px-1 font-normal">
                   {selectedYear}
@@ -208,14 +209,14 @@ export function TobaccoRepayHistory({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Input
-            placeholder="Search Contract, Repay No..."
+            placeholder={hist.searchPlaceholder}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="rounded-md h-8 w-64 text-xs placeholder:text-sm bg-white"
           />
           <Button size="sm" onClick={handleAdd} className="h-8 px-2 flex gap-1.5 rounded-sm">
             <IconCirclePlusFilled className="h-4 w-4" />
-            <span className="hidden sm:inline">Add</span>
+            <span className="hidden sm:inline">{hist.add}</span>
           </Button>
         </div>
       </div>
@@ -232,16 +233,16 @@ export function TobaccoRepayHistory({
             <IconClockHour4 className="h-10 w-10 text-gray-400 stroke-[1.5]" />
           </div>
           <div className="flex flex-col items-center text-center px-4">
-            <h3 className="text-xl font-medium text-gray-900">No History Records</h3>
+            <h3 className="text-xl font-medium text-gray-900">{hist.emptyTitle}</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              There are no tobacco repay history records for {selectedYear} currently.
+              {hist.emptyDesc.replace("{year}", selectedYear)}
             </p>
           </div>
         </div>
       )}
 
       {!isLoading && filteredRecords.length > 0 && (
-        <DataTable table={table} noRecordsText="No results." />
+        <DataTable table={table} noRecordsText={hist.noResults} />
       )}
 
       {/* Infinite scroll sentinel */}
@@ -264,13 +265,13 @@ export function TobaccoRepayHistory({
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{hist.deleteConfirmTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the repay record.
+              {hist.deleteConfirmDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-row justify-end gap-2 sm:space-x-0">
-            <AlertDialogCancel disabled={isDeleting} className="mt-0">Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting} className="mt-0">{hist.cancel}</AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={(e) => {
@@ -279,7 +280,7 @@ export function TobaccoRepayHistory({
               }}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? hist.deleting : hist.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

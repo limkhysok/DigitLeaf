@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import type { UserProfile, UserCreate } from "../types";
+import type { UserProfile, UserCreate, RegionItem } from "../types";
 
 export const userApi = {
   async createUser(accessToken: string, data: UserCreate): Promise<UserProfile> {
@@ -22,6 +22,30 @@ export const userApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to fetch members");
+    }
+    return response.json();
+  },
+
+  async setUserRegions(accessToken: string, userId: number, regions: number[]): Promise<UserProfile> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/regions`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ regions }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to update regions");
+    }
+    return response.json();
+  },
+
+  async getAssignableRegions(accessToken: string): Promise<RegionItem[]> {
+    const response = await fetch(`${API_BASE_URL}/users/regions`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to fetch assignable regions");
     }
     return response.json();
   },

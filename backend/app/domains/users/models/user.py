@@ -14,7 +14,6 @@ class User(SQLModel, table=True):
     password: str = Field(max_length=255)
     access_type: str = Field(default="", max_length=255)
     login_type: str = Field(default="", max_length=255)
-    region: int | None = Field(default=None)
     user: str = Field(default="", max_length=50)
     do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     ip_address: str = Field(default="", sa_column=Column("ip_address", Text, nullable=False))
