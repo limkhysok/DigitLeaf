@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
-from app.domains.users.schemas import UserPublic, UserCreate, UserRegionsUpdate
+from app.domains.users.schemas import UserPublic, UserCreate, UserRegionsUpdate, UserRoleUpdate, RolePublic
+from app.domains.rbac.models import Role
 from app.api.deps import get_current_user
 from app.domains.users import crud
 
@@ -12,7 +13,7 @@ from app.core.route_logger import AuditLogRoute
 router = APIRouter(route_class=AuditLogRoute)
 
 
-def _to_public(user: User) -> UserPublic:
+def _to_public(user: User, role: Role | None = None) -> UserPublic:
     assert user.id is not None, "user must be persisted before its id is used"
     return UserPublic(
         id=user.id,
@@ -21,6 +22,8 @@ def _to_public(user: User) -> UserPublic:
         login_type=user.login_type,
         regions=user.regions,
         do_date=user.do_date,
+        role_id=role.id if role else None,
+        role_name=role.name if role else None,
     )
 
 
@@ -33,7 +36,8 @@ async def list_users(
     current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
 ):
     users = await crud.list_users(session=session)
-    return [_to_public(u) for u in users]
+    roles_map = await crud.get_user_roles_map(session=session, user_ids=[u.id for u in users if u.id is not None])
+    return [_to_public(u, roles_map.get(u.id)) for u in users if u.id is not None]
 
 
 @router.post(
@@ -99,4 +103,35 @@ async def set_user_regions(
     session.add(target_user)
     await session.commit()
     await session.refresh(target_user)
-    return _to_public(target_user)
+    roles_map = await crud.get_user_roles_map(session=session, user_ids=[user_id])
+    return _to_public(target_user, roles_map.get(user_id))
+
+
+@router.get("/roles", response_model=list[RolePublic])
+async def list_roles(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
+):
+    return await crud.list_roles(session=session)
+
+
+@router.put(
+    "/{user_id}/role",
+    response_model=UserPublic,
+    responses={
+        404: {"description": "User not found"},
+    },
+)
+async def set_user_role(
+    user_id: int,
+    role_in: UserRoleUpdate,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
+):
+    target_user = await crud.get_user_by_id(session=session, user_id=user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    await crud.set_user_role(session=session, user_id=user_id, role_id=role_in.role_id)
+    roles_map = await crud.get_user_roles_map(session=session, user_ids=[user_id])
+    return _to_public(target_user, roles_map.get(user_id))

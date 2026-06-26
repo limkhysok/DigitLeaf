@@ -37,7 +37,7 @@ export default function ProfilePage() {
   const { user, tokens, logout, refreshUserProfile } = useAuth()
   const { t } = useLanguage()
 
-  const [regionName, setRegionName] = useState<string | null>(null)
+  const [regionNames, setRegionNames] = useState<string[]>([])
 
   useEffect(() => {
     refreshUserProfile()
@@ -48,18 +48,14 @@ export default function ProfilePage() {
     let isMounted = true
     const loadRegion = async () => {
       if (!tokens?.access_token || !user?.regions?.length) {
-        if (isMounted) setRegionName(null)
+        if (isMounted) setRegionNames([])
         return
       }
       try {
         const regions = await apiClient.getRegions(tokens.access_token)
         const matches = regions.filter((r) => user.regions.includes(r.reg_id))
-        if (!matches.length) {
-          if (isMounted) setRegionName(null)
-          return
-        }
         const names = matches.map((m) => (m.reg_name_kh ? `${m.reg_name} | ${m.reg_name_kh}` : m.reg_name))
-        if (isMounted) setRegionName(names.join(", "))
+        if (isMounted) setRegionNames(names)
       } catch (err) {
         console.error("Failed to fetch region", err)
       }
@@ -121,9 +117,25 @@ export default function ProfilePage() {
               <div className="flex items-center justify-center size-9 sm:size-10 rounded-full bg-background border border-black/20 text-muted-foreground shrink-0">
                 <IconMapPin size={16} stroke={1.75} />
               </div>
-              <div className="space-y-0.5 min-w-0">
-                <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.profile.details.region}</Label>
-                <p className="text-xs sm:text-sm font-medium truncate">{regionName || "—"}</p>
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <Label className="text-xs capitalize tracking-wide text-muted-foreground">
+                  {t.profile.details.region}
+                  {regionNames.length > 0 && ` (${regionNames.length})`}
+                </Label>
+                {regionNames.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {regionNames.map((name) => (
+                      <span
+                        key={name}
+                        className="text-xs sm:text-sm font-medium bg-background border border-black/10 rounded-sm px-1.5 py-0.5"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs sm:text-sm font-medium">—</p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3 bg-muted/20 p-3 sm:p-5 border border-black/20 rounded-sm sm:rounded-md transition-colors hover:bg-muted/30">
@@ -132,7 +144,9 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-0.5 min-w-0">
                 <Label className="text-xs capitalize tracking-wide text-muted-foreground">{t.profile.details.role}</Label>
-                <p className="text-xs sm:text-sm font-medium capitalize truncate">{user.access_type || "Standard"}</p>
+                <p className="text-xs sm:text-sm font-medium capitalize truncate">
+                  {user.role_name ? user.role_name.replaceAll("_", " ") : "—"}
+                </p>
               </div>
             </div>
           </div>

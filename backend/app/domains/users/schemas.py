@@ -22,6 +22,8 @@ class UserPublic(BaseModel):
     login_type: str
     regions: list[int] = []
     do_date: datetime | None = None
+    role_id: int | None = None
+    role_name: str | None = None
 
     @field_validator("do_date", mode="before")
     @classmethod
@@ -35,3 +37,15 @@ class UserPublic(BaseModel):
 
 class UserRegionsUpdate(BaseModel):
     regions: list[int] = Field(default_factory=list)
+
+
+class UserRoleUpdate(BaseModel):
+    role_id: int
+
+
+class RolePublic(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)

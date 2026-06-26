@@ -196,6 +196,8 @@ export const translations = {
       noRegionsAvailable: "No regions available",
       selectAllRegions: "Select all regions",
       save: "Save",
+      andMore: "and {count} more",
+      roleUpdated: "Role updated",
       columns: {
         no: "No",
         username: "Username",
@@ -1211,6 +1213,8 @@ export const translations = {
       noRegionsAvailable: "មិនមានតំបន់",
       selectAllRegions: "ជ្រើសរើសគ្រប់តំបន់ទាំងអស់",
       save: "រក្សាទុក",
+      andMore: "និងផ្សេងទៀត {count}",
+      roleUpdated: "បានធ្វើបច្ចុប្បន្នភាពតួនាទី",
       columns: {
         no: "ល.រ",
         username: "ឈ្មោះអ្នកប្រើប្រាស់",
@@ -1748,6 +1752,8 @@ export type TranslationType = {
     readonly noRegionsAvailable: string;
     readonly selectAllRegions: string;
     readonly save: string;
+    readonly andMore: string;
+    readonly roleUpdated: string;
     readonly columns: {
       readonly no: string;
       readonly username: string;

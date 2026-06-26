@@ -5,6 +5,8 @@ export interface UserProfile {
   login_type: string;
   regions: number[];
   do_date: string | null;
+  role_id: number | null;
+  role_name: string | null;
 }
 
 export interface UserCreate {
@@ -12,4 +14,10 @@ export interface UserCreate {
   password: string;
   access_type: string;
   login_type: string;
+}
+
+export interface RoleItem {
+  id: number;
+  name: string;
+  description?: string | null;
 }

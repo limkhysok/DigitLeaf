@@ -14,6 +14,7 @@ export interface MemberCardProps {
   readonly isAdmin: boolean
   readonly regionLabel: string
   readonly regionText: string
+  readonly regionTitle: string
   readonly manageRegionsLabel: string
   readonly onManageRegions: () => void
   readonly viewDetailsLabel: string
@@ -26,6 +27,7 @@ export function MemberCard({
   isAdmin,
   regionLabel,
   regionText,
+  regionTitle,
   manageRegionsLabel,
   onManageRegions,
   viewDetailsLabel,
@@ -68,7 +70,7 @@ export function MemberCard({
             <IconMapPin className="h-3.5 w-3.5" />
             {regionLabel}
           </span>
-          <span className="text-sm font-medium truncate text-right text-foreground">
+          <span className="text-sm font-medium truncate text-right text-foreground" title={regionTitle}>
             {regionText}
           </span>
         </div>

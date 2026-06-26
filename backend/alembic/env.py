@@ -19,6 +19,7 @@ from app.domains.audit.models.audit_log import AuditLog
 from app.domains.rbac.models.role import Role
 from app.domains.rbac.models.permission import Permission
 from app.domains.rbac.models.role_permission import RolePermissionLink
+from app.domains.rbac.models.user_role import UserRoleLink
 from app.domains.sack_registration.models.sack_registration import SackRegistration
 from app.domains.tobacco_purchase.models.tobacco_purchase import TobaccoPurchase
 from app.domains.tobacco_purchase.models.tobacco_purchase_detail import TobaccoPurchaseDetail
@@ -27,7 +28,7 @@ from app.domains.tobacco_purchase.models.tobacco_purchase_detail import TobaccoP
 # each table with SQLModel.metadata for Alembic autogenerate.
 _register_models = (
     User, UserToken, AuditLog, Role, Permission,
-    RolePermissionLink, SackRegistration, TobaccoPurchase, TobaccoPurchaseDetail,
+    RolePermissionLink, UserRoleLink, SackRegistration, TobaccoPurchase, TobaccoPurchaseDetail,
 )
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.

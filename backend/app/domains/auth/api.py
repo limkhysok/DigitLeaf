@@ -10,6 +10,7 @@ from app.db.session import get_session
 from app.domains.users import crud as crud_user
 from app.domains.auth import crud as crud_token
 from app.domains.auth.schemas import Token, RefreshTokenRequest
+from app.domains.rbac import crud as crud_rbac
 from app.domains.users.models import User
 from app.domains.users.schemas import UserPublic
 from app.api.deps import CurrentUser
@@ -18,11 +19,10 @@ from app.core.route_logger import AuditLogRoute
 router = APIRouter(route_class=AuditLogRoute)
 
 
-def _build_scopes(user: User) -> list[str]:
-    scopes = {"user", "login_system"}
-    if user.is_full_access:
-        scopes.update({"manage_users", "admin"})
-    return list(scopes)
+async def _build_scopes(session: AsyncSession, user: User) -> list[str]:
+    assert user.id is not None
+    role_permissions = await crud_rbac.get_user_permission_names(session, user.id)
+    return list({"user"} | role_permissions)
 
 
 @router.post("/login/access-token")
@@ -39,7 +39,7 @@ async def login_access_token(
         )
     assert user.id is not None
 
-    allowed_scopes = _build_scopes(user)
+    allowed_scopes = await _build_scopes(session, user)
 
     if form_data.scopes:
         scopes = [s for s in form_data.scopes if s in allowed_scopes]
@@ -68,8 +68,23 @@ async def login_access_token(
 
 
 @router.get("/me")
-async def read_users_me(current_user: CurrentUser) -> UserPublic:
-    return UserPublic.model_validate(current_user)
+async def read_users_me(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: CurrentUser,
+) -> UserPublic:
+    assert current_user.id is not None
+    roles_map = await crud_user.get_user_roles_map(session, user_ids=[current_user.id])
+    role = roles_map.get(current_user.id)
+    return UserPublic(
+        id=current_user.id,
+        user_name=current_user.user_name,
+        access_type=current_user.access_type,
+        login_type=current_user.login_type,
+        regions=current_user.regions,
+        do_date=current_user.do_date,
+        role_id=role.id if role else None,
+        role_name=role.name if role else None,
+    )
 
 
 @router.post("/login/refresh")
@@ -97,7 +112,7 @@ async def refresh_token(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
     assert user.id is not None
 
-    allowed_scopes = _build_scopes(user)
+    allowed_scopes = await _build_scopes(session, user)
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)

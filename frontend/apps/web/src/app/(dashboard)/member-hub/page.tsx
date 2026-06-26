@@ -6,14 +6,20 @@ import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, type RegionItem, type UserProfile } from "@/services/api-client"
 import { hasScope } from "@/utils/rbac"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
+import { toast } from "sonner"
 import { Input } from "@workspace/ui/components/input"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { cn } from "@workspace/ui/lib/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import {
   Table,
   TableBody,
@@ -35,6 +41,7 @@ export default function MemberHubPage() {
 
   const { tokens, isLoading: isAuthLoading } = useAuth()
   const { t } = useLanguage()
+  const queryClient = useQueryClient()
   const canManageMembers = hasScope(tokens, "manage_users", "admin")
 
   const [searchInput, setSearchInput] = React.useState("")
@@ -58,6 +65,24 @@ export default function MemberHubPage() {
     enabled: !!tokens?.access_token && !isAuthLoading && canManageMembers,
   })
 
+  const { data: roles } = useQuery({
+    queryKey: ["roles"],
+    queryFn: () => apiClient.getRoles(tokens!.access_token),
+    enabled: !!tokens?.access_token && !isAuthLoading && canManageMembers,
+  })
+
+  const { mutate: changeRole } = useMutation({
+    mutationFn: ({ userId, roleId }: { userId: number; roleId: number }) =>
+      apiClient.setUserRole(tokens!.access_token, userId, roleId),
+    onSuccess: () => {
+      toast.success(t.memberHub.roleUpdated)
+      queryClient.invalidateQueries({ queryKey: ["members"] })
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to update role")
+    },
+  })
+
   const regionNames = React.useCallback(
     (regionIds: number[]) => {
       if (!regionIds.length) return "—"
@@ -66,6 +91,19 @@ export default function MemberHubPage() {
       return matches.map((m) => (m.reg_name_kh ? `${m.reg_name} | ${m.reg_name_kh}` : m.reg_name)).join(", ")
     },
     [regions]
+  )
+
+  const regionSummary = React.useCallback(
+    (regionIds: number[]) => {
+      if (!regionIds.length) return "—"
+      const matches = (regions ?? []).filter((r: RegionItem) => regionIds.includes(r.reg_id))
+      if (!matches.length) return "—"
+      const first = matches[0]!
+      const firstLabel = first.reg_name_kh ? `${first.reg_name} | ${first.reg_name_kh}` : first.reg_name
+      if (matches.length === 1) return firstLabel
+      return `${firstLabel} ${t.memberHub.andMore.replace("{count}", String(matches.length - 1))}`
+    },
+    [regions, t]
   )
 
   const filteredMembers = React.useMemo(() => {
@@ -164,7 +202,8 @@ export default function MemberHubPage() {
               index={idx + 1}
               isAdmin={member.access_type.toLowerCase() === "all" || member.access_type.toLowerCase() === "admin"}
               regionLabel={t.memberHub.columns.region}
-              regionText={regionNames(member.regions)}
+              regionText={regionSummary(member.regions)}
+              regionTitle={regionNames(member.regions)}
               manageRegionsLabel={t.memberHub.manageRegions}
               onManageRegions={() => setRegionsTarget(member)}
               viewDetailsLabel={t.memberHub.viewDetails}
@@ -200,7 +239,6 @@ export default function MemberHubPage() {
               </TableHeader>
               <TableBody className="bg-white text-black">
                 {filteredMembers.map((member: UserProfile, idx: number) => {
-                  const isAdmin = member.access_type.toLowerCase() === "all" || member.access_type.toLowerCase() === "admin"
                   const initials = member.user_name.substring(0, 2).toUpperCase()
                   return (
                     <TableRow key={member.id} className="group/row" data-state={selectedIds.has(member.id) && "selected"}>
@@ -224,20 +262,24 @@ export default function MemberHubPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "px-1.5 py-0 text-[10px] font-medium rounded-sm capitalize w-fit",
-                            isAdmin
-                              ? "bg-[#009640]/10 text-[#009640] border-[#009640]/20"
-                              : "bg-muted text-muted-foreground border-border"
-                          )}
+                        <Select
+                          value={member.role_id ? String(member.role_id) : ""}
+                          onValueChange={(value) => changeRole({ userId: member.id, roleId: Number(value) })}
                         >
-                          {member.access_type || "Standard"}
-                        </Badge>
+                          <SelectTrigger className="h-7 w-40 text-xs capitalize">
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(roles ?? []).map((role) => (
+                              <SelectItem key={role.id} value={String(role.id)} className="capitalize text-xs">
+                                {role.name.replaceAll("_", " ")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="max-w-50 truncate" title={regionNames(member.regions)}>
-                        {regionNames(member.regions)}
+                        {regionSummary(member.regions)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
