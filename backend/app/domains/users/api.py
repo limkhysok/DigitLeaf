@@ -35,6 +35,7 @@ async def create_user(
         password=user_in.password,
         access_type=user_in.access_type,
         login_type=user_in.login_type,
+        region=user_in.region,
         user=current_user.user_name,
         ip_address=request.client.host if request.client else "",
     )

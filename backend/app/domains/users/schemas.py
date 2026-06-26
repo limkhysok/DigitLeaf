@@ -12,6 +12,7 @@ class UserCreate(BaseModel):
     )
     access_type: str = Field(default="", max_length=255, description="Access level, e.g. 'all' for full access")
     login_type: str = Field(default="", max_length=255)
+    region: int | None = Field(default=None, description="reg_id of the region this user is assigned to")
 
 
 class UserPublic(BaseModel):
@@ -19,6 +20,7 @@ class UserPublic(BaseModel):
     user_name: str
     access_type: str
     login_type: str
+    region: int | None = None
     do_date: datetime | None = None
 
     @field_validator("do_date", mode="before")
