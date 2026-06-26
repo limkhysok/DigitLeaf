@@ -23,9 +23,8 @@ export const translations = {
     },
     profile: {
       title: "Profile",
-      subtitle: "Manage your workspace account and security.",
+      subtitle: "Your workspace profile details",
       details: {
-        memberSince: "Member Since",
         role: "Role",
         username: "Username",
         region: "Region",
@@ -375,9 +374,8 @@ export const translations = {
     },
     profile: {
       title: "ប្រវត្តិរូប",
-      subtitle: "គ្រប់គ្រងគណនីការងារ និងសុវត្ថិភាពរបស់អ្នក។",
+      subtitle: "ព័ត៌មានលម្អិតប្រវត្តិរូបការងាររបស់អ្នក",
       details: {
-        memberSince: "សមាជិកតាំងពី",
         role: "តួនាទី",
         username: "ឈ្មោះអ្នកប្រើប្រាស់",
         region: "តំបន់",
@@ -731,7 +729,6 @@ export type TranslationType = {
     readonly title: string;
     readonly subtitle: string;
     readonly details: {
-      readonly memberSince: string;
       readonly role: string;
       readonly username: string;
       readonly region: string;
