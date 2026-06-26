@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, Text
+from sqlalchemy import Column, JSON, Text
 from sqlmodel import Field, SQLModel
 
 from app.core.config import CAMBODIA_TZ
@@ -15,6 +15,7 @@ class User(SQLModel, table=True):
     access_type: str = Field(default="", max_length=255)
     login_type: str = Field(default="", max_length=255)
     user: str = Field(default="", max_length=50)
+    regions: list[int] = Field(default_factory=list, sa_column=Column("regions", JSON, nullable=False))
     do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     ip_address: str = Field(default="", sa_column=Column("ip_address", Text, nullable=False))
     edit_user: str = Field(default="", max_length=50)

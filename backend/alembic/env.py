@@ -14,7 +14,6 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from app.core.config import settings
 from app.domains.users.models.user import User
-from app.domains.users.models.user_region import UserRegion
 from app.domains.auth.models.token import UserToken
 from app.domains.audit.models.audit_log import AuditLog
 from app.domains.rbac.models.role import Role
@@ -27,7 +26,7 @@ from app.domains.tobacco_purchase.models.tobacco_purchase_detail import TobaccoP
 # Referenced here so Pylance sees them as used; their import registers
 # each table with SQLModel.metadata for Alembic autogenerate.
 _register_models = (
-    User, UserRegion, UserToken, AuditLog, Role, Permission,
+    User, UserToken, AuditLog, Role, Permission,
     RolePermissionLink, SackRegistration, TobaccoPurchase, TobaccoPurchaseDetail,
 )
 

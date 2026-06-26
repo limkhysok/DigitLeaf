@@ -34,10 +34,15 @@ const LEAF_PATTERN = [
 ]
 
 export default function ProfilePage() {
-  const { user, tokens, logout } = useAuth()
+  const { user, tokens, logout, refreshUserProfile } = useAuth()
   const { t } = useLanguage()
 
   const [regionName, setRegionName] = useState<string | null>(null)
+
+  useEffect(() => {
+    refreshUserProfile()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     let isMounted = true

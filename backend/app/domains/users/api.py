@@ -1,6 +1,5 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Security
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
@@ -13,18 +12,14 @@ from app.core.route_logger import AuditLogRoute
 router = APIRouter(route_class=AuditLogRoute)
 
 
-def _require_id(user: User) -> int:
+def _to_public(user: User) -> UserPublic:
     assert user.id is not None, "user must be persisted before its id is used"
-    return user.id
-
-
-def _to_public(user: User, regions: list[int]) -> UserPublic:
     return UserPublic(
-        id=_require_id(user),
+        id=user.id,
         user_name=user.user_name,
         access_type=user.access_type,
         login_type=user.login_type,
-        regions=regions,
+        regions=user.regions,
         do_date=user.do_date,
     )
 
@@ -38,8 +33,7 @@ async def list_users(
     current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
 ):
     users = await crud.list_users(session=session)
-    regions_map = await crud.get_regions_for_users(session=session, user_ids=[_require_id(u) for u in users])
-    return [_to_public(u, regions_map.get(_require_id(u), [])) for u in users]
+    return [_to_public(u) for u in users]
 
 
 @router.post(
@@ -65,6 +59,7 @@ async def create_user(
         password=user_in.password,
         access_type=user_in.access_type,
         login_type=user_in.login_type,
+        regions=user_in.regions,
         user=current_user.user_name,
         ip_address=request.client.host if request.client else "",
     )
@@ -72,16 +67,7 @@ async def create_user(
     session.add(new_user)
     await session.commit()
     await session.refresh(new_user)
-
-    try:
-        await crud.set_user_regions(session=session, user_id=_require_id(new_user), region_ids=user_in.regions)
-    except IntegrityError:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail="Invalid region id")
-
-    # set_user_regions committed, which expires new_user's attributes
-    await session.refresh(new_user)
-    return _to_public(new_user, user_in.regions)
+    return _to_public(new_user)
 
 
 @router.get("/regions")
@@ -96,7 +82,6 @@ async def list_assignable_regions(
     "/{user_id}/regions",
     response_model=UserPublic,
     responses={
-        400: {"description": "Invalid region id"},
         404: {"description": "User not found"},
     },
 )
@@ -110,12 +95,8 @@ async def set_user_regions(
     if not target_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    try:
-        await crud.set_user_regions(session=session, user_id=user_id, region_ids=regions_in.regions)
-    except IntegrityError:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail="Invalid region id")
-
-    # set_user_regions committed, which expires target_user's attributes
+    target_user.regions = regions_in.regions
+    session.add(target_user)
+    await session.commit()
     await session.refresh(target_user)
-    return _to_public(target_user, regions_in.regions)
+    return _to_public(target_user)
