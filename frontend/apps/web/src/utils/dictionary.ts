@@ -191,6 +191,7 @@ export const translations = {
       noRecordsFound: "No members found",
       searchPlaceholder: "Search by username...",
       manageRegions: "Manage Regions",
+      viewDetails: "View Details",
       regionsUpdated: "Regions updated",
       noRegionsAvailable: "No regions available",
       selectAllRegions: "Select all regions",
@@ -201,6 +202,13 @@ export const translations = {
         role: "Role",
         region: "Region",
         actions: "Actions",
+      },
+      details: {
+        title: "Member Details",
+        loginType: "Login Type",
+        createdDate: "Created Date",
+        region: "Region",
+        close: "Close",
       },
     },
     tobaccoPurchase: {
@@ -1198,6 +1206,7 @@ export const translations = {
       noRecordsFound: "រកមិនឃើញសមាជិកទេ",
       searchPlaceholder: "ស្វែងរកតាមឈ្មោះអ្នកប្រើប្រាស់...",
       manageRegions: "គ្រប់គ្រងតំបន់",
+      viewDetails: "មើលលម្អិត",
       regionsUpdated: "បានធ្វើបច្ចុប្បន្នភាពតំបន់",
       noRegionsAvailable: "មិនមានតំបន់",
       selectAllRegions: "ជ្រើសរើសគ្រប់តំបន់ទាំងអស់",
@@ -1208,6 +1217,13 @@ export const translations = {
         role: "តួនាទី",
         region: "តំបន់",
         actions: "សកម្មភាព",
+      },
+      details: {
+        title: "ព័ត៌មានលម្អិតសមាជិក",
+        loginType: "ប្រភេទចូលប្រើ",
+        createdDate: "កាលបរិច្ឆេទបង្កើត",
+        region: "តំបន់",
+        close: "បិទ",
       },
     },
     tobaccoPurchase: {
@@ -1727,6 +1743,7 @@ export type TranslationType = {
     readonly noRecordsFound: string;
     readonly searchPlaceholder: string;
     readonly manageRegions: string;
+    readonly viewDetails: string;
     readonly regionsUpdated: string;
     readonly noRegionsAvailable: string;
     readonly selectAllRegions: string;
@@ -1737,6 +1754,13 @@ export type TranslationType = {
       readonly role: string;
       readonly region: string;
       readonly actions: string;
+    };
+    readonly details: {
+      readonly title: string;
+      readonly loginType: string;
+      readonly createdDate: string;
+      readonly region: string;
+      readonly close: string;
     };
   };
   readonly tobaccoPurchase: {

@@ -1,6 +1,6 @@
 "use client"
 
-import { IconMapPin } from "@tabler/icons-react"
+import { IconMapPin, IconEye } from "@tabler/icons-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
@@ -16,6 +16,8 @@ export interface MemberCardProps {
   readonly regionText: string
   readonly manageRegionsLabel: string
   readonly onManageRegions: () => void
+  readonly viewDetailsLabel: string
+  readonly onViewDetails: () => void
 }
 
 export function MemberCard({
@@ -26,6 +28,8 @@ export function MemberCard({
   regionText,
   manageRegionsLabel,
   onManageRegions,
+  viewDetailsLabel,
+  onViewDetails,
 }: MemberCardProps) {
   const initials = member.user_name.substring(0, 2).toUpperCase()
 
@@ -69,16 +73,28 @@ export function MemberCard({
           </span>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onManageRegions}
-          className="h-8 text-xs"
-        >
-          <IconMapPin className="h-3.5 w-3.5" />
-          {manageRegionsLabel}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onViewDetails}
+            className="h-8 text-xs"
+          >
+            <IconEye className="h-3.5 w-3.5" />
+            {viewDetailsLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onManageRegions}
+            className="h-8 text-xs flex-1"
+          >
+            <IconMapPin className="h-3.5 w-3.5" />
+            {manageRegionsLabel}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

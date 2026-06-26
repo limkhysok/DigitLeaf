@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconLoader2, IconUsers, IconLockSquare, IconMapPin } from "@tabler/icons-react"
+import { IconLoader2, IconUsers, IconLockSquare, IconMapPin, IconEye } from "@tabler/icons-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, type RegionItem, type UserProfile } from "@/services/api-client"
@@ -24,6 +24,7 @@ import {
 } from "@workspace/ui/components/table"
 import { MemberCard } from "./_components/member-card"
 import { SetRegionsDialog } from "./_components/set-regions-dialog"
+import { ViewMemberDialog } from "./_components/view-member-dialog"
 
 export default function MemberHubPage() {
   const [mounted, setMounted] = React.useState(false)
@@ -76,6 +77,7 @@ export default function MemberHubPage() {
 
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(new Set())
   const [regionsTarget, setRegionsTarget] = React.useState<UserProfile | null>(null)
+  const [viewTarget, setViewTarget] = React.useState<UserProfile | null>(null)
 
   const toggleRow = React.useCallback((id: number, checked: boolean) => {
     setSelectedIds((prev) => {
@@ -165,6 +167,8 @@ export default function MemberHubPage() {
               regionText={regionNames(member.regions)}
               manageRegionsLabel={t.memberHub.manageRegions}
               onManageRegions={() => setRegionsTarget(member)}
+              viewDetailsLabel={t.memberHub.viewDetails}
+              onViewDetails={() => setViewTarget(member)}
             />
           ))}
         </div>
@@ -232,18 +236,33 @@ export default function MemberHubPage() {
                           {member.access_type || "Standard"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{regionNames(member.regions)}</TableCell>
+                      <TableCell className="max-w-50 truncate" title={regionNames(member.regions)}>
+                        {regionNames(member.regions)}
+                      </TableCell>
                       <TableCell>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setRegionsTarget(member)}
-                          className="h-7 text-xs"
-                        >
-                          <IconMapPin className="h-3.5 w-3.5" />
-                          {t.memberHub.manageRegions}
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setViewTarget(member)}
+                            className="h-7 w-7"
+                            aria-label={t.memberHub.viewDetails}
+                            title={t.memberHub.viewDetails}
+                          >
+                            <IconEye className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRegionsTarget(member)}
+                            className="h-7 text-xs"
+                          >
+                            <IconMapPin className="h-3.5 w-3.5" />
+                            {t.memberHub.manageRegions}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
@@ -259,6 +278,13 @@ export default function MemberHubPage() {
         onOpenChange={(open) => { if (!open) setRegionsTarget(null) }}
         member={regionsTarget}
         regions={assignableRegions ?? []}
+      />
+
+      <ViewMemberDialog
+        open={viewTarget !== null}
+        onOpenChange={(open) => { if (!open) setViewTarget(null) }}
+        member={viewTarget}
+        regions={regions ?? []}
       />
     </div>
   )
