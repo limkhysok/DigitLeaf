@@ -43,6 +43,8 @@ backend/
 │       ├── tobacco_purchase/
 │       ├── tobacco_return/
 │       └── users/
+├── scripts/
+│   └── seed.py
 └── uploads/
 ```
 
