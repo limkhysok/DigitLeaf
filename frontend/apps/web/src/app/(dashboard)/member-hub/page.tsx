@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconLoader2, IconUsers, IconLockSquare, IconMapPin, IconEye } from "@tabler/icons-react"
+import { IconLoader2, IconUsers, IconLockSquare, IconMapPin, IconEye, IconCirclePlusFilled, IconTrash } from "@tabler/icons-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { apiClient, type RegionItem, type UserProfile } from "@/services/api-client"
@@ -27,9 +27,20 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { MemberCard } from "./_components/member-card"
 import { SetRegionsDialog } from "./_components/set-regions-dialog"
 import { ViewMemberDialog } from "./_components/view-member-dialog"
+import { AddMemberDialog } from "./_components/add-member-dialog"
 
 export default function MemberHubPage() {
   const [mounted, setMounted] = React.useState(false)
@@ -82,6 +93,21 @@ export default function MemberHubPage() {
     },
   })
 
+  const [isAddOpen, setIsAddOpen] = React.useState(false)
+  const [deleteTarget, setDeleteTarget] = React.useState<UserProfile | null>(null)
+
+  const { mutate: deleteMember, isPending: isDeleting } = useMutation({
+    mutationFn: (userId: number) => apiClient.deleteUser(tokens!.access_token, userId),
+    onSuccess: () => {
+      toast.success(t.memberHub.memberDeleted)
+      queryClient.invalidateQueries({ queryKey: ["members"] })
+      setDeleteTarget(null)
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to delete member")
+    },
+  })
+
   const regionNames = React.useCallback(
     (regionIds: number[]) => {
       if (!regionIds.length) return "—"
@@ -103,6 +129,11 @@ export default function MemberHubPage() {
       return `${firstLabel} ${t.memberHub.andMore.replace("{count}", String(matches.length - 1))}`
     },
     [regions, t]
+  )
+
+  const isProtectedRole = React.useCallback(
+    (member: UserProfile) => ["admin", "boss"].includes((member.role_name ?? "").toLowerCase()),
+    []
   )
 
   const filteredMembers = React.useMemo(() => {
@@ -170,8 +201,13 @@ export default function MemberHubPage() {
           placeholder={t.memberHub.searchPlaceholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
+          autoComplete="off"
           className="rounded-md h-8 w-full sm:w-62.5 text-sm placeholder:text-sm"
         />
+        <Button size="sm" onClick={() => setIsAddOpen(true)} className="h-8 px-2 flex gap-1.5 rounded-sm">
+          <IconCirclePlusFilled className="h-4 w-4" />
+          <span className="hidden sm:inline">{t.memberHub.add}</span>
+        </Button>
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -207,6 +243,9 @@ export default function MemberHubPage() {
               onManageRegions={() => setRegionsTarget(member)}
               viewDetailsLabel={t.memberHub.viewDetails}
               onViewDetails={() => setViewTarget(member)}
+              onDelete={() => setDeleteTarget(member)}
+              isProtected={isProtectedRole(member)}
+              protectedTitle={t.memberHub.protectedRole}
             />
           ))}
         </div>
@@ -295,6 +334,18 @@ export default function MemberHubPage() {
                             <IconMapPin className="h-3.5 w-3.5" />
                             {t.memberHub.manageRegions}
                           </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setDeleteTarget(member)}
+                            disabled={isProtectedRole(member)}
+                            className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            aria-label={t.memberHub.deleteMember}
+                            title={isProtectedRole(member) ? t.memberHub.protectedRole : t.memberHub.deleteMember}
+                          >
+                            <IconTrash className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -319,6 +370,36 @@ export default function MemberHubPage() {
         member={viewTarget}
         regions={regions ?? []}
       />
+
+      <AddMemberDialog
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        regions={assignableRegions ?? []}
+        roles={roles ?? []}
+      />
+
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.memberHub.deleteTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{t.memberHub.deleteDesc}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-row justify-end gap-2 sm:space-x-0">
+            <AlertDialogCancel disabled={isDeleting} className="mt-0">{t.common.cancel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                if (deleteTarget) deleteMember(deleteTarget.id)
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isDeleting}
+            >
+              {isDeleting && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t.memberHub.deleteMember}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

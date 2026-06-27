@@ -73,4 +73,15 @@ export const userApi = {
     }
     return response.json();
   },
+
+  async deleteUser(accessToken: string, userId: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to delete member");
+    }
+  },
 };

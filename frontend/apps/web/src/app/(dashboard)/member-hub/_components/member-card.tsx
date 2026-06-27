@@ -1,6 +1,6 @@
 "use client"
 
-import { IconMapPin, IconEye } from "@tabler/icons-react"
+import { IconMapPin, IconEye, IconTrash } from "@tabler/icons-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
@@ -19,6 +19,9 @@ export interface MemberCardProps {
   readonly onManageRegions: () => void
   readonly viewDetailsLabel: string
   readonly onViewDetails: () => void
+  readonly onDelete: () => void
+  readonly isProtected: boolean
+  readonly protectedTitle: string
 }
 
 export function MemberCard({
@@ -32,6 +35,9 @@ export function MemberCard({
   onManageRegions,
   viewDetailsLabel,
   onViewDetails,
+  onDelete,
+  isProtected,
+  protectedTitle,
 }: MemberCardProps) {
   const initials = member.user_name.substring(0, 2).toUpperCase()
 
@@ -95,6 +101,17 @@ export function MemberCard({
           >
             <IconMapPin className="h-3.5 w-3.5" />
             {manageRegionsLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={onDelete}
+            disabled={isProtected}
+            title={isProtected ? protectedTitle : undefined}
+            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <IconTrash className="h-3.5 w-3.5" />
           </Button>
         </div>
       </CardContent>

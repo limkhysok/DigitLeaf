@@ -14,6 +14,7 @@ export interface UserCreate {
   password: string;
   access_type: string;
   login_type: string;
+  regions: number[];
 }
 
 export interface RoleItem {

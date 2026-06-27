@@ -12,6 +12,9 @@ from app.core.route_logger import AuditLogRoute
 
 router = APIRouter(route_class=AuditLogRoute)
 
+_NOT_FOUND = "User not found"
+_PROTECTED_ROLES = {"admin", "boss"}
+
 
 def _to_public(user: User, role: Role | None = None) -> UserPublic:
     assert user.id is not None, "user must be persisted before its id is used"
@@ -86,7 +89,7 @@ async def list_assignable_regions(
     "/{user_id}/regions",
     response_model=UserPublic,
     responses={
-        404: {"description": "User not found"},
+        404: {"description": _NOT_FOUND},
     },
 )
 async def set_user_regions(
@@ -97,7 +100,7 @@ async def set_user_regions(
 ):
     target_user = await crud.get_user_by_id(session=session, user_id=user_id)
     if not target_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=_NOT_FOUND)
 
     target_user.regions = regions_in.regions
     session.add(target_user)
@@ -119,7 +122,7 @@ async def list_roles(
     "/{user_id}/role",
     response_model=UserPublic,
     responses={
-        404: {"description": "User not found"},
+        404: {"description": _NOT_FOUND},
     },
 )
 async def set_user_role(
@@ -130,8 +133,37 @@ async def set_user_role(
 ):
     target_user = await crud.get_user_by_id(session=session, user_id=user_id)
     if not target_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=_NOT_FOUND)
 
     await crud.set_user_role(session=session, user_id=user_id, role_id=role_in.role_id)
     roles_map = await crud.get_user_roles_map(session=session, user_ids=[user_id])
     return _to_public(target_user, roles_map.get(user_id))
+
+
+@router.delete(
+    "/{user_id}",
+    status_code=204,
+    responses={
+        400: {"description": "Cannot delete your own account, or an admin/boss user"},
+        404: {"description": _NOT_FOUND},
+    },
+)
+async def delete_user(
+    user_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
+):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+
+    target_user = await crud.get_user_by_id(session=session, user_id=user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail=_NOT_FOUND)
+
+    roles_map = await crud.get_user_roles_map(session=session, user_ids=[user_id])
+    target_role = roles_map.get(user_id)
+    if target_role and target_role.name in _PROTECTED_ROLES:
+        raise HTTPException(status_code=400, detail="Cannot delete admin or boss users")
+
+    await crud.delete_user(session=session, user=target_user)
+    return None

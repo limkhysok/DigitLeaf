@@ -203,6 +203,18 @@ export const translations = {
       save: "Save",
       andMore: "and {count} more",
       roleUpdated: "Role updated",
+      addMember: "Add Member",
+      add: "Add",
+      create: "Create",
+      memberCreated: "Member created",
+      memberDeleted: "Member deleted",
+      deleteMember: "Delete Member",
+      usernamePlaceholder: "Enter username",
+      password: "Password",
+      passwordPlaceholder: "Enter password",
+      deleteTitle: "Are you sure?",
+      deleteDesc: "This action cannot be undone. This will permanently delete this member's account.",
+      protectedRole: "Admin and boss accounts cannot be deleted",
       columns: {
         no: "No",
         username: "Username",
@@ -1227,6 +1239,18 @@ export const translations = {
       save: "រក្សាទុក",
       andMore: "និងផ្សេងទៀត {count}",
       roleUpdated: "បានធ្វើបច្ចុប្បន្នភាពតួនាទី",
+      addMember: "បញ្ចូលសមាជិក",
+      add: "បញ្ចូល",
+      create: "បង្កើត",
+      memberCreated: "បានបង្កើតសមាជិក",
+      memberDeleted: "បានលុបសមាជិក",
+      deleteMember: "លុបសមាជិក",
+      usernamePlaceholder: "បញ្ចូលឈ្មោះអ្នកប្រើប្រាស់",
+      password: "ពាក្យសម្ងាត់",
+      passwordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់",
+      deleteTitle: "តើអ្នកប្រាកដទេ?",
+      deleteDesc: "សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។ វានឹងលុបគណនីសមាជិកនេះជាអចិន្ត្រៃយ៍។",
+      protectedRole: "គណនីអ្នកគ្រប់គ្រង (admin) និងប្រធាន (boss) មិនអាចលុបបានទេ",
       columns: {
         no: "ល.រ",
         username: "ឈ្មោះអ្នកប្រើប្រាស់",
@@ -1773,6 +1797,18 @@ export type TranslationType = {
     readonly save: string;
     readonly andMore: string;
     readonly roleUpdated: string;
+    readonly addMember: string;
+    readonly add: string;
+    readonly create: string;
+    readonly memberCreated: string;
+    readonly memberDeleted: string;
+    readonly deleteMember: string;
+    readonly usernamePlaceholder: string;
+    readonly password: string;
+    readonly passwordPlaceholder: string;
+    readonly deleteTitle: string;
+    readonly deleteDesc: string;
+    readonly protectedRole: string;
     readonly columns: {
       readonly no: string;
       readonly username: string;

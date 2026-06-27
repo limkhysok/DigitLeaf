@@ -46,6 +46,12 @@ async def set_user_role(session: AsyncSession, user_id: int, role_id: int) -> No
     await session.commit()
 
 
+async def delete_user(session: AsyncSession, user: User) -> None:
+    await session.execute(delete(UserRoleLink).where(UserRoleLink.user_id == user.id))
+    await session.delete(user)
+    await session.commit()
+
+
 async def get_assignable_regions(session: AsyncSession) -> "list[Region]":
     # Deferred import: app.domains.tobacco_purchase's package __init__ eagerly imports its
     # api module, which imports app.api.deps, which imports this module — a top-level import
