@@ -28,7 +28,7 @@ import { RegisterDialog } from "./_components/register-dialog"
 import { SackRegistrationCard } from "./_components/sack-registration-card"
 
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useQueryState, parseAsString } from "nuqs"
+import { useQueryState, parseAsString, parseAsInteger } from "nuqs"
 import { useDebounce } from "use-debounce"
 import { useInView } from "react-intersection-observer"
 import { Skeleton } from "@workspace/ui/components/skeleton"
@@ -51,6 +51,7 @@ export default function SackRegistrationPage() {
   const [searchInput, setSearchInput] = useQueryState("search", parseAsString.withDefault(""))
   const [debouncedSearch] = useDebounce(searchInput, 400)
   const [statusFilter, setStatusFilter] = useQueryState("status", parseAsString.withDefault("all"))
+  const [representFilter, setRepresentFilter] = useQueryState("represent", parseAsInteger)
 
   const { data: represents = [] } = useQuery({
     queryKey: ["represents"],
@@ -65,13 +66,14 @@ export default function SackRegistrationPage() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ["sack-registrations", debouncedSearch, statusFilter],
+    queryKey: ["sack-registrations", debouncedSearch, statusFilter, representFilter],
     queryFn: ({ pageParam }) =>
       apiClient.getSackRegistrations(tokens!.access_token, {
         page: pageParam,
         limit: PAGE_SIZE,
         search: debouncedSearch || undefined,
         status: statusFilter === "all" ? undefined : (statusFilter as "pending" | "confirmed"),
+        represent_id: representFilter ?? undefined,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
@@ -179,6 +181,9 @@ export default function SackRegistrationPage() {
           setSearchInput={setSearchInput}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
+          represents={represents}
+          representFilter={representFilter}
+          setRepresentFilter={setRepresentFilter}
         />
       )}
 

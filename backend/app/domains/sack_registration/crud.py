@@ -211,6 +211,7 @@ async def get_all(
     date_to: Optional[date] = None,
     sort_sack_in_kg: Optional[str] = None,
     status: Optional[Literal["pending", "confirmed"]] = None,
+    represent_id: Optional[int] = None,
 ) -> tuple[list[dict[str, Any]], int]:
     sack_calc = _build_remaining_subquery()
     sr = aliased(SackRegistration, sack_calc)
@@ -222,6 +223,8 @@ async def get_all(
         .join(MemberFarmer, col(sr.farmer_id) == col(MemberFarmer.mf_id))
     )
     stmt = _apply_search_and_date_filters(stmt, sr, search, date_from, date_to)
+    if represent_id is not None:
+        stmt = stmt.where(col(sr.represent_id) == represent_id)
     stmt = _apply_status_filter_and_order(stmt, sack_calc, sr, status)
 
     total_count = func.count().over().label("total_count")

@@ -54,6 +54,7 @@ export interface SackRegistrationListParams {
   date_from?: string;
   date_to?: string;
   status?: "pending" | "confirmed";
+  represent_id?: number;
 }
 
 export interface SackRegistrationListResponse {

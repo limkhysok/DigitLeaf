@@ -18,11 +18,14 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { apiClient } from "@/services/api-client"
+import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/hooks/use-language"
 import { format } from "date-fns"
 import { cn } from "@workspace/ui/lib/utils"
+
+const ALL_REPRESENTATIVES = "all"
 
 function toLocalYMD(d: Date) {
   const offset = d.getTimezoneOffset()
@@ -39,7 +42,14 @@ export function ExportButton() {
   const today = new Date()
   const [selectedDate, setSelectedDate] = React.useState<Date>(today)
   const [selectedStatus, setSelectedStatus] = React.useState<"all" | "pending" | "confirmed">("all")
+  const [selectedRepresent, setSelectedRepresent] = React.useState<string>(ALL_REPRESENTATIVES)
   const [isExporting, setIsExporting] = React.useState(false)
+
+  const { data: represents = [] } = useQuery({
+    queryKey: ["represents"],
+    queryFn: () => apiClient.getRepresents(accessToken!),
+    enabled: !!accessToken,
+  })
 
   const handleExport = async () => {
     if (!accessToken) return
@@ -50,6 +60,7 @@ export function ExportButton() {
         date_from: dateYMD,
         date_to: dateYMD,
         ...(selectedStatus !== "all" && { status: selectedStatus }),
+        ...(selectedRepresent !== ALL_REPRESENTATIVES && { represent_id: Number(selectedRepresent) }),
       })
 
       const url = globalThis.URL.createObjectURL(blob)
@@ -127,6 +138,21 @@ export function ExportButton() {
                 <SelectItem value="all">{t.sackRegistration.filters.statusAll}</SelectItem>
                 <SelectItem value="pending">{t.sackRegistration.filters.statusPending}</SelectItem>
                 <SelectItem value="confirmed">{t.sackRegistration.filters.statusConfirmed}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium">{t.sackRegistration.export.representative}</Label>
+            <Select value={selectedRepresent} onValueChange={setSelectedRepresent}>
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_REPRESENTATIVES}>{t.sackRegistration.export.allRepresentatives}</SelectItem>
+                {represents.map((r) => (
+                  <SelectItem key={r.represent_id} value={String(r.represent_id)}>{r.represent_name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

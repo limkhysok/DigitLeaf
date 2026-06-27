@@ -57,6 +57,9 @@ export const translations = {
         statusAll: "All",
         statusPending: "Pending",
         statusConfirmed: "Confirmed",
+        representative: "Representative",
+        noRepresentativesFound: "No representatives found.",
+        clearFilter: "Clear filter",
         timeRange: "Time Range",
         today: "Today",
         thisWeek: "This Week",
@@ -93,6 +96,8 @@ export const translations = {
         title: "Export Data",
         description: "Choose a date and status to export.",
         date: "Date",
+        representative: "Representative",
+        allRepresentatives: "All representatives",
         download: "Download .xlsx",
         success: "Exported successfully",
         failed: "Failed to export",
@@ -836,6 +841,9 @@ export const translations = {
         statusAll: "ទាំងអស់",
         statusPending: "កំពុងរង់ចាំ",
         statusConfirmed: "បានបញ្ជាក់",
+        representative: "តំណាង",
+        noRepresentativesFound: "រកមិនឃើញតំណាងទេ។",
+        clearFilter: "សម្អាតតម្រង",
         timeRange: "ចន្លោះពេល",
         today: "ថ្ងៃនេះ",
         thisWeek: "សប្តាហ៍នេះ",
@@ -872,6 +880,8 @@ export const translations = {
         title: "នាំចេញទិន្នន័យ",
         description: "ជ្រើសរើសកាលបរិច្ឆេទ និងស្ថានភាពដើម្បីនាំចេញ។",
         date: "កាលបរិច្ឆេទ",
+        representative: "តំណាង",
+        allRepresentatives: "តំណាងទាំងអស់",
         download: "ទាញយក .xlsx",
         success: "បាននាំចេញដោយជោគជ័យ",
         failed: "បរាជ័យក្នុងការនាំចេញ",
@@ -1617,6 +1627,9 @@ export type TranslationType = {
       readonly statusAll: string;
       readonly statusPending: string;
       readonly statusConfirmed: string;
+      readonly representative: string;
+      readonly noRepresentativesFound: string;
+      readonly clearFilter: string;
       readonly timeRange: string;
       readonly today: string;
       readonly thisWeek: string;
@@ -1653,6 +1666,8 @@ export type TranslationType = {
       readonly title: string;
       readonly description: string;
       readonly date: string;
+      readonly representative: string;
+      readonly allRepresentatives: string;
       readonly download: string;
       readonly success: string;
       readonly failed: string;
