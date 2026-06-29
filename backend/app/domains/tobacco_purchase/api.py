@@ -241,4 +241,75 @@ async def delete_purchase(
     )
     if not success:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
+
+
+_DETAIL_NOT_FOUND = "Tobacco purchase detail not found"
+
+
+@router.patch(
+    "/{tp_id}/details/{tpd_id}",
+    response_model=schemas.Purchase,
+    responses={404: {"description": _DETAIL_NOT_FOUND}},
+)
+async def update_purchase_detail(
+    tp_id: int,
+    tpd_id: int,
+    data: schemas.PurchaseDetailUpdate,
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    db_parent = await crud.get_purchase(db=session, tp_id=tp_id)
+    if not db_parent:
+        raise HTTPException(status_code=404, detail=_NOT_FOUND)
+    db_detail = await crud.get_purchase_detail(db=session, tp_id=tp_id, tpd_id=tpd_id)
+    if not db_detail:
+        raise HTTPException(status_code=404, detail=_DETAIL_NOT_FOUND)
+
+    ip_address = request.client.host if request.client else "unknown"
+    try:
+        return await crud.update_purchase_detail(
+            db=session,
+            db_parent=db_parent,
+            db_detail=db_detail,
+            obj_in=data,
+            user_name=current_user.user_name,
+            ip_address=ip_address,
+            page_name=str(request.url.path),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete(
+    "/{tp_id}/details/{tpd_id}",
+    response_model=schemas.Purchase,
+    responses={404: {"description": _DETAIL_NOT_FOUND}},
+)
+async def delete_purchase_detail(
+    tp_id: int,
+    tpd_id: int,
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
+):
+    db_parent = await crud.get_purchase(db=session, tp_id=tp_id)
+    if not db_parent:
+        raise HTTPException(status_code=404, detail=_NOT_FOUND)
+    db_detail = await crud.get_purchase_detail(db=session, tp_id=tp_id, tpd_id=tpd_id)
+    if not db_detail:
+        raise HTTPException(status_code=404, detail=_DETAIL_NOT_FOUND)
+
+    ip_address = request.client.host if request.client else None
+    try:
+        return await crud.delete_purchase_detail(
+            db=session,
+            db_parent=db_parent,
+            db_detail=db_detail,
+            user_name=current_user.user_name,
+            ip_address=ip_address,
+            page_name=str(request.url.path),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return None

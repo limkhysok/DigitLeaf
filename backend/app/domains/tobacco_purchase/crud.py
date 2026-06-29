@@ -14,7 +14,7 @@ from app.domains.tobacco_repay.models.t_contract import TContract
 from app.domains.tobacco_repay.models.t_contract_repay import TContractRepay
 from app.domains.tobacco_repay.crud import generate_repay_num, get_repay_detail
 from app.domains.tobacco_repay.schemas import RepayHistoryDetail
-from .schemas import Purchase, PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate, PurchaseCreateResponse
+from .schemas import Purchase, PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseDetailUpdate, PurchaseReturnCreate, PurchaseCreateResponse
 from app.domains.audit import crud as audit_crud
 from datetime import datetime
 
@@ -40,7 +40,7 @@ async def generate_invoice_num(db: AsyncSession) -> str:
 
 
 async def get_vendor_available_sack_kg(
-    db: AsyncSession, vendor_id: int, *, for_update: bool = False
+    db: AsyncSession, vendor_id: int, *, for_update: bool = False, exclude_tpd_id: Optional[int] = None
 ) -> float:
     """Available sack = SUM(all registrations) - SUM(purchase details where farmer_own_sack=0).
     Sack registration records are never mutated; quota is computed dynamically.
@@ -51,6 +51,10 @@ async def get_vendor_available_sack_kg(
     that goes on to insert the new detail rows (i.e. the validation path) — never for
     plain read-only display queries, since the lock would hold until that request's
     transaction ends.
+
+    exclude_tpd_id excludes one detail row's own contribution from the "used" sum —
+    needed when re-validating that same row's new sack_in_kg/farmer_own_sack value
+    against the quota, so it isn't double-counted against itself.
     """
     registered_query = (
         select(func.coalesce(func.sum(SackRegistration.sack_in_kg), 0.0))
@@ -62,6 +66,8 @@ async def get_vendor_available_sack_kg(
         .where(col(TobaccoPurchase.vendor_id) == str(vendor_id))
         .where(col(TobaccoPurchaseDetail.farmer_own_sack) == 0)
     )
+    if exclude_tpd_id is not None:
+        used_query = used_query.where(col(TobaccoPurchaseDetail.tpd_id) != exclude_tpd_id)
     if for_update:
         registered_query = registered_query.with_for_update()
         used_query = used_query.with_for_update()
@@ -175,10 +181,14 @@ async def _validate_sack_quota(
     db: AsyncSession,
     vendor_id: Any,
     new_sack_total: float,
+    *,
+    exclude_tpd_id: Optional[int] = None,
 ) -> None:
     if not (vendor_id and str(vendor_id).isdigit() and new_sack_total > 1e-9):
         return
-    available = await get_vendor_available_sack_kg(db, int(vendor_id), for_update=True)
+    available = await get_vendor_available_sack_kg(
+        db, int(vendor_id), for_update=True, exclude_tpd_id=exclude_tpd_id
+    )
     if new_sack_total > available + 1e-9:
         raise ValueError(
             f"Insufficient sack stock: need {new_sack_total:.3f} kg but only "
@@ -510,6 +520,71 @@ async def get_purchases(
 
 
 
+_DETAIL_TRACKED_FIELDS = [
+    "tobacco_name", "gross_weight", "price", "remork_in_kg", "sack_in_kg",
+    "farmer_own_sack", "closing", "buyer", "oven", "region", "picture",
+    "qty", "total_amount",
+]
+
+
+async def _snapshot_details(db: AsyncSession, tp_id: int) -> list[dict[str, Any]]:
+    result = await db.execute(
+        select(TobaccoPurchaseDetail)
+        .where(col(TobaccoPurchaseDetail.m_id) == tp_id)
+        .order_by(col(TobaccoPurchaseDetail.tpd_id))
+    )
+    return [
+        {field: getattr(d, field, None) for field in _DETAIL_TRACKED_FIELDS}
+        for d in result.scalars().all()
+    ]
+
+
+def _format_detail_row(row: dict[str, Any]) -> str:
+    return f"tobacco {row.get('tobacco_name')}, qty {row.get('qty')}kg, price {row.get('price')}"
+
+
+async def _log_detail_changes(
+    db: AsyncSession,
+    *,
+    page_name: str,
+    tp_id: int,
+    old_rows: list[dict[str, Any]],
+    new_rows: list[dict[str, Any]],
+    user_name: str,
+    ip_address: str | None,
+) -> None:
+    for i in range(max(len(old_rows), len(new_rows))):
+        old_row = old_rows[i] if i < len(old_rows) else None
+        new_row = new_rows[i] if i < len(new_rows) else None
+        line_no = i + 1
+        if old_row is not None and new_row is not None:
+            await audit_crud.log_field_changes(
+                db,
+                page_name=page_name,
+                record_id=f"{tp_id} detail#{line_no}",
+                old_values=old_row,
+                new_values=new_row,
+                user_name=user_name,
+                ip_address=ip_address,
+            )
+        elif new_row is not None:
+            await audit_crud.create_audit_log(
+                session=db, endpoint=page_name, method="UPDATE",
+                user=user_name, ip_address=ip_address,
+                field_type=f"Added detail line #{line_no} (ID:{tp_id})",
+                old_value="", new_value=_format_detail_row(new_row),
+            )
+        elif old_row is not None:
+            await audit_crud.log_delete(
+                db,
+                page_name=page_name,
+                record_id=f"{tp_id} detail#{line_no}",
+                summary=_format_detail_row(old_row),
+                user_name=user_name,
+                ip_address=ip_address,
+            )
+
+
 async def update_purchase(
     db: AsyncSession,
     db_obj: TobaccoPurchase,
@@ -523,6 +598,10 @@ async def update_purchase(
 
     tracked_fields = list(update_data.keys()) + ["total_net_weight", "grand_total"]
     old_values = {k: getattr(db_obj, k, None) for k in tracked_fields}
+
+    old_detail_rows: list[dict[str, Any]] | None = None
+    if obj_in.details is not None:
+        old_detail_rows = await _snapshot_details(db, db_obj.tp_id)
 
     for key, value in update_data.items():
         setattr(db_obj, key, value)
@@ -553,6 +632,18 @@ async def update_purchase(
         ip_address=ip_address,
     )
 
+    if old_detail_rows is not None:
+        new_detail_rows = await _snapshot_details(db, db_obj.tp_id)
+        await _log_detail_changes(
+            db,
+            page_name=page_name,
+            tp_id=db_obj.tp_id,
+            old_rows=old_detail_rows,
+            new_rows=new_detail_rows,
+            user_name=user_name,
+            ip_address=ip_address,
+        )
+
     return await get_purchase(db, db_obj.tp_id)
 
 
@@ -578,6 +669,131 @@ async def delete_purchase(
     await db.delete(db_obj)
     await db.commit()
     return True
+
+
+async def get_purchase_detail(db: AsyncSession, tp_id: int, tpd_id: int) -> Optional[TobaccoPurchaseDetail]:
+    result = await db.execute(
+        select(TobaccoPurchaseDetail).where(
+            col(TobaccoPurchaseDetail.tpd_id) == tpd_id,
+            col(TobaccoPurchaseDetail.m_id) == tp_id,
+        )
+    )
+    return result.scalars().first()
+
+
+async def _recompute_purchase_totals(db: AsyncSession, tp_id: int) -> Tuple[float, float]:
+    """Re-sums qty/total_amount straight from the DB detail rows — these are already
+    the authoritative stored net weight and line amount, so summing them is simpler
+    and more correct than re-deriving totals from input payloads."""
+    totals = (
+        await db.execute(
+            select(
+                func.coalesce(func.sum(TobaccoPurchaseDetail.qty), 0.0),
+                func.coalesce(func.sum(TobaccoPurchaseDetail.total_amount), 0.0),
+            ).where(col(TobaccoPurchaseDetail.m_id) == tp_id)
+        )
+    ).one()
+    return round(totals[0], 3), round(totals[1], 2)
+
+
+async def update_purchase_detail(
+    db: AsyncSession,
+    db_parent: TobaccoPurchase,
+    db_detail: TobaccoPurchaseDetail,
+    obj_in: PurchaseDetailUpdate,
+    user_name: str,
+    ip_address: str,
+    page_name: str = "tobacco_purchase",
+) -> TobaccoPurchase:
+    assert db_detail.tpd_id is not None and db_parent.tp_id is not None
+    update_data = obj_in.model_dump(exclude_unset=True, exclude_none=True)
+
+    old_values = {field: getattr(db_detail, field, None) for field in _DETAIL_TRACKED_FIELDS}
+
+    for key, value in update_data.items():
+        setattr(db_detail, key, value)
+
+    if {"gross_weight", "remork_in_kg", "sack_in_kg", "price"} & update_data.keys():
+        net = max(0.0,
+            (db_detail.gross_weight or 0)
+            - (db_detail.remork_in_kg or 0)
+            - (db_detail.sack_in_kg or 0)
+        )
+        db_detail.qty = round(net, 3)
+        db_detail.total_amount = round(net * (db_detail.price or 0), 2)
+
+    if {"sack_in_kg", "farmer_own_sack"} & update_data.keys():
+        new_sack_total = 0.0 if db_detail.farmer_own_sack else (db_detail.sack_in_kg or 0)
+        await _validate_sack_quota(
+            db, db_parent.vendor_id, new_sack_total, exclude_tpd_id=db_detail.tpd_id
+        )
+
+    db_detail.edit_user = user_name
+    db_detail.edit_ip_address = ip_address
+    db_detail.edit_do_date = datetime.now(CAMBODIA_TZ)
+
+    db.add(db_detail)
+    await db.flush()
+
+    db_parent.total_net_weight, db_parent.grand_total = await _recompute_purchase_totals(db, db_parent.tp_id)
+    db.add(db_parent)
+    await db.commit()
+
+    new_values = {field: getattr(db_detail, field, None) for field in _DETAIL_TRACKED_FIELDS}
+    await audit_crud.log_field_changes(
+        db,
+        page_name=page_name,
+        record_id=f"{db_parent.tp_id} detail#{db_detail.tpd_id}",
+        old_values=old_values,
+        new_values=new_values,
+        user_name=user_name,
+        ip_address=ip_address,
+    )
+
+    purchase = await get_purchase(db, db_parent.tp_id)
+    assert purchase is not None
+    return purchase
+
+
+async def delete_purchase_detail(
+    db: AsyncSession,
+    db_parent: TobaccoPurchase,
+    db_detail: TobaccoPurchaseDetail,
+    user_name: str,
+    ip_address: Optional[str] = None,
+    page_name: str = "tobacco_purchase",
+) -> TobaccoPurchase:
+    assert db_parent.tp_id is not None
+    remaining = await db.scalar(
+        select(func.count())
+        .select_from(TobaccoPurchaseDetail)
+        .where(col(TobaccoPurchaseDetail.m_id) == db_parent.tp_id)
+    )
+    if (remaining or 0) <= 1:
+        raise ValueError("Cannot delete the last item on a purchase — delete the whole purchase instead.")
+
+    summary = _format_detail_row({
+        "tobacco_name": db_detail.tobacco_name, "qty": db_detail.qty, "price": db_detail.price,
+    })
+    await audit_crud.log_delete(
+        db,
+        page_name=page_name,
+        record_id=f"{db_parent.tp_id} detail#{db_detail.tpd_id}",
+        summary=summary,
+        user_name=user_name,
+        ip_address=ip_address,
+    )
+
+    await db.delete(db_detail)
+    await db.flush()
+
+    db_parent.total_net_weight, db_parent.grand_total = await _recompute_purchase_totals(db, db_parent.tp_id)
+    db.add(db_parent)
+    await db.commit()
+
+    purchase = await get_purchase(db, db_parent.tp_id)
+    assert purchase is not None
+    return purchase
 
 
 async def get_vendors_by_buyer(db: AsyncSession, buyer_id: int) -> List[VendorItem]:

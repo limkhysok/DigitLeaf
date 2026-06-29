@@ -5,6 +5,7 @@ import type {
   OvenItem,
   TobaccoItem,
   TobaccoPurchase,
+  TobaccoPurchaseDetail,
   TobaccoPurchaseCreate,
   TobaccoPurchaseCreateResponse,
   TobaccoPurchaseListResponse,
@@ -160,6 +161,36 @@ export const tobaccoPurchaseApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || "Failed to update purchase");
+    }
+    return response.json();
+  },
+
+  async updatePurchaseDetail(
+    accessToken: string,
+    tp_id: number,
+    tpd_id: number,
+    data: Partial<TobaccoPurchaseDetail>
+  ): Promise<TobaccoPurchase> {
+    const response = await fetch(`${API_BASE_URL}/tobacco-purchases/${tp_id}/details/${tpd_id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to update purchase detail");
+    }
+    return response.json();
+  },
+
+  async deletePurchaseDetail(accessToken: string, tp_id: number, tpd_id: number): Promise<TobaccoPurchase> {
+    const response = await fetch(`${API_BASE_URL}/tobacco-purchases/${tp_id}/details/${tpd_id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Failed to delete purchase detail");
     }
     return response.json();
   },

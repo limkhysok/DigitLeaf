@@ -59,8 +59,17 @@ export const authApi = {
     return response.json();
   },
 
-  async getAuditLogs(accessToken: string, page = 1, limit = 20): Promise<AuditLogListResponse> {
-    const response = await fetch(`${API_BASE_URL}/audit-logs/?page=${page}&limit=${limit}`, {
+  async getAuditLogs(
+    accessToken: string,
+    params: { page?: number; limit?: number; action?: string[]; since?: string } = {}
+  ): Promise<AuditLogListResponse> {
+    const query = new URLSearchParams();
+    query.set("page", String(params.page ?? 1));
+    query.set("limit", String(params.limit ?? 20));
+    if (params.action && params.action.length > 0) query.set("action", params.action.join(","));
+    if (params.since) query.set("since", params.since);
+
+    const response = await fetch(`${API_BASE_URL}/audit-logs/?${query}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!response.ok) {

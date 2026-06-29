@@ -49,6 +49,19 @@ class PurchaseDetailBase(BaseModel):
 class PurchaseDetailCreate(PurchaseDetailBase):
     pass
 
+class PurchaseDetailUpdate(BaseModel):
+    tobacco_name: int | None = None
+    gross_weight: float | None = None
+    price: float | None = None
+    remork_in_kg: float | None = None
+    sack_in_kg: float | None = None
+    farmer_own_sack: int | None = None
+    closing: ClosingStatus | None = None
+    buyer: int | None = None
+    oven: int | None = None
+    region: int | None = None
+    picture: str | None = None
+
 class PurchaseDetail(PurchaseDetailBase):
     tpd_id: int
     invoice_num: str

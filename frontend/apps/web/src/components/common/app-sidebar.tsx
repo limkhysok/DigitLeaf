@@ -23,12 +23,28 @@
             import { useLanguage } from "@/hooks/use-language"
             import { useAuth } from "@/hooks/use-auth"
             import { hasScope } from "@/utils/rbac"
+            import { apiClient } from "@/services/api-client"
+            import { useQuery } from "@tanstack/react-query"
 
             export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               const { t } = useLanguage()
               const { tokens } = useAuth()
               const canManageMembers = hasScope(tokens, "manage_users", "admin")
               const canViewLogs = hasScope(tokens, "view_audit_logs")
+
+              const { data: todayChangeCount = 0 } = useQuery({
+                queryKey: ["audit-logs-today-count"],
+                queryFn: () => {
+                  const startOfToday = new Date()
+                  startOfToday.setHours(0, 0, 0, 0)
+                  return apiClient
+                    .getAuditLogs(tokens!.access_token, { page: 1, limit: 1, since: startOfToday.toISOString() })
+                    .then((r) => r.total)
+                },
+                enabled: !!tokens?.access_token && canViewLogs,
+                refetchInterval: 60_000,
+              })
+              const monitorLogsBadge = todayChangeCount > 0 ? String(todayChangeCount) : undefined
 
               const navData = React.useMemo(() => [
                 {
@@ -69,9 +85,10 @@
                     title: t.sidebar.monitorLogs,
                     url: "/monitor-logs",
                     icon: IconActivity,
+                    badge: monitorLogsBadge,
                   }]
                   : []),
-              ], [t, canManageMembers, canViewLogs])
+              ], [t, canManageMembers, canViewLogs, monitorLogsBadge])
 
               const mounted = useSyncExternalStore(
                 () => () => { },

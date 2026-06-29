@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Security
 from sqlalchemy import or_
@@ -28,15 +29,22 @@ async def read_audit_logs(
     current_user: Annotated[User, Security(get_current_user, scopes=["view_audit_logs"])],
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=200),
+    action: str | None = Query(None, description="Comma-separated action filter, e.g. 'UPDATE,DELETE'"),
+    since: datetime | None = Query(None, description="Only return rows with date > since"),
 ) -> AuditLogListResponse:
     skip = (page - 1) * limit
-    monitored_filter = or_(*[col(AuditLog.page_name).like(f"{p}%") for p in _MONITORED_PREFIXES])
+    filters = [or_(*[col(AuditLog.page_name).like(f"{p}%") for p in _MONITORED_PREFIXES])]
+    if action:
+        filters.append(col(AuditLog.action).in_([a.strip() for a in action.split(",") if a.strip()]))
+    if since:
+        filters.append(col(AuditLog.date) > since)
+
     total = (
-        await session.scalar(select(func.count()).select_from(AuditLog).where(monitored_filter))
+        await session.scalar(select(func.count()).select_from(AuditLog).where(*filters))
     ) or 0
     result = await session.execute(
         select(AuditLog)
-        .where(monitored_filter)
+        .where(*filters)
         .order_by(col(AuditLog.date).desc())
         .offset(skip)
         .limit(limit)

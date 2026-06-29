@@ -808,9 +808,59 @@
       setDetails(prev => [...prev, { tempId, tobacco_name: undefined, gross_weight: 0, price: 0, sack_in_kg: 0, farmer_own_sack: 0 }])
     }, [])
 
-    const handleRemoveDetail = React.useCallback((index: number) => {
-      setDetails(prev => prev.filter((_, i) => i !== index))
+    // Pending field edits and debounce timers for already-persisted (tpd_id) rows,
+    // keyed by tpd_id â€” so live-saving one row's edits never clobbers another
+    // row's in-flight debounce, and rapid edits to different fields on the same
+    // row accumulate into a single PATCH instead of only sending the latest field.
+    const pendingDetailChanges = React.useRef<Map<number, Partial<TobaccoPurchaseDetail>>>(new Map())
+    const detailSaveTimers = React.useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+
+    React.useEffect(() => {
+      return () => {
+        detailSaveTimers.current.forEach(timer => clearTimeout(timer))
+      }
     }, [])
+
+    const flushDetailSave = React.useCallback(async (tpd_id: number) => {
+      detailSaveTimers.current.delete(tpd_id)
+      const pending = pendingDetailChanges.current.get(tpd_id)
+      pendingDetailChanges.current.delete(tpd_id)
+      if (!pending || !initialData?.tp_id) return
+      try {
+        const updated = await apiClient.updatePurchaseDetail(accessToken, initialData.tp_id, tpd_id, pending)
+        const fresh = updated.details?.find(d => d.tpd_id === tpd_id)
+        if (fresh) {
+          setDetails(prev => prev.map(d => (d.tpd_id === tpd_id ? { ...d, ...fresh } : d)))
+        }
+      } catch (err) {
+        toast.error((err as Error).message)
+      }
+    }, [accessToken, initialData?.tp_id])
+
+    const scheduleDetailSave = React.useCallback((tpd_id: number, partial: Partial<TobaccoPurchaseDetail>) => {
+      pendingDetailChanges.current.set(tpd_id, { ...pendingDetailChanges.current.get(tpd_id), ...partial })
+      const existing = detailSaveTimers.current.get(tpd_id)
+      if (existing) clearTimeout(existing)
+      detailSaveTimers.current.set(tpd_id, setTimeout(() => flushDetailSave(tpd_id), 600))
+    }, [flushDetailSave])
+
+    const handleRemoveDetail = React.useCallback((index: number) => {
+      const tpd_id = details[index]?.tpd_id
+      // Already-persisted line on an existing purchase â€” delete live so totals and
+      // sibling rows stay in sync, instead of only dropping it from local state.
+      if (tpd_id != null && initialData?.tp_id) {
+        const timer = detailSaveTimers.current.get(tpd_id)
+        if (timer) clearTimeout(timer)
+        detailSaveTimers.current.delete(tpd_id)
+        pendingDetailChanges.current.delete(tpd_id)
+
+        apiClient.deletePurchaseDetail(accessToken, initialData.tp_id, tpd_id)
+          .then(() => setDetails(prev => prev.filter((_, i) => i !== index)))
+          .catch((err: Error) => toast.error(err.message))
+        return
+      }
+      setDetails(prev => prev.filter((_, i) => i !== index))
+    }, [details, initialData?.tp_id, accessToken])
 
     const handleDetailChange = React.useCallback((index: number, field: keyof TobaccoPurchaseDetail, val: string | number) => {
       setDetails(prev => {
@@ -819,7 +869,11 @@
         if (item) newDetails[index] = { ...item, [field]: val }
         return newDetails
       })
-    }, [])
+      const tpd_id = details[index]?.tpd_id
+      if (tpd_id != null && initialData?.tp_id) {
+        scheduleDetailSave(tpd_id, { [field]: val })
+      }
+    }, [details, initialData?.tp_id, scheduleDetailSave])
 
     const handleAddReturn = React.useCallback(() => {
       const tempId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -940,7 +994,15 @@
         let savedRecord: TobaccoPurchase | null = null
         let savedRepays: RepayHistoryDetail[] = []
         if (initialData?.tp_id) {
-          savedRecord = await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, payload)
+          // Rows with a tpd_id are already persisted live via handleDetailChange/
+          // handleRemoveDetail. Only resend the full details array when a brand-new
+          // (not-yet-persisted) line is present â€” otherwise omit it so the backend
+          // doesn't needlessly delete/recreate rows that are already up to date.
+          const hasNewDetailRows = details.some(d => !isBlankDetail(d) && d.tpd_id == null)
+          const updatePayload: Partial<TobaccoPurchaseCreate> = hasNewDetailRows
+            ? payload
+            : { ...payload, details: undefined }
+          savedRecord = await apiClient.updateTobaccoPurchase(accessToken, initialData.tp_id, updatePayload)
           toast.success(t.tobaccoPurchase.dialog.toastSuccessUpdate)
         } else {
           const result = await apiClient.createTobaccoPurchase(accessToken, payload)

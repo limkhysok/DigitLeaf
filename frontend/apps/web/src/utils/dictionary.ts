@@ -245,9 +245,18 @@ export const translations = {
         newValue: "New Value",
         user: "User",
         ipAddress: "IP Address",
+        details: "Details",
       },
       prev: "Previous",
       next: "Next",
+      filters: {
+        action: "Action",
+        clearFilter: "Clear filter",
+      },
+      detailsDialog: {
+        title: "Log Details",
+        close: "Close",
+      },
     },
     tobaccoPurchase: {
       title: "Tobacco Purchase",
@@ -1300,9 +1309,18 @@ export const translations = {
         newValue: "តម្លៃថ្មី",
         user: "អ្នកប្រើប្រាស់",
         ipAddress: "អាសយដ្ឋាន IP",
+        details: "លម្អិត",
       },
       prev: "មុន",
       next: "បន្ទាប់",
+      filters: {
+        action: "សកម្មភាព",
+        clearFilter: "សម្អាតតម្រង",
+      },
+      detailsDialog: {
+        title: "ព័ត៌មានលម្អិតកំណត់ហេតុ",
+        close: "បិទ",
+      },
     },
     tobaccoPurchase: {
       title: "ទិញសន្លឹកថ្នាំជក់",
@@ -1877,9 +1895,18 @@ export type TranslationType = {
       readonly newValue: string;
       readonly user: string;
       readonly ipAddress: string;
+      readonly details: string;
     };
     readonly prev: string;
     readonly next: string;
+    readonly filters: {
+      readonly action: string;
+      readonly clearFilter: string;
+    };
+    readonly detailsDialog: {
+      readonly title: string;
+      readonly close: string;
+    };
   };
   readonly tobaccoPurchase: {
     readonly title: string;
