@@ -31,6 +31,7 @@ _FOREIGN_KEYS = (
     ("dl_audit_log", "dl_audit_log_ibfk_1"),
     ("dl_sack_registration", "fk_dl_sack_registration_user"),
     ("dl_user_token", "dl_user_token_ibfk_1"),
+    ("dl_weigh_leaf", "dl_weigh_leaf_ibfk_1"),
 )
 
 
@@ -101,7 +102,12 @@ def downgrade() -> None:
 
     for table, constraint in _FOREIGN_KEYS:
         if not _fk_exists(conn, table, constraint):
-            ref_column = "action_by_id" if table == "dl_sack_registration" else "user_id"
+            if table == "dl_sack_registration":
+                ref_column = "action_by_id"
+            elif table == "dl_weigh_leaf":
+                ref_column = "dl_user_id"
+            else:
+                ref_column = "user_id"
             conn.execute(sa.text(
                 f"ALTER TABLE `{table}` ADD CONSTRAINT `{constraint}` "
                 f"FOREIGN KEY ({ref_column}) REFERENCES dl_user (id)"

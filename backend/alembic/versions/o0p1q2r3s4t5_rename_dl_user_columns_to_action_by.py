@@ -24,6 +24,15 @@ def _column_exists(conn, table: str, column: str) -> bool:
     return result.scalar() > 0
 
 
+def _fk_constraints_on_column(conn, table: str, column: str) -> list[str]:
+    result = conn.execute(sa.text(
+        "SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE "
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table "
+        "AND COLUMN_NAME = :column AND REFERENCED_TABLE_NAME IS NOT NULL"
+    ), {"table": table, "column": column})
+    return [row[0] for row in result.fetchall()]
+
+
 def upgrade() -> None:
     conn = op.get_bind()
     if _column_exists(conn, "dl_sack_registration", "dl_user_name"):
@@ -32,6 +41,12 @@ def upgrade() -> None:
             "CHANGE dl_user_name action_by VARCHAR(255) NOT NULL"
         ))
     if _column_exists(conn, "dl_sack_registration", "dl_user_id"):
+        # dl_user_id still carries its original FK to dl_user(id) (added in the
+        # initial create_table) — dl_user is consolidated away later in this
+        # chain (u6v7w8x9y0z1) and the model never declares this FK, so drop it
+        # now rather than leave it blocking the index rename below.
+        for constraint in _fk_constraints_on_column(conn, "dl_sack_registration", "dl_user_id"):
+            conn.execute(sa.text(f"ALTER TABLE dl_sack_registration DROP FOREIGN KEY `{constraint}`"))
         conn.execute(sa.text(
             "ALTER TABLE dl_sack_registration "
             "CHANGE dl_user_id action_by_id INT NOT NULL"

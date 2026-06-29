@@ -21,7 +21,8 @@ def upgrade() -> None:
     conn = op.get_bind()
     result = conn.execute(sa.text(
         "SELECT COUNT(*) FROM information_schema.COLUMNS "
-        "WHERE TABLE_NAME = 'dl_sack_registration' AND COLUMN_NAME = 'sack_in_kg'"
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'dl_sack_registration' "
+        "AND COLUMN_NAME = 'sack_in_kg'"
     ))
     if result.scalar() == 0:
         conn.execute(sa.text(

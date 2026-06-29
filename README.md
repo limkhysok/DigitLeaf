@@ -47,6 +47,8 @@ backend/
 │   └── seed.py
 └── uploads/
 ```
+cd backend
+python -m scripts.seed
 
 ---
 

@@ -22,7 +22,8 @@ def upgrade() -> None:
     conn.execute(sa.text("SET SESSION sql_mode = ''"))
     result = conn.execute(sa.text(
         "SELECT COUNT(*) FROM information_schema.COLUMNS "
-        "WHERE TABLE_NAME = 'tobacco_purchase_detail' AND COLUMN_NAME = 'farmer_own_sack'"
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tobacco_purchase_detail' "
+        "AND COLUMN_NAME = 'farmer_own_sack'"
     ))
     if result.scalar() == 0:
         conn.execute(sa.text(

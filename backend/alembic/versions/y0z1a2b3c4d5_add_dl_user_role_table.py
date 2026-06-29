@@ -18,17 +18,27 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_table(conn, table: str) -> bool:
+    result = conn.execute(sa.text(
+        "SELECT COUNT(*) FROM information_schema.TABLES "
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table"
+    ), {"table": table})
+    return result.scalar() > 0
+
+
 def upgrade() -> None:
     # `user` is a legacy MyISAM table; InnoDB can't enforce a FK against a
     # MyISAM parent (same convention as dl_user_region), so user_id is a
     # loose reference with no FK constraint.
-    op.create_table(
-        'dl_user_role',
-        sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('role_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['role_id'], ['dl_role.id']),
-        sa.PrimaryKeyConstraint('user_id', 'role_id'),
-    )
+    conn = op.get_bind()
+    if not _has_table(conn, 'dl_user_role'):
+        op.create_table(
+            'dl_user_role',
+            sa.Column('user_id', sa.Integer(), nullable=False),
+            sa.Column('role_id', sa.Integer(), nullable=False),
+            sa.ForeignKeyConstraint(['role_id'], ['dl_role.id']),
+            sa.PrimaryKeyConstraint('user_id', 'role_id'),
+        )
 
 
 def downgrade() -> None:

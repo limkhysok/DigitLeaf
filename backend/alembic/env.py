@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from sqlalchemy import text
 from sqlmodel import SQLModel
 
 from alembic import context
@@ -83,6 +84,23 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        # Several legacy tables (tobacco_purchase_detail, t_contract, etc.) carry
+        # pre-existing '0000-00-00 00:00:00' datetime values from the old PHP system.
+        # MySQL re-validates every row of a table during ALTER TABLE (add column/index),
+        # so STRICT_TRANS_TABLES/NO_ZERO_DATE would reject migrations touching those
+        # tables even though no row is being changed. Relax it for this session only.
+        #
+        # Issued and committed before alembic takes over transaction management:
+        # otherwise this statement silently opens SQLAlchemy's "autobegin"
+        # transaction, which alembic's per-migration transaction tracking then
+        # inherits instead of starting its own - leaving the final migration's
+        # alembic_version stamp uncommitted when the connection closes.
+        connection.execute(text(
+            "SET SESSION sql_mode = (SELECT REPLACE(REPLACE(REPLACE("
+            "@@sql_mode, 'STRICT_TRANS_TABLES', ''), 'NO_ZERO_DATE', ''), 'NO_ZERO_IN_DATE', ''))"
+        ))
+        connection.commit()
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
@@ -91,6 +109,11 @@ def run_migrations_online() -> None:
 
         with context.begin_transaction():
             context.run_migrations()
+
+        # Safety net: ensure the final migration's alembic_version stamp is
+        # actually flushed, regardless of how the per-migration transaction
+        # tracking above left the connection's transaction state.
+        connection.commit()
 
 if context.is_offline_mode():
     run_migrations_offline()

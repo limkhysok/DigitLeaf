@@ -27,10 +27,15 @@ def upgrade() -> None:
     op.drop_column('dl_audit_log', 'body')
     
     # Make user_id NOT NULL
+    # Drop the FK first - MySQL refuses to MODIFY a column used in a foreign
+    # key constraint (error 1832), so the constraint must be dropped and recreated.
+    op.drop_constraint('dl_audit_log_ibfk_1', 'dl_audit_log', type_='foreignkey')
     op.alter_column('dl_audit_log', 'user_id',
                existing_type=sa.Integer(),
                nullable=False)
-    
+    op.create_foreign_key('dl_audit_log_ibfk_1', 'dl_audit_log', 'dl_user',
+               ['user_id'], ['id'])
+
     # Update user_agent to TEXT
     op.alter_column('dl_audit_log', 'user_agent',
                existing_type=sa.String(length=255),
@@ -47,10 +52,13 @@ def downgrade() -> None:
                type_=sa.String(length=255),
                existing_nullable=True)
                
+    op.drop_constraint('dl_audit_log_ibfk_1', 'dl_audit_log', type_='foreignkey')
     op.alter_column('dl_audit_log', 'user_id',
                existing_type=sa.Integer(),
                nullable=True)
-               
+    op.create_foreign_key('dl_audit_log_ibfk_1', 'dl_audit_log', 'dl_user',
+               ['user_id'], ['id'])
+
     op.add_column('dl_audit_log', sa.Column('body', sa.TEXT(), nullable=True))
     op.add_column('dl_audit_log', sa.Column('headers', sa.TEXT(), nullable=True))
     op.add_column('dl_audit_log', sa.Column('user_name', sa.String(length=255), nullable=True))

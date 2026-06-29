@@ -13,7 +13,10 @@ class SackRegistration(SQLModel, table=True):
     notes: str | None = Field(default=None, max_length=500)
     action_by: str = Field(max_length=255)
     # FK
-    represent_id: int = Field(index=True, foreign_key="represent.represent_id")
+    # `represent` is a legacy MyISAM table; InnoDB can't enforce a FK against
+    # a MyISAM parent (same convention as dl_user_role.user_id), so this is a
+    # loose reference with no FK constraint.
+    represent_id: int = Field(index=True)
     farmer_id: int = Field(index=True, foreign_key="member_farmer.mf_id")
     action_by_id: int = Field(index=True)
     # Timestamps
