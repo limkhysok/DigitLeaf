@@ -10,6 +10,7 @@ from app.domains.farmers.models import Represent, MemberFarmer
 from app.domains.farmers.crud import search_member_farmer
 from app.domains.sack_registration.schemas import SackRegistrationCreate, SackRegistrationUpdate
 from app.domains.tobacco_purchase.models import TobaccoPurchase, TobaccoPurchaseDetail
+from app.domains.audit import crud as audit_crud
 
 _MEMBER_FARMER_NO_ID_ERROR = "MemberFarmer record has no id"
 _CONFIRMED_EPSILON = 1e-9
@@ -95,7 +96,7 @@ async def get_details(session: AsyncSession, sack_id: int) -> Optional[dict[str,
     return data
 
 
-def _build_remaining_subquery() -> Any:
+def _build_remaining_subquery(farmer_ids: list[int]) -> Any:
     # `remaining` depends on the FIFO consumption of *all* of a farmer's sack
     # registrations (not just the filtered/paginated page), so it has to be
     # computed in SQL before WHERE/ORDER BY/LIMIT are applied, otherwise
@@ -107,6 +108,10 @@ def _build_remaining_subquery() -> Any:
         )
         .join(TobaccoPurchaseDetail, col(TobaccoPurchaseDetail.m_id) == col(TobaccoPurchase.tp_id))
         .where(col(TobaccoPurchaseDetail.farmer_own_sack) == 0)
+        # Restrict to farmers that actually have sack registrations, comparing
+        # against the raw string column (matches ix_tp_vendor) instead of casting
+        # vendor to Integer, which would force a full table scan.
+        .where(col(TobaccoPurchase.vendor_id).in_([str(fid) for fid in farmer_ids]))
         .group_by(TobaccoPurchase.vendor_id)
         .subquery()
     )
@@ -213,7 +218,10 @@ async def get_all(
     status: Optional[Literal["pending", "confirmed"]] = None,
     represent_id: Optional[int] = None,
 ) -> tuple[list[dict[str, Any]], int]:
-    sack_calc = _build_remaining_subquery()
+    farmer_ids_result = await session.execute(select(SackRegistration.farmer_id).distinct())
+    farmer_ids = [fid for fid in farmer_ids_result.scalars().all() if fid is not None]
+
+    sack_calc = _build_remaining_subquery(farmer_ids)
     sr = aliased(SackRegistration, sack_calc)
 
     stmt = (
@@ -358,8 +366,15 @@ async def update(
     data: SackRegistrationUpdate,
     current_user_id: int,
     current_user_name: str,
+    ip_address: str | None = None,
+    page_name: str = "sack_registration",
 ) -> tuple[Optional[dict[str, Any]], Optional[str]]:
     update_data = data.model_dump(exclude_unset=True)
+
+    tracked_fields = [k for k in update_data if k != "member_farmer_mf_code"]
+    if "member_farmer_mf_code" in update_data and "farmer_id" not in tracked_fields:
+        tracked_fields.append("farmer_id")
+    old_values = {k: getattr(record, k, None) for k in tracked_fields}
 
     represent_changed = "represent_id" in update_data
     if represent_changed:
@@ -396,10 +411,37 @@ async def update(
 
     if record.id is None:
         raise ValueError("SackRegistration has no id after commit")
+
+    new_values = {k: getattr(record, k, None) for k in tracked_fields}
+    await audit_crud.log_field_changes(
+        session,
+        page_name=page_name,
+        record_id=record.id,
+        old_values=old_values,
+        new_values=new_values,
+        user_name=current_user_name,
+        ip_address=ip_address,
+    )
+
     details: Optional[dict[str, Any]] = await get_details(session, record.id)
     return details, None
 
 
-async def delete(session: AsyncSession, record: SackRegistration) -> None:
+async def delete(
+    session: AsyncSession,
+    record: SackRegistration,
+    current_user_name: str,
+    ip_address: str | None = None,
+    page_name: str = "sack_registration",
+) -> None:
+    summary = f"Sack {record.id}, {record.sack_in_kg}kg"
+    await audit_crud.log_delete(
+        session,
+        page_name=page_name,
+        record_id=record.id if record.id is not None else "unknown",
+        summary=summary,
+        user_name=current_user_name,
+        ip_address=ip_address,
+    )
     await session.delete(record)
     await session.commit()

@@ -1,6 +1,6 @@
 from typing import Annotated, Literal, Optional
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, Query, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
@@ -9,7 +9,6 @@ from app.core.config import CAMBODIA_TZ
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
-from app.core.route_logger import AuditLogRoute
 from app.domains.sack_registration import crud
 from app.domains.sack_registration.schemas import (
     SackRegistrationCreate,
@@ -19,7 +18,7 @@ from app.domains.sack_registration.schemas import (
     SackRegistrationStats,
 )
 
-router = APIRouter(route_class=AuditLogRoute)
+router = APIRouter()
 
 _NOT_FOUND = "Sack registration not found"
 _FARMER_NOT_FOUND = "Member farmer not found"
@@ -174,6 +173,7 @@ async def create_registration(
 async def update_registration(
     sack_id: int,
     data: SackRegistrationUpdate,
+    request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
@@ -188,6 +188,8 @@ async def update_registration(
         data=data,
         current_user_id=current_user.id,
         current_user_name=current_user.user_name,
+        ip_address=request.client.host if request.client else None,
+        page_name=str(request.url.path),
     )
     if error == "represent_not_found":
         raise HTTPException(status_code=404, detail="Represent not found")
@@ -205,10 +207,17 @@ async def update_registration(
 )
 async def delete_registration(
     sack_id: int,
+    request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
     record = await crud.get_by_id(session=session, sack_id=sack_id)
     if not record:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
-    await crud.delete(session=session, record=record)
+    await crud.delete(
+        session=session,
+        record=record,
+        current_user_name=current_user.user_name,
+        ip_address=request.client.host if request.client else None,
+        page_name=str(request.url.path),
+    )

@@ -13,6 +13,7 @@ export const translations = {
       farmerContract: "Farmer Contract",
       tobaccoRepay: "Tobacco Repay",
       memberHub: "Member Hub",
+      monitorLogs: "Monitor Logs",
     },
     breadcrumb: {
       workspace: "Workspace",
@@ -229,6 +230,24 @@ export const translations = {
         region: "Region",
         close: "Close",
       },
+    },
+    monitorLogs: {
+      title: "Monitor Logs",
+      subtitle: "Track edits and deletions across the system",
+      accessDenied: "You don't have permission to view this page",
+      noRecordsFound: "No logs found",
+      columns: {
+        date: "Date",
+        page: "Page",
+        action: "Action",
+        field: "Field",
+        oldValue: "Old Value",
+        newValue: "New Value",
+        user: "User",
+        ipAddress: "IP Address",
+      },
+      prev: "Previous",
+      next: "Next",
     },
     tobaccoPurchase: {
       title: "Tobacco Purchase",
@@ -809,6 +828,7 @@ export const translations = {
       farmerContract: "កិច្ចសន្យាកសិករ",
       tobaccoRepay: "ការសងសន្លឹកថ្នាំ",
       memberHub: "មជ្ឈមណ្ឌលសមាជិក",
+      monitorLogs: "តាមដានកំណត់ហេតុ",
     },
     breadcrumb: {
       workspace: "កន្លែងធ្វើការ",
@@ -1266,6 +1286,24 @@ export const translations = {
         close: "បិទ",
       },
     },
+    monitorLogs: {
+      title: "តាមដានកំណត់ហេតុ",
+      subtitle: "តាមដានការកែប្រែ និងការលុបទូទាំងប្រព័ន្ធ",
+      accessDenied: "អ្នកមិនមានសិទ្ធិមើលទំព័រនេះទេ",
+      noRecordsFound: "រកមិនឃើញកំណត់ហេតុទេ",
+      columns: {
+        date: "កាលបរិច្ឆេទ",
+        page: "ទំព័រ",
+        action: "សកម្មភាព",
+        field: "វាល",
+        oldValue: "តម្លៃចាស់",
+        newValue: "តម្លៃថ្មី",
+        user: "អ្នកប្រើប្រាស់",
+        ipAddress: "អាសយដ្ឋាន IP",
+      },
+      prev: "មុន",
+      next: "បន្ទាប់",
+    },
     tobaccoPurchase: {
       title: "ទិញសន្លឹកថ្នាំជក់",
       subtitle: "គ្រប់គ្រង និងតាមដានកំណត់ត្រាទិញសន្លឹកថ្នាំជក់។",
@@ -1607,6 +1645,7 @@ export type TranslationType = {
     readonly farmerContract: string;
     readonly tobaccoRepay: string;
     readonly memberHub: string;
+    readonly monitorLogs: string;
   };
   readonly breadcrumb: {
     readonly workspace: string;
@@ -1823,6 +1862,24 @@ export type TranslationType = {
       readonly region: string;
       readonly close: string;
     };
+  };
+  readonly monitorLogs: {
+    readonly title: string;
+    readonly subtitle: string;
+    readonly accessDenied: string;
+    readonly noRecordsFound: string;
+    readonly columns: {
+      readonly date: string;
+      readonly page: string;
+      readonly action: string;
+      readonly field: string;
+      readonly oldValue: string;
+      readonly newValue: string;
+      readonly user: string;
+      readonly ipAddress: string;
+    };
+    readonly prev: string;
+    readonly next: string;
   };
   readonly tobaccoPurchase: {
     readonly title: string;

@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import type { TokenResponse, UserProfile, AuditLog } from "../types";
+import type { TokenResponse, UserProfile, AuditLogListResponse } from "../types";
 
 export const authApi = {
   async login(username: string, password: string): Promise<TokenResponse> {
@@ -59,8 +59,8 @@ export const authApi = {
     return response.json();
   },
 
-  async getAuditLogs(accessToken: string, skip = 0, limit = 100): Promise<AuditLog[]> {
-    const response = await fetch(`${API_BASE_URL}/audit-logs/?skip=${skip}&limit=${limit}`, {
+  async getAuditLogs(accessToken: string, page = 1, limit = 20): Promise<AuditLogListResponse> {
+    const response = await fetch(`${API_BASE_URL}/audit-logs/?page=${page}&limit=${limit}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!response.ok) {

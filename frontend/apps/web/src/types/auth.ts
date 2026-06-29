@@ -18,3 +18,9 @@ export interface AuditLog {
   ip_address: string | null;
   date: string;
 }
+
+export interface AuditLogListResponse {
+  items: AuditLog[];
+  total: number;
+  has_more: boolean;
+}

@@ -207,6 +207,7 @@ async def update_tobacco_repay(
             data,
             user_name=current_user.user_name,
             ip_address=request.client.host if request.client else None,
+            page_name=str(request.url.path),
         )
     except ValueError as e:
         if "exceeds remaining balance" in str(e):
@@ -217,10 +218,17 @@ async def update_tobacco_repay(
 @router.delete("/{repay_id}", status_code=204)
 async def delete_tobacco_repay(
     repay_id: int,
+    request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    success = await crud.delete_repay(session, repay_id)
+    success = await crud.delete_repay(
+        session,
+        repay_id,
+        user_name=current_user.user_name,
+        ip_address=request.client.host if request.client else None,
+        page_name=str(request.url.path),
+    )
     if not success:
         raise HTTPException(status_code=404, detail="Repay record not found")
     return None

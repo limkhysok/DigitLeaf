@@ -9,6 +9,7 @@
               IconFileDescription,
               IconCashBanknote,
               IconUsers,
+              IconActivity,
             } from "@tabler/icons-react"
 
             import {
@@ -27,6 +28,7 @@
               const { t } = useLanguage()
               const { tokens } = useAuth()
               const canManageMembers = hasScope(tokens, "manage_users", "admin")
+              const canViewLogs = hasScope(tokens, "view_audit_logs")
 
               const navData = React.useMemo(() => [
                 {
@@ -62,7 +64,14 @@
                     icon: IconUsers,
                   }]
                   : []),
-              ], [t, canManageMembers])
+                ...(canViewLogs
+                  ? [{
+                    title: t.sidebar.monitorLogs,
+                    url: "/monitor-logs",
+                    icon: IconActivity,
+                  }]
+                  : []),
+              ], [t, canManageMembers, canViewLogs])
 
               const mounted = useSyncExternalStore(
                 () => () => { },

@@ -11,6 +11,7 @@ from .schemas import TContractRepayCreate, TContractCreate, TContractRepayUpdate
 from app.domains.farmers.models.member_farmer import MemberFarmer
 from app.domains.farmers.models.represent import Represent
 from app.domains.farmer_contract.models.mf_con_year import MfConYear
+from app.domains.audit import crud as audit_crud
 from app.core.config import CAMBODIA_TZ
 
 async def generate_repay_num(db: AsyncSession) -> str:
@@ -360,12 +361,14 @@ async def update_repay(
     obj_in: TContractRepayUpdate,
     user_name: str,
     ip_address: str | None = None,
+    page_name: str = "tobacco_repay",
 ) -> TContractRepay:
     db_obj = await db.get(TContractRepay, repay_id)
     if not db_obj:
         raise ValueError(f"Repay id {repay_id} not found")
 
     update_data = obj_in.model_dump(exclude_unset=True)
+    old_values = {k: getattr(db_obj, k, None) for k in update_data}
 
     if update_data.get("qty_repay") is not None:
         # Same lock-before-check as create_repay — without it, two concurrent
@@ -397,13 +400,40 @@ async def update_repay(
     db.add(db_obj)
     await db.commit()
     await db.refresh(db_obj)
+
+    new_values = {k: getattr(db_obj, k, None) for k in update_data}
+    await audit_crud.log_field_changes(
+        db,
+        page_name=page_name,
+        record_id=repay_id,
+        old_values=old_values,
+        new_values=new_values,
+        user_name=user_name,
+        ip_address=ip_address,
+    )
+
     return db_obj
 
 
-async def delete_repay(db: AsyncSession, repay_id: int) -> bool:
+async def delete_repay(
+    db: AsyncSession,
+    repay_id: int,
+    user_name: str,
+    ip_address: str | None = None,
+    page_name: str = "tobacco_repay",
+) -> bool:
     db_obj = await db.get(TContractRepay, repay_id)
     if not db_obj:
         return False
+    summary = f"Repay {db_obj.repay_num}, qty {db_obj.qty_repay}kg"
+    await audit_crud.log_delete(
+        db,
+        page_name=page_name,
+        record_id=repay_id,
+        summary=summary,
+        user_name=user_name,
+        ip_address=ip_address,
+    )
     await db.delete(db_obj)
     await db.commit()
     return True

@@ -15,6 +15,7 @@ from app.domains.tobacco_repay.models.t_contract_repay import TContractRepay
 from app.domains.tobacco_repay.crud import generate_repay_num, get_repay_detail
 from app.domains.tobacco_repay.schemas import RepayHistoryDetail
 from .schemas import Purchase, PurchaseCreate, PurchaseUpdate, VendorItem, PurchaseDetailCreate, PurchaseReturnCreate, PurchaseCreateResponse
+from app.domains.audit import crud as audit_crud
 from datetime import datetime
 
 from app.core.config import CAMBODIA_TZ
@@ -515,9 +516,14 @@ async def update_purchase(
     obj_in: PurchaseUpdate,
     user_name: str,
     ip_address: str,
+    page_name: str = "tobacco_purchase",
 ) -> Optional[TobaccoPurchase]:
     assert db_obj.tp_id is not None
     update_data = obj_in.model_dump(exclude_unset=True, exclude={"details", "vendor_id", "returns"}, exclude_none=True)
+
+    tracked_fields = list(update_data.keys()) + ["total_net_weight", "grand_total"]
+    old_values = {k: getattr(db_obj, k, None) for k in tracked_fields}
+
     for key, value in update_data.items():
         setattr(db_obj, key, value)
 
@@ -535,13 +541,40 @@ async def update_purchase(
 
     db.add(db_obj)
     await db.commit()
+
+    new_values = {k: getattr(db_obj, k, None) for k in tracked_fields}
+    await audit_crud.log_field_changes(
+        db,
+        page_name=page_name,
+        record_id=db_obj.tp_id,
+        old_values=old_values,
+        new_values=new_values,
+        user_name=user_name,
+        ip_address=ip_address,
+    )
+
     return await get_purchase(db, db_obj.tp_id)
 
 
-async def delete_purchase(db: AsyncSession, tp_id: int) -> bool:
+async def delete_purchase(
+    db: AsyncSession,
+    tp_id: int,
+    user_name: str,
+    ip_address: str | None = None,
+    page_name: str = "tobacco_purchase",
+) -> bool:
     db_obj = await get_purchase(db, tp_id)
     if not db_obj:
         return False
+    summary = f"Invoice {db_obj.invoice_num}, total {db_obj.grand_total}"
+    await audit_crud.log_delete(
+        db,
+        page_name=page_name,
+        record_id=tp_id,
+        summary=summary,
+        user_name=user_name,
+        ip_address=ip_address,
+    )
     await db.delete(db_obj)
     await db.commit()
     return True

@@ -7,11 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
 from app.api.deps import get_current_user
-from app.core.route_logger import AuditLogRoute
 from . import crud, schemas
 from .report import build_tobacco_purchase_template
 
-router = APIRouter(route_class=AuditLogRoute)
+router = APIRouter()
 
 _NOT_FOUND = "Tobacco purchase not found"
 
@@ -220,6 +219,7 @@ async def update_purchase(
             obj_in=data,
             user_name=current_user.user_name,
             ip_address=ip_address,
+            page_name=str(request.url.path),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -228,10 +228,17 @@ async def update_purchase(
 @router.delete("/{tp_id}", status_code=204, responses={404: {"description": _NOT_FOUND}})
 async def delete_purchase(
     tp_id: int,
+    request: Request,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["login_system"])],
 ):
-    success = await crud.delete_purchase(db=session, tp_id=tp_id)
+    success = await crud.delete_purchase(
+        db=session,
+        tp_id=tp_id,
+        user_name=current_user.user_name,
+        ip_address=request.client.host if request.client else None,
+        page_name=str(request.url.path),
+    )
     if not success:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
     return None
