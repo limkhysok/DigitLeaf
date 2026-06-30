@@ -9,21 +9,6 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import mysql
-
-# revision identifiers, used by Alembic.
-"""Add index to total_net_weight and grand_total
-
-Revision ID: f6ef51698a44
-Revises: h3i4j5k6l7m8
-Create Date: 2026-05-21 08:51:58.354194
-
-"""
-from typing import Sequence, Union
-
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
 revision: str = 'f6ef51698a44'
