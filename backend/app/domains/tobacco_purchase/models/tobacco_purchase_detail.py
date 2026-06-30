@@ -16,7 +16,9 @@ class TobaccoPurchaseDetail(SQLModel, table=True):
     buyer: int = Field(default=0)
     oven: int = Field(default=0)
     region: int = Field(default=0)
-    m_id: int = Field(index=True, foreign_key="tobacco_purchase.tp_id") # Linked to tobacco_purchase.tp_id
+    # `tobacco_purchase` is a legacy MyISAM table; InnoDB can't enforce a FK
+    # against a MyISAM parent, so this is a loose reference with no FK constraint.
+    m_id: int = Field(index=True)
     user: str = Field(default="", max_length=50)
     do_date: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ))
     ip_address: str = Field(default="")
