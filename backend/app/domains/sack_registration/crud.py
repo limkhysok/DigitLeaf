@@ -219,7 +219,7 @@ async def get_all(
     represent_id: Optional[int] = None,
 ) -> tuple[list[dict[str, Any]], int]:
     farmer_ids_result = await session.execute(select(SackRegistration.farmer_id).distinct())
-    farmer_ids = [fid for fid in farmer_ids_result.scalars().all() if fid is not None]
+    farmer_ids = list(farmer_ids_result.scalars().all())
 
     sack_calc = _build_remaining_subquery(farmer_ids)
     sr = aliased(SackRegistration, sack_calc)
@@ -372,7 +372,7 @@ async def update(
     update_data = data.model_dump(exclude_unset=True)
 
     tracked_fields = [k for k in update_data if k != "member_farmer_mf_code"]
-    if "member_farmer_mf_code" in update_data and "farmer_id" not in tracked_fields:
+    if "member_farmer_mf_code" in update_data:
         tracked_fields.append("farmer_id")
     old_values = {k: getattr(record, k, None) for k in tracked_fields}
 

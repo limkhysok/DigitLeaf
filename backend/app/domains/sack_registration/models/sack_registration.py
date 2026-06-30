@@ -13,11 +13,11 @@ class SackRegistration(SQLModel, table=True):
     notes: str | None = Field(default=None, max_length=500)
     action_by: str = Field(max_length=255)
     # FK
-    # `represent` is a legacy MyISAM table; InnoDB can't enforce a FK against
-    # a MyISAM parent (same convention as dl_user_role.user_id), so this is a
-    # loose reference with no FK constraint.
+    # `represent` and `member_farmer` are legacy MyISAM tables; InnoDB can't
+    # enforce a FK against a MyISAM parent, so both are loose references with
+    # no FK constraint (same convention as dl_user_role.user_id).
     represent_id: int = Field(index=True)
-    farmer_id: int = Field(index=True, foreign_key="member_farmer.mf_id")
+    farmer_id: int = Field(index=True)
     action_by_id: int = Field(index=True)
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(CAMBODIA_TZ), index=True)
