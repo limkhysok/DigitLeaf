@@ -62,6 +62,12 @@ export default function MonitorLogsPage() {
 
   const [actionFilter, setActionFilter] = React.useState<string[]>([])
 
+  const toggleActionFilter = React.useCallback((value: string) => {
+    setActionFilter((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    )
+  }, [])
+
   const {
     data,
     isLoading,
@@ -176,11 +182,7 @@ export default function MonitorLogsPage() {
                     return (
                       <CommandItem
                         key={a}
-                        onSelect={() =>
-                          setActionFilter((prev) =>
-                            isSelected ? prev.filter((v) => v !== a) : [...prev, a]
-                          )
-                        }
+                        onSelect={() => toggleActionFilter(a)}
                       >
                         <div
                           className={cn(

@@ -52,6 +52,115 @@ interface EditFarmerContractDialogProps {
   contract: FarmerContractItem | null
 }
 
+function TobaccoTypeCombobox({
+  open,
+  setOpen,
+  search,
+  setSearch,
+  selectedTobacco,
+  filteredTobacco,
+  isFetching,
+  hasOverride,
+  clearOverride,
+  onSelectTobacco,
+}: Readonly<{
+  open: boolean
+  setOpen: (v: boolean) => void
+  search: string
+  setSearch: (v: string) => void
+  selectedTobacco: TobaccoItem | null
+  filteredTobacco: TobaccoItem[]
+  isFetching: boolean
+  hasOverride: boolean
+  clearOverride: () => void
+  onSelectTobacco: (t: TobaccoItem) => void
+}>) {
+  return (
+    <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
+      <Popover
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen)
+          if (!isOpen && selectedTobacco)
+            setSearch(selectedTobacco.t_name_kh ?? selectedTobacco.t_name)
+        }}
+      >
+        <PopoverTrigger asChild>
+          <div className="relative">
+            <CommandPrimitive.Input
+              className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              value={search}
+              onValueChange={(val) => {
+                setSearch(val)
+                setOpen(true)
+                if (hasOverride) clearOverride()
+              }}
+              onFocus={() => setOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setOpen(true)
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              placeholder="Search tobacco type..."
+            />
+            <IconChevronDown className="absolute right-3 top-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
+          </div>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-[--radix-popover-trigger-width] p-0"
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <CommandList>
+            {isFetching ? (
+              <div className="flex items-center justify-center py-3">
+                <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <CommandEmpty>No tobacco type found.</CommandEmpty>
+            )}
+            <CommandGroup>
+              {filteredTobacco.map((t) => (
+                <CommandItem
+                  key={t.t_id}
+                  value={`${t.t_name_kh ?? ""} ${t.t_name}`}
+                  onSelect={() => {
+                    onSelectTobacco(t)
+                    setSearch(t.t_name_kh ?? t.t_name)
+                    setOpen(false)
+                  }}
+                >
+                  <IconCheck
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedTobacco?.t_id === t.t_id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {t.t_name_kh && (
+                    <span className="font-medium">{t.t_name_kh}</span>
+                  )}
+                  <span
+                    className={cn(
+                      "text-sm",
+                      t.t_name_kh ? "ml-2 text-muted-foreground" : "font-medium"
+                    )}
+                  >
+                    {t.t_name_kh ? `| ${t.t_name}` : t.t_name}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </PopoverContent>
+      </Popover>
+    </Command>
+  )
+}
+
+function numToStr(v: number | null | undefined): string {
+  return v == null ? "" : String(v)
+}
+
 export function EditFarmerContractDialog({
   open,
   onOpenChange,
@@ -102,8 +211,8 @@ export function EditFarmerContractDialog({
     setPrevContractKey(contractKey)
     setPrevDerivedId(null) // force the derived-tobacco block to re-run after reset
     if (contract && open) {
-      setLand(contract.land == null ? "" : String(contract.land))
-      setSapling(contract.tobac_num == null ? "" : String(contract.tobac_num))
+      setLand(numToStr(contract.land))
+      setSapling(numToStr(contract.tobac_num))
       setYear(String(contract.year))
       setTobaccoSearch("")
       setTobaccoOverride(null)
@@ -190,84 +299,18 @@ export function EditFarmerContractDialog({
           {/* Tobacco type */}
           <div className="space-y-1 flex flex-col">
             <Label className="text-sm font-medium">Tobacco Type</Label>
-            <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
-              <Popover
-                open={tobaccoOpen}
-                onOpenChange={(isOpen) => {
-                  setTobaccoOpen(isOpen)
-                  if (!isOpen && selectedTobacco)
-                    setTobaccoSearch(selectedTobacco.t_name_kh ?? selectedTobacco.t_name)
-                }}
-              >
-                <PopoverTrigger asChild>
-                  <div className="relative">
-                    <CommandPrimitive.Input
-                      className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      value={tobaccoSearch}
-                      onValueChange={(val) => {
-                        setTobaccoSearch(val)
-                        setTobaccoOpen(true)
-                        if (tobaccoOverride) setTobaccoOverride(null)
-                      }}
-                      onFocus={() => setTobaccoOpen(true)}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setTobaccoOpen(true)
-                      }}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      placeholder="Search tobacco type..."
-                    />
-                    <IconChevronDown className="absolute right-3 top-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none" />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-[--radix-popover-trigger-width] p-0"
-                  align="start"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                  <CommandList>
-                    {isFetchingTobacco ? (
-                      <div className="flex items-center justify-center py-3">
-                        <IconLoader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : (
-                      <CommandEmpty>No tobacco type found.</CommandEmpty>
-                    )}
-                    <CommandGroup>
-                      {filteredTobacco.map((t) => (
-                        <CommandItem
-                          key={t.t_id}
-                          value={`${t.t_name_kh ?? ""} ${t.t_name}`}
-                          onSelect={() => {
-                            setTobaccoOverride(t)
-                            setTobaccoSearch(t.t_name_kh ?? t.t_name)
-                            setTobaccoOpen(false)
-                          }}
-                        >
-                          <IconCheck
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedTobacco?.t_id === t.t_id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {t.t_name_kh && (
-                            <span className="font-medium">{t.t_name_kh}</span>
-                          )}
-                          <span
-                            className={cn(
-                              "text-sm",
-                              t.t_name_kh ? "ml-2 text-muted-foreground" : "font-medium"
-                            )}
-                          >
-                            {t.t_name_kh ? `| ${t.t_name}` : t.t_name}
-                          </span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </PopoverContent>
-              </Popover>
-            </Command>
+            <TobaccoTypeCombobox
+              open={tobaccoOpen}
+              setOpen={setTobaccoOpen}
+              search={tobaccoSearch}
+              setSearch={setTobaccoSearch}
+              selectedTobacco={selectedTobacco}
+              filteredTobacco={filteredTobacco}
+              isFetching={isFetchingTobacco}
+              hasOverride={!!tobaccoOverride}
+              clearOverride={() => setTobaccoOverride(null)}
+              onSelectTobacco={setTobaccoOverride}
+            />
           </div>
 
           {/* Land */}

@@ -2,6 +2,7 @@
 
   import * as React from "react"
   import { useLanguage } from "@/hooks/use-language"
+  import type { TranslationType } from "@/utils/dictionary"
 
   import {
     apiClient,
@@ -140,7 +141,7 @@
     )
   }
 
-  function getDialogLabels(t: any, isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
+  function getDialogLabels(t: TranslationType, isReadOnly?: boolean, initialData?: TobaccoPurchase | null) {
     if (isReadOnly) {
       return {
         title: "View Tobacco Purchase",
@@ -181,7 +182,7 @@
   }
 
   function validatePurchaseForm(
-    t: any,
+    t: TranslationType,
     buyer: string,
     vendor: VendorIdType,
     region: string,
@@ -248,8 +249,6 @@
     vendor: VendorIdType;
     onSelect: (f: MemberFarmerItem) => void;
   }>) {
-    const { t } = useLanguage();
-
     if (isVendorsLoading) {
       return (
         <div className="flex items-center justify-center py-4">
@@ -816,8 +815,9 @@
     const detailSaveTimers = React.useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
 
     React.useEffect(() => {
+      const timers = detailSaveTimers.current
       return () => {
-        detailSaveTimers.current.forEach(timer => clearTimeout(timer))
+        timers.forEach(timer => clearTimeout(timer))
       }
     }, [])
 
@@ -835,7 +835,7 @@
       } catch (err) {
         toast.error((err as Error).message)
       }
-    }, [accessToken, initialData?.tp_id])
+    }, [accessToken, initialData])
 
     const scheduleDetailSave = React.useCallback((tpd_id: number, partial: Partial<TobaccoPurchaseDetail>) => {
       pendingDetailChanges.current.set(tpd_id, { ...pendingDetailChanges.current.get(tpd_id), ...partial })
@@ -843,6 +843,10 @@
       if (existing) clearTimeout(existing)
       detailSaveTimers.current.set(tpd_id, setTimeout(() => flushDetailSave(tpd_id), 600))
     }, [flushDetailSave])
+
+    const removeDetailAt = React.useCallback((index: number) => {
+      setDetails(prev => prev.filter((_, i) => i !== index))
+    }, [])
 
     const handleRemoveDetail = React.useCallback((index: number) => {
       const tpd_id = details[index]?.tpd_id
@@ -854,13 +858,14 @@
         detailSaveTimers.current.delete(tpd_id)
         pendingDetailChanges.current.delete(tpd_id)
 
-        apiClient.deletePurchaseDetail(accessToken, initialData.tp_id, tpd_id)
-          .then(() => setDetails(prev => prev.filter((_, i) => i !== index)))
-          .catch((err: Error) => toast.error(err.message))
+        apiClient.deletePurchaseDetail(accessToken, initialData.tp_id, tpd_id).then(
+          () => removeDetailAt(index),
+          (err: Error) => toast.error(err.message)
+        )
         return
       }
-      setDetails(prev => prev.filter((_, i) => i !== index))
-    }, [details, initialData?.tp_id, accessToken])
+      removeDetailAt(index)
+    }, [details, initialData, accessToken, removeDetailAt])
 
     const handleDetailChange = React.useCallback((index: number, field: keyof TobaccoPurchaseDetail, val: string | number) => {
       setDetails(prev => {
@@ -873,7 +878,7 @@
       if (tpd_id != null && initialData?.tp_id) {
         scheduleDetailSave(tpd_id, { [field]: val })
       }
-    }, [details, initialData?.tp_id, scheduleDetailSave])
+    }, [details, initialData, scheduleDetailSave])
 
     const handleAddReturn = React.useCallback(() => {
       const tempId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
