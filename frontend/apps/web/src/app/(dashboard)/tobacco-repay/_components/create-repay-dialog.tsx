@@ -73,13 +73,13 @@ function FarmerSearchField({
 
   return (
     <div className="space-y-1 flex flex-col">
-      <Label className="text-sm font-medium">{cc.farmer}</Label>
+      <Label className="text-md font-medium">{cc.farmer}</Label>
       <Command shouldFilter={false} className="overflow-visible bg-transparent p-0">
         <Popover
           open={farmerOpen}
           onOpenChange={(o) => {
             setFarmerOpen(o)
-            if (!o && selectedFarmer) setFarmerQuery(selectedFarmer.name)
+            if (!o && selectedFarmer) setFarmerQuery(`${selectedFarmer.name} | ${selectedFarmer.mf_code}`)
           }}
         >
           <PopoverTrigger asChild>
@@ -123,7 +123,7 @@ function FarmerSearchField({
                     value={`${f.name} ${f.mf_code}`}
                     onSelect={() => {
                       onSelectFarmer(f)
-                      setFarmerQuery(f.name)
+                      setFarmerQuery(`${f.name} | ${f.mf_code}`)
                       setFarmerOpen(false)
                     }}
                   >
@@ -143,16 +143,6 @@ function FarmerSearchField({
           </PopoverContent>
         </Popover>
       </Command>
-
-      {selectedFarmer && !farmerOpen && (
-        <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-1">
-          <div className="flex flex-col">
-            <span className="font-medium text-green-700 dark:text-green-400">{selectedFarmer.name}</span>
-            <span className="text-muted-foreground text-xs">ID: {selectedFarmer.mf_code}</span>
-          </div>
-          <IconCheck className="h-4 w-4 text-green-500" />
-        </div>
-      )}
     </div>
   )
 }
@@ -255,13 +245,6 @@ function TobaccoSearchField({
           </PopoverContent>
         </Popover>
       </Command>
-
-      {selectedTobacco && !tobaccoOpen && (
-        <div className="rounded-md border border-green-500/20 bg-green-500/5 px-3 py-2 text-sm flex items-center justify-between mt-1">
-          <span className="font-medium text-green-700 dark:text-green-400">{formatTobaccoLabel(selectedTobacco)}</span>
-          <IconCheck className="h-4 w-4 text-green-500" />
-        </div>
-      )}
     </div>
   )
 }
@@ -285,7 +268,7 @@ function CreateContractDialog({
   const [conDate, setConDate] = React.useState(todayIso)
   const [conQty, setConQty] = React.useState<string>("")
   const [conPrice, setConPrice] = React.useState<string>("")
-  const [conRate, setConRate] = React.useState<string>("")
+  const [conRate, setConRate] = React.useState<string>("4000")
   const [conNote, setConNote] = React.useState<string>("")
   const [representId, setRepresentId] = React.useState<string>("")
   const [selectedFarmer, setSelectedFarmer] = React.useState<MemberFarmerItem | null>(null)
@@ -327,7 +310,7 @@ function CreateContractDialog({
     setConDate(todayIso())
     setConQty("")
     setConPrice("")
-    setConRate("")
+    setConRate("4000")
     setConNote("")
     setRepresentId("")
     setSelectedFarmer(null)
@@ -392,34 +375,10 @@ function CreateContractDialog({
         </DialogHeader>
 
         <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4 py-2">
-          {/* Row: Farmer | Tobacco Type */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FarmerSearchField token={token} selectedFarmer={selectedFarmer} onSelectFarmer={setSelectedFarmer} />
-            <TobaccoSearchField
-              tobaccoTypes={tobaccoTypes}
-              isFetchingTobacco={isFetchingTobacco}
-              selectedTobacco={selectedTobacco}
-              onSelectTobacco={setSelectedTobacco}
-            />
-          </div>
-
-          {/* Row: Contract Number | Representative */}
+          {/* Row: Representative | Farmer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_num">{cc.contractNumber}</Label>
-              <Input
-                id="con_num"
-                value={conNum}
-                readOnly
-                placeholder={cc.generating}
-                className="bg-muted/40 cursor-default font-mono"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="represent">
-                {cc.representative} <span className="text-muted-foreground">{cc.optional}</span>
-              </Label>
+              <Label htmlFor="represent">{cc.representative}</Label>
               <Select value={representId} onValueChange={setRepresentId}>
                 <SelectTrigger id="represent" className="w-full">
                   <SelectValue placeholder={cc.selectRepresentativePlaceholder} />
@@ -433,10 +392,53 @@ function CreateContractDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            <FarmerSearchField
+              token={token}
+              selectedFarmer={selectedFarmer}
+              onSelectFarmer={(farmer) => {
+                setSelectedFarmer(farmer)
+                if (farmer?.represent_id != null) {
+                  setRepresentId(String(farmer.represent_id))
+                }
+              }}
+            />
           </div>
 
-          {/* Row: Quantity | Price */}
+          {/* Row: Contract Number | Tobacco Type */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="con_num">{cc.contractNumber}</Label>
+              <Input
+                id="con_num"
+                value={conNum}
+                readOnly
+                placeholder={cc.generating}
+                className="bg-muted/40 cursor-default font-mono"
+              />
+            </div>
+
+            <TobaccoSearchField
+              tobaccoTypes={tobaccoTypes}
+              isFetchingTobacco={isFetchingTobacco}
+              selectedTobacco={selectedTobacco}
+              onSelectTobacco={setSelectedTobacco}
+            />
+          </div>
+
+          {/* Row: Date | Quantity */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="con_date">{cc.date}</Label>
+              <Input
+                id="con_date"
+                type="date"
+                value={conDate}
+                onChange={(e) => setConDate(e.target.value)}
+                required
+              />
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="con_qty">{cc.quantityKg}</Label>
               <Input
@@ -450,28 +452,12 @@ function CreateContractDialog({
                 required
               />
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_price">{cc.price}</Label>
-              <Input
-                id="con_price"
-                type="number"
-                min={0.01}
-                step="any"
-                value={conPrice}
-                onChange={(e) => setConPrice(e.target.value)}
-                placeholder={cc.pricePlaceholder}
-                required
-              />
-            </div>
           </div>
 
-          {/* Row: Rate | Date */}
+          {/* Row: Rate | Price */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_rate">
-                {cc.rate} <span className="text-muted-foreground">{cc.optional}</span>
-              </Label>
+              <Label htmlFor="con_rate">{cc.rate}</Label>
               <Input
                 id="con_rate"
                 type="number"
@@ -484,12 +470,15 @@ function CreateContractDialog({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="con_date">{cc.date}</Label>
+              <Label htmlFor="con_price">{cc.price}</Label>
               <Input
-                id="con_date"
-                type="date"
-                value={conDate}
-                onChange={(e) => setConDate(e.target.value)}
+                id="con_price"
+                type="number"
+                min={0.01}
+                step="any"
+                value={conPrice}
+                onChange={(e) => setConPrice(e.target.value)}
+                placeholder={cc.pricePlaceholder}
                 required
               />
             </div>
