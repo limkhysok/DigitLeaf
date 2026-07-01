@@ -12,6 +12,8 @@ async def create_audit_log(
     field_type: str | None = None,
     old_value: str | None = None,
     new_value: str | None = None,
+    *,
+    commit: bool = True,
 ) -> AuditLog:
     db_log = AuditLog(
         page_name=endpoint,
@@ -24,8 +26,11 @@ async def create_audit_log(
         log_on="KAIC",
     )
     session.add(db_log)
-    await session.commit()
-    await session.refresh(db_log)
+    if commit:
+        await session.commit()
+        await session.refresh(db_log)
+    else:
+        await session.flush()
     return db_log
 
 
@@ -56,7 +61,9 @@ async def log_field_changes(
             field_type=f"Updated {_humanize(field)} (ID:{record_id})",
             old_value="" if old_val is None else str(old_val),
             new_value="" if new_val is None else str(new_val),
+            commit=False,
         )
+    await session.commit()
 
 
 async def log_delete(
