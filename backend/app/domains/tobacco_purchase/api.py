@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date
 from typing import Annotated, List, Literal, Optional
 
@@ -172,7 +173,10 @@ async def download_purchase_report_template(
             status_code=400,
             detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({len(data['rows']):,} matched). Narrow the date range.",
         )
-    stream = build_tobacco_purchase_template(
+    # xlsx generation is CPU-bound — run off the event loop so one export
+    # doesn't stall every other request being served by this worker.
+    stream = await asyncio.to_thread(
+        build_tobacco_purchase_template,
         representative=data["representative"],
         region=data["region"],
         oven=data["oven"],

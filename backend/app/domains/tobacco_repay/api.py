@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
@@ -71,7 +72,10 @@ async def export_tobacco_repay_history(
             detail=f"Export exceeds {_EXPORT_LIMIT:,} records ({data['total']:,} matched). Apply filters to narrow the result.",
         )
 
-    stream = build_tobacco_repay_template(
+    # xlsx generation is CPU-bound — run off the event loop so one export
+    # doesn't stall every other request being served by this worker.
+    stream = await asyncio.to_thread(
+        build_tobacco_repay_template,
         representative=data["representative"],
         date_from=data["date_from"],
         date_to=data["date_to"],
