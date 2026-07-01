@@ -166,7 +166,7 @@ export const translations = {
       }
     },
     farmerContract: {
-      subtitle: "View list of farmers who have a contract in 2026.",
+      subtitle: "View list of farmers who have a contract in {year}.",
       searchPlaceholder: "Search by Name or ID...",
       noRecordsFound: "No farmer contracts found.",
       resetSort: "Reset Sort",
@@ -492,9 +492,6 @@ export const translations = {
         searchItemPlaceholder: "Search and select tobacco item...",
         noItemsFound: "No tobacco items found",
         tobaccoItem: "Tobacco Item",
-        borrowLeaf: "Borrow Leaf (Kg)",
-        borrowLeafPlaceholder: "Optional",
-        borrowLeafAbbr: "Borrow(Kg)",
         grossWeight: "Gross Weight (Kg)",
         grossWeightAbbr: "G.Weight",
         remork: "Remork (Kg)",
@@ -836,8 +833,8 @@ export const translations = {
       invoice: "វិក្កយបត្រ",
       farmerContract: "កិច្ចសន្យាកសិករ",
       tobaccoRepay: "ការសងសន្លឹកថ្នាំ",
-      memberHub: "មជ្ឈមណ្ឌលសមាជិក",
-      monitorLogs: "តាមដានកំណត់ហេតុ",
+      memberHub: "ក្រុមសមាជិក",
+      monitorLogs: "កំណត់ហេតុ",
     },
     breadcrumb: {
       workspace: "កន្លែងធ្វើការ",
@@ -1230,7 +1227,7 @@ export const translations = {
       },
     },
     farmerContract: {
-      subtitle: "បង្ហាញបញ្ជីឈ្មោះកសិករដែលមានកិច្ចសន្យាក្នុងឆ្នាំ ២០២៦។",
+      subtitle: "បង្ហាញបញ្ជីឈ្មោះកសិករដែលមានកិច្ចសន្យាក្នុងឆ្នាំ {year}។",
       searchPlaceholder: "ស្វែងរកឈ្មោះ ឬអត្តសញ្ញាណប័ណ្ណ...",
       noRecordsFound: "រកមិនឃើញកិច្ចសន្យាកសិករទេ។",
       resetSort: "កំណត់ឡើងវិញ",
@@ -1556,9 +1553,6 @@ export const translations = {
         searchItemPlaceholder: "ស្វែងរក និងជ្រើសរើសទំនិញថ្នាំជក់...",
         noItemsFound: "រកមិនឃើញទំនិញថ្នាំជក់ទេ",
         tobaccoItem: "ទំនិញថ្នាំជក់",
-        borrowLeaf: "ខ្ចីសន្លឹក (គីឡូ)",
-        borrowLeafPlaceholder: "ស្រេចចិត្ត",
-        borrowLeafAbbr: "ខ្ចីសន្លឹក",
         grossWeight: "ទម្ងន់សរុប(គីឡូ)",
         grossWeightAbbr: "ទម្ងន់សរុប",
         remork: "រ៉ឺម៉ក(គីឡូ)",
@@ -2142,9 +2136,6 @@ export type TranslationType = {
       readonly searchItemPlaceholder: string;
       readonly noItemsFound: string;
       readonly tobaccoItem: string;
-      readonly borrowLeaf: string;
-      readonly borrowLeafPlaceholder: string;
-      readonly borrowLeafAbbr: string;
       readonly grossWeight: string;
       readonly grossWeightAbbr: string;
       readonly remork: string;

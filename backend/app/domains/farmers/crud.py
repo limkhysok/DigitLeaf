@@ -1,15 +1,23 @@
 from typing import Optional
+from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
 from app.domains.farmers.models import MemberFarmer, Represent
 from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmers.schemas import RepresentPublic
+from app.core.config import CAMBODIA_TZ
 
-_ACTIVE_YEAR = 2026
-_ACTIVE_JOIN = (col(MfConYear.mf_id) == col(MemberFarmer.mf_id)) & (MfConYear.year == _ACTIVE_YEAR)
+
+def _current_year() -> int:
+    return datetime.now(CAMBODIA_TZ).year
+
+
+def _active_join(year: int):
+    return (col(MfConYear.mf_id) == col(MemberFarmer.mf_id)) & (MfConYear.year == year)
 
 
 async def get_represents(session: AsyncSession) -> list[RepresentPublic]:
+    year = _current_year()
     result = await session.execute(
         select(
             col(Represent.represent_id),
@@ -17,7 +25,7 @@ async def get_represents(session: AsyncSession) -> list[RepresentPublic]:
             func.count(col(MemberFarmer.mf_id)).label("farmer_count"),
         )
         .join(MemberFarmer, col(MemberFarmer.represent) == col(Represent.represent_id))
-        .join(MfConYear, _ACTIVE_JOIN)
+        .join(MfConYear, _active_join(year))
         .where(Represent.do_not_show == 0)
         .group_by(col(Represent.represent_id), Represent.represent_name)
         .order_by(Represent.represent_name)
@@ -34,19 +42,20 @@ async def search_member_farmer(
     name: Optional[str] = None,
     identity_card: Optional[str] = None,
 ) -> Optional[tuple[MemberFarmer, Optional[str]]]:
+    year = _current_year()
     base = (
         select(MemberFarmer, Represent.represent_name)
-        .join(MfConYear, _ACTIVE_JOIN)
+        .join(MfConYear, _active_join(year))
         .outerjoin(Represent, col(Represent.represent_id) == col(MemberFarmer.represent))
     )
     if identity_card:
         result = await session.execute(base.where(MemberFarmer.mf_code == identity_card))
         row = result.first()
         if row:
-            return row
+            return row  # type: ignore[return-value]
     if name:
         result = await session.execute(base.where(MemberFarmer.name == name))
-        return result.first()
+        return result.first()  # type: ignore[return-value]
     return None
 
 
@@ -57,9 +66,10 @@ async def query_member_farmers(
     skip: int = 0,
     limit: int = 10,
 ) -> list[tuple[MemberFarmer, Optional[str]]]:
+    year = _current_year()
     stmt = (
         select(MemberFarmer, Represent.represent_name)
-        .join(MfConYear, _ACTIVE_JOIN)
+        .join(MfConYear, _active_join(year))
         .outerjoin(Represent, col(Represent.represent_id) == col(MemberFarmer.represent))
         .where(
             col(MemberFarmer.name).ilike(f"%{query}%") | col(MemberFarmer.mf_code).ilike(f"%{query}%")
@@ -69,4 +79,4 @@ async def query_member_farmers(
     if represent_id is not None:
         stmt = stmt.where(MemberFarmer.represent == represent_id)
     result = await session.execute(stmt.offset(skip).limit(limit))
-    return list(result.all())
+    return list(result.all())  # type: ignore[return-value]

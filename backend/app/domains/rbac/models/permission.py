@@ -14,7 +14,7 @@ class Permission(SQLModel, table=True):
     roles: List["Role"] = Relationship(
         back_populates="permissions",
         link_model=RolePermissionLink,
-        sa_relationship_kwargs={"lazy": "selectin"},
+        sa_relationship_kwargs={"lazy": "noload"},
     )
 
     def __str__(self):

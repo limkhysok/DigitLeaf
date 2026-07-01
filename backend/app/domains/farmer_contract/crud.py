@@ -1,25 +1,19 @@
 from typing import Any, Optional
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, col, func
 from app.domains.farmer_contract.models import MfConYear
 from app.domains.farmer_contract.schemas import FarmerContractCreate, FarmerContractUpdate, FarmerContractPatch
 from app.domains.farmers.models import MemberFarmer
 from app.domains.tobacco_purchase.models import TobaccoPurchase, Tobacco
+from app.core.config import CAMBODIA_TZ
 
 
-async def get_farmer_contracts(
-    session: AsyncSession,
-    year: int = 2026,
-    skip: int = 0,
-    limit: int = 20,
-    search: Optional[str] = None,
-) -> dict[str, Any]:
+def _weight_subquery(year: int):
     start_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
-
-    weight_subquery = (
-        select(  # type: ignore[call-overload]
+    return (
+        select(
             col(TobaccoPurchase.vendor_id).label("vendor_id"),  # type: ignore[arg-type]
             func.sum(TobaccoPurchase.total_net_weight).label("total_weight"),
         )
@@ -27,6 +21,19 @@ async def get_farmer_contracts(
         .where(TobaccoPurchase.tp_date <= end_date)
         .group_by(TobaccoPurchase.vendor_id)
     ).subquery()
+
+
+async def get_farmer_contracts(
+    session: AsyncSession,
+    year: int | None = None,
+    skip: int = 0,
+    limit: int = 20,
+    search: Optional[str] = None,
+) -> dict[str, Any]:
+    if year is None:
+        year = datetime.now(CAMBODIA_TZ).year
+
+    weight_subquery = _weight_subquery(year)
 
     base_stmt: Any = select(  # type: ignore[call-overload]
         col(MfConYear.mf_con_id),
@@ -48,7 +55,7 @@ async def get_farmer_contracts(
             col(MemberFarmer.name).contains(search)
             | col(MemberFarmer.mf_code).contains(search)
         )
-        base_stmt = base_stmt.where(search_filter)
+        base_stmt = base_stmt.where(search_filter)  # type: ignore[assignment]
 
     count_result = await session.execute(
         select(func.count()).select_from(base_stmt.subquery())  # type: ignore[arg-type]
@@ -98,18 +105,7 @@ async def get_farmer_contract(session: AsyncSession, mf_con_id: int) -> dict[str
     if contract is None:
         return None
 
-    start_date = date(contract.year, 1, 1)
-    end_date = date(contract.year, 12, 31)
-
-    weight_subquery = (
-        select(  # type: ignore[call-overload]
-            col(TobaccoPurchase.vendor_id).label("vendor_id"),  # type: ignore[arg-type]
-            func.sum(TobaccoPurchase.total_net_weight).label("total_weight"),
-        )
-        .where(TobaccoPurchase.tp_date >= start_date)
-        .where(TobaccoPurchase.tp_date <= end_date)
-        .group_by(TobaccoPurchase.vendor_id)
-    ).subquery()
+    weight_subquery = _weight_subquery(contract.year)
 
     stmt: Any = select(  # type: ignore[call-overload]
         col(MfConYear.mf_con_id),

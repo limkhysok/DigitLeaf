@@ -46,7 +46,7 @@ export default function FarmerContractPage() {
   const [search] = useDebounce(searchInput, 400)
   const [sortBy, setSortBy] = React.useState<"land" | "sapling" | "yield" | "purchased" | null>(null)
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc")
-  const [selectedYear, setSelectedYear] = React.useState(2026)
+  const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear())
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     code: true,
     land: true,
@@ -169,7 +169,8 @@ export default function FarmerContractPage() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <h1 className="scroll-m-24 text-lg font-medium tracking-tight md:text-xl lg:text-2xl">{pageTitle}</h1>
-          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">            {t.farmerContract.subtitle}
+          <p className="text-muted-foreground text-xs md:text-sm lg:text-base sm:text-balance md:max-w-full line-clamp-1">
+            {t.farmerContract.subtitle.replace("{year}", String(selectedYear))}
           </p>
         </div>
       </div>
