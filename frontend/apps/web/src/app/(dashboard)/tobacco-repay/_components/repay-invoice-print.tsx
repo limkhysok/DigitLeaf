@@ -521,13 +521,25 @@ export async function printRepayInvoice(data: RepayInvoiceData): Promise<void> {
   }
   win.addEventListener("afterprint", cleanup, { once: true })
 
-  // Wait for fonts to load and React to finish rendering, then print
-  setTimeout(() => {
+  // Wait for the custom Khmer font to actually finish loading (rather than a fixed
+  // delay) so the invoice doesn't silently print with a fallback font on a slow load.
+  // Bounded by a timeout in case font loading hangs.
+  await new Promise<void>((resolve) => win.requestAnimationFrame(() => resolve()))
+  await Promise.race([
+    doc.fonts.ready.catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 3000)),
+  ])
+
+  try {
     win.focus()
     win.print()
-    // Fallback cleanup in case the browser doesn't fire afterprint
-    setTimeout(cleanup, 5000)
-  }, 700)
+  } catch {
+    cleanup()
+    alert("Unable to open the print dialog.")
+    return
+  }
+  // Fallback cleanup in case the browser doesn't fire afterprint
+  setTimeout(cleanup, 5000)
 }
 
 // ── downloadRepayInvoicePdf — public API ───────────────────────────────────────

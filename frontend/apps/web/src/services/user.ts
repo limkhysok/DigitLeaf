@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-import type { UserProfile, UserCreate, RegionItem, RoleItem } from "../types";
+import type { UserProfile, UserCreate, UserListResponse, RegionItem, RoleItem } from "../types";
 
 export const userApi = {
   async createUser(accessToken: string, data: UserCreate): Promise<UserProfile> {
@@ -15,8 +15,14 @@ export const userApi = {
     return response.json();
   },
 
-  async listUsers(accessToken: string): Promise<UserProfile[]> {
-    const response = await fetch(`${API_BASE_URL}/users/`, {
+  async listUsers(
+    accessToken: string,
+    params: { page?: number; limit?: number } = {}
+  ): Promise<UserListResponse> {
+    const query = new URLSearchParams();
+    query.set("page", String(params.page ?? 1));
+    query.set("limit", String(params.limit ?? 50));
+    const response = await fetch(`${API_BASE_URL}/users/?${query}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!response.ok) {

@@ -1,9 +1,9 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Request, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.domains.users.models import User
-from app.domains.users.schemas import UserPublic, UserCreate, UserRegionsUpdate, UserRoleUpdate, RolePublic
+from app.domains.users.schemas import UserPublic, UserCreate, UserListResponse, UserRegionsUpdate, UserRoleUpdate, RolePublic
 from app.domains.rbac.models import Role
 from app.api.deps import get_current_user
 from app.domains.users import crud
@@ -32,15 +32,19 @@ def _to_public(user: User, role: Role | None = None) -> UserPublic:
 
 @router.get(
     "/",
-    response_model=list[UserPublic],
+    response_model=UserListResponse,
 )
 async def list_users(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[User, Security(get_current_user, scopes=["manage_users"])],
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=200),
 ):
-    users = await crud.list_users(session=session)
+    skip = (page - 1) * limit
+    users, total = await crud.list_users(session=session, skip=skip, limit=limit)
     roles_map = await crud.get_user_roles_map(session=session, user_ids=[u.id for u in users if u.id is not None])
-    return [_to_public(u, roles_map.get(u.id)) for u in users if u.id is not None]
+    items = [_to_public(u, roles_map.get(u.id)) for u in users if u.id is not None]
+    return UserListResponse(items=items, total=total, has_more=(skip + len(items)) < total)
 
 
 @router.post(

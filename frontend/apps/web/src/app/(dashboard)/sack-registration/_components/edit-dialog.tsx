@@ -59,22 +59,24 @@ export function EditDialog({
 
   const selectedRepresent = represents.find((r) => String(r.represent_id) === representId)
 
-  React.useEffect(() => {
+  // Reset the form whenever the target row changes (adjust-during-render pattern, no
+  // setTimeout) so a newly opened row never briefly shows the previous row's values.
+  const [prevTargetId, setPrevTargetId] = React.useState<number | null>(null)
+  const targetId = target ? target.id : null
+  if (targetId !== prevTargetId) {
+    setPrevTargetId(targetId)
     if (target) {
-      const timer = setTimeout(() => {
-        setSackInKg(target.registered_sack_in_kg !== null && target.registered_sack_in_kg !== undefined ? String(target.registered_sack_in_kg) : "")
-        setNotes(target.notes ?? "")
-        setRepresentId(String(target.represent_id))
-        setRepresentSearch(target.represent_name)
-        setFarmerQuery(target.member_farmer_name)
-        setFarmerResult(null)
-        setFarmerOpen(false)
-        setConfirmedFarmerName(target.member_farmer_name)
-        setConfirmedFarmerCode(target.member_farmer_mf_code)
-      }, 0)
-      return () => clearTimeout(timer)
+      setSackInKg(target.registered_sack_in_kg !== null && target.registered_sack_in_kg !== undefined ? String(target.registered_sack_in_kg) : "")
+      setNotes(target.notes ?? "")
+      setRepresentId(String(target.represent_id))
+      setRepresentSearch(target.represent_name)
+      setFarmerQuery(target.member_farmer_name)
+      setFarmerResult(null)
+      setFarmerOpen(false)
+      setConfirmedFarmerName(target.member_farmer_name)
+      setConfirmedFarmerCode(target.member_farmer_mf_code)
     }
-  }, [target])
+  }
 
   const { data: farmerResults = [], isFetching: isFarmerSearching } = useQuery({
     queryKey: ["farmers", debouncedFarmerQuery],

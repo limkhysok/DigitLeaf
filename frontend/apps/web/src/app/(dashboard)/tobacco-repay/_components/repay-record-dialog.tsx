@@ -411,6 +411,7 @@ export function RepayRecordDialog({
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["repay-record-vendor-contracts"] })
       queryClient.invalidateQueries({ queryKey: ["vendorContracts"] })
+      queryClient.invalidateQueries({ queryKey: ["contract-repay-detail"] })
       handleClose()
     },
     onError: (err: Error) => {
@@ -433,6 +434,7 @@ export function RepayRecordDialog({
       queryClient.invalidateQueries({ queryKey: ["repay-detail", repayId] })
       queryClient.invalidateQueries({ queryKey: ["repay-record-vendor-contracts"] })
       queryClient.invalidateQueries({ queryKey: ["vendorContracts"] })
+      queryClient.invalidateQueries({ queryKey: ["contract-repay-detail"] })
       handleClose()
     },
     onError: (err: Error) => {

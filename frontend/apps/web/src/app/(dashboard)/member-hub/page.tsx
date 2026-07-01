@@ -57,11 +57,12 @@ export default function MemberHubPage() {
   const [searchInput, setSearchInput] = React.useState("")
   const [search] = useDebounce(searchInput, 300)
 
-  const { data: members, isLoading } = useQuery({
+  const { data: membersData, isLoading } = useQuery({
     queryKey: ["members"],
-    queryFn: () => apiClient.listUsers(tokens!.access_token),
+    queryFn: () => apiClient.listUsers(tokens!.access_token, { limit: 200 }),
     enabled: !!tokens?.access_token && !isAuthLoading && canManageMembers,
   })
+  const members = membersData?.items
 
   const { data: regions } = useQuery({
     queryKey: ["regions"],

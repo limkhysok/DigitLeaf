@@ -52,7 +52,14 @@ export function SetRegionsDialog({ open, onOpenChange, member, regions }: Readon
   }
 
   function toggleAllRegions(checked: boolean) {
-    setSelectedIds(checked ? new Set(regions.map((r) => r.reg_id)) : new Set())
+    setSelectedIds((prev) => {
+      const visibleIds = new Set(regions.map((r) => r.reg_id))
+      // Preserve any regions the member has that aren't in this admin's assignable list —
+      // "select/deselect all" should only affect the regions actually shown here.
+      const next = new Set([...prev].filter((id) => !visibleIds.has(id)))
+      if (checked) regions.forEach((r) => next.add(r.reg_id))
+      return next
+    })
   }
 
   const isAllSelected = regions.length > 0 && regions.every((r) => selectedIds.has(r.reg_id))

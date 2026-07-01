@@ -89,6 +89,7 @@ export function TobaccoRepayHistory({
       toast.success(hist.toastDeleteSuccess)
       queryClient.invalidateQueries({ queryKey: ["tobacco-repay-history", selectedYear] })
       queryClient.invalidateQueries({ queryKey: ["tobacco-repays", selectedYear] })
+      queryClient.invalidateQueries({ queryKey: ["contract-repay-detail"] })
       setDeleteId(null)
     },
     onError: (err: Error) => {

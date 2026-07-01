@@ -98,20 +98,24 @@ export default function SackRegistrationPage() {
     queryClient.resetQueries({ queryKey: ["sack-registrations"] })
   }
 
-  const handleView = (rec: SackRegistrationItem, no: number) => {
+  const handleView = React.useCallback((rec: SackRegistrationItem, no: number) => {
     setViewTarget(rec)
     setViewTargetNo(no)
-  }
+  }, [])
 
-  const columns = getColumns({
+  const handleDelete = React.useCallback((rec: SackRegistrationItem, index: number) => {
+    setDeleteTarget({ id: rec.id, no: index })
+  }, [])
+
+  const columns = React.useMemo(() => getColumns({
     t,
     localizeNumber,
     localizeDateString,
     total,
     onView: handleView,
     onEdit: setEditTarget,
-    onDelete: (rec, index) => setDeleteTarget({ id: rec.id, no: index })
-  })
+    onDelete: handleDelete,
+  }), [t, localizeNumber, localizeDateString, total, handleView, handleDelete])
 
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})

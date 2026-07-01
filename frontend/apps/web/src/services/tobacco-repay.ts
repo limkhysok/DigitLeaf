@@ -1,6 +1,5 @@
 import { TobaccoRepayListResponse, VendorContractItem, TContractCreate, TContractRead, ConTobaccoItem, RepayHistoryDetail, TContractRepayUpdate, TobaccoRepayContractDetail } from "../types";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api/v1";
+import { API_BASE_URL } from "./config";
 
 export const tobaccoRepayApi = {
   getTobaccoRepays: async (
@@ -12,7 +11,7 @@ export const tobaccoRepayApi = {
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.year) query.set("year", params.year);
     if (params.search) query.set("search", params.search);
-    const res = await fetch(`${BASE_URL}/tobacco-repays/?${query}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -30,7 +29,7 @@ export const tobaccoRepayApi = {
     if (params.limit !== undefined) query.set("limit", String(params.limit));
     if (params.year) query.set("year", params.year);
     if (params.search) query.set("search", params.search);
-    const res = await fetch(`${BASE_URL}/tobacco-repays/history?${query}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/history?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -45,7 +44,7 @@ export const tobaccoRepayApi = {
   ): Promise<Blob> => {
     const query = new URLSearchParams({ date_from: params.dateFrom, date_to: params.dateTo });
     if (params.representativeId) query.set("representative_id", String(params.representativeId));
-    const res = await fetch(`${BASE_URL}/tobacco-repays/history/export?${query}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/history/export?${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -55,7 +54,7 @@ export const tobaccoRepayApi = {
     return res.blob();
   },
   getAvailableYears: async (token: string): Promise<string[]> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/years`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/years`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -67,7 +66,7 @@ export const tobaccoRepayApi = {
     return data.map(String);
   },
   createTobaccoRepay: async (token: string, payload: { con_id: number; con_num: string; f_id: number; repay_num?: string; repay_date: string; qty_repay: number; note?: string; oven?: number }): Promise<unknown> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -82,14 +81,14 @@ export const tobaccoRepayApi = {
     return res.json();
   },
   getNextRepayNum: async (token: string): Promise<string> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/next-repay-num`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/next-repay-num`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return "";
     return res.json();
   },
   getVendorContracts: async (token: string, vendorId: number): Promise<VendorContractItem[]> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/contracts?vendor_id=${vendorId}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/contracts?vendor_id=${vendorId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -100,21 +99,21 @@ export const tobaccoRepayApi = {
     return res.json();
   },
   getNextContractNum: async (token: string): Promise<string> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/next-contract-num`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/next-contract-num`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return "";
     return res.json();
   },
   getContractTobaccoTypes: async (token: string): Promise<ConTobaccoItem[]> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/tobacco-types`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/tobacco-types`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return [];
     return res.json();
   },
   createContract: async (token: string, payload: TContractCreate): Promise<TContractRead> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/contracts`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/contracts`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -129,7 +128,7 @@ export const tobaccoRepayApi = {
     return res.json();
   },
   getContractRepayDetail: async (token: string, conId: number): Promise<TobaccoRepayContractDetail> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/contracts/${conId}/detail`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/contracts/${conId}/detail`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -139,7 +138,7 @@ export const tobaccoRepayApi = {
     return res.json();
   },
   getRepayDetail: async (token: string, repayId: number): Promise<RepayHistoryDetail> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/${repayId}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/${repayId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -149,7 +148,7 @@ export const tobaccoRepayApi = {
     return res.json();
   },
   updateTobaccoRepay: async (token: string, repayId: number, payload: TContractRepayUpdate): Promise<unknown> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/${repayId}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/${repayId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -164,7 +163,7 @@ export const tobaccoRepayApi = {
     return res.json();
   },
   deleteTobaccoRepay: async (token: string, repayId: number): Promise<void> => {
-    const res = await fetch(`${BASE_URL}/tobacco-repays/${repayId}`, {
+    const res = await fetch(`${API_BASE_URL}/tobacco-repays/${repayId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

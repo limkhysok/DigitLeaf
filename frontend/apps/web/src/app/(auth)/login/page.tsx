@@ -29,6 +29,18 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, authLoading, router])
 
+  // Safety net: if login "succeeds" but the redirect never fires (e.g. isAuthenticated
+  // never flips due to a race), recover instead of leaving the Sign In button stuck disabled.
+  useEffect(() => {
+    if (!isSuccess) return
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+      setIsSuccess(false)
+      setErrorMsg("Something went wrong redirecting you. Please try again.")
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [isSuccess])
+
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     if (!username || !password) {

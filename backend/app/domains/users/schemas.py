@@ -35,6 +35,12 @@ class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserListResponse(BaseModel):
+    items: list[UserPublic]
+    total: int
+    has_more: bool
+
+
 class UserRegionsUpdate(BaseModel):
     regions: list[int] = Field(default_factory=list)
 

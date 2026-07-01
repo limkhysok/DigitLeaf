@@ -9,6 +9,12 @@ export interface UserProfile {
   role_name: string | null;
 }
 
+export interface UserListResponse {
+  items: UserProfile[];
+  total: number;
+  has_more: boolean;
+}
+
 export interface UserCreate {
   user_name: string;
   password: string;

@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Optional
-from sqlalchemy import delete
+from sqlalchemy import delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from app.domains.users.models import User
@@ -19,9 +19,13 @@ async def get_user_by_id(session: AsyncSession, user_id: int) -> Optional[User]:
     return result.scalars().first()
 
 
-async def list_users(session: AsyncSession) -> list[User]:
-    result = await session.execute(select(User).order_by(User.user_name))
-    return list(result.scalars().all())
+async def list_users(session: AsyncSession, skip: int = 0, limit: int | None = None) -> tuple[list[User], int]:
+    total = (await session.scalar(select(func.count()).select_from(User))) or 0
+    query = select(User).order_by(User.user_name).offset(skip)
+    if limit is not None:
+        query = query.limit(limit)
+    result = await session.execute(query)
+    return list(result.scalars().all()), total
 
 
 async def list_roles(session: AsyncSession) -> list[Role]:

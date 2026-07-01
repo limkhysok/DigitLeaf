@@ -13,7 +13,7 @@ export interface FarmerContractCardProps {
   readonly index: number
 }
 
-export function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
+export const FarmerContractCard = React.memo(function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
   const { t } = useLanguage()
 
   const isOverYield =
@@ -128,4 +128,4 @@ export function FarmerContractCard({ rec, index }: FarmerContractCardProps) {
       </CardContent>
     </Card>
   )
-}
+})
