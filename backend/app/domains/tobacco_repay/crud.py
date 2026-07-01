@@ -1,6 +1,7 @@
 from typing import Any, cast
 from datetime import date, datetime
 from sqlalchemy import Select, cast as sa_cast, Integer
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, func, col
 from .models.con_tobacco import ConTobacco
@@ -33,6 +34,9 @@ async def generate_repay_num(db: AsyncSession) -> str:
 
 
 async def generate_contract_num(db: AsyncSession) -> str:
+    # FOR UPDATE locks the last-contract row so concurrent contract creations
+    # serialize on this read instead of racing (same pattern as
+    # generate_invoice_num/generate_repay_num).
     today_str = datetime.now(CAMBODIA_TZ).strftime("%d%m%y")
     prefix = f"{today_str}-"
 
@@ -40,6 +44,7 @@ async def generate_contract_num(db: AsyncSession) -> str:
         select(TContract.con_num)
         .order_by(col(TContract.con_id).desc())
         .limit(1)
+        .with_for_update()
     )
     last_num = await db.scalar(statement)
 
@@ -519,7 +524,15 @@ async def create_contract(
         ip_address=ip_address,
     )
     db.add(db_obj)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Two requests raced past the pre-check above and both tried to insert
+        # the same con_num; the unique index on t_contract.con_num is what
+        # actually stops the duplicate here, so surface it the same way as
+        # the pre-check instead of letting the raw DB error bubble up.
+        await db.rollback()
+        raise ValueError(f"Contract number '{con_num}' already exists")
     await db.refresh(db_obj)
     return db_obj
 
