@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.v1.router import api_router
 from app.core.config import settings
 from sqladmin import Admin
-from app.db.session import engine, init_db
+from app.db.session import engine
 
 # Core models for mapping to prevent relationship resolution errors
 from app.domains.rbac.models import Role, Permission, RolePermissionLink, UserRoleLink
@@ -35,8 +35,7 @@ logger.add(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
-    logger.info("DigitLeaf API has successfully started and database initialized!")
+    logger.info("DigitLeaf API has successfully started!")
     yield
     await engine.dispose()
     logger.info("DigitLeaf API has shut down.")
