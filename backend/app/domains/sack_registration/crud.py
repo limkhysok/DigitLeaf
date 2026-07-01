@@ -435,6 +435,7 @@ async def delete(
     page_name: str = "sack_registration",
 ) -> None:
     summary = f"Sack {record.id}, {record.sack_in_kg}kg"
+    await session.delete(record)
     await audit_crud.log_delete(
         session,
         page_name=page_name,
@@ -442,6 +443,6 @@ async def delete(
         summary=summary,
         user_name=current_user_name,
         ip_address=ip_address,
+        commit=False,
     )
-    await session.delete(record)
     await session.commit()

@@ -658,6 +658,7 @@ async def delete_purchase(
     if not db_obj:
         return False
     summary = f"Invoice {db_obj.invoice_num}, total {db_obj.grand_total}"
+    await db.delete(db_obj)
     await audit_crud.log_delete(
         db,
         page_name=page_name,
@@ -665,8 +666,8 @@ async def delete_purchase(
         summary=summary,
         user_name=user_name,
         ip_address=ip_address,
+        commit=False,
     )
-    await db.delete(db_obj)
     await db.commit()
     return True
 
@@ -775,6 +776,11 @@ async def delete_purchase_detail(
     summary = _format_detail_row({
         "tobacco_name": db_detail.tobacco_name, "qty": db_detail.qty, "price": db_detail.price,
     })
+    await db.delete(db_detail)
+    await db.flush()
+
+    db_parent.total_net_weight, db_parent.grand_total = await _recompute_purchase_totals(db, db_parent.tp_id)
+    db.add(db_parent)
     await audit_crud.log_delete(
         db,
         page_name=page_name,
@@ -782,13 +788,8 @@ async def delete_purchase_detail(
         summary=summary,
         user_name=user_name,
         ip_address=ip_address,
+        commit=False,
     )
-
-    await db.delete(db_detail)
-    await db.flush()
-
-    db_parent.total_net_weight, db_parent.grand_total = await _recompute_purchase_totals(db, db_parent.tp_id)
-    db.add(db_parent)
     await db.commit()
 
     purchase = await get_purchase(db, db_parent.tp_id)

@@ -426,6 +426,7 @@ async def delete_repay(
     if not db_obj:
         return False
     summary = f"Repay {db_obj.repay_num}, qty {db_obj.qty_repay}kg"
+    await db.delete(db_obj)
     await audit_crud.log_delete(
         db,
         page_name=page_name,
@@ -433,8 +434,8 @@ async def delete_repay(
         summary=summary,
         user_name=user_name,
         ip_address=ip_address,
+        commit=False,
     )
-    await db.delete(db_obj)
     await db.commit()
     return True
 

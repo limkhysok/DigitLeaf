@@ -74,6 +74,7 @@ async def log_delete(
     summary: str,
     user_name: str,
     ip_address: str | None,
+    commit: bool = True,
 ) -> None:
     await create_audit_log(
         session=session,
@@ -84,4 +85,5 @@ async def log_delete(
         field_type=f"Deleted (ID:{record_id})",
         old_value=summary,
         new_value="",
+        commit=commit,
     )
